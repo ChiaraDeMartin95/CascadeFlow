@@ -16,15 +16,15 @@ args = parser.parse_args()
 print("is Omega: ", args.isOmega)
 isXi = not args.isOmega
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train170556.root"
-FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_Train170500.root"
-bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_')
-sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_')
+FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"#170556.root"
+FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_Train181283.root"#176512.root"
+bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*')
+sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
 
-bkgCandidates.get_subset('', 0.1)
-sigCandidates.get_subset('', 0.1)
+#bkgCandidates.get_subset('', 0.1)
+#sigCandidates.get_subset('', 0.1)
 
-preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 33 and fV0Radius < 35 and abs(fDCABachToPV) < 20 and fV0CosPA > 0'
+preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 33 and fV0Radius < 35 and abs(fDCABachToPV) < 20 and fV0CosPA > 0.9'
 
 preselection_string_sig = 'abs(fMcPdgCode) == 3312'
 preselection_string_mass = 'fMassXi > 1.28 and fMassXi < 1.36'
@@ -45,7 +45,15 @@ plot_utils.plot_distr([bkgCandidates, sigCandidates], vars_to_draw, bins=100, la
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
 plt.savefig("Distributions.png")
 
-vars_to_draw_bis = ['fPt', 'fMassXi', 'fMassOmega', 
+vars_to_draw_mass = ['fMassXi']
+if not isXi: 
+    vars_to_draw_mass = ['fMassOmega']
+plot_utils.plot_distr([bkgCandidates, sigCandidates], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
+plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
+plt.savefig("MassXi.png")
+
+#'fPt','fMassXi', 'fMassOmega',
+vars_to_draw_bis = [
                 'fCascRadius', 'fV0Radius', 'fCascCosPA', 
                 'fV0CosPA', 'fDCAPosToPV', 'fDCANegToPV', 
                 'fDCABachToPV', 'fDCACascDaughters', 'fDCAV0Daughters', 
@@ -63,6 +71,11 @@ minpt = 0.6
 if not isXi: 
     minpt = 0.8
 ptbin = [minpt, 1, 2, 3, 4, 5, 10]
+
+if isXi:
+    Cascade_string = 'Xi'
+else:
+    Cascade_string = 'Omega'
 
 for pt in ptbin:
     if pt == 10: break
@@ -91,7 +104,7 @@ for pt in ptbin:
     #optimization of the parameters
     hyper_pars_ranges = {'n_estimators': (200, 1000), 'max_depth': (
         2, 4), 'learning_rate': (0.01, 0.1)}
-    #model_hdl.optimize_params_optuna(train_test_data, hyper_pars_ranges, cross_val_scoring='roc_auc', timeout=120,
+    model_hdl.optimize_params_optuna(train_test_data, hyper_pars_ranges, cross_val_scoring='roc_auc', timeout=120,
                                     # n_jobs=-1, n_trials=100, direction='maximize')
     
     #training of the model
@@ -137,4 +150,4 @@ for pt in ptbin:
     #convert model in ONNX
     model_converter = H4MLConverter(model_hdl) # create the converter object
     model_onnx = model_converter.convert_model_onnx(1, len(features_for_train))
-    model_converter.dump_model_onnx("model_onnx" + str(pt) +".onnx") # dump the model in ONNX format
+    model_converter.dump_model_onnx("model_onnx"+ Cascade_string + "_" + str(pt) +".onnx") # dump the model in ONNX format
