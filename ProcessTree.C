@@ -15,65 +15,12 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-#include "TSpline.h"
+#include "StyleFile.h"
+#include "CommonVar.h"
 
-void StyleHisto(TH1D &histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString titleX, TString titleY, TString title, Bool_t XRange,
-                Float_t XLow, Float_t XUp, Float_t xOffset, Float_t yOffset, Float_t mSize)
-{
-  histo.GetYaxis()->SetRangeUser(Low, Up);
-  if (XRange)
-    histo.GetXaxis()->SetRangeUser(XLow, XUp);
-  histo.SetLineColor(color);
-  histo.SetMarkerColor(color);
-  histo.SetMarkerStyle(style);
-  histo.SetMarkerSize(mSize);
-  histo.GetXaxis()->SetTitle(titleX);
-  histo.GetXaxis()->SetLabelSize(0.05);
-  histo.GetXaxis()->SetTitleSize(0.05);
-  histo.GetXaxis()->SetTitleOffset(xOffset);
-  histo.GetYaxis()->SetTitle(titleY);
-  histo.GetYaxis()->SetTitleSize(0.05);
-  histo.GetYaxis()->SetLabelSize(0.05);
-  histo.GetYaxis()->SetTitleOffset(yOffset);
-  histo.SetTitle(title);
-}
-
-void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
-{
-  canvas->SetFillColor(0);
-  canvas->SetTickx(1);
-  canvas->SetTicky(1);
-  canvas->SetLeftMargin(LMargin);
-  canvas->SetRightMargin(RMargin);
-  canvas->SetTopMargin(TMargin);
-  canvas->SetBottomMargin(BMargin);
-  gStyle->SetOptStat(0);
-  gStyle->SetLegendBorderSize(0);
-  gStyle->SetLegendFillColor(0);
-  gStyle->SetLegendFont(42);
-  // gStyle->SetPalette(55, 0);
-}
-
-void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
-{
-  pad->SetFillColor(0);
-  pad->SetTickx(1);
-  pad->SetTicky(1);
-  pad->SetLeftMargin(LMargin);
-  pad->SetRightMargin(RMargin);
-  pad->SetTopMargin(TMargin);
-  pad->SetBottomMargin(BMargin);
-}
-
-const Int_t numPart = 7;
-const Int_t numChoice = 5; // mean, sigma, purity, yield, efficiency for MC
-const Int_t numCent = 3;//10;
-Int_t CentFT0C[numCent + 1] = {10, 30, 50, 90};
-//Int_t CentFT0C[numCent + 1] = {0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90};
-Float_t ParticleMassPDG[numPart] = {0.497611, 1.115683, 1.115683, 1.32171, 1.32171, 1.67245, 1.67245};
 using namespace ROOT;
 
-void ProcessTree(Bool_t isXi = 1, TString inputFileName = "16March_New")
+void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName)
 {
   TString TreeName = "O2cascanalysis";
 
@@ -99,7 +46,7 @@ void ProcessTree(Bool_t isXi = 1, TString inputFileName = "16March_New")
     BDT_response = d2.Histo1D({"BDT_response", "BDT response", 100, 0, 1}, "fBDTResponseOmega");
 
   // invariant mass histograms
-  auto mass_Xi = d2.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
+  auto mass_Xi = d2.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
   auto mass_Omega = d2.Histo1D({"mass_Omega", "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
 
   // 3D histograms
