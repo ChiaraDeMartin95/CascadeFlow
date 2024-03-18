@@ -30,6 +30,7 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
   TH2F *hmassVsV2C[numCent][numPtBins];
   TH1F *hmass[numCent][numPtBins];
   TH1F *hV2C[numCent][numPtBins];
+  TProfile *pV2C[numCent][numPtBins];
   TString hName = "";
   TString hNameMass = "";
   TString hNameV2C = "";
@@ -44,16 +45,22 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
       hNameMass = Form("mass_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameV2C = Form("V2C_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameMassV2C = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
-      // hmassVsPtVsV2C[cent]->GetXaxis()->SetRangeUser(1.28, 1.36);
+
       hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt], PtBins[pt + 1]);
+
       hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xz");
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C);
+
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("x");
       hmass[cent][pt]->SetName(hNameMass);
+
       hV2C[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameV2C);
+      
+      pV2C[cent][pt] = hmassVsV2C[cent][pt]->ProfileY();
+
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
-        // hV2C[cent]->SetBinContent(bin, hmassVsV2C[cent]->GetXaxis()->GetMean());
+        hV2C[cent][pt]->SetBinContent(bin+1, hmassVsV2C[cent][pt]->ProjectionX("", bin+1, bin+2)->GetMean());
       }
     }
   }
@@ -66,6 +73,7 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
       hmass[cent][pt]->Write();
       hV2C[cent][pt]->Write();
       hmassVsV2C[cent][pt]->Write();
+      pV2C[cent][pt]->Write();
     }
     hmassVsPtVsV2C[cent]->Write();
     hmassVsPt[cent]->Write();
