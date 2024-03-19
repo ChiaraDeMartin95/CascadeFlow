@@ -27,9 +27,11 @@ preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 3
 
 preselection_string_sig = 'abs(fMcPdgCode) == 3312'
 preselection_string_mass = 'fMassXi > 1.28 and fMassXi < 1.36'
+preselection_sidebands = 'fMassXi > 1.305 and fMassXi < 1.31 or fMassXi > 1.332 and fMassXi < 1.338'
 if not isXi:
     preselection_string_sig = 'abs(fMcPdgCode) == 3334'
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
+    preselection_sidebands = 'fMassOmega > 1.656 and fMassOmega < 1.662 or fMassOmega > 1.683 and fMassOmega < 1.686'
     
 #competing mass rejection
 sigCandidates.apply_preselections(preselection_string_sig)
@@ -37,6 +39,7 @@ sigCandidates.apply_preselections(preselection_string_common)
 bkgCandidates.apply_preselections(preselection_string_common)
 bkgCandidates.apply_preselections(preselection_string_mass)
 sigCandidates.apply_preselections(preselection_string_mass)
+bkgCandidates.apply_preselections(preselection_sidebands)
 
 vars_to_draw = sigCandidates.get_var_names()
 features_for_train = vars_to_draw.copy()
@@ -54,7 +57,10 @@ features_for_train.remove('fMultFT0M')
 print('Number of signal candidates: ', sigCandidates.get_n_cand())
 print('Number of background candidates: ', bkgCandidates.get_n_cand())
 print('Ratio of signal to background: ', sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
-bkgCandidatesRed = bkgCandidates.get_subset('', sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
+if (10*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand() < 1): 
+    bkgCandidatesRed = bkgCandidates.get_subset('', 10*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
+else:
+    bkgCandidatesRed = bkgCandidates.get_subset('', 1)
 print('Number of signal candidates (after): ', sigCandidates.get_n_cand())
 print('Number of background candidates (after): ', bkgCandidatesRed.get_n_cand())
 
@@ -84,12 +90,13 @@ plot_utils.plot_corr([bkgCandidatesRed, sigCandidates], vars_to_draw, leg_labels
 plt.savefig("TrainingPlots/Correlations.png")
 #plt.show()
 
-npt = 5
+npt = 3
 minpt = 0.6
 if not isXi: 
     minpt = 0.8
-ptbin = [minpt, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0]
-x = slice(1, 7)
+#ptbin = [minpt, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0]
+ptbin = [minpt, 1.0, 2.0, 3.0, 10.0]
+x = slice(1, npt+2)
 ptbinMax = ptbin[x] 
 nsig = [0, 0, 0, 0, 0, 0, 0]
 nbkg = [0, 0, 0, 0, 0, 0, 0]
@@ -116,7 +123,10 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     print('Number of signal candidates: ', sigCandidatesNew.get_n_cand())
     print('Number of background candidates: ', bkgCandidatesPtSel.get_n_cand())
     print('Ratio of signal to background: ', sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
-    bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
+    if (10*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand() < 1): 
+        bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', 10*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
+    else: 
+        bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', 1)
     print('Number of signal candidates (after): ', sigCandidatesNew.get_n_cand())
     print('Number of background candidates (after): ', bkgCandidatesNew.get_n_cand())
 
@@ -124,6 +134,7 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     nbkg = bkgCandidatesNew.get_n_cand()
     print('nsig: ', nsig)
     print('nbkg: ', nbkg)
+    #here I associate the signal and background candidates to the label 1 and 0, respectively
     train_test_data = train_test_generator([sigCandidatesNew, bkgCandidatesNew], [1,0], test_size=0.5, random_state=42)
 
     #Draw input features in pt intervals
@@ -132,11 +143,16 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     plt.savefig("TrainingPlots/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     #Draw all features in pt intervals
+    #label 0 is for background and 1 for signal
     leg_labels = ['background', 'signal']
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig("TrainingPlots/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
+    plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
+    plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
+    plt.savefig("TrainingPlots/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+
     model_clf = xgb.XGBClassifier()
     model_hdl = ModelHandler(model_clf, features_for_train)
     
