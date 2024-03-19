@@ -129,13 +129,13 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     #Draw input features in pt intervals
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig("TrainingPlots/DistributionsInputOnly_" + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig("TrainingPlots/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     #Draw all features in pt intervals
     leg_labels = ['background', 'signal']
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig("TrainingPlots/Distributions_" + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig("TrainingPlots/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     model_clf = xgb.XGBClassifier()
     model_hdl = ModelHandler(model_clf, features_for_train)
@@ -156,17 +156,17 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     ml_out_fig = plot_utils.plot_output_train_test(model_hdl, train_test_data, 100, 
                                                    False, leg_labels, True, density=True)
     
-    plt.savefig("TrainingPlots/BDTScore" + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig("TrainingPlots/BDTScore" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #ROC curve
     roc_train_test_fig = plot_utils.plot_roc_train_test(train_test_data[3], y_pred_test,
                                                         train_test_data[1], y_pred_train, None, leg_labels)
     
-    plt.savefig("TrainingPlots/ROC" + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig("TrainingPlots/ROC" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #feature importance
     plot_utils.plot_feature_imp(train_test_data[2], train_test_data[3], model_hdl) 
-    plt.savefig("TrainingPlots/FeatureImportance" + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig("TrainingPlots/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #dataCandidates.apply_model_handler(model_hdl, False)
     #selected_data_hndl = dataCandidates.get_subset('model_output>0.7')
@@ -182,8 +182,8 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     #plt.savefig("InvMassBkgXi" + str(pt) +".png")
     
     #store the trained model
-    model_hdl.dump_model_handler("ModelHandler/ModelHandler_" + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
-    model_hdl.dump_original_model("ModelHandler/XGBoostModel_" + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_model_handler("ModelHandler/ModelHandler_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_original_model("ModelHandler/XGBoostModel_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
     
     #convert model in ONNX
     model_converter = H4MLConverter(model_hdl) # create the converter object
