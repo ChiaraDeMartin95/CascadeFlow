@@ -1,0 +1,142 @@
+{
+    "internal-dpl-clock": "",
+    "internal-dpl-aod-reader": {
+        "aod-file-old": "/data/dataalice/cdemart/O2/AO2DDerivedStrangeness/AO2D_StrangenessDerived.root",
+        "aod-file-data-old": "/data/dataalice/cdemart/O2/AO2DDerivedStrangeness/AO2D_train153983_2.root",
+        "aod-file-data-qvec": "/data/dataalice/cdemart/O2/AO2DDerivedStrangeness/AO2D_train178978_qvec.root",
+        "aod-file": "/data/dataalice/cdemart/O2/AO2DDerivedStrangeness/AO2D_train181100_Bis.root",
+        "aod-file-mc-old": "/data/dataalice/cdemart/O2/AO2DDerivedStrangeness/AO2D_MC_StrangenessDerived_1.root",
+        "time-limit": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "lf-cascade-flow":{
+	"processTrainingBackground": "0",	
+	"processTrainingSignal": "0",
+	"processAnalyseData": "1",
+	"sideBandStart": "7",
+	"sideBandEnd": "10",
+	"isApplyML": "1",
+	"loadModelsFromCCDB": "1",
+	"MinPt": "0.6",
+	"MaxPt": "4",
+	"modelPathsCCDBXi": {
+            "values": [
+                "Users/c/chdemart/NewXiFlow_06_1",
+                "Users/c/chdemart/NewXiFlow_1_2",
+                "Users/c/chdemart/NewXiFlow_2_3",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10"
+            ]
+	},
+	"modelPathsCCDBOmega": {
+            "values": [
+                "Users/c/chdemart/NewXiFlow_06_1",
+                "Users/c/chdemart/NewXiFlow_1_2",
+                "Users/c/chdemart/NewXiFlow_2_3",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10",
+                "Users/c/chdemart/NewXiFlow_3_10"
+            ]
+	},
+	"onnxFileNamesXi":{
+	    "values":[
+		"model_onnx_Xi_0.6_1.0.onnx",
+		"model_onnx_Xi_1.0_2.0.onnx",
+		"model_onnx_Xi_2.0_3.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx"
+	    ]
+	},
+	"onnxFileNamesOmega":{
+	    "values":[
+		"model_onnx_Xi_0.6_1.0.onnx",
+		"model_onnx_Xi_1.0_2.0.onnx",
+		"model_onnx_Xi_2.0_3.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx",
+		"model_onnx_Xi_3.0_10.0.onnx"
+	    ]
+	},
+	"binsPtMl": {
+            "values": [
+                "0.59999999999999998",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "8",
+                "10"
+            ]
+        },
+	"cutDirMl": {
+            "values": [
+                "2",
+                "1"
+            ]
+	},
+	"cutsMl": {
+            "labels_rows": [
+                "pT bin 0",
+                "pT bin 1",
+                "pT bin 2",
+                "pT bin 3",
+                "pT bin 4",
+                "pT bin 5",
+                "pT bin 6",
+                "pT bin 7"
+            ],
+            "labels_cols": [
+                "score class 1",
+                "score class 2"
+            ],
+	    "values": [
+		[
+                    "0.",
+                    "0.9"
+                ],
+                [
+                    "0.",
+                    "0.9"
+                ],
+                [
+                    "0.",
+                    "0.9"
+                ],
+		[
+                    "0.",
+                    "0.9"
+                ],
+                [
+                    "0.",
+                    "0.9"
+                ],
+                [
+                    "0.",
+                    "0.9"
+                ],
+		[
+                    "0.",
+                    "0.9"
+                ],
+                [
+                    "0.",
+                    "0.9"
+                ]
+            ]
+        }
+    }
+}
