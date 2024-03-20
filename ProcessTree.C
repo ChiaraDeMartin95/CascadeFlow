@@ -36,8 +36,11 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   auto BDT_response_Bef = d1.Histo1D({"BDT_response_Bef", "BDT response", 100, 0, 1}, "fBDTResponseXi");
   if (!isXi)
     BDT_response_Bef = d1.Histo1D({"BDT_response_Bef", "BDT response", 100, 0, 1}, "fBDTResponseOmega");
+  auto mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.28, 1.36}, "fBDTResponseXi", "fMassXi");
+  if (!isXi)
+    mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.6, 1.73}, "fBDTResponseOmega", "fMassOmega");
   // apply BDT selection
-  auto d2 = d1.Filter("fBDTResponseXi < 0.98");
+  auto d2 = d1.Filter("fBDTResponseXi > 0.98");
   if (!isXi)
     d2 = d1.Filter("fBDTResponseOmega > 0.9");
 
@@ -90,6 +93,7 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   mass_Xi_Bef->Write();
   mass_Omega_Bef->Write();
   BDT_response_Bef->Write();
+  mass_vs_BDTResponse->Write();
   mass_Xi->Write();
   mass_Omega->Write();
   BDT_response->Write();
