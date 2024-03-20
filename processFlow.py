@@ -31,7 +31,7 @@ preselection_sidebands = 'fMassXi > 1.305 and fMassXi < 1.31 or fMassXi > 1.332 
 if not isXi:
     preselection_string_sig = 'abs(fMcPdgCode) == 3334'
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
-    preselection_sidebands = 'fMassOmega > 1.656 and fMassOmega < 1.662 or fMassOmega > 1.683 and fMassOmega < 1.686'
+    preselection_sidebands = 'fMassOmega > 1.656 and fMassOmega < 1.662 or fMassOmega > 1.683 and fMassOmega < 1.689'
     
 #competing mass rejection
 sigCandidates.apply_preselections(preselection_string_sig)
@@ -205,3 +205,10 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     model_converter = H4MLConverter(model_hdl) # create the converter object
     model_onnx = model_converter.convert_model_onnx(1, len(features_for_train))
     model_converter.dump_model_onnx("Onnx/model_onnx"+ Cascade_string + "_" + str(ptbin)+ "_" + str(ptbinMax)+".onnx") # dump the model in ONNX format
+
+    plt.close()
+
+plt.bar(ptbin,nbkg)
+plt.savefig("TrainingPlots/Nbkg"+ Cascade_string +".png")
+plt.bar(ptbin,nsig)
+plt.savefig("TrainingPlots/Nsig"+ Cascade_string +".png")
