@@ -909,6 +909,7 @@ void FitV2(
   canvasSummary->cd(5);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
+  histoV2->Scale(1. / ftcReso[mul]);
   histoV2->Draw();
 
   TString Soutputfile;
@@ -932,6 +933,7 @@ void FitV2(
   outputfile->WriteTObject(histoSigma);
   outputfile->WriteTObject(histoPurity);
   outputfile->WriteTObject(histoSignificance);
+  outputfile->WriteTObject(histoV2);
   outputfile->Close();
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;

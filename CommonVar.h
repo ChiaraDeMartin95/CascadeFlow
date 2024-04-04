@@ -8,6 +8,8 @@ Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245};
 TString ParticleName[numPart] = {"Xi", "Omega"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
 TString SIsBkgParab[3] = {"_BkgRetta", "_BkgParab", "_BkgPol3"};
+/// FT0C resolutions 0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501
+float ftcReso[7] = {0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501}; /// skipping the first as we start from 10%
 
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1; //Xi, put false for Omega
