@@ -63,11 +63,18 @@ struct v2fit
 {
   double operator()(double *x, double *par)
   {
-    float BkgFraction = bkgfraction->Eval(x[0]);
-    float SigFraction = 1 - BkgFraction;
+    int bin = bkgfraction.FindBin(x[0]);
+    float BkgFraction = bkgfraction.GetBinContent(bin);
+    float SigFraction = 1.f - BkgFraction;
     return par[0] * SigFraction + (par[1] + par[2] * x[0]) * BkgFraction;
   }
-  TF1 *bkgfraction;
+  void setBkgFraction(TF1* bkg, TF1* total, float min, float max)
+  {
+    bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 1600, min, max);
+    bkgfraction.Add(bkg);
+    bkgfraction.Divide(total);
+  }
+  TH1D bkgfraction;
 };
 // Double_t fitfunctionv2(Double_t *x, Double_t *par, TF1 *bkg, TH1F *htot)
 Double_t fitfunctionv2(Double_t *x, Double_t *par)
@@ -264,6 +271,7 @@ void FitV2(
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBins, PtBins);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBins, PtBins);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBins, PtBins);
+  TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
@@ -336,6 +344,7 @@ void FitV2(
   TF1 **totalbis = new TF1 *[numPtBins];
 
   v2fit v2fitarray[numPtBins];
+  TF1 **v2FitFunction = new TF1 *[numPtBins];
 
   Double_t parTwoGaussParab[numPtBins + 1][9];
   Double_t parTwoGaussPol3[numPtBins + 1][10];
@@ -457,9 +466,7 @@ void FitV2(
     bkgpol3[pt]->FixParameter(4, part);
 
     Bool_t UseTwoGaussUpdated = 1;
-    TString bkgname = "";
-    TString totname = "";
-    Int_t parnumber = 0;
+    TF1* totalFunction = nullptr, *bkgFunction = nullptr;
     if (UseTwoGauss)
     {
       cout << "\n\e[35mFit with two gauss \e[39m"
@@ -582,22 +589,19 @@ void FitV2(
       totalbis[pt]->FixParameter(4, 0);
       totalbis[pt]->FixParameter(5, 0);
 
-      totname = total[pt]->GetName();
-      parnumber = total[pt]->GetNpar();
+      totalFunction = total[pt];
       if (BkgType == 0)
       {
         bkg1[pt]->FixParameter(0, total[pt]->GetParameter(6));
         bkg1[pt]->FixParameter(1, total[pt]->GetParameter(7));
-        bkgname = bkg1[pt]->GetName();
-        parnumber += bkg1[pt]->GetNpar();
+        bkgFunction = bkg1[pt];
       }
       else if (BkgType == 1)
       {
         bkg2[pt]->FixParameter(0, total[pt]->GetParameter(6));
         bkg2[pt]->FixParameter(1, total[pt]->GetParameter(7));
         bkg2[pt]->FixParameter(2, total[pt]->GetParameter(8));
-        bkgname = bkg2[pt]->GetName();
-        parnumber += bkg2[pt]->GetNpar();
+        bkgFunction = bkg2[pt];
       }
       else
       {
@@ -605,8 +609,7 @@ void FitV2(
         bkg3[pt]->FixParameter(1, total[pt]->GetParameter(7));
         bkg3[pt]->FixParameter(2, total[pt]->GetParameter(8));
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(9));
-        bkgname = bkg3[pt]->GetName();
-        parnumber += bkg3[pt]->GetNpar();
+        bkgFunction = bkg3[pt];
       }
 
       if (UseTwoGaussUpdated)
@@ -675,8 +678,6 @@ void FitV2(
       functionsFirst[pt]->GetParameters(&parOneGaussParab[pt][0]);
       functionsFirst[pt]->GetParameters(&parOneGaussRetta[pt][0]);
 
-      totname = total[pt]->GetName();
-      parnumber = total[pt]->GetNpar();
       if (BkgType == 0)
       {
         bkgretta[pt]->GetParameters(&parOneGaussRetta[pt][3]);
@@ -729,20 +730,19 @@ void FitV2(
       totalbis[pt]->FixParameter(1, 0);
       totalbis[pt]->FixParameter(2, 0);
 
+      totalFunction = total[pt];
       if (BkgType == 0)
       {
         bkg1[pt]->FixParameter(0, total[pt]->GetParameter(3));
         bkg1[pt]->FixParameter(1, total[pt]->GetParameter(4));
-        parnumber += bkg1[pt]->GetNpar();
-        bkgname = bkg1[pt]->GetName();
+        bkgFunction = bkg1[pt];
       }
       else if (BkgType == 1)
       {
         bkg2[pt]->FixParameter(0, total[pt]->GetParameter(3));
         bkg2[pt]->FixParameter(1, total[pt]->GetParameter(4));
         bkg2[pt]->FixParameter(2, total[pt]->GetParameter(5));
-        parnumber += bkg2[pt]->GetNpar();
-        bkgname = bkg2[pt]->GetName();
+        bkgFunction = bkg2[pt];
       }
       else
       {
@@ -750,8 +750,7 @@ void FitV2(
         bkg3[pt]->FixParameter(1, total[pt]->GetParameter(4));
         bkg3[pt]->FixParameter(2, total[pt]->GetParameter(5));
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(6));
-        parnumber += bkg3[pt]->GetNpar();
-        bkgname = bkg3[pt]->GetName();
+        bkgFunction = bkg3[pt];
       }
       if (pt < 4)
         canvas[0]->cd(pt + 1);
@@ -868,9 +867,15 @@ void FitV2(
     histoSignificance->SetBinContent(pt + 1, Yield[pt] / ErrYield[pt]);
     histoSignificance->SetBinError(pt + 1, 0);
 
-    v2fitarray[pt].bkgfraction = new TF1(Form("bkgfraction%i", pt), Form("%s/%s", bkgname.Data(), totname.Data()), liminf[pt], limsup[pt], parnumber);
-    TF1* v2function = new TF1(Form("v2function%i", pt),v2fitarray[pt] , liminf[pt], limsup[pt], 3);
-    hV2[pt]->Fit(v2function, "RB0");
+    v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[part], limsup[part]);
+    v2FitFunction[pt] = new TF1(Form("v2function%i", pt),v2fitarray[pt] , liminf[part], limsup[part], 3);
+    if (pt < 4)
+      canvas[0]->cd(pt + 4 + 1);
+    else if (pt < 8)
+      canvas[1]->cd(pt + 4 + 1 - 4);
+    hV2[pt]->Fit(v2FitFunction[pt], "R");
+    histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
+    histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
   }
 
   TLegend *legendPt = new TLegend(0.5, 0.6, 0.9, 0.88);
@@ -900,6 +905,11 @@ void FitV2(
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titlePt, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
   histoYield->Draw("same");
+
+  canvasSummary->cd(5);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  histoV2->Draw();
 
   TString Soutputfile;
   Soutputfile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
