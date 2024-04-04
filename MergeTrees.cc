@@ -7,9 +7,10 @@
 
 // loop over AO2D directories and merge the trees into a single one
 
-void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::string inputFileName = "AnalysisResults_trees_16March", const std::string outputFileName = "", bool isMC = false)
+void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::string inputFileName = "AnalysisResults_trees_LHC23_PbPb_pass2_Train190305", const std::string outputFileName = "", bool isMC = false)
 {
     TString inputFileNameNew = folderName + "/" + inputFileName + ".root";
+    cout <<"Input file name: " << inputFileNameNew << endl;
     TFile inputFile(inputFileNameNew);
     TDirectory *dir = gDirectory;
     TList *keys = dir->GetListOfKeys();
@@ -42,6 +43,7 @@ void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::str
 
     //TString outputFileNameNew = folderName.c_str() + "/" + outputFileName.c_str()+ "_New.root";
     TString outputFileNameNew = folderName + "/" + inputFileName+ "_New.root";
+    cout <<"Output file name: " << outputFileNameNew << endl;
     TFile outputFile(outputFileNameNew, "RECREATE");
     if(outlist->GetSize() == 0){
         std::cerr << "Error: nothing was found" << std::endl;

@@ -1,21 +1,6 @@
 // This macro was originally written by:
 // chiara.de.martin@cern.ch
 
-#include "TStyle.h"
-#include "TFile.h"
-#include "TFitResult.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TH3F.h"
-#include "TCanvas.h"
-#include "TPad.h"
-#include "TF1.h"
-#include "TLatex.h"
-#include "TLine.h"
-#include "TRatioPlot.h"
-#include "TLegend.h"
-#include "TPad.h"
-
 void StyleHisto(TH1D &histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString titleX, TString titleY, TString title, Bool_t XRange,
                 Float_t XLow, Float_t XUp, Float_t xOffset, Float_t yOffset, Float_t mSize)
 {
