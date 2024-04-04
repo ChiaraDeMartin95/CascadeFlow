@@ -18,12 +18,11 @@
 #include "CommonVar.h"
 #include "StyleFile.h"
 
-using namespace ROOT;
-
-void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName)
+void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2)
 {
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + ".root";
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
+  cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
   TH2F *hmassVsPt[numCent];
@@ -50,9 +49,11 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
 
       hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xz");
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C);
+      hmassVsV2C[cent][pt]->RebinY(RebinFactor);
 
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("x");
       hmass[cent][pt]->SetName(hNameMass);
+      hmass[cent][pt]->Rebin(RebinFactor);
 
       hV2C[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameV2C);
       
@@ -61,11 +62,12 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
         hV2C[cent][pt]->SetBinContent(bin+1, hmassVsV2C[cent][pt]->ProjectionX("", bin+1, bin+2)->GetMean());
+        hV2C[cent][pt]->SetBinError(bin+1, hmassVsV2C[cent][pt]->ProjectionX("", bin+1, bin+2)->GetMeanError());
       }
     }
   }
 
-  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + ".root", "RECREATE");
+  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ".root", "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     for (Int_t pt = 0; pt < numPtBins; pt++)
