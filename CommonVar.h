@@ -1,17 +1,17 @@
 const Int_t numPart = 2;
 const Int_t numChoice = 5; // mean, sigma, purity, yield, efficiency for MC
 const Int_t numPtBins = 13; //8
-const Int_t numCent = 9;
+const Int_t numCent = 8;
 Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1};
 //Float_t PtBins[numPtBins + 1] = {0.6, 1.2, 1.6, 2, 2.5, 3, 3.5, 4, 5};
 Float_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5};
-Int_t CentFT0C[numCent + 1] = {0, 5, 10, 20, 30, 40, 50, 60, 70, 90};
+Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245};
 TString ParticleName[numPart] = {"Xi", "Omega"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
 TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
 /// FT0C resolutions 0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501
-float ftcReso[7] = {0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501}; /// skipping the first as we start from 10%
+float ftcReso[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501}; /// skipping the first as we start from 10%
 
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1; //Xi, put false for Omega
