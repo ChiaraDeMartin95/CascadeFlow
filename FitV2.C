@@ -189,10 +189,10 @@ Float_t histoMassRangeLow[numPart] = {1.29, 1.626}; // display range of mass his
 Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 
 void FitV2(
-    Bool_t isXi = ChosenParticleXi,
     Int_t mul = 0,
+    Bool_t isXi = ChosenParticleXi,
     Int_t BkgType = ExtrBkgType,
-    Bool_t isLogy=1,
+    Bool_t isLogy = 1,
     Int_t part = ExtrParticle,
     TString inputFileName = SinputFileName,
     Bool_t isYAxisMassZoomed = 0,
@@ -250,6 +250,8 @@ void FitV2(
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBins, PtBins);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBins, PtBins);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBins, PtBins);
+  TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBins, PtBins);
+  TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
   TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
@@ -267,7 +269,8 @@ void FitV2(
 
     StyleHisto(hInvMass[pt], 0, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), 1, 20, TitleInvMass[part] + " " + SInvMass, "Counts", SPt[pt] + " GeV/#it{c}", 1, histoMassRangeLow[part], histoMassRangeUp[part], 1.4, 1.6, 0.7);
 
-    hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    // hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt));
     if (!hV2[pt])
     {
       cout << "Histogram hV2 not available" << endl;
@@ -284,7 +287,8 @@ void FitV2(
       else
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.29)));
     }
-    if (isLogy){
+    if (isLogy)
+    {
       hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetNbinsX()));
       hInvMass[pt]->SetMaximum(1.2 * hInvMass[pt]->GetMaximum());
     }
@@ -927,6 +931,12 @@ void FitV2(
     histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
     histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
 
+    histoTot->SetBinContent(pt + 1, entries_range[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+    histoTot->SetBinError(pt + 1, sqrt(entries_range[pt]) / NEvents / histoYield->GetBinWidth(pt + 1));
+
+    histoB->SetBinContent(pt + 1, b[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+    histoB->SetBinError(pt + 1, errb[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+
     histoMean->SetBinContent(pt + 1, mean[pt]);
     histoMean->SetBinError(pt + 1, errmean[pt]);
 
@@ -981,8 +991,17 @@ void FitV2(
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titlePt, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
   histoYield->Draw("same");
-
   canvasSummary->cd(5);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
+  histoTot->Draw("same");
+  canvasSummary->cd(6);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
+  //histoB->Draw("same");
+  canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   histoV2->Scale(1. / ftcReso[mul]);
@@ -992,7 +1011,7 @@ void FitV2(
   Soutputfile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
-  Soutputfile += Form("_Cent%.i-%.i", CentFT0C[mul], CentFT0C[mul + 1]);
+  Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1007,6 +1026,8 @@ void FitV2(
     outputfile->WriteTObject(canvas[i]);
   }
   outputfile->WriteTObject(histoYield);
+  outputfile->WriteTObject(histoTot);
+  outputfile->WriteTObject(histoB);
   outputfile->WriteTObject(histoMean);
   outputfile->WriteTObject(histoSigma);
   outputfile->WriteTObject(histoPurity);
