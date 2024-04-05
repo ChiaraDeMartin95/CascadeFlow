@@ -58,6 +58,7 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
       hV2C[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameV2C);
       
       pV2C[cent][pt] = hmassVsV2C[cent][pt]->ProfileY();
+      pV2C[cent][pt]->SetName(hNameV2C + "_Profile");
 
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
