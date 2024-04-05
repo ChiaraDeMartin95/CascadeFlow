@@ -65,15 +65,15 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
 
   for (Int_t cent = 0; cent < numCent; cent++)
   {
-    auto dcent = d2.Filter(Form("fCentFT0C>%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
+    auto dcent = d2.Filter(Form("fCentFT0C>=%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
     if (isXi)
     {
-      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1, 1}, "fMassXi", "fPt", "fV2C");
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
       massVsPtVsV2C->Write();
     }
     else
     {
-      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1, 1}, "fMassOmega", "fPt", "fV2C");
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1., 1.}, "fMassOmega", "fPt", "fV2C");
       massVsPtVsV2C->Write();
     }
   }
