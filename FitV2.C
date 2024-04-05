@@ -141,7 +141,7 @@ Double_t fexpo(Double_t *x, Double_t *par)
     TF1::RejectPoint();
     return 0;
   }
-  //return par[0] + par[1] * exp(par[2] * x[0]);
+  // return par[0] + par[1] * exp(par[2] * x[0]);
   return par[0] * exp(par[1] * x[0]);
 }
 
@@ -192,6 +192,7 @@ void FitV2(
     Bool_t isXi = ChosenParticleXi,
     Int_t mul = 0,
     Int_t BkgType = ExtrBkgType,
+    Bool_t isLogy=1,
     Int_t part = ExtrParticle,
     TString inputFileName = SinputFileName,
     Bool_t isYAxisMassZoomed = 0,
@@ -235,8 +236,9 @@ void FitV2(
   TH1F *hInvMass[numPtBins];
   TH1F *hV2[numPtBins];
 
-  TCanvas *canvas[4];
-  for (Int_t c = 0; c < 2; c++)
+  Int_t numCanvas = 4;
+  TCanvas *canvas[numCanvas];
+  for (Int_t c = 0; c < numCanvas; c++)
   {
     canvas[c] = new TCanvas(Form("canvas_%i", c), Form("canvas%i", c), 1800, 1400);
     canvas[c]->Divide(4, 2);
@@ -252,7 +254,7 @@ void FitV2(
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
-    SPt[pt] = Form("%.1f < p_{T} < %.1f", PtBins[pt], PtBins[pt + 1]);
+    SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
     cout << PtBins[pt] << endl;
 
@@ -282,14 +284,24 @@ void FitV2(
       else
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.29)));
     }
+    if (isLogy){
+      hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetNbinsX()));
+      hInvMass[pt]->SetMaximum(1.2 * hInvMass[pt]->GetMaximum());
+    }
     if (pt < 4)
       canvas[0]->cd(pt + 1);
     else if (pt < 8)
       canvas[1]->cd(pt + 1 - 4);
+    else if (pt < 12)
+      canvas[2]->cd(pt + 1 - 8);
+    else if (pt < 16)
+      canvas[3]->cd(pt + 1 - 12);
     gPad->SetTopMargin(0.08);
     gPad->SetLeftMargin(0.15);
     gPad->SetRightMargin(0.1);
     gPad->SetBottomMargin(0.2);
+    if (isLogy)
+      gPad->SetLogy();
     // hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
     hInvMass[pt]->Draw("e same");
 
@@ -297,6 +309,10 @@ void FitV2(
       canvas[0]->cd(pt + 4 + 1);
     else if (pt < 8)
       canvas[1]->cd(pt + 4 + 1 - 4);
+    else if (pt < 12)
+      canvas[2]->cd(pt + 4 + 1 - 8);
+    else if (pt < 16)
+      canvas[3]->cd(pt + 4 + 1 - 12);
 
     gPad->SetTopMargin(0.08);
     gPad->SetLeftMargin(0.15);
@@ -389,6 +405,10 @@ void FitV2(
       canvas[0]->cd(pt + 1);
     else if (pt < 8)
       canvas[1]->cd(pt + 1 - 4);
+    else if (pt < 12)
+      canvas[2]->cd(pt + 1 - 8);
+    else if (pt < 16)
+      canvas[3]->cd(pt + 1 - 12);
 
     functionsFirst[pt] = new TF1(Form("1f_%i", pt), "gaus", min_range_signal[part], max_range_signal[part]);
     functionsFirst[pt]->SetLineColor(881);
@@ -619,7 +639,7 @@ void FitV2(
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(6));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(7));
-        //bkg4[pt]->FixParameter(2, total[pt]->GetParameter(8));
+        // bkg4[pt]->FixParameter(2, total[pt]->GetParameter(8));
         bkgFunction = bkg4[pt];
       }
 
@@ -630,6 +650,10 @@ void FitV2(
           canvas[0]->cd(pt + 1);
         else if (pt < 8)
           canvas[1]->cd(pt + 1 - 4);
+        else if (pt < 12)
+          canvas[2]->cd(pt + 1 - 8);
+        else if (pt < 16)
+          canvas[3]->cd(pt + 1 - 12);
 
         hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
         hInvMass[pt]->Draw("same e");
@@ -777,18 +801,22 @@ void FitV2(
         bkg3[pt]->FixParameter(2, total[pt]->GetParameter(5));
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(6));
         bkgFunction = bkg3[pt];
-      } 
+      }
       else if (BkgType == 3)
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(3));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(4));
-        //bkg4[pt]->FixParameter(2, total[pt]->GetParameter(5));
+        // bkg4[pt]->FixParameter(2, total[pt]->GetParameter(5));
         bkgFunction = bkg4[pt];
       }
       if (pt < 4)
         canvas[0]->cd(pt + 1);
       else if (pt < 8)
         canvas[1]->cd(pt + 1 - 4);
+      else if (pt < 12)
+        canvas[2]->cd(pt + 1 - 8);
+      else if (pt < 16)
+        canvas[3]->cd(pt + 1 - 12);
 
       hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
       hInvMass[pt]->Draw("same e");
@@ -817,10 +845,10 @@ void FitV2(
     lineBkgLimitB[pt]->SetLineColor(kViolet + 1);
     lineBkgLimitC[pt]->SetLineColor(kViolet + 1);
     lineBkgLimitD[pt]->SetLineColor(kViolet + 1);
-    //lineBkgLimitA[pt]->Draw("same");
-    //lineBkgLimitB[pt]->Draw("same");
-    //lineBkgLimitC[pt]->Draw("same");
-    //lineBkgLimitD[pt]->Draw("same");
+    // lineBkgLimitA[pt]->Draw("same");
+    // lineBkgLimitB[pt]->Draw("same");
+    // lineBkgLimitC[pt]->Draw("same");
+    // lineBkgLimitD[pt]->Draw("same");
 
     // linebkgFitLL->Draw("same");
     // linebkgFitRR->Draw("same");
@@ -837,6 +865,10 @@ void FitV2(
       canvas[0]->cd(pt + 1);
     else if (pt < 8)
       canvas[1]->cd(pt + 1 - 4);
+    else if (pt < 12)
+      canvas[2]->cd(pt + 1 - 8);
+    else if (pt < 16)
+      canvas[3]->cd(pt + 1 - 12);
 
     LowLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinLowEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] - sigmacentral * sigma[pt]));
     UpLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinUpEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] + sigmacentral * sigma[pt]));
@@ -865,7 +897,7 @@ void FitV2(
       b[pt] = bkg3[pt]->Integral(LowLimit[pt], UpLimit[pt]);
       errb[pt] = totalbis[pt]->IntegralError(LowLimit[pt], UpLimit[pt], fFitResultPtr1[pt]->GetParams(),
                                              (fFitResultPtr1[pt]->GetCovarianceMatrix()).GetMatrixArray());
-    } 
+    }
     else if (BkgType == 3)
     {
       b[pt] = bkg4[pt]->Integral(LowLimit[pt], UpLimit[pt]);
@@ -913,6 +945,10 @@ void FitV2(
       canvas[0]->cd(pt + 4 + 1);
     else if (pt < 8)
       canvas[1]->cd(pt + 4 + 1 - 4);
+    else if (pt < 12)
+      canvas[2]->cd(pt + 4 + 1 - 8);
+    else if (pt < 16)
+      canvas[3]->cd(pt + 4 + 1 - 12);
     hV2[pt]->Fit(v2FitFunction[pt], "R");
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
     histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
@@ -961,10 +997,12 @@ void FitV2(
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
   canvas[1]->SaveAs(Soutputfile + ".pdf");
+  canvas[2]->SaveAs(Soutputfile + ".pdf");
+  canvas[3]->SaveAs(Soutputfile + ".pdf");
   canvasSummary->SaveAs(Soutputfile + ".pdf)");
 
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
-  for (Int_t i = 0; i < 2; i++)
+  for (Int_t i = 0; i < numCanvas; i++)
   {
     outputfile->WriteTObject(canvas[i]);
   }

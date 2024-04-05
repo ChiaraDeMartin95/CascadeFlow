@@ -1,9 +1,10 @@
 const Int_t numPart = 2;
 const Int_t numChoice = 5; // mean, sigma, purity, yield, efficiency for MC
-const Int_t numPtBins = 14; //8
+const Int_t numPtBins = 13; //8
 const Int_t numCent = 9;
+Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1};
 //Float_t PtBins[numPtBins + 1] = {0.6, 1.2, 1.6, 2, 2.5, 3, 3.5, 4, 5};
-Float_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6};
+Float_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5};
 Int_t CentFT0C[numCent + 1] = {0, 5, 10, 20, 30, 40, 50, 60, 70, 90};
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245};
 TString ParticleName[numPart] = {"Xi", "Omega"};
