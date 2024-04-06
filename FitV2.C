@@ -202,7 +202,28 @@ void FitV2(
     Float_t sigmacentral = 4.2)
 {
 
-  Int_t NEvents = 1;
+  Int_t NEvents = 0;
+  TString PathInEvents = "TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
+  TFile *fileEvt = new TFile(PathInEvents, "");
+  if (!fileEvt)
+  {
+    cout << "File Evt does not exist" << endl;
+    return;
+  }
+  TDirectoryFile *dirEvt = (TDirectoryFile *)fileEvt->Get("lf-cascade-flow");
+  TH1F *hEvents = (TH1F *)dirEvt->Get("hEventCentrality");
+  if (!hEvents)
+  {
+    cout << "hEvents not available " << endl;
+    return;
+  }
+  for (Int_t b = 1; b <= hEvents->GetNbinsX(); b++)
+  {
+    if (hEvents->GetBinCenter(b) >= CentFT0C[mul] && hEvents->GetBinCenter(b) < CentFT0C[mul + 1])
+    {
+      NEvents += hEvents->GetBinContent(b);
+    }
+  }
 
   Float_t UpperLimitLSB = 0;
   Float_t LowerLimitRSB = 0;
@@ -1000,7 +1021,7 @@ void FitV2(
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
-  //histoB->Draw("same");
+  // histoB->Draw("same");
   canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
