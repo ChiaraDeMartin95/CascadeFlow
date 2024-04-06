@@ -255,6 +255,7 @@ void FitV2(
 
   TString SPt[numPtBins] = {""};
   TH1F *hInvMass[numPtBins];
+  TH1F *hInvMassDraw[numPtBins];
   TH1F *hV2[numPtBins];
 
   Int_t numCanvas = 4;
@@ -742,7 +743,7 @@ void FitV2(
       else if (BkgType == 2)
         hInvMass[pt]->Fit(bkgpol3[pt], "RB0");
       else if (BkgType == 3)
-        hInvMass[pt]->Fit(bkgexpo[pt], "RB");
+        hInvMass[pt]->Fit(bkgexpo[pt], "RB0");
 
       if (BkgType == 0)
       {
@@ -985,9 +986,54 @@ void FitV2(
     histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
   }
 
-  TLegend *legendPt = new TLegend(0.5, 0.6, 0.9, 0.88);
-  legendPt->SetTextAlign(21);
-  legendPt->SetFillColor(0);
+  TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
+  canvasMass->Divide(2, 3);
+  StyleCanvas(canvasMass, 0.15, 0.05, 0.05, 0.15);
+
+  Int_t index = 0;
+  for (Int_t pt = 0; pt < numPtBins; pt++)
+  {
+    if (pt == 2)
+      index = 1;
+    else if (pt == 3)
+      index = 2;
+    else if (pt == 5)
+      index = 3;
+    else if (pt == 7)
+      index = 4;
+    else if (pt == 9)
+      index = 5;
+    else if (pt == 11)
+      index = 6;
+    else
+      continue;
+
+    canvasMass->cd(index);
+    gPad->SetBottomMargin(0.14);
+    gPad->SetLeftMargin(0.18);
+
+    hInvMassDraw[pt] = (TH1F *)hInvMass[pt]->Clone(Form("hInvMassDraw%i", pt));
+    hInvMassDraw[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+    hInvMassDraw[pt]->GetYaxis()->SetRangeUser(1, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+    hInvMassDraw[pt]->Draw("");
+    functions1[pt]->Draw("same");
+    functions2[pt]->Draw("same");
+    bkg2[pt]->SetLineColor(1);
+    bkg2[pt]->SetLineStyle(2);
+    bkg1[pt]->SetLineColor(1);
+    bkg1[pt]->SetLineStyle(2);
+    if (BkgType == 0)
+      bkg1[pt]->Draw("same");
+    else if (BkgType == 1)
+      bkg2[pt]->Draw("same");
+    else
+      bkg3[pt]->Draw("same");
+    lineP3Sigma[pt] = new TLine(UpLimit[pt], 0, UpLimit[pt], 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+    lineM3Sigma[pt] = new TLine(LowLimit[pt], 0, LowLimit[pt], 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+
+    lineP3Sigma[pt]->Draw("same");
+    lineM3Sigma[pt]->Draw("same");
+  }
 
   TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1700, 1000);
   canvasSummary->Divide(3, 2);
@@ -1040,6 +1086,7 @@ void FitV2(
   canvas[2]->SaveAs(Soutputfile + ".pdf");
   canvas[3]->SaveAs(Soutputfile + ".pdf");
   canvasSummary->SaveAs(Soutputfile + ".pdf)");
+  canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
 
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   for (Int_t i = 0; i < numCanvas; i++)
