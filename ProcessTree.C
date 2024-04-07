@@ -23,7 +23,7 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
 {
   TString TreeName = "O2cascanalysis";
 
-  TString inputFile = "TreeForAnalysis/AnalysisResults_trees_" + inputFileName + ".root";
+  TString inputFile = "TreeForAnalysis/AnalysisResults_trees_" + inputFileName + "_New.root";
   RDataFrame d1(TreeName, inputFile);
   auto h = d1.Histo1D("fPt");
   h->Draw();
@@ -52,6 +52,9 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   auto hmass = d2.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
   if (!isXi)
     hmass = d2.Histo1D({"mass_Omega", "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
+
+  // eta distributions
+  auto heta = d2.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
 
   // create output file
   Int_t ParticleIndex = 0; // 0 for Xi, 1 for Omega
@@ -94,6 +97,7 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   BDT_response_Bef->Write();
   mass_vs_BDTResponse->Write();
   hmass->Write();
+  heta->Write();
   BDT_response->Write();
   file->Close();
 

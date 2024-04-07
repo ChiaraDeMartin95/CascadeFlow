@@ -21,7 +21,7 @@
 void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2)
 {
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_New_" + ParticleName[!isXi] + ".root";
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
