@@ -278,6 +278,8 @@ void FitV2(
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
+    if (!isXi && pt == 0)
+      continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
     cout << PtBins[pt] << endl;
@@ -299,7 +301,7 @@ void FitV2(
       return;
     }
 
-    StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", SPt[pt] + " GeV/#it{c}", 1, 0, 100, 1.4, 1.6, 0.7);
+    StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", TitleInvMass[part] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
     hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
 
     if (isYAxisMassZoomed)
@@ -311,7 +313,14 @@ void FitV2(
     }
     if (isLogy)
     {
-      hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetNbinsX()));
+      if (hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[part])) > hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[part])))
+      {
+        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[part])));
+      }
+      else
+      {
+        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[part])));
+      }
       hInvMass[pt]->SetMaximum(1.2 * hInvMass[pt]->GetMaximum());
     }
     if (pt < 4)
@@ -426,7 +435,8 @@ void FitV2(
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
-
+    if (!isXi && pt == 0)
+      continue;
     if (pt < 4)
       canvas[0]->cd(pt + 1);
     else if (pt < 8)
@@ -683,8 +693,8 @@ void FitV2(
 
         hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
         hInvMass[pt]->Draw("same e");
-        functions1[pt]->Draw("same");
-        functions2[pt]->Draw("same");
+        //functions1[pt]->Draw("same");
+        //functions2[pt]->Draw("same");
         if (BkgType == 0)
           bkg1[pt]->Draw("same");
         else if (BkgType == 1)
@@ -993,6 +1003,8 @@ void FitV2(
   Int_t index = 0;
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
+    if (!isXi && pt == 0)
+      continue;
     if (pt == 2)
       index = 1;
     else if (pt == 3)
