@@ -82,6 +82,11 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   StyleHisto(histoDummy, -0.2 + 1e-4, 0.8 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "v_{2}", "", kFALSE, 0, 100, 1, 1, 0.05);
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 100, 0, 6);
   StyleHisto(hDummyRatio, -2 + 1e-4, 2 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "", "", kFALSE, 0, 100, 1, 1, 0.05);
+  hDummyRatio->GetXaxis()->SetLabelSize(0.1);
+  hDummyRatio->GetYaxis()->SetLabelSize(0.1);
+  hDummyRatio->GetXaxis()->SetTitleSize(0.1);
+  hDummyRatio->GetYaxis()->SetTitleSize(0.1);
+  hDummyRatio->GetYaxis()->SetTitleOffset(0.5);
 
   for (Int_t cent = 0; cent < numCent; cent++)
   // for (Int_t cent = 0; cent < 4; cent++)
@@ -128,25 +133,25 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
     gV2Run2[i]->SetLineWidth(2);
   }
 
-  TLegend *LegendTitle = new TLegend(0.15, 0.81, 0.42, 0.91);
+  TLegend *LegendTitle = new TLegend(0.18, 0.81, 0.42, 0.91); //0.15
   LegendTitle->SetBorderSize(0);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextSize(0.04);
   LegendTitle->SetMargin(0.);
 
-  TLegend *legendRun3 = new TLegend(0.15, 0.57, 0.42, 0.77);
+  TLegend *legendRun3 = new TLegend(0.18, 0.57, 0.42, 0.77); //0.15
   legendRun3->SetBorderSize(0);
   legendRun3->SetFillStyle(0);
   legendRun3->SetTextSize(0.03);
   legendRun3->SetHeader("PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV");
 
-  TLegend *legendRun2 = new TLegend(0.4, 0.57, 0.6, 0.77);
+  TLegend *legendRun2 = new TLegend(0.43, 0.57, 0.6, 0.77); //0.4
   legendRun2->SetBorderSize(0);
   legendRun2->SetFillStyle(0);
   legendRun2->SetTextSize(0.03);
   legendRun2->SetHeader("PbPb, #sqrt{#it{s}_{NN}} = 5.02 TeV, JHEP 05 (2023) 243");
 
-  TFile *file = new TFile("OutputAnalysis/CompareWPublished_" + inputFileName + ".root", "RECREATE");
+  TFile *file = new TFile("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".root", "RECREATE");
   TCanvas *canvasvsRun2 = new TCanvas("canvasvsRun2", "canvasvsRun2", 1200, 800);
   StyleCanvas(canvasvsRun2, 0.1, 0.05, 0.05, 0.15);
   gStyle->SetOptStat(0);
@@ -173,6 +178,8 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   legendRun3->Draw();
   legendRun2->Draw();
 
+  canvasvsRun2->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  canvasvsRun2->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".png");
   //--------------------------------------
   if (!isXi)
   {
@@ -202,7 +209,7 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
         // cout << "V2 Run3: " << hV2C[i]->GetBinCenter(b) << endl;
         // cout << "V2 Run2: " << gV2Run2[index]->GetPointX(b-1) << endl;
         // cout << "V2 Run3/Run2: " << hV2CRatio[i]->GetBinContent(b) << " +/- " << hV2CRatio[i]->GetBinError(b) << endl;
-        hV2CRatio[i]->SetBinError(b, sqrt(pow(hV2C[i]->GetBinError(b)/hV2C[i]->GetBinContent(b), 2) + pow(gV2Run2[index]->GetErrorY(b-1)/gV2Run2[index]->GetPointY(b-1), 2)) * hV2CRatio[i]->GetBinContent(b));
+        hV2CRatio[i]->SetBinError(b, sqrt(pow(hV2C[i]->GetBinError(b) / hV2C[i]->GetBinContent(b), 2) + pow(gV2Run2[index]->GetErrorY(b - 1) / gV2Run2[index]->GetPointY(b - 1), 2)) * hV2CRatio[i]->GetBinContent(b));
       }
     }
   }
@@ -213,8 +220,8 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   Float_t ULLowerPad = 0.33;
   TPad *pad1 = new TPad("pad1", "pad1", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
   TPad *padL1 = new TPad("padL1", "padL1", 0, 0, 1, ULLowerPad);
-  StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
-  StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
+  StylePad(pad1, 0.13, 0.01, 0.03, 0.);   // L, R, T, B
+  StylePad(padL1, 0.13, 0.01, 0.02, 0.3); // L, R, T, B
 
   canvaswRatio->cd();
   pad1->Draw();
@@ -232,6 +239,9 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
       hV2C[i]->Draw("same");
     }
   }
+  LegendTitle->Draw();
+  legendRun3->Draw();
+  legendRun2->Draw();
 
   canvaswRatio->cd();
   padL1->Draw();
@@ -248,6 +258,8 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
     }
   }
 
+  canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.pdf");
+  canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.png");
   canvasvsRun2->Write();
   file->Close();
   cout << "I created the file " << file->GetName() << endl;
