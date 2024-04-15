@@ -114,7 +114,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLowMean[numPart] = {1.31, 1.66};
 Float_t YUpMean[numPart] = {1.327, 1.68};
 Float_t YLowSigma[numPart] = {0.0, 0.0};
-Float_t YUpSigma[numPart] = {0.008, 0.008};
+Float_t YUpSigma[numPart] = {0.006, 0.006};
 Float_t YLowPurity[numPart] = {0, 0};
 Float_t YLowV2[numPart] = {-0.4, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
@@ -125,10 +125,13 @@ Float_t YUp[numPart] = {0};
 Float_t YLowRatio[numChoice] = {0.99, 0.2, 0, 0.1, -1};
 Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 8, 2};
 
+TString NameRun2Dir[numPart] = {"chists_Xim_variations", "chists_Omm_variations"};
+
 void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t Choice = 0,
                               Int_t part = ExtrParticle,
                               Int_t ChosenMult = numCent - 1,
+                              Bool_t isDrawRun2 = 1,
                               TString SysPath = "",
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               TString inputFileName = SinputFileName,
@@ -324,6 +327,35 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   } // end loop on mult
   LegendTitle->Draw("");
   legendAllMult->Draw("");
+
+  // Add Run 2 values for mean and sigma
+  TFile *fileRun2 = new TFile("Run2MeanSigma/Alessandrosignal.root");
+  TDirectoryFile *dirRun2;
+  TDirectoryFile *dirRun2Def;
+  TDirectoryFile *dirRun2Checks;
+  TDirectoryFile *dirRun2Params;
+  TDirectoryFile *dirRun2Choice;
+  TLegend *legendRun2 = new TLegend(0.23, 0.85, 0.57, 0.94);
+  legendRun2->SetBorderSize(0);
+  legendRun2->SetFillStyle(0);
+  legendRun2->SetTextSize(0.04);
+
+  if (isDrawRun2 && (Choice == 0 || Choice == 1))
+  {
+    dirRun2 = (TDirectoryFile *)fileRun2->Get(NameRun2Dir[part]);
+    dirRun2Def = (TDirectoryFile *)dirRun2->Get("Default");
+    dirRun2Checks = (TDirectoryFile *)dirRun2Def->Get("Checks");
+    dirRun2Params = (TDirectoryFile *)dirRun2Checks->Get("SignalParams");
+    dirRun2Choice = (TDirectoryFile *)dirRun2Params->Get(TypeHisto[Choice]);
+    TH1F *histoRun2 = (TH1F *)dirRun2Choice->Get(TypeHisto[Choice] + "_9"); // 0-90% class
+    histoRun2->SetMarkerColor(kBlack);
+    histoRun2->SetLineColor(kBlack);
+    histoRun2->SetMarkerStyle(20);
+    histoRun2->SetMarkerSize(1.5);
+    histoRun2->Draw("same e0x0");
+    legendRun2->AddEntry(histoRun2, "Run 2, 0-90%", "pe");
+    legendRun2->Draw();
+  }
 
   // Compute and draw spectra ratios
   Float_t LimSupMultRatio = 5.1;
