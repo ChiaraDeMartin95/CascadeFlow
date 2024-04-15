@@ -115,15 +115,15 @@ Float_t YLowMean[numPart] = {1.31, 1.66};
 Float_t YUpMean[numPart] = {1.327, 1.68};
 Float_t YLowSigma[numPart] = {0.0, 0.0};
 Float_t YUpSigma[numPart] = {0.008, 0.008};
-Float_t YLowPurity[numPart] = {0, 0.15};
+Float_t YLowPurity[numPart] = {0, 0};
 Float_t YLowV2[numPart] = {-0.4, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
 
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.4, 0, 0.1, 0.};
-Float_t YUpRatio[numChoice] = {1.01, 1.6, 1.2, 8, 2};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0, 0.1, -1};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 8, 2};
 
 void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t Choice = 0,
@@ -167,7 +167,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     YLow[part] = 1e-9;
     YUp[part] = 100;
-  } else if (Choice == 4)
+  }
+  else if (Choice == 4)
   {
     YLow[part] = YLowV2[part];
     YUp[part] = YUpV2[part];
@@ -215,7 +216,12 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
-  TLegend *legendAllMult = new TLegend(0.22, 0.03, 0.73, 0.28);
+  TLegend *legendAllMult;
+  legendAllMult = new TLegend(0.22, 0.03, 0.73, 0.28);
+  if (Choice == 2 && !isXi)
+  {
+    legendAllMult = new TLegend(0.44, 0.03, 0.9, 0.28);
+  }
   legendAllMult->SetHeader("FT0C Centrality Percentile");
   legendAllMult->SetNColumns(3);
   legendAllMult->SetFillStyle(0);
@@ -223,7 +229,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   lheaderAllMult->SetTextSize(0.04);
 
   TLegend *LegendTitle;
-  if ((isXi) && Choice == 2)
+  if (Choice == 2)
     LegendTitle = new TLegend(0.54, 0.55, 0.95, 0.72);
   else
     LegendTitle = new TLegend(0.54, 0.75, 0.95, 0.92);
@@ -232,7 +238,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + ", |y| < 0.5", "");
+  LegendTitle->AddEntry("", ParticleName[part] + ", |#it{#eta}| < 0.8", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
