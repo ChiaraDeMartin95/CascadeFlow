@@ -127,7 +127,7 @@ void PlotXivsOmega(Bool_t isPlotRatio = 1,
   Float_t plotHeight = 0.238;
   Float_t MinY = 0;
   Float_t MaxY = 0;
-  TF1* fLine = new TF1("fLine", "1", 0, 6);
+  TF1 *fLine = new TF1("fLine", "1", 0, 6);
   fLine->SetLineColor(kBlack);
   fLine->SetLineStyle(10);
   for (Int_t cent = 0; cent < numCent; cent++)
@@ -198,13 +198,14 @@ void PlotXivsOmega(Bool_t isPlotRatio = 1,
         hV2CRatio[cent]->Divide(hV2C[cent][part]);
         for (Int_t bin = 1; bin <= hV2CRatio[cent]->GetNbinsX(); bin++)
         {
-          //cout << hV2CRatio[cent]->GetBinCenter(bin) << " " << hV2C[cent][part]->GetBinCenter(bin) << endl;
-          //cout << hV2CRatio[cent]->GetBinContent(bin) << " +- " << hV2CRatio[cent]->GetBinError(bin) << endl;
+          // cout << hV2CRatio[cent]->GetBinCenter(bin) << " " << hV2C[cent][part]->GetBinCenter(bin) << endl;
+          // cout << hV2CRatio[cent]->GetBinContent(bin) << " +- " << hV2CRatio[cent]->GetBinError(bin) << endl;
         }
       }
       if (isPlotRatio)
       {
-        if (part == 1){
+        if (part == 1)
+        {
           hV2CRatio[cent]->DrawCopy("same");
           fLine->Draw("same");
         }
@@ -221,8 +222,11 @@ void PlotXivsOmega(Bool_t isPlotRatio = 1,
       legendPart->Draw();
   }
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}, Pb-Pb 5.36 TeV", "");
-
-  canvas->SaveAs("OutputAnalysis/PlotXivsOmega_" + inputFileName + ".pdf");
+  TString Ssuffix = "";
+  if (isPlotRatio)
+    Ssuffix = "_Ratio";
+  canvas->SaveAs("OutputAnalysis/PlotXivsOmega_" + inputFileName + Ssuffix + ".pdf");
+  canvas->SaveAs("OutputAnalysis/PlotXivsOmega_" + inputFileName + Ssuffix + ".png");
 
   file->Close();
   cout << "I created the file " << file->GetName() << endl;

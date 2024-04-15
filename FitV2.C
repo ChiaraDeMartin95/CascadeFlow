@@ -1099,6 +1099,7 @@ void FitV2(
   canvas[3]->SaveAs(Soutputfile + ".pdf");
   canvasSummary->SaveAs(Soutputfile + ".pdf)");
   canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
+  canvasMass->SaveAs(Soutputfile + "_MassPlot.png");
 
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   for (Int_t i = 0; i < numCanvas; i++)
