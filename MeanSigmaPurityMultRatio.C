@@ -328,6 +328,20 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   LegendTitle->Draw("");
   legendAllMult->Draw("");
 
+  // PDG mass
+  TF1 *fMassPDG = new TF1("fMassPDG", Form("%f", ParticleMassPDG[part]), MinPt[part], MaxPt[part]);
+  fMassPDG->SetLineColor(kBlack);
+  fMassPDG->SetLineStyle(8);
+  TLegend *legendMassPDG = new TLegend(0.25, 0.76, 0.5, 0.85);
+  if (Choice == 0){
+    fMassPDG->Draw("same");
+    legendMassPDG->AddEntry(fMassPDG, "PDG mass", "l");
+    legendMassPDG->SetBorderSize(0);
+    legendMassPDG->SetFillStyle(0);
+    legendMassPDG->SetTextSize(0.035);
+    legendMassPDG->Draw();
+  }
+
   // Add Run 2 values for mean and sigma
   TFile *fileRun2 = new TFile("Run2MeanSigma/Alessandrosignal.root");
   TDirectoryFile *dirRun2;
