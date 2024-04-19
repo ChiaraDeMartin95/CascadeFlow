@@ -127,11 +127,18 @@ Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 8, 2};
 
 TString NameRun2Dir[numPart] = {"chists_Xim_variations", "chists_Omm_variations"};
 
+TString TypeHistoLucia[numChoice - 1] = {"fHistMean", "fHistSigma", "fHistPutityBinCount_Fit", "hFinalSpectrumCount_Fit"};
+Int_t MarkerMultLucia[11] = {24, 24, 24, 25, 27, 28, 30, 24, 25, 27, 28};
+TString MultChoiceLucia[11] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
+TString MultClassLucia[11] = {"0-90%", "0-5%", "5-10%", "10-20%", "20-30%", "30-40%", "40-50%", "50-60%", "60-70%", "70-80%", "80-90%"};
+
 void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t Choice = 0,
                               Int_t part = ExtrParticle,
+                              Int_t ChosenMultLucia = 0,
                               Int_t ChosenMult = numCent - 1,
                               Bool_t isDrawRun2 = 1,
+                              Bool_t isDrawLuciaRun3 = 1,
                               TString SysPath = "",
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               TString inputFileName = SinputFileName,
@@ -170,6 +177,10 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     YLow[part] = 1e-9;
     YUp[part] = 100;
+    if (isDrawLuciaRun3){
+      YLow[part] = 0;
+      YUp[part] = 0.05;
+    }
   }
   else if (Choice == 4)
   {
@@ -225,6 +236,9 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     legendAllMult = new TLegend(0.44, 0.03, 0.9, 0.28);
   }
+  else if (isDrawLuciaRun3){
+    legendAllMult = new TLegend(0.45, 0.52, 0.97, 0.78);
+  }
   legendAllMult->SetHeader("FT0C Centrality Percentile");
   legendAllMult->SetNColumns(3);
   legendAllMult->SetFillStyle(0);
@@ -274,6 +288,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   // draw spectra in multiplicity classes
   Float_t LimSupSpectra = 9.99;
   Float_t LimInfSpectra = 0.2 * 1e-5;
+
   Float_t xTitle = 15;
   Float_t xOffset = 4;
   Float_t yTitle = 30;
@@ -298,7 +313,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
   pad1->Draw();
   pad1->cd();
-  if (Choice == 3)
+  if (Choice == 3 && !isDrawLuciaRun3)
     gPad->SetLogy();
   hDummy->Draw("same");
 
@@ -306,7 +321,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     ScaleFactorFinal[m] = ScaleFactor[m];
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
-    if (Choice == 3)
+    if (Choice == 3 && !isDrawLuciaRun3)
       fHistSpectrumScaled[m]->Scale(ScaleFactorFinal[m]);
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
@@ -319,7 +334,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
     fHistSpectrumScaled[m]->SetMarkerStyle(MarkerMult[m]);
     fHistSpectrumScaled[m]->SetMarkerSize(0.6 * SizeMult[m]);
     fHistSpectrumScaled[m]->Draw("same e0x0");
-    if (Choice == 3)
+    if (Choice == 3 && !isDrawLuciaRun3)
       sScaleFactorFinal[m] = Form(" (x2^{%i})", int(log2(ScaleFactorFinal[m])));
     else
       sScaleFactorFinal[m] = "";
@@ -333,7 +348,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   fMassPDG->SetLineColor(kBlack);
   fMassPDG->SetLineStyle(8);
   TLegend *legendMassPDG = new TLegend(0.25, 0.76, 0.5, 0.85);
-  if (Choice == 0){
+  if (Choice == 0)
+  {
     fMassPDG->Draw("same");
     legendMassPDG->AddEntry(fMassPDG, "PDG mass", "l");
     legendMassPDG->SetBorderSize(0);
@@ -369,6 +385,45 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
     histoRun2->Draw("same e0x0");
     legendRun2->AddEntry(histoRun2, "Run 2, 0-90%", "pe");
     legendRun2->Draw();
+  }
+
+  // Add Run 3 values computed by Lucia
+  TLegend *legendRun3 = new TLegend(0.23, 0.3, 0.57, 0.4);
+  if (Choice == 3)
+    legendRun3 = new TLegend(0.20, 0.85, 0.54, 0.95);
+  legendRun3->SetBorderSize(0);
+  legendRun3->SetFillStyle(0);
+  legendRun3->SetTextSize(0.04);
+
+  if (isDrawLuciaRun3 && Choice != 4 && part == 0)
+  {
+    for (Int_t m = 0; m < 11; m++)
+    {
+      if (m != ChosenMultLucia)
+        continue; //decomment if you want only ChosenMultLucia histo to be displayed
+      ChosenMultLucia = m;
+      TString fileLuciaRun3 = "Files_Chiara/";
+      fileLuciaRun3 += ParticleName[part];
+      fileLuciaRun3 += "Minus_LHC23_pass2_newCuts_" + MultChoiceLucia[ChosenMultLucia] + "_AfterSel_DoubleGauss.root";
+      cout << "file Lucia " << fileLuciaRun3 << endl;
+      TFile *fileRun3 = new TFile(fileLuciaRun3);
+      TH1F *histoRun3 = (TH1F *)fileRun3->Get(TypeHistoLucia[Choice]);
+      histoRun3->SetName("histoRun3_" + MultChoiceLucia[ChosenMultLucia]);
+      histoRun3->SetMarkerColor(kGray + 2);
+      histoRun3->SetLineColor(kGray + 2);
+      histoRun3->SetMarkerStyle(24);
+      if (ChosenMultLucia > 1)
+      {
+        histoRun3->SetMarkerColor(ColorMult[ChosenMultLucia - 2]);
+        histoRun3->SetLineColor(ColorMult[ChosenMultLucia - 2]);
+        histoRun3->SetMarkerStyle(MarkerMultLucia[ChosenMultLucia]);
+      }
+      histoRun3->SetMarkerSize(1.5);
+      histoRun3->DrawCopy("same e0x0");
+      if (m == ChosenMultLucia)
+        legendRun3->AddEntry(histoRun3, "Run 3, Lucia " + MultClassLucia[ChosenMultLucia], "pe");
+    }
+    legendRun3->Draw();
   }
 
   // Compute and draw spectra ratios
