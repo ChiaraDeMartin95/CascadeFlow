@@ -142,7 +142,7 @@ Double_t fexpo(Double_t *x, Double_t *par)
     return 0;
   }
   // return par[0] + par[1] * exp(par[2] * x[0]);
-  return par[0] * exp(par[1] * x[0]);
+  return exp(par[0] + par[1] * x[0]);
 }
 
 Double_t fretta(Double_t *x, Double_t *par)
