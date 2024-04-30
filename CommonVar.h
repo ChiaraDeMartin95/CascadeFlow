@@ -13,7 +13,7 @@ Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29
 Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 
 //Float_t PtBins[numPtBins + 1] = {0.6, 1.2, 1.6, 2, 2.5, 3, 3.5, 4, 5};
-Float_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5};
+Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5};
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 float ftcReso[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501}; 
 
@@ -30,8 +30,8 @@ TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", 
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 
 //---------------------------------------------------------
-Bool_t ChosenParticleXi = 0; //Xi, put false for Omega
+Bool_t ChosenParticleXi = 1; //1 for Xi, 0 for Omega
 TString SinputFileName = "LHC23_PbPb_pass2_Train192773"; //190305 --> ok for Xi, not ok for Omegas
-Bool_t ExtrBkgType = 1; //0: pol1, 1:pol2, 2:pol3
+Bool_t ExtrBkgType = 1; //0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Int_t ExtrParticle = !ChosenParticleXi;

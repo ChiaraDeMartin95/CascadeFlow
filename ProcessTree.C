@@ -6,6 +6,8 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3F.h"
+#include "TProfile2D.h"
+#include "TProfile.h"
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TF1.h"
@@ -39,6 +41,7 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   auto mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.28, 1.36}, "fBDTResponseXi", "fMassXi");
   if (!isXi)
     mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.6, 1.73}, "fBDTResponseOmega", "fMassOmega");
+ 
   // apply BDT selection
   auto d2 = d1.Filter("fBDTResponseXi > 0.98");
   if (!isXi)
@@ -62,22 +65,31 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
     ParticleIndex = 0;
   else
     ParticleIndex = 1;
-  TFile *file = new TFile("OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + ".root", "RECREATE");
+  TFile *file = new TFile("OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + "_Test3004.root", "RECREATE");
 
   // 3D histograms
 
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     auto dcent = d2.Filter(Form("fCentFT0C>=%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
+    auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "v2C", 240, -1.2, 1.2}, "fV2C");
+    v2C->Write();
     if (isXi)
     {
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
       massVsPtVsV2C->Write();
+      //profile: mean value of v2 vs mass and pt in centrality classes
+      //auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.28, 1.36, 100, 0, 10, -2, 2}, "fMassXi", "fPt", "fV2C");
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", "fV2C");
+      profile->Write();
     }
     else
     {
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1., 1.}, "fMassOmega", "fPt", "fV2C");
       massVsPtVsV2C->Write();
+      //profile: mean value of v2 vs mass and pt in centrality classes
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.6, 1.73, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", "fV2C");
+      profile->Write();
     }
   }
 
