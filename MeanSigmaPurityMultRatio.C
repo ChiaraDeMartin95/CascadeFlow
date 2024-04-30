@@ -123,7 +123,7 @@ Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
 Float_t YLowRatio[numChoice] = {0.99, 0.2, 0, 0.1, -1};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 8, 2};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 2};
 
 TString NameRun2Dir[numPart] = {"chists_Xim_variations", "chists_Omm_variations"};
 
@@ -136,9 +136,9 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t Choice = 0,
                               Int_t part = ExtrParticle,
                               Int_t ChosenMultLucia = 0,
-                              Int_t ChosenMult = numCent - 1,
+                              Int_t ChosenMult = numCent - 3,
                               Bool_t isDrawRun2 = 1,
-                              Bool_t isDrawLuciaRun3 = 1,
+                              Bool_t isDrawLuciaRun3 = 0,
                               TString SysPath = "",
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               TString inputFileName = SinputFileName,
@@ -177,7 +177,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     YLow[part] = 1e-9;
     YUp[part] = 100;
-    if (isDrawLuciaRun3){
+    if (isDrawLuciaRun3)
+    {
       YLow[part] = 0;
       YUp[part] = 0.05;
     }
@@ -210,7 +211,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
   stringoutpdf = stringout;
-  stringout += ".root";
+  stringout += "_5Cent.root";
   TFile *fileout = new TFile(stringout, "RECREATE");
 
   // canvases
@@ -236,7 +237,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     legendAllMult = new TLegend(0.44, 0.03, 0.9, 0.28);
   }
-  else if (isDrawLuciaRun3){
+  else if (isDrawLuciaRun3)
+  {
     legendAllMult = new TLegend(0.45, 0.52, 0.97, 0.78);
   }
   legendAllMult->SetHeader("FT0C Centrality Percentile");
@@ -264,6 +266,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   // get spectra in multiplicity classes
   for (Int_t m = numCent - 1; m >= 0; m--)
   {
+    if (m == 0 || m > (numCent - 3))
+      continue;
     PathIn = "OutputAnalysis/FitV2_";
     PathIn += SinputFileName;
     PathIn += "_" + ParticleName[!isXi];
@@ -319,6 +323,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
 
   for (Int_t m = numCent - 1; m >= 0; m--)
   {
+    if (m == 0 || m > (numCent - 3))
+      continue;
     ScaleFactorFinal[m] = ScaleFactor[m];
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
     if (Choice == 3 && !isDrawLuciaRun3)
@@ -399,8 +405,10 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   {
     for (Int_t m = 0; m < 11; m++)
     {
-      if (m != ChosenMultLucia)
-        continue; //decomment if you want only ChosenMultLucia histo to be displayed
+      // if (m != ChosenMultLucia)
+      // continue; // decomment if you want only ChosenMultLucia histo to be displayed
+      if (m < 3 || m > 8)
+        continue;
       ChosenMultLucia = m;
       TString fileLuciaRun3 = "Files_Chiara/";
       fileLuciaRun3 += ParticleName[part];
@@ -423,7 +431,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
       if (m == ChosenMultLucia)
         legendRun3->AddEntry(histoRun3, "Run 3, Lucia " + MultClassLucia[ChosenMultLucia], "pe");
     }
-    legendRun3->Draw();
+    //legendRun3->Draw();
   }
 
   // Compute and draw spectra ratios
@@ -456,6 +464,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
 
   for (Int_t m = numCent - 1; m >= 0; m--)
   {
+    if (m == 0 || m > (numCent - 3))
+      continue;
     fHistSpectrumMultRatio[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumMultRatio_" + Smolt[m]);
     fHistSpectrumMultRatio[m]->Divide(fHistSpectrum[ChosenMult]);
     ErrRatioCorr(fHistSpectrum[m], fHistSpectrum[ChosenMult], fHistSpectrumMultRatio[m], 0);
