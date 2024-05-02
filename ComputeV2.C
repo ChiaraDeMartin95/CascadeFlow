@@ -18,10 +18,10 @@
 #include "CommonVar.h"
 #include "StyleFile.h"
 
-void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2)
+void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice)
 {
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
@@ -78,7 +78,7 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
     }
   }
 
-  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ".root", "RECREATE");
+  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root", "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     for (Int_t pt = 0; pt < numPtBins; pt++)

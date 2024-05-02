@@ -191,6 +191,7 @@ Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 void FitV2(
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
+    Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
     Bool_t isLogy = 1,
     Int_t part = ExtrParticle,
@@ -244,7 +245,7 @@ void FitV2(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
+  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root";
 
   TFile *filein = new TFile(SPathIn, "");
   if (!filein)
@@ -693,8 +694,8 @@ void FitV2(
 
         hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
         hInvMass[pt]->Draw("same e");
-        //functions1[pt]->Draw("same");
-        //functions2[pt]->Draw("same");
+        // functions1[pt]->Draw("same");
+        // functions2[pt]->Draw("same");
         if (BkgType == 0)
           bkg1[pt]->Draw("same");
         else if (BkgType == 1)
@@ -1091,6 +1092,7 @@ void FitV2(
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
+  Soutputfile += SEtaSysChoice[EtaSysChoice];
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
