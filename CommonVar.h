@@ -37,7 +37,12 @@ Bool_t ExtrUseTwoGauss = 1;
 Int_t ExtrParticle = !ChosenParticleXi;
 
 // systematic studies
-const int trials = 500; // number of trials for the systematic studies related to BDTscore
+const int trials = 10; // number of trials for the systematic studies related to BDTscore
+const int nsigmaBarlow = 1;
+const float DefaultBDTscoreCut = 0.98;
 
 TString SEtaSysChoice[3] = {"", "_Etagt0", "_Etasm0"}; // all eta, eta > 0, eta < 0
-Int_t ExtrEtaSysChoice = 2;                            // 0: all eta, 1: eta > 0, 2: eta < 0
+Int_t ExtrEtaSysChoice = 0;                            // 0: all eta, 1: eta > 0, 2: eta < 0
+
+const float UpperlimitBDTscoreCut = 1;
+const float LowerlimitBDTscoreCut = 0.9;

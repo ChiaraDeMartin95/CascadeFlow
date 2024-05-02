@@ -189,6 +189,7 @@ Float_t histoMassRangeLow[numPart] = {1.29, 1.626}; // display range of mass his
 Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 
 void FitV2(
+    Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -200,8 +201,18 @@ void FitV2(
     Int_t MassRebin = 2,
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
     Bool_t isMeanFixedPDG = 0,
-    Float_t sigmacentral = 4.2)
+    Float_t sigmacentral = 4.2,
+    Bool_t isSysMultTrial = 1)
 {
+
+  Float_t BDTscoreCut = DefaultBDTscoreCut;
+  if (indexMultTrial > trials)
+    return;
+  if (isSysMultTrial)
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+  TString SBDT = "";
+  if (BDTscoreCut != DefaultBDTscoreCut)
+    SBDT = Form("_BDT%.3f", BDTscoreCut);
 
   Int_t NEvents = 0;
   TString PathInEvents = "TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
@@ -245,7 +256,7 @@ void FitV2(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root";
+  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
 
   TFile *filein = new TFile(SPathIn, "");
   if (!filein)
@@ -1093,6 +1104,7 @@ void FitV2(
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
   Soutputfile += SEtaSysChoice[EtaSysChoice];
+  Soutputfile += SBDT;
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

@@ -18,10 +18,19 @@
 #include "CommonVar.h"
 #include "StyleFile.h"
 
-void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice)
+void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = 1)
 {
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root";
+  Float_t BDTscoreCut = DefaultBDTscoreCut;
+  if (indexMultTrial > trials)
+    return;
+  if (isSysMultTrial)
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+  TString SBDT = "";
+  if (BDTscoreCut != DefaultBDTscoreCut)
+    SBDT = Form("_BDT%.3f", BDTscoreCut);
+
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
@@ -43,8 +52,9 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
     hName = Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     profName = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName);
-    profmassVsPt[cent] = (TProfile2D*)inputFile->Get(profName);
-    if (!profmassVsPt[cent]) return;
+    profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName);
+    if (!profmassVsPt[cent])
+      return;
     hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     for (Int_t pt = 0; pt < numPtBins; pt++)
     {
@@ -53,32 +63,32 @@ void ComputeV2(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFil
       hNameV2CFromProfile2D = Form("V2CFromProfile_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameMassV2C = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
 
-      hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt]+0.0001, PtBins[pt + 1]-0.0001);
+      hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
 
-      profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[pt]+0.0001, PtBins[pt + 1]-0.0001);
-      hV2CFromProfile[cent][pt] = (TH1F *)profmassVsPt[cent]->ProjectionX(hNameV2CFromProfile2D, 0, -1, "e"); //v2C from TProfile2D
+      profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+      hV2CFromProfile[cent][pt] = (TH1F *)profmassVsPt[cent]->ProjectionX(hNameV2CFromProfile2D, 0, -1, "e"); // v2C from TProfile2D
 
-      hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xze"); //mass vs V2C //"e" option does not change the results
+      hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xze"); // mass vs V2C //"e" option does not change the results
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C);
       hmassVsV2C[cent][pt]->RebinY(RebinFactor);
 
-      hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); //mass
+      hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
       hmass[cent][pt]->SetName(hNameMass);
       hmass[cent][pt]->Rebin(RebinFactor);
 
-      pV2C[cent][pt] = hmassVsV2C[cent][pt]->ProfileY(); //v2C //the error is the standard error of the mean
+      pV2C[cent][pt] = hmassVsV2C[cent][pt]->ProfileY(); // v2C //the error is the standard error of the mean
       pV2C[cent][pt]->SetName(hNameV2C + "_Profile");
 
       hV2C[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameV2C);
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
-        hV2C[cent][pt]->SetBinContent(bin+1, hmassVsV2C[cent][pt]->ProjectionX("", bin+1, bin+1)->GetMean());
-        hV2C[cent][pt]->SetBinError(bin+1, hmassVsV2C[cent][pt]->ProjectionX("", bin+1, bin+1)->GetMeanError());
+        hV2C[cent][pt]->SetBinContent(bin + 1, hmassVsV2C[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMean());
+        hV2C[cent][pt]->SetBinError(bin + 1, hmassVsV2C[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMeanError());
       }
     }
   }
 
-  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + ".root", "RECREATE");
+  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root", "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     for (Int_t pt = 0; pt < numPtBins; pt++)

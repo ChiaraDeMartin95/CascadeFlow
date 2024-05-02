@@ -15,17 +15,26 @@
 #include "TLine.h"
 #include "TRatioPlot.h"
 #include "TLegend.h"
+#include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
 #include "CommonVar.h"
 
 using namespace ROOT;
 
-void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice)
+void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = 1)
 {
+
+  Float_t BDTscoreCut = DefaultBDTscoreCut;
+  if (indexMultTrial > trials)
+    return;
+  if (isSysMultTrial)
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+
   cout << "Input file: " << inputFileName << endl;
   cout << "isXi: " << isXi << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
+  cout << "BDTscoreCut: " << BDTscoreCut << endl;
 
   TString TreeName = "O2cascanalysis";
 
@@ -47,10 +56,12 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
     mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.6, 1.73}, "fBDTResponseOmega", "fMassOmega");
 
   // apply BDT selection
-  auto d2 = d1.Filter("fBDTResponseXi > 0.98");
+  string expression = Form("fBDTResponseXi > %.3f", BDTscoreCut);
   if (!isXi)
-    d2 = d1.Filter("fBDTResponseOmega > 0.98");
-
+    expression = Form("fBDTResponseOmega > %.3f", BDTscoreCut);
+  cout << "expression: " << expression << endl;
+  auto d2 = d1.Filter(expression);
+  
   // apply eta selection for systematic studies
   auto d3 = d2;
   if (EtaSysChoice == 0) // -0.8 < eta < 0.8
@@ -82,7 +93,10 @@ void ProcessTree(Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputF
   else
     ParticleIndex = 1;
 
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + ".root";
+  TString SBDT = "";
+  if (BDTscoreCut != DefaultBDTscoreCut)
+    SBDT = Form("_BDT%.3f", BDTscoreCut);
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms
