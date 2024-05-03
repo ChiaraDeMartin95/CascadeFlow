@@ -22,7 +22,7 @@
 
 using namespace ROOT;
 
-void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = 1)
+void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -61,7 +61,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     expression = Form("fBDTResponseOmega > %.3f", BDTscoreCut);
   cout << "expression: " << expression << endl;
   auto d2 = d1.Filter(expression);
-  
+
   // apply eta selection for systematic studies
   auto d3 = d2;
   if (EtaSysChoice == 0) // -0.8 < eta < 0.8
@@ -84,7 +84,10 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   auto heta = d3.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
 
   // phi distributions
-  // auto hphi = d3.Histo1D({"phi", "Phi distribution of selected candidates", 200, -3.2, 3.2}, "fPhi");
+  auto hphi = d3.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
+
+  // eta - phi distributions
+  auto hEtaPhi = d3.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fPhi", "fEta");
 
   // create output file
   Int_t ParticleIndex = 0; // 0 for Xi, 1 for Omega
@@ -96,7 +99,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_Bis.root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms
@@ -135,12 +138,15 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   hmass_Bef->Draw("E");
   hmass->Draw("E SAME");
 
+  h->Write();
   cMass->Write();
   hmass_Bef->Write();
   BDT_response_Bef->Write();
   mass_vs_BDTResponse->Write();
   hmass->Write();
   heta->Write();
+  hphi->Write();
+  hEtaPhi->Write();
   BDT_response->Write();
   file->Close();
 
