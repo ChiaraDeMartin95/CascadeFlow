@@ -31,12 +31,14 @@ TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1;                             // 1 for Xi, 0 for Omega
-TString SinputFileName = "LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas
+//TString SinputFileName = "LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas
+TString SinputFileName = "LHC23_PbPb_pass3_Train207098"; 
 Bool_t ExtrBkgType = 1;                                  // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Int_t ExtrParticle = !ChosenParticleXi;
 
 // systematic studies
+bool ExtrisSysMultTrial = 0; //1 for systematic studies, 0 for default analysis
 const int trials = 10; // number of trials for the systematic studies related to BDTscore
 const int nsigmaBarlow = 1;
 const float DefaultBDTscoreCut = 0.98;
