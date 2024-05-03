@@ -202,7 +202,7 @@ void FitV2(
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
     Bool_t isMeanFixedPDG = 0,
     Float_t sigmacentral = 4.2,
-    Bool_t isSysMultTrial = 1)
+    Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   Float_t BDTscoreCut = DefaultBDTscoreCut;

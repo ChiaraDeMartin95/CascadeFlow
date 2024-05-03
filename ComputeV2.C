@@ -18,7 +18,7 @@
 #include "CommonVar.h"
 #include "StyleFile.h"
 
-void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = 1)
+void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   Float_t BDTscoreCut = DefaultBDTscoreCut;
