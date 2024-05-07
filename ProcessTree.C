@@ -25,11 +25,14 @@ using namespace ROOT;
 void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  ROOT::EnableImplicitMT();
+  if (isSysMultTrial)
+    inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
-  if (indexMultTrial > trials)
+  if (indexMultTrial > trialsBDT)
     return;
   if (isSysMultTrial)
-    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
   cout << "Input file: " << inputFileName << endl;
   cout << "isXi: " << isXi << endl;
@@ -41,7 +44,6 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString inputFile = "TreeForAnalysis/AnalysisResults_trees_" + inputFileName + "_New.root";
   RDataFrame d1(TreeName, inputFile);
   auto h = d1.Histo1D("fPt");
-  h->Draw();
 
   // invariant mass histograms
   auto hmass_Bef = d1.Histo1D({"mass_Xi_Bef", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
@@ -87,7 +89,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   auto hphi = d3.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
 
   // eta - phi distributions
-  auto hEtaPhi = d3.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fPhi", "fEta");
+  auto hEtaPhi = d3.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
 
   // create output file
   Int_t ParticleIndex = 0; // 0 for Xi, 1 for Omega
@@ -99,32 +101,35 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_Bis.root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_Test.root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms
 
+  TH1D *v2CHisto[numCent];
+  TH3D *massVsPtVsV2CHisto[numCent];
+  TProfile *profileHisto[numCent];
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     auto dcent = d3.Filter(Form("fCentFT0C>=%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
     auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "v2C", 240, -1.2, 1.2}, "fV2C");
-    v2C->Write();
     if (isXi)
     {
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
-      massVsPtVsV2C->Write();
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", "fV2C");
-      profile->Write();
+      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      profileHisto[cent] = (TProfile *)profile->Clone(Form("profileHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
     else
     {
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1., 1.}, "fMassOmega", "fPt", "fV2C");
-      massVsPtVsV2C->Write();
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.6, 1.73, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", "fV2C");
-      profile->Write();
+      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      profileHisto[cent] = (TProfile *)profile->Clone(Form("profileHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
+    v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
   }
 
   // draw histograms
@@ -148,6 +153,12 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   hphi->Write();
   hEtaPhi->Write();
   BDT_response->Write();
+  for (Int_t cent = 0; cent < numCent; cent++)
+  {
+    v2CHisto[cent]->Write();
+    massVsPtVsV2CHisto[cent]->Write();
+    profileHisto[cent]->Write();
+  }
   file->Close();
 
   cout << "I created the file " << file->GetName() << endl;
