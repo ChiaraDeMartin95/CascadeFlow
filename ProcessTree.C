@@ -22,10 +22,17 @@
 
 using namespace ROOT;
 
+constexpr double massSigmaParameters[4][2]{
+    {4.9736e-3, 0.006815},
+    {-2.39594, -2.257},
+    {1.8064e-3, 0.00138},
+    {1.03468e-1, 0.1898}};
+
 void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   ROOT::EnableImplicitMT();
+
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -73,6 +80,13 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   else if (EtaSysChoice == 2) // eta < 0 && eta > -0.8
     d3 = d2.Filter("fEta < 0 && fEta > -0.8");
 
+  // apply competing mass rejection for Omega
+  // if (!isXi) d3 = d3.Filter("fMassXi > 1.34 || fMassXi < 1.3"); //rough mass cut to reject Xi
+  string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
+  if (!isXi)
+    d3 = d3.Filter(rejectMassXi);
+  auto MassXi = d3.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
+
   auto BDT_response = d3.Histo1D({"BDT_response", "BDT response", 100, 0, 1}, "fBDTResponseXi");
   if (!isXi)
     BDT_response = d3.Histo1D({"BDT_response", "BDT response", 100, 0, 1}, "fBDTResponseOmega");
@@ -101,7 +115,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_Test.root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_NoMassRej.root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms
@@ -112,24 +126,24 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     auto dcent = d3.Filter(Form("fCentFT0C>=%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
-    auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "v2C", 240, -1.2, 1.2}, "fV2C");
+    auto v2C = dcent.Histo1D({Form("v2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "v2C", 240, -1.2, 1.2}, "fV2C");
     if (isXi)
     {
-      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
       // profile: mean value of v2 vs mass and pt in centrality classes
-      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", "fV2C");
-      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-      profileHisto[cent] = (TProfile *)profile->Clone(Form("profileHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", "fV2C");
+      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
     else
     {
-      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1., 1.}, "fMassOmega", "fPt", "fV2C");
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.6, 1.73, 100, 0, 10, 200, -1., 1.}, "fMassOmega", "fPt", "fV2C");
       // profile: mean value of v2 vs mass and pt in centrality classes
-      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.6, 1.73, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", "fV2C");
-      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-      profileHisto[cent] = (TProfile *)profile->Clone(Form("profileHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 50, 1.6, 1.73, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", "fV2C");
+      massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
-    v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2CHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+    v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
   }
 
   // draw histograms
@@ -145,6 +159,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
 
   h->Write();
   cMass->Write();
+  MassXi->Write();
   hmass_Bef->Write();
   BDT_response_Bef->Write();
   mass_vs_BDTResponse->Write();
