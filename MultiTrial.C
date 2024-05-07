@@ -115,7 +115,7 @@ void MultiTrial(
     Bool_t isXi = ChosenParticleXi,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
-    TString inputFileName = SinputFileName,
+    TString inputFileName = SinputFileNameSyst,
     Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
 
@@ -126,20 +126,36 @@ void MultiTrial(
 
   TString Svaried = "";
 
-  // plot histos
   TFile *fdef = TFile::Open(Sdef + ".root");
-  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
-  hDefault->SetName(Form("hDefault"));
 
-  TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 1200);
+  // v2 plots
+  TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 800);
+  StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
   cv2->cd();
+  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
+  hDefault->SetName("hDefault");
+  hDefault->SetLineColor(kBlack);
   hDefault->Draw();
+  TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield");
+  hDefaultYield->SetName("hDefaultYield");
+  TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
+  hDefaultPurity->SetName("hDefaultPurity");
+  TLegend *legTrial = new TLegend(0.66, 0.3, 0.96, 0.6);
+  legTrial->SetBorderSize(0);
+  legTrial->SetFillStyle(0);
+  legTrial->SetTextSize(0.03);
+  legTrial->SetTextFont(42);
+  legTrial->AddEntry(hDefault, Form("BDT score > %.3f", DefaultBDTscoreCut), "pl");
 
   TH1F *h[trials];
+  TH1F *hRawYield[trials];
+  TH1F *hRawYieldRatio[trials];
+  TH1F *hPurity[trials];
+  TH1F *hPurityRatio[trials];
   Float_t BDTscoreCut = 0;
   for (int i = 0; i < trials; i++)
   {
-    if (i > 1)
+    if (i == 8)
       continue;
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
     TString SBDT = Form("_BDT%.3f", BDTscoreCut);
@@ -149,13 +165,121 @@ void MultiTrial(
     TFile *fvaried = TFile::Open(Svaried + ".root");
     TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
     hVariedCut->SetName(Form("histoV2_%i", i));
-    //cv2->cd();
-    //hVariedCut->Draw("same");
+
+    hRawYield[i] = (TH1F *)fvaried->Get("histoYield");
+    hRawYield[i]->SetName(Form("histoYield_%i", i));
+    hRawYieldRatio[i] = (TH1F *)hRawYield[i]->Clone(Form("histoYieldRatio_%i", i));
+    hRawYieldRatio[i]->Divide(hDefaultYield);
+
+    hPurity[i] = (TH1F *)fvaried->Get("histoPurity");
+    hPurity[i]->SetName(Form("histoPurity_%i", i));
+    hPurityRatio[i] = (TH1F *)hPurity[i]->Clone(Form("histoPurity_%i", i));
+    hPurityRatio[i]->Divide(hDefaultPurity);
+
+    // v2 plots
+    cv2->cd();
+    hVariedCut->SetLineColor(ColorMult[i]);
+    hVariedCut->SetMarkerColor(ColorMult[i]);
+    hVariedCut->SetMarkerStyle(MarkerMult[i]);
+    legTrial->AddEntry(hVariedCut, Form("BDT score > %.3f", BDTscoreCut), "pl");
+    hVariedCut->Draw("same");
 
     h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root");
   }
+  legTrial->Draw();
+  cv2->SaveAs("Systematics/V2MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  cv2->SaveAs("Systematics/V2MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
 
-  cv2->SaveAs("Systematics/V2MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".root");
+  // raw yields plots
+  TCanvas *cYield = new TCanvas("cYield", "cYield", 1000, 800);
+  StyleCanvas(cYield, 0.15, 0.05, 0.05, 0.15);
+  cYield->cd();
+  hDefaultYield->SetTitle("");
+  hDefaultYield->SetLineColor(kBlack);
+  hDefaultYield->GetYaxis()->SetRangeUser(0, 1.5 * hDefaultYield->GetMaximum());
+  hDefaultYield->Draw();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hRawYield[i]->SetLineColor(ColorMult[i]);
+    hRawYield[i]->SetMarkerColor(ColorMult[i]);
+    hRawYield[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYield[i]->Draw("same");
+  }
+  legTrial->Draw();
+  cYield->SaveAs("Systematics/YieldMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  cYield->SaveAs("Systematics/YieldMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
+
+  // ratio of raw yields to default one
+  TCanvas *cYieldRatio = new TCanvas("cYieldRatio", "cYieldRatio", 1000, 800);
+  StyleCanvas(cYieldRatio, 0.15, 0.05, 0.05, 0.15);
+  cYieldRatio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hRawYieldRatio[i]->SetLineColor(ColorMult[i]);
+    hRawYieldRatio[i]->SetMarkerColor(ColorMult[i]);
+    hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYieldRatio[i]->SetTitle("");
+    hRawYieldRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2);
+    hRawYieldRatio[i]->Draw("same");
+  }
+  TF1 *lineat1 = new TF1("lineat1", "1", 0, 5);
+  lineat1->SetLineColor(kBlack);
+  lineat1->SetLineStyle(7);
+  legTrial->Draw();
+  lineat1->Draw("same");
+  cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
+
+  // purity plots
+  TCanvas *cPurity = new TCanvas("cPurity", "cPurity", 1000, 800);
+  StyleCanvas(cPurity, 0.15, 0.05, 0.05, 0.15);
+  cPurity->cd();
+  hDefaultPurity->SetTitle("");
+  hDefaultPurity->SetLineColor(kBlack);
+  hDefaultPurity->GetYaxis()->SetRangeUser(0, 1);
+  hDefaultPurity->Draw();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hPurity[i]->SetLineColor(ColorMult[i]);
+    hPurity[i]->SetMarkerColor(ColorMult[i]);
+    hPurity[i]->SetMarkerStyle(MarkerMult[i]);
+    hPurity[i]->Draw("same");
+  }
+  legTrial->Draw();
+  cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
+
+  // ratio of purities to default one
+  TCanvas *cPurityRatio = new TCanvas("cPurityRatio", "cPurityRatio", 1000, 800);
+  StyleCanvas(cPurityRatio, 0.15, 0.05, 0.05, 0.15);
+  cPurityRatio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hPurityRatio[i]->SetLineColor(ColorMult[i]);
+    hPurityRatio[i]->SetMarkerColor(ColorMult[i]);
+    hPurityRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hPurityRatio[i]->SetTitle("");
+    hPurityRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hPurityRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
+    hPurityRatio[i]->Draw("same");
+  }
+  lineat1->Draw("same");
+  legTrial->Draw();
+  cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
+
+  // gaussian distributions + fits
+  TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
+  c2->Divide(3, 4);
 
   const int bins = h[0]->GetNbinsX();
   TH1F *hPtDev[bins];
@@ -170,7 +294,7 @@ void MultiTrial(
 
   for (int i = 1; i < trials; i++)
   {
-    if (i > 1)
+    if (i == 8)
       continue;
     for (int pt = 0; pt < bins; pt++)
     {
@@ -184,29 +308,10 @@ void MultiTrial(
     hPtDev[pt]->Fit(fgaus[pt], "R");
   }
 
-  TH1F *hSystMultiTrial = (TH1F *)h[0]->Clone("hSystMultiTrial");
-  hSystMultiTrial->Reset();
-  for (int pt = 0; pt < bins; pt++)
-  {
-    hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2));
-    hSystMultiTrial->SetBinError(pt + 1, 0);
-  }
-
-  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
-  TFile *Write = new TFile(OutputFile, "RECREATE");
-  for (int pt = 0; pt < bins; pt++)
-  {
-    hPtDev[pt]->Write();
-    fgaus[pt]->Write();
-  }
-  hSystMultiTrial->Write();
-
   TLatex *ltx = new TLatex();
   ltx->SetTextSize(0.05);
   ltx->SetTextColor(kRed);
 
-  TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
-  c2->Divide(3, 4);
   for (int i = 2; i < bins; i++)
   {
     c2->cd(i - 2 + 1);
@@ -223,6 +328,27 @@ void MultiTrial(
     ltx->DrawLatexNDC(0.6, 0.7, Form("#sigma = %.3f", fgaus[i]->GetParameter(2)));
     ltx->DrawLatexNDC(0.6, 0.6, Form("#chi^{2}/ndf = %.1f", fgaus[i]->GetChisquare() / fgaus[i]->GetNDF()));
   }
-  c2->SaveAs("Systematics/MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".root");
+  c2->SaveAs("Systematics/MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  c2->SaveAs("Systematics/MultTrial" + inputFileName + "_" + ParticleName[!isXi] + ".png");
 
+  // relative syst. uncertainty
+  TCanvas *cSyst = new TCanvas("cSyst", "cSyst", 1000, 800);
+  TH1F *hSystMultiTrial = (TH1F *)h[0]->Clone("hSystMultiTrial");
+  hSystMultiTrial->Reset();
+  for (int pt = 0; pt < bins; pt++)
+  {
+    hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2));
+    hSystMultiTrial->SetBinError(pt + 1, 0);
+  }
+  hSystMultiTrial->Draw();
+
+  // save histos in output files
+  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + ParticleName[!isXi] + ".root";
+  TFile *Write = new TFile(OutputFile, "RECREATE");
+  for (int pt = 0; pt < bins; pt++)
+  {
+    hPtDev[pt]->Write();
+    fgaus[pt]->Write();
+  }
+  hSystMultiTrial->Write();
 }
