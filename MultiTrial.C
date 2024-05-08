@@ -52,7 +52,7 @@ void DivideAndComputeRogerBarlow(TH1F *hVar, TH1F *hDef)
     // Computation of roger barlow sigma_{delta}
     lSigmaDelta[i] = TMath::Sqrt(TMath::Abs(TMath::Power(hVar->GetBinError(i), 2) - TMath::Power(hDef->GetBinError(i), 2)));
     // Computation of relationship to hDef for plotting in ratio plot
-    if (hDef->GetBinContent(i) > 1e-12)
+    if (abs(hDef->GetBinContent(i)) > 1e-12)
       lSigmaDelta[i] /= hDef->GetBinContent(i);
     else
       lSigmaDelta[i] = 0;
@@ -62,7 +62,7 @@ void DivideAndComputeRogerBarlow(TH1F *hVar, TH1F *hDef)
   // Replace Errors
   for (Int_t i = 1; i < hVar->GetNbinsX() + 1; i++)
   {
-    hVar->SetBinError(i, lSigmaDelta[i]);
+    hVar->SetBinError(i, abs(lSigmaDelta[i]));
   }
 }
 
@@ -96,18 +96,48 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "")
   DivideAndComputeRogerBarlow(hVariedCut, hDefault);
   // assigns to hVariedCut: hR = hvar/hdef as bin content, sigmaBarlow (sB) as error
 
-  for (int i = 1; i <= hDev->GetNbinsX(); i++)
+  for (int i = 1; i <= hDev->GetNbinsX(); i++) // pt bins
   {
     double dev = hVariedCut->GetBinContent(i) - 1; // hR - 1
     double err = hVariedCut->GetBinError(i);       // sB
 
-    hDev->SetBinContent(i, PassRogerBarlowCriterion(nsigmaBarlow, dev, err)); // rel. syst. error = hR-1 if |hR-1| > 1*sB
+    hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
   }
 
   hDev->GetYaxis()->SetRangeUser(0., 0.5);
 
   // histo with rel. syst. error (if variation passes the Barlow cut)
   return hDev;
+}
+
+TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = "")
+{
+
+  TFile *fdef = TFile::Open(Sdef);
+  TFile *fvaried = TFile::Open(Svaried);
+
+  TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
+  hVariedCut->SetName(Form("hVarCutSet%i", num));
+  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
+  hDefault->SetName(Form("hDefault"));
+
+  TH1F *hNSigmaBarlow = (TH1F *)hDefault->Clone("hNSigmaBarlow");
+  hNSigmaBarlow->Reset();
+
+  DivideAndComputeRogerBarlow(hVariedCut, hDefault);
+  // assigns to hVariedCut: hR = hvar/hdef as bin content, sigmaBarlow (sB) as error
+
+  for (int i = 1; i <= hNSigmaBarlow->GetNbinsX(); i++) // pt bins
+  {
+    double dev = hVariedCut->GetBinContent(i) - 1;   // hR - 1
+    double err = hVariedCut->GetBinError(i);         // sB
+    hNSigmaBarlow->SetBinContent(i, abs(dev) / err); // rel. syst. error = hR-1 if |hR-1| > 1*sB
+  }
+
+  hNSigmaBarlow->GetYaxis()->SetRangeUser(0, 5);
+
+  // histo with NSigmaBarlow
+  return hNSigmaBarlow;
 }
 
 void MultiTrial(
@@ -121,7 +151,7 @@ void MultiTrial(
 {
 
   TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[!isXi] + "_" + SisSyst + ".pdf";
-  
+
   Int_t trials = 0;
   if (SisSyst == "BDT")
     trials = trialsBDT;
@@ -135,6 +165,11 @@ void MultiTrial(
   TString Svaried = "";
 
   TFile *fdef = TFile::Open(Sdef + ".root");
+  if (!fdef)
+  {
+    cout << "File not found: " << Sdef << endl;
+    return;
+  }
 
   // v2 plots
   TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 800);
@@ -159,6 +194,8 @@ void MultiTrial(
     legTrial->AddEntry(hDefault, "|#eta| < 0.8", "pl");
 
   TH1F *h[trials];
+  TH1F *hNSigmaBarlow[trials];
+  TH1F *hRatio[trials];
   TH1F *hRawYield[trials];
   TH1F *hRawYieldRatio[trials];
   TH1F *hPurity[trials];
@@ -179,8 +216,15 @@ void MultiTrial(
     cout << "InputFile - variation: " << Svaried << endl;
 
     TFile *fvaried = TFile::Open(Svaried + ".root");
+    if (!fvaried)
+    {
+      cout << "File not found: " << Svaried << endl;
+      return;
+    }
     TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
     hVariedCut->SetName(Form("histoV2_%i", i));
+    hRatio[i] = (TH1F *)hVariedCut->Clone(Form("histoV2Ratio_%i", i));
+    hRatio[i]->Divide(hDefault);
 
     hRawYield[i] = (TH1F *)fvaried->Get("histoYield");
     hRawYield[i]->SetName(Form("histoYield_%i", i));
@@ -204,10 +248,54 @@ void MultiTrial(
     hVariedCut->Draw("same");
 
     h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root");
+    hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, Sdef + ".root", Svaried + ".root");
   }
   legTrial->Draw();
   cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
   cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".png");
+
+  TCanvas *cNSigmaBarlow = new TCanvas("cNSigmaBarlow", "cNSigmaBarlow", 1000, 800);
+  StyleCanvas(cNSigmaBarlow, 0.15, 0.05, 0.05, 0.15);
+  cNSigmaBarlow->cd();
+  TH1F *hdummy = (TH1F *)hDefault->Clone("hdummy");
+  hdummy->Reset();
+  hdummy->GetYaxis()->SetRangeUser(0, 5.);
+  hdummy->GetYaxis()->SetTitle("N_{#sigma}^{Barlow}");
+  hdummy->Draw();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hNSigmaBarlow[i]->SetLineColor(ColorMult[i]);
+    hNSigmaBarlow[i]->SetLineWidth(2);
+    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[i]);
+    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[i]);
+    hNSigmaBarlow[i]->Draw("same");
+  }
+
+  // ratio of varied v2 to default one
+  TCanvas *cv2Ratio = new TCanvas("cv2Ratio", "cv2Ratio", 1000, 800);
+  StyleCanvas(cv2Ratio, 0.15, 0.05, 0.05, 0.15);
+  cv2Ratio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hRatio[i]->SetLineColor(ColorMult[i]);
+    hRatio[i]->SetMarkerColor(ColorMult[i]);
+    hRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hRatio[i]->SetTitle("");
+    hRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hRatio[i]->GetYaxis()->SetRangeUser(0, 2);
+    hRatio[i]->Draw("same");
+  }
+  TF1 *lineat1 = new TF1("lineat1", "1", 0, 5);
+  lineat1->SetLineColor(kBlack);
+  lineat1->SetLineStyle(7);
+  legTrial->Draw();
+  lineat1->Draw("same");
+  cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".pdf");
+  cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".png");
 
   // raw yields plots
   TCanvas *cYield = new TCanvas("cYield", "cYield", 1000, 800);
@@ -246,9 +334,6 @@ void MultiTrial(
     hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2);
     hRawYieldRatio[i]->Draw("same");
   }
-  TF1 *lineat1 = new TF1("lineat1", "1", 0, 5);
-  lineat1->SetLineColor(kBlack);
-  lineat1->SetLineStyle(7);
   legTrial->Draw();
   lineat1->Draw("same");
   cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + Suffix + ".pdf");
@@ -296,11 +381,28 @@ void MultiTrial(
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".pdf");
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".png");
 
-  // gaussian distributions + fits
-  TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
-  c2->Divide(3, 4);
+  // systematic computation taking 0.5 * (max - min) variation
+  const int bins = h[0]->GetNbinsX(); // pt bins
+  TH1F *hMaxDev = (TH1F *)h[0]->Clone("hMaxDev");
+  hMaxDev->Reset();
+  for (int pt = 0; pt < bins; pt++) // loop over pT bins
+  {
+    for (int i = 1; i < trials; i++)
+    {
+      if (i == 8)
+        continue;
+      if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
+      {
+        hMaxDev->SetBinContent(pt + 1, h[i]->GetBinContent(pt + 1));
+      }
+      hMaxDev->SetBinError(pt + 1, 0.);
+    }
+  }
 
-  const int bins = h[0]->GetNbinsX();
+  //  gaussian distributions + fits
+  TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
+  c2->Divide(4, 4);
+
   TH1F *hPtDev[bins];
   TF1 *fgaus[bins];
 
@@ -321,32 +423,28 @@ void MultiTrial(
     }
   }
 
-  for (int pt = 0; pt < bins; pt++)
-  {
-    fgaus[pt]->SetParameter(0, hPtDev[pt]->GetMaximum());
-    hPtDev[pt]->Fit(fgaus[pt], "R");
-  }
-
   TLatex *ltx = new TLatex();
   ltx->SetTextSize(0.05);
   ltx->SetTextColor(kRed);
 
-  for (int i = 2; i < bins; i++)
+  for (int pt = 0; pt < bins; pt++)
   {
-    c2->cd(i - 2 + 1);
-    c2->cd(i - 2 + 1)->SetBottomMargin(0.15);
-    hPtDev[i]->GetYaxis()->SetRangeUser(0., hPtDev[i]->GetMaximum() * 1.2);
-    hPtDev[i]->GetXaxis()->SetTitleSize(0.06);
-    hPtDev[i]->GetXaxis()->SetTitleOffset(1.);
-    hPtDev[i]->Draw("EP");
-    hPtDev[i]->SetMarkerStyle(kFullCircle);
-    hPtDev[i]->Draw("EP SAME");
-    fgaus[i]->Draw("same");
+    c2->cd(pt + 1);
+    c2->cd(pt + 1)->SetBottomMargin(0.15);
+    hPtDev[pt]->GetYaxis()->SetRangeUser(0., hPtDev[pt]->GetMaximum() * 1.2);
+    hPtDev[pt]->GetXaxis()->SetTitleSize(0.06);
+    hPtDev[pt]->GetXaxis()->SetTitleOffset(1.);
+    hPtDev[pt]->Draw("EP");
+    hPtDev[pt]->SetMarkerStyle(kFullCircle);
+    hPtDev[pt]->Draw("EP SAME");
 
-    ltx->DrawLatexNDC(0.6, 0.8, Form("#mu = %.3f", fgaus[i]->GetParameter(1)));
-    ltx->DrawLatexNDC(0.6, 0.7, Form("#sigma = %.3f", fgaus[i]->GetParameter(2)));
-    ltx->DrawLatexNDC(0.6, 0.6, Form("#chi^{2}/ndf = %.1f", fgaus[i]->GetChisquare() / fgaus[i]->GetNDF()));
+    fgaus[pt]->SetParameter(0, hPtDev[pt]->GetMaximum());
+    hPtDev[pt]->Fit(fgaus[pt], "R+");
+    ltx->DrawLatexNDC(0.6, 0.8, Form("#mu = %.3f", fgaus[pt]->GetParameter(1)));
+    ltx->DrawLatexNDC(0.6, 0.7, Form("#sigma = %.3f", fgaus[pt]->GetParameter(2)));
+    ltx->DrawLatexNDC(0.6, 0.6, Form("#chi^{2}/ndf = %.1f", fgaus[pt]->GetChisquare() / fgaus[pt]->GetNDF()));
   }
+
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".pdf");
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".png");
 
@@ -359,7 +457,17 @@ void MultiTrial(
     hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2));
     hSystMultiTrial->SetBinError(pt + 1, 0);
   }
+  hSystMultiTrial->GetYaxis()->SetRangeUser(0., 0.5);
+  hSystMultiTrial->GetYaxis()->SetTitle("Rel. syst. error");
+  hSystMultiTrial->SetLineColor(kBlack);
+  hSystMultiTrial->Smooth();
   hSystMultiTrial->Draw();
+
+  // relative syst. uncertainty Max Variation
+  // TCanvas *cSystMax = new TCanvas("cSystMax", "cSystMax", 1000, 800);
+  hMaxDev->SetLineColor(kRed);
+  hMaxDev->Smooth();
+  hMaxDev->Draw("same");
 
   // save histos in output files
   TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + CentFT0C[mul] + "_" + ParticleName[!isXi] + "_" + SisSyst + ".root";
@@ -370,4 +478,5 @@ void MultiTrial(
     fgaus[pt]->Write();
   }
   hSystMultiTrial->Write();
+  hMaxDev->Write();
 }
