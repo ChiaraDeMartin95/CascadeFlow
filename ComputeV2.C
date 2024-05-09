@@ -21,11 +21,13 @@
 void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 2, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isSysMultTrial)
+    inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
-  if (indexMultTrial > trials)
+  if (indexMultTrial > trialsBDT)
     return;
   if (isSysMultTrial)
-    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
@@ -53,8 +55,10 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     profName = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName);
     profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName);
-    if (!profmassVsPt[cent])
+    if (!profmassVsPt[cent]){
+      cout << "TProfile2D not found" << endl;
       return;
+    }
     hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     for (Int_t pt = 0; pt < numPtBins; pt++)
     {

@@ -192,11 +192,11 @@ void FitV2(
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
+    TString inputFileName = SinputFileName,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
     Bool_t isLogy = 1,
     Int_t part = ExtrParticle,
-    TString inputFileName = SinputFileName,
     Bool_t isYAxisMassZoomed = 0,
     Int_t MassRebin = 2,
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
@@ -205,11 +205,13 @@ void FitV2(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isSysMultTrial)
+    inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
-  if (indexMultTrial > trials)
+  if (indexMultTrial > trialsBDT)
     return;
   if (isSysMultTrial)
-    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * indexMultTrial;
+    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
