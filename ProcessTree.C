@@ -85,7 +85,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
   if (!isXi)
     d3 = d3.Filter(rejectMassXi);
-  auto MassXi = d3.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
+  auto MassXi = d3.Histo2D({"mass_XivsPt", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35, 100, 0, 10}, "fMassXi", "fPt");
 
   auto BDT_response = d3.Histo1D({"BDT_response", "BDT response", 100, 0, 1}, "fBDTResponseXi");
   if (!isXi)
@@ -95,6 +95,11 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   auto hmass = d3.Histo1D({"mass_Xi", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35}, "fMassXi");
   if (!isXi)
     hmass = d3.Histo1D({"mass_Omega", "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
+
+// invariant mass histograms vs pt
+  auto hmassvsPt = d3.Histo2D({"mass_XivsPt", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35, 100, 0, 10}, "fMassXi", "fPt");
+  if (!isXi)
+    hmassvsPt = d3.Histo2D({"mass_OmegavsPt", "Invariant mass of #LambdaK", 100, 1.6, 1.73, 100, 0, 10}, "fMassOmega", "fPt");
 
   // eta distributions
   auto heta = d3.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
@@ -115,7 +120,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + "_NoMassRej.root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms
@@ -164,6 +169,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   BDT_response_Bef->Write();
   mass_vs_BDTResponse->Write();
   hmass->Write();
+  hmassvsPt->Write();
   heta->Write();
   hphi->Write();
   hEtaPhi->Write();
