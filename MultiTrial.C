@@ -157,6 +157,8 @@ void MultiTrial(
     trials = trialsBDT;
   else if (SisSyst == "eta")
     trials = 2; // eta > 0 and eta < 0
+  else if (SisSyst == "IR")
+    trials = 5; // different interaction rates
   TString Sdef = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
@@ -192,6 +194,8 @@ void MultiTrial(
     legTrial->AddEntry(hDefault, Form("BDT score > %.3f", DefaultBDTscoreCut), "pl");
   else if (SisSyst == "eta")
     legTrial->AddEntry(hDefault, "|#eta| < 0.8", "pl");
+  else if (SisSyst == "IR")
+    legTrial->AddEntry(hDefault, "PbPb 2023", "pl");
 
   TH1F *h[trials];
   TH1F *hNSigmaBarlow[trials];
@@ -212,6 +216,13 @@ void MultiTrial(
       Svaried = Sdef + SBDT;
     else if (SisSyst == "eta")
       Svaried = Sdef + SEtaSysChoice[i + 1];
+    else if (SisSyst == "IR")
+    {
+      Svaried = "OutputAnalysis/FitV2_" + inputFileNameIR + SIRChoice[i + 1] + "_" + ParticleName[!isXi];
+      Svaried += IsOneOrTwoGauss[UseTwoGauss];
+      Svaried += SIsBkgParab[BkgType];
+      Svaried += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
+    }
 
     cout << "InputFile - variation: " << Svaried << endl;
 
@@ -245,6 +256,8 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut, Form("BDT score > %.3f", BDTscoreCut), "pl");
     else if (SisSyst == "eta")
       legTrial->AddEntry(hVariedCut, SEtaSysChoice[i + 1], "pl");
+    else if (SisSyst == "IR")
+      legTrial->AddEntry(hVariedCut, SIRValue[i + 1], "pl");
     hVariedCut->Draw("same");
 
     h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root");

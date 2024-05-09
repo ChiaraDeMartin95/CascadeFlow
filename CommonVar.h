@@ -13,6 +13,7 @@ Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29
 Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 
 // Float_t PtBins[numPtBins + 1] = {0.6, 1.2, 1.6, 2, 2.5, 3, 3.5, 4, 5};
+//Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8, 10};
 Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5};
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 float ftcReso[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501};
@@ -31,20 +32,25 @@ TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1;                             // 1 for Xi, 0 for Omega
-//TString SinputFileName = "LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas
-TString SinputFileName = "LHC23_PbPb_pass3_Train207098"; 
+TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train207098";//"LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas
+TString SinputFileName = "LHC23_PbPb_pass3_Train207098"; // "LHC23_PbPb_pass2_Train192773"; 
 Bool_t ExtrBkgType = 1;                                  // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Int_t ExtrParticle = !ChosenParticleXi;
 
 // systematic studies
 bool ExtrisSysMultTrial = 0; //1 for systematic studies, 0 for default analysis
-const int trials = 10; // number of trials for the systematic studies related to BDTscore
-const int nsigmaBarlow = 1;
+
+const int trialsBDT = 10; // number of trials for the systematic studies related to BDTscore
+const int nsigmaBarlow = 2;
 const float DefaultBDTscoreCut = 0.98;
 
 TString SEtaSysChoice[3] = {"", "_Etagt0", "_Etasm0"}; // all eta, eta > 0, eta < 0
 Int_t ExtrEtaSysChoice = 0;                            // 0: all eta, 1: eta > 0, 2: eta < 0
+
+TString SIRChoice[6] = {"", "_544013", "_544392", "_544098", "_544032", "_544184"}; 
+TString SIRValue[6] = {"", "6 kHz", "12 kHz", "18 kHz", "23 kHz", "33 kHz"};
+TString inputFileNameIR = "Train207098";
 
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.9;
