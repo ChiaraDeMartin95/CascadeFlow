@@ -185,7 +185,9 @@ void MultiTrial(
   hDefaultYield->SetName("hDefaultYield");
   TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
   hDefaultPurity->SetName("hDefaultPurity");
-  TLegend *legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
+  TLegend *legTrial;
+  if (SisSyst == "IR") legTrial = new TLegend(0.66, 0.7, 0.96, 0.9);
+  else legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
   legTrial->SetBorderSize(0);
   legTrial->SetFillStyle(0);
   legTrial->SetTextSize(0.03);
@@ -316,7 +318,7 @@ void MultiTrial(
   cYield->cd();
   hDefaultYield->SetTitle("");
   hDefaultYield->SetLineColor(kBlack);
-  hDefaultYield->GetYaxis()->SetRangeUser(0, 1.5 * hDefaultYield->GetMaximum());
+  hDefaultYield->GetYaxis()->SetRangeUser(0, 1.8 * hDefaultYield->GetMaximum());
   hDefaultYield->Draw();
   for (int i = 0; i < trials; i++)
   {
@@ -344,7 +346,7 @@ void MultiTrial(
     hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hRawYieldRatio[i]->SetTitle("");
     hRawYieldRatio[i]->GetYaxis()->SetTitle("Ratio to default");
-    hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2);
+    hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2.5);
     hRawYieldRatio[i]->Draw("same");
   }
   legTrial->Draw();
