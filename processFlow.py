@@ -18,8 +18,13 @@ print("is Omega: ", args.isOmega)
 isXi = not args.isOmega
 print("isIntegratedPt: ", args.isIntegratedPt)
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"#170556.root"
-FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_Train181283.root"#176512.root"
+#DirName = 'TrainingPlots'
+DirName = 'TrainingPlotspass3'
+
+FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099.root" 
+#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"
+FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
+#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC23k6e_Train190322.root"
 bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*')
 sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
 
@@ -67,14 +72,14 @@ print('Number of background candidates (after): ', bkgCandidatesRed.get_n_cand()
 leg_labels = ['background', 'signal']
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig("TrainingPlots/Distributions.png")
+plt.savefig(DirName+"/Distributions.png")
 
 vars_to_draw_mass = ['fMassXi']
 if not isXi: 
     vars_to_draw_mass = ['fMassOmega']
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig("TrainingPlots/MassXi.png")
+plt.savefig(DirName+"/MassXi.png")
 
 vars_to_draw_bis = [
                 'fCascRadius', 'fV0Radius', 'fCascCosPA', 
@@ -84,10 +89,10 @@ vars_to_draw_bis = [
 #plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], features_for_train, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig("TrainingPlots/DistributionsInputOnly.png")
+plt.savefig(DirName+"/DistributionsInputOnly.png")
 
 plot_utils.plot_corr([bkgCandidatesRed, sigCandidates], vars_to_draw, leg_labels)
-plt.savefig("TrainingPlots/Correlations.png")
+plt.savefig(DirName+"/Correlations.png")
 #plt.show()
 
 npt = 3
@@ -140,18 +145,18 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     #Draw input features in pt intervals
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig("TrainingPlots/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     #Draw all features in pt intervals
     #label 0 is for background and 1 for signal
     leg_labels = ['background', 'signal']
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig("TrainingPlots/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig("TrainingPlots/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     model_clf = xgb.XGBClassifier()
     model_hdl = ModelHandler(model_clf, features_for_train)
@@ -172,17 +177,17 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     ml_out_fig = plot_utils.plot_output_train_test(model_hdl, train_test_data, 100, 
                                                    False, leg_labels, True, density=True)
     
-    plt.savefig("TrainingPlots/BDTScore" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/BDTScore" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #ROC curve
     roc_train_test_fig = plot_utils.plot_roc_train_test(train_test_data[3], y_pred_test,
                                                         train_test_data[1], y_pred_train, None, leg_labels)
     
-    plt.savefig("TrainingPlots/ROC" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/ROC" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #feature importance
     plot_utils.plot_feature_imp(train_test_data[2], train_test_data[3], model_hdl) 
-    plt.savefig("TrainingPlots/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+"/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #dataCandidates.apply_model_handler(model_hdl, False)
     #selected_data_hndl = dataCandidates.get_subset('model_output>0.7')
@@ -209,6 +214,6 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     plt.close()
 
 plt.bar(ptbin,nbkg)
-plt.savefig("TrainingPlots/Nbkg"+ Cascade_string +".png")
+plt.savefig(DirName+"/Nbkg"+ Cascade_string +".png")
 plt.bar(ptbin,nsig)
-plt.savefig("TrainingPlots/Nsig"+ Cascade_string +".png")
+plt.savefig(DirName+"/Nsig"+ Cascade_string +".png")
