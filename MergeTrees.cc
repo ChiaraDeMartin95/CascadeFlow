@@ -1,13 +1,12 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TKey.h>
-
 #include <iostream>
 #include <string>
 
 // loop over AO2D directories and merge the trees into a single one
 
-void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::string inputFileName = "AnalysisResults_trees_LHC23_PbPb_pass2_Train190305", const std::string outputFileName = "", bool isMC = false)
+void MergeTrees(Int_t isRedFactor = 1, const std::string folderName = "TreeForTrainingBkg", const std::string inputFileName = "AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099", bool isMC = 1)
 {
     TString inputFileNameNew = folderName + "/" + inputFileName + ".root";
     cout <<"Input file name: " << inputFileNameNew << endl;
@@ -19,9 +18,10 @@ void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::str
     for (int i = 0; i < keys->GetEntries(); i++)
     {
         TKey *key = (TKey *)keys->At(i);
-        // if(i>3) continue;
         TString keyName = key->GetName();
         key->Print();
+        if (i%isRedFactor != 0) continue;
+        cout << "Index i: " << i << endl;
         if (key->IsFolder() && keyName.BeginsWith("DF"))
         {
             TDirectory *dir = (TDirectory *)inputFile.Get(keyName);
@@ -41,8 +41,8 @@ void MergeTrees(const std::string folderName = "TreeForAnalysis", const std::str
         }
     }
 
-    //TString outputFileNameNew = folderName.c_str() + "/" + outputFileName.c_str()+ "_New.root";
-    TString outputFileNameNew = folderName + "/" + inputFileName+ "_New.root";
+    TString outputFileNameNew = folderName + "/" + inputFileName + "_New.root";
+    if (isRedFactor!=1) outputFileNameNew = folderName + "/" + inputFileName+ "_New_RedFactor" + std::to_string(isRedFactor) + ".root";
     cout <<"Output file name: " << outputFileNameNew << endl;
     TFile outputFile(outputFileNameNew, "RECREATE");
     if(outlist->GetSize() == 0){
