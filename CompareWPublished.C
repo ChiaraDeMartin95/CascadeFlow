@@ -110,7 +110,8 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
 
   TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
   TFile *PublishedFileRun2 = new TFile(SPublishedFileRun2);
-  TString Tables[4] = {"Table 8", "Table 17", "Table 26", "Table 35"};
+  //TString Tables[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; //v2 (not the mean value)
+  TString Tables[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; //mean value of v2
   if (!isXi)
   {
     Tables[0] = "Table 9";
