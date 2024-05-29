@@ -9,6 +9,13 @@ AnalysisNote/
 ModelHandler/
 TrainingPlots/
 PresentationsAtMeetings/
+share/
+lib/
+include/
+bin/
+*.cfg
+QCPlots/
+*.out
 .DS_Store
 .vscode/
 *.png
