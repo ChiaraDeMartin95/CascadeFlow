@@ -18,14 +18,15 @@ print("is Omega: ", args.isOmega)
 isXi = not args.isOmega
 print("isIntegratedPt: ", args.isIntegratedPt)
 
-#DirName = 'TrainingPlots'
-DirName = 'TrainingPlotspass3'
+DirName = 'TrainingPlots'
+AdditionalName = '/Pass3'
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099.root" 
+FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099_New_RedFactor10.root"
 #FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"
 FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
 #FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC23k6e_Train190322.root"
-bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*')
+#bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*')
+bkgCandidates= TreeHandler(FileBkg,'O2casctraining')
 sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
 
 preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 33 and fV0Radius < 35 and abs(fDCABachToPV) < 20 and fV0CosPA > 0.9'
@@ -72,14 +73,14 @@ print('Number of background candidates (after): ', bkgCandidatesRed.get_n_cand()
 leg_labels = ['background', 'signal']
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig(DirName+"/Distributions.png")
+plt.savefig(DirName+AdditionalName+"/Distributions.png")
 
 vars_to_draw_mass = ['fMassXi']
 if not isXi: 
     vars_to_draw_mass = ['fMassOmega']
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig(DirName+"/MassXi.png")
+plt.savefig(DirName+AdditionalName+"/MassXi.png")
 
 vars_to_draw_bis = [
                 'fCascRadius', 'fV0Radius', 'fCascCosPA', 
@@ -89,10 +90,10 @@ vars_to_draw_bis = [
 #plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], features_for_train, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
 plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-plt.savefig(DirName+"/DistributionsInputOnly.png")
+plt.savefig(DirName+AdditionalName+"/DistributionsInputOnly.png")
 
 plot_utils.plot_corr([bkgCandidatesRed, sigCandidates], vars_to_draw, leg_labels)
-plt.savefig(DirName+"/Correlations.png")
+plt.savefig(DirName+AdditionalName+"/Correlations.png")
 #plt.show()
 
 npt = 3
@@ -145,18 +146,18 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     #Draw input features in pt intervals
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig(DirName+"/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/DistributionsInputOnly_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     #Draw all features in pt intervals
     #label 0 is for background and 1 for signal
     leg_labels = ['background', 'signal']
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig(DirName+"/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/Distributions_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_mass, bins=100, labels=leg_labels, log=False, density=True, figsize=(12, 7), alpha=0.3, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig(DirName+"/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
     model_clf = xgb.XGBClassifier()
     model_hdl = ModelHandler(model_clf, features_for_train)
@@ -177,17 +178,17 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     ml_out_fig = plot_utils.plot_output_train_test(model_hdl, train_test_data, 100, 
                                                    False, leg_labels, True, density=True)
     
-    plt.savefig(DirName+"/BDTScore" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/BDTScore" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #ROC curve
     roc_train_test_fig = plot_utils.plot_roc_train_test(train_test_data[3], y_pred_test,
                                                         train_test_data[1], y_pred_train, None, leg_labels)
     
-    plt.savefig(DirName+"/ROC" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/ROC" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #feature importance
     plot_utils.plot_feature_imp(train_test_data[2], train_test_data[3], model_hdl) 
-    plt.savefig(DirName+"/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
+    plt.savefig(DirName+AdditionalName+"/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
     #dataCandidates.apply_model_handler(model_hdl, False)
     #selected_data_hndl = dataCandidates.get_subset('model_output>0.7')
@@ -203,17 +204,17 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     #plt.savefig("InvMassBkgXi" + str(pt) +".png")
     
     #store the trained model
-    model_hdl.dump_model_handler("ModelHandler/ModelHandler_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
-    model_hdl.dump_original_model("ModelHandler/XGBoostModel_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_model_handler("ModelHandler"+AdditionalName+"/ModelHandler_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_original_model("ModelHandler"+AdditionalName+"/XGBoostModel_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
     
     #convert model in ONNX
     model_converter = H4MLConverter(model_hdl) # create the converter object
     model_onnx = model_converter.convert_model_onnx(1, len(features_for_train))
-    model_converter.dump_model_onnx("Onnx/model_onnx"+ Cascade_string + "_" + str(ptbin)+ "_" + str(ptbinMax)+".onnx") # dump the model in ONNX format
+    model_converter.dump_model_onnx("Onnx"+AdditionalName+"/model_onnx"+ Cascade_string + "_" + str(ptbin)+ "_" + str(ptbinMax)+".onnx") # dump the model in ONNX format
 
     plt.close()
 
 plt.bar(ptbin,nbkg)
-plt.savefig(DirName+"/Nbkg"+ Cascade_string +".png")
+plt.savefig(DirName+AdditionalName+"/Nbkg"+ Cascade_string +".png")
 plt.bar(ptbin,nsig)
-plt.savefig(DirName+"/Nsig"+ Cascade_string +".png")
+plt.savefig(DirName+AdditionalName+"/Nsig"+ Cascade_string +".png")
