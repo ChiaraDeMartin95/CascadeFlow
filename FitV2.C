@@ -283,6 +283,7 @@ void FitV2(
 
   TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBins, PtBins);
   TH1F *histoSigma = new TH1F("histoSigma", "histoSigma", numPtBins, PtBins);
+  TH1F *histoSigmaWeighted = new TH1F("histoSigmaWeighted", "histoSigmaWeighted", numPtBins, PtBins);
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBins, PtBins);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBins, PtBins);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBins, PtBins);
@@ -406,6 +407,11 @@ void FitV2(
   Float_t errmean[numPtBins] = {0};
   Float_t sigma[numPtBins] = {0};
   Float_t errsigma[numPtBins] = {0};
+  Float_t sigmaw[numPtBins] = {0};
+  Float_t errsigmaw[numPtBins] = {0};
+  Float_t w1[numPtBins] = {0};
+  Float_t w2[numPtBins] = {0};
+  Float_t I12[numPtBins] = {0};
   Float_t Yield[numPtBins] = {0};
   Float_t ErrYield[numPtBins] = {0};
   Float_t LowLimit[numPtBins] = {0};
@@ -721,10 +727,16 @@ void FitV2(
         TMatrixDSym cov = fFitResultPtr0[pt]->GetCovarianceMatrix();
         Double_t cov_mean = cov[1][4];
         Double_t cov_sigma = cov[2][5];
+        I12[pt] = functions1[pt]->Integral(0,2) + functions2[pt]->Integral(0,2);
+        cout <<"SignalIntegral " << I12[pt] << endl;
+        w1[pt] = functions1[pt]->Integral(0,2) / I12[pt];
+        w2[pt] = functions2[pt]->Integral(0,2) / I12[pt];
         mean[pt] = (functions1[pt]->GetParameter(1) + functions2[pt]->GetParameter(1)) / 2;
         errmean[pt] = (total[pt]->GetParError(1) + total[pt]->GetParError(4)) / 2;
         sigma[pt] = (functions1[pt]->GetParameter(2) + functions2[pt]->GetParameter(2)) / 2;
         errsigma[pt] = sqrt(pow(total[pt]->GetParError(2), 2) + pow(total[pt]->GetParError(5), 2) + 2 * cov_sigma) / 2;
+        sigmaw[pt] = (functions1[pt]->GetParameter(2) * functions1[pt]->Integral(0,2) + functions2[pt]->GetParameter(2) * functions2[pt]->Integral(0,2)) / I12[pt];
+        errsigmaw[pt] = sqrt(pow(w1[pt]/I12[pt]*functions1[pt]->GetParError(2), 2) + pow(w2[pt]/I12[pt]*functions2[pt]->GetParError(2), 2) + 2*functions2[pt]->Integral(0,2)*functions1[pt]->Integral(0,2)*cov_sigma)/ I12[pt];
       }
     }
     if (!UseTwoGaussUpdated || !UseTwoGauss)
@@ -989,6 +1001,9 @@ void FitV2(
     histoSigma->SetBinContent(pt + 1, sigma[pt]);
     histoSigma->SetBinError(pt + 1, errsigma[pt]);
 
+    histoSigmaWeighted->SetBinContent(pt + 1, sigmaw[pt]);
+    histoSigmaWeighted->SetBinError(pt + 1, errsigmaw[pt]);
+
     histoPurity->SetBinContent(pt + 1, SSB[pt]);
     histoPurity->SetBinError(pt + 1, errSSB[pt]);
 
@@ -1062,7 +1077,7 @@ void FitV2(
   }
 
   TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1700, 1000);
-  canvasSummary->Divide(3, 2);
+  canvasSummary->Divide(4, 2);
 
   canvasSummary->cd(1);
   gPad->SetBottomMargin(0.14);
@@ -1077,24 +1092,29 @@ void FitV2(
   canvasSummary->cd(3);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
+  StyleHisto(histoSigmaWeighted, 0, 0.010, 1, 1, titlePt, "#sigma_{w} (GeV/c^{2})", "histoSigmaWeighted", 0, 0, 0, 1.4, 1.4, 1.2);
+  histoSigmaWeighted->Draw("");
+  canvasSummary->cd(4);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
   StyleHisto(histoPurity, 0, 1, 1, 1, titlePt, "S / (S+B)", "histoPurity", 0, 0, 0, 1.4, 1.4, 1.2);
   histoPurity->Draw("");
-  canvasSummary->cd(4);
+  canvasSummary->cd(5);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titlePt, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
   histoYield->Draw("same");
-  canvasSummary->cd(5);
+  canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
   histoTot->Draw("same");
-  canvasSummary->cd(6);
+  canvasSummary->cd(7);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
-  // histoB->Draw("same");
-  canvasSummary->cd(6);
+  histoB->Draw("same");
+  canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   histoV2->Scale(1. / ftcReso[mul]);
@@ -1127,6 +1147,7 @@ void FitV2(
   outputfile->WriteTObject(histoB);
   outputfile->WriteTObject(histoMean);
   outputfile->WriteTObject(histoSigma);
+  outputfile->WriteTObject(histoSigmaWeighted);
   outputfile->WriteTObject(histoPurity);
   outputfile->WriteTObject(histoSignificance);
   outputfile->WriteTObject(histoV2);

@@ -138,7 +138,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t ChosenMultLucia = 0,
                               Int_t ChosenMult = numCent - 3,
                               Bool_t isDrawRun2 = 1,
-                              Bool_t isDrawLuciaRun3 = 0,
+                              Bool_t isDrawLuciaRun3 = 1,
                               TString SysPath = "",
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               TString inputFileName = SinputFileName,
@@ -280,7 +280,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
     cout << "Path in : " << PathIn << endl;
 
     fileIn[m] = TFile::Open(PathIn);
-    fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]);
+    if (Choice==1) fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]+ "Weighted");
+    else fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]);
     fHistSpectrum[m]->SetName("histoSpectrum_" + Smolt[m]);
     if (!fHistSpectrum[m])
     {
