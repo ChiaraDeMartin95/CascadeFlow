@@ -43,19 +43,45 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TH1F *hV2C[numCent][numPtBins];
   TH1F *hV2CFromProfile[numCent][numPtBins];
   TProfile *pV2C[numCent][numPtBins];
+  TH1F *hPhiCentHisto[numCent];
   TString hName = "";
   TString profName = "";
   TString hNameMass = "";
   TString hNameV2C = "";
   TString hNameMassV2C = "";
   TString hNameV2CFromProfile2D = "";
+
+  // QC: phi distribution of selected candidates in centrality classes
+  gStyle->SetOptStat(0);
+  TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 900, 600);
+
   for (Int_t cent = 0; cent < numCent; cent++)
   {
+    // QCPlot
+    hPhiCentHisto[cent] = (TH1F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+    if (!hPhiCentHisto[cent])
+    {
+      cout << "Histogram hPhiCentHisto not available" << endl;
+      return;
+    }
+    hPhiCentHisto[cent]->SetMarkerStyle(20);
+    hPhiCentHisto[cent]->SetMarkerSize(0.5);
+    hPhiCentHisto[cent]->SetMarkerColor(ColorMult[cent]);
+    hPhiCentHisto[cent]->SetLineColor(ColorMult[cent]);
+    //hPhiCentHisto[cent]->SetTitle("Phi distribution of selected candidates");
+    hPhiCentHisto[cent]->SetTitle("");
+    hPhiCentHisto[cent]->Scale(1./hPhiCentHisto[cent]->Integral());
+    hPhiCentHisto[cent]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto[cent]->GetBinContent(hPhiCentHisto[cent]->GetMaximumBin()));
+    hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
+    QCPhi->cd();
+    hPhiCentHisto[cent]->Draw("same hist");
+
     hName = Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     profName = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName);
     profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName);
-    if (!profmassVsPt[cent]){
+    if (!profmassVsPt[cent])
+    {
       cout << "TProfile2D not found" << endl;
       return;
     }
@@ -91,6 +117,8 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       }
     }
   }
+
+  QCPhi->SaveAs("QCPlots/QCPhiCasc.png");
 
   TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root", "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
