@@ -32,7 +32,7 @@ constexpr double massSigmaParameters[4][2]{
     {1.8064e-3, 0.00138},
     {1.03468e-1, 0.1898}};
 
-void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial, Bool_t isApplyWeights = 1)
+void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial, Bool_t isApplyWeights = 1, Int_t Charge = ExtrCharge)
 {
 
   ROOT::EnableImplicitMT();
@@ -46,12 +46,13 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
   // weights to flatten phi distribution of cascades
-  //TFile *fileWeights = new TFile(SfileWeights);
+  // TFile *fileWeights = new TFile(SfileWeights);
 
   cout << "Input file: " << inputFileName << endl;
-  //if (isApplyWeights)
-    //cout << "Weights applied from file " << SfileWeights << endl;
+  // if (isApplyWeights)
+  // cout << "Weights applied from file " << SfileWeights << endl;
   cout << "isXi: " << isXi << endl;
+  cout << "Charge: " << ChargeName[Charge+1] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
   cout << "BDTscoreCut: " << BDTscoreCut << endl;
 
@@ -98,6 +99,14 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     expression = Form("fBDTResponseOmega > %.3f", BDTscoreCut);
   cout << "expression: " << expression << endl;
   auto d2 = d1.Filter(expression);
+
+  // apply charge selection
+  string chargecut = "abs(fSign) > 0";
+  if (Charge == 1)
+    chargecut = "fSign > 0";
+  else if (Charge == -1)
+    chargecut = "fSign < 0";
+  d2 = d2.Filter(chargecut);
 
   // apply eta selection for systematic studies
   auto d3 = d2;
@@ -148,7 +157,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + ChargeName[Charge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms

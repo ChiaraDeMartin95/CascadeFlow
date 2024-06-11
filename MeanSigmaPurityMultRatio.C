@@ -206,7 +206,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   TString stringoutpdf;
   stringout = OutputDir + "PlotRatios_";
   stringout += SinputFileName;
-  stringout += "_" + ParticleName[!isXi];
+  stringout += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
@@ -257,7 +257,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + ", |#it{#eta}| < 0.8", "");
+  LegendTitle->AddEntry("", ParticleName[part] + ChargeName[ExtrCharge + 1] ", |#it{#eta}| < 0.8", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
@@ -270,7 +270,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
       continue;
     PathIn = "OutputAnalysis/FitV2_";
     PathIn += SinputFileName;
-    PathIn += "_" + ParticleName[!isXi];
+    PathIn += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
     PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
     Smolt[m] += Form("_Cent%i-%i", CentFT0C[m], CentFT0C[m + 1]);
@@ -280,8 +280,10 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
     cout << "Path in : " << PathIn << endl;
 
     fileIn[m] = TFile::Open(PathIn);
-    if (Choice==1) fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]+ "Weighted");
-    else fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]);
+    if (Choice == 1)
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice] + "Weighted");
+    else
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]);
     fHistSpectrum[m]->SetName("histoSpectrum_" + Smolt[m]);
     if (!fHistSpectrum[m])
     {
@@ -432,7 +434,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
       if (m == ChosenMultLucia)
         legendRun3->AddEntry(histoRun3, "Run 3, Lucia " + MultClassLucia[ChosenMultLucia], "pe");
     }
-    //legendRun3->Draw();
+    // legendRun3->Draw();
   }
 
   // Compute and draw spectra ratios

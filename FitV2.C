@@ -258,7 +258,7 @@ void FitV2(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
 
   TFile *filein = new TFile(SPathIn, "");
   if (!filein)
@@ -1047,7 +1047,7 @@ void FitV2(
     cout << "\nv2: " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
-    cout << histoV2NoFit->GetBinCenter(pt+1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
+    cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
   }
 
   TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
@@ -1149,7 +1149,7 @@ void FitV2(
   histoV2->Draw();
 
   TString Soutputfile;
-  Soutputfile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
+  Soutputfile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
