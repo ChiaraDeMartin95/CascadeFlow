@@ -19,8 +19,12 @@
 #include "TPad.h"
 #include "StyleFile.h"
 #include "CommonVar.h"
+#include "TRandom3.h"
+#include <ROOT/RDataFrame.hxx>
+
 
 using namespace ROOT;
+using namespace std;
 
 constexpr double massSigmaParameters[4][2]{
     {4.9736e-3, 0.006815},
@@ -43,7 +47,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
 
   // weights to flatten phi distribution of cascades
   //TFile *fileWeights = new TFile(SfileWeights);
-  
+
   cout << "Input file: " << inputFileName << endl;
   //if (isApplyWeights)
     //cout << "Weights applied from file " << SfileWeights << endl;
@@ -54,7 +58,26 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString TreeName = "O2cascanalysis";
 
   TString inputFile = "TreeForAnalysis/AnalysisResults_trees_" + inputFileName + "_New.root";
-  RDataFrame d1(TreeName, inputFile);
+
+  RDataFrame originalDF(TreeName, inputFile);
+
+  std::vector<TRandom3> randoms;
+  for (Int_t i = 0; i < originalDF.GetNSlots(); i++)
+  {
+    randoms.push_back(TRandom3(i + 1));
+  }
+
+  TFile *weightFile = new TFile(weightFileName, "READ");
+  TH3D *weights{weightFileName ? (TH3D *)weightFile->Get("weights") : nullptr};
+
+  auto d1 = originalDF.DefineSlot("random", [&randoms](unsigned int slot) -> float { return randoms[slot].Rndm(); }).Filter([&weights](float random, float cent, float pt, float phi) {
+    if (!weights) return true;
+    int centBin = weights->GetXaxis()->FindBin(cent);
+    int ptBin = weights->GetYaxis()->FindBin(pt);
+    int phiBin = weights->GetZaxis()->FindBin(phi);
+    return random < weights->GetBinContent(centBin, ptBin, phiBin);
+   }, {"random", "fCentFT0C", "fPt", "fPhi"});
+
   auto h = d1.Histo1D("fPt");
 
   // invariant mass histograms

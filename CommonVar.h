@@ -33,7 +33,7 @@ TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1;                             // 1 for Xi, 0 for Omega
 TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train207098";//"LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas
-TString SinputFileName = "LHC23_PbPb_pass3_Train207098"; // "LHC23_PbPb_pass2_Train192773"; 
+TString SinputFileName = "LHC23_PbPb_pass3_Train207098"; // "LHC23_PbPb_pass2_Train192773";
 Bool_t ExtrBkgType = 1;                                  // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Int_t ExtrParticle = !ChosenParticleXi;
@@ -48,9 +48,11 @@ const float DefaultBDTscoreCut = 0.98;
 TString SEtaSysChoice[3] = {"", "_Etagt0", "_Etasm0"}; // all eta, eta > 0, eta < 0
 Int_t ExtrEtaSysChoice = 0;                            // 0: all eta, 1: eta > 0, 2: eta < 0
 
-TString SIRChoice[6] = {"", "_544013", "_544392", "_544098", "_544032", "_544184"}; 
+TString SIRChoice[6] = {"", "_544013", "_544392", "_544098", "_544032", "_544184"};
 TString SIRValue[6] = {"", "6 kHz", "12 kHz", "18 kHz", "23 kHz", "33 kHz"};
 TString inputFileNameIR = "Train207098";
 
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.9;
+
+TString weightFileName = "weights.root";

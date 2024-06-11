@@ -56,6 +56,12 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   gStyle->SetOptStat(0);
   TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 1400, 1200);
   QCPhi->Divide(4, 4);
+  std::vector<double> centBins;
+  for (Int_t cent = 0; cent < numCent + 1; cent++) {
+    centBins.push_back(static_cast<double>(CentFT0C[cent]));
+  }
+
+  TH3D* weights{nullptr};
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
     QCPhi->cd(pt + 1);
@@ -68,6 +74,15 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
         cout << "Histogram hPhiCentHisto not available" << endl;
         return;
       }
+      if (!weights) {
+        std::vector<double> phiBins(hPhiCentHisto[cent]->GetYaxis()->GetNbins() + 1, 0.);
+        for (uint32_t bin = 1; bin < phiBins.size() - 1; bin++) {
+          phiBins[bin] = bin * 2 * TMath::Pi() / (phiBins.size() - 1);
+        }
+        phiBins.back() = 2 * TMath::Pi();
+        weights = new TH3D("weights", "weights", numCent, centBins.data(), numPtBins, PtBins, hPhiCentHisto[cent]->GetYaxis()->GetNbins(), phiBins.data());
+      }
+
       hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
       hPhiCentHisto1D[cent][pt] = (TH1F *)hPhiCentHisto[cent]->ProjectionY(Form("Weights_cent%i-%i_pt%.3f-%.3f", CentFT0C[cent], CentFT0C[cent + 1],PtBins[pt], PtBins[pt+1] ));
       hPhiCentHisto1D[cent][pt]->SetMarkerStyle(20);
@@ -76,10 +91,15 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       hPhiCentHisto1D[cent][pt]->SetLineColor(ColorMult[cent]);
       hPhiCentHisto1D[cent][pt]->SetTitle(Form("%.2f < p_{T} < %.2f GeV/c", PtBins[pt], PtBins[pt + 1]));
       // hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent]->Integral());
-      hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
+      hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMinimumBin()));
       hPhiCentHisto1D[cent][pt]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
       hPhiCentHisto1D[cent][pt]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
       hPhiCentHisto1D[cent][pt]->Draw("same hist");
+
+      for (Int_t bin = 0; bin < hPhiCentHisto1D[cent][pt]->GetNbinsX(); bin++)
+      {
+        weights->Fill(CentFT0C[cent] + 0.0001, PtBins[pt] + 0.0001, hPhiCentHisto1D[cent][pt]->GetBinCenter(bin + 1), hPhiCentHisto1D[cent][pt]->GetBinContent(bin + 1));
+      }
     }
   }
   for (Int_t cent = 0; cent < numCent; cent++)
@@ -144,5 +164,9 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     hmassVsPt[cent]->Write();
   }
   file->Close();
+  TFile *weightsFile = new TFile("OutputAnalysis/Weights_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root", "RECREATE");
+  weightsFile->cd();
+  weights->Write();
+  weightsFile->Close();
   cout << "I created the file " << file->GetName() << endl;
 }
