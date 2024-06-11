@@ -107,9 +107,6 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   // phi distributions
   auto hphi = d3.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
 
-  // phi distributions vs centrality
-  auto hphiCent = d3.Histo2D({"PhivsCent", "Phi distribution of selected candidates vs cent", 200, 0, 2 * TMath::Pi(), 100, 0, 100}, "fPhi", "fCentFT0C");
-
   // eta - phi distributions
   auto hEtaPhi = d3.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
 
@@ -129,14 +126,14 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   // 3D histograms
 
   TH1D *v2CHisto[numCent];
-  TH1D *hPhiCentHisto[numCent];
+  TH2D *hPhiCentHisto[numCent];
   TH3D *massVsPtVsV2CHisto[numCent];
   TProfile *profileHisto[numCent];
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     auto dcent = d3.Filter(Form("fCentFT0C>=%i && fCentFT0C<%i", CentFT0C[cent], CentFT0C[cent + 1]));
     auto v2C = dcent.Histo1D({Form("v2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "v2C", 240, -1.2, 1.2}, "fV2C");
-    auto hPhiCent = dcent.Histo1D({Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Phi vs Cent", 100, 0, 2 * TMath::Pi()}, "fPhi");
+    auto hPhiCent = dcent.Histo2D({Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Phi vs pt", 100, 0, 10, 100, 0, 2 * TMath::Pi()}, "fPt", "fPhi");
     if (isXi)
     {
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 100, 1.28, 1.36, 100, 0, 10, 200, -1., 1.}, "fMassXi", "fPt", "fV2C");
@@ -154,7 +151,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
       profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
     v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-    hPhiCentHisto[cent] = (TH1D *)hPhiCent->Clone(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+    hPhiCentHisto[cent] = (TH2D *)hPhiCent->Clone(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
   }
 
   // draw histograms
@@ -178,7 +175,6 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   hmassvsPt->Write();
   heta->Write();
   hphi->Write();
-  hphiCent->Write();
   hEtaPhi->Write();
   BDT_response->Write();
   for (Int_t cent = 0; cent < numCent; cent++)
