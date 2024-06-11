@@ -271,6 +271,8 @@ void FitV2(
   TH1F *hInvMass[numPtBins];
   TH1F *hInvMassDraw[numPtBins];
   TH1F *hV2[numPtBins];
+  TH2F *hmassVsV2C[numPtBins];
+  TH1F *hV2MassIntegrated[numPtBins];
 
   Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
@@ -290,6 +292,7 @@ void FitV2(
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBins, PtBins);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
   TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2NoFit = new TH1F("histoV2NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
@@ -307,6 +310,13 @@ void FitV2(
     }
 
     StyleHisto(hInvMass[pt], 0, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), 1, 20, TitleInvMass[part] + " " + SInvMass, "Counts", SPt[pt] + " GeV/#it{c}", 1, histoMassRangeLow[part], histoMassRangeUp[part], 1.4, 1.6, 0.7);
+
+    hmassVsV2C[pt] = (TH2F *)filein->Get(Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    if (!hmassVsV2C[pt])
+    {
+      cout << "Histogram hmassVsV2C not available" << endl;
+      return;
+    }
 
     // hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
     hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt));
@@ -727,16 +737,16 @@ void FitV2(
         TMatrixDSym cov = fFitResultPtr0[pt]->GetCovarianceMatrix();
         Double_t cov_mean = cov[1][4];
         Double_t cov_sigma = cov[2][5];
-        I12[pt] = functions1[pt]->Integral(0,2) + functions2[pt]->Integral(0,2);
-        cout <<"SignalIntegral " << I12[pt] << endl;
-        w1[pt] = functions1[pt]->Integral(0,2) / I12[pt];
-        w2[pt] = functions2[pt]->Integral(0,2) / I12[pt];
+        I12[pt] = functions1[pt]->Integral(0, 2) + functions2[pt]->Integral(0, 2);
+        cout << "SignalIntegral " << I12[pt] << endl;
+        w1[pt] = functions1[pt]->Integral(0, 2) / I12[pt];
+        w2[pt] = functions2[pt]->Integral(0, 2) / I12[pt];
         mean[pt] = (functions1[pt]->GetParameter(1) + functions2[pt]->GetParameter(1)) / 2;
         errmean[pt] = (total[pt]->GetParError(1) + total[pt]->GetParError(4)) / 2;
         sigma[pt] = (functions1[pt]->GetParameter(2) + functions2[pt]->GetParameter(2)) / 2;
         errsigma[pt] = sqrt(pow(total[pt]->GetParError(2), 2) + pow(total[pt]->GetParError(5), 2) + 2 * cov_sigma) / 2;
-        sigmaw[pt] = (functions1[pt]->GetParameter(2) * functions1[pt]->Integral(0,2) + functions2[pt]->GetParameter(2) * functions2[pt]->Integral(0,2)) / I12[pt];
-        errsigmaw[pt] = sqrt(pow(w1[pt]/I12[pt]*functions1[pt]->GetParError(2), 2) + pow(w2[pt]/I12[pt]*functions2[pt]->GetParError(2), 2) + 2*functions2[pt]->Integral(0,2)*functions1[pt]->Integral(0,2)*cov_sigma)/ I12[pt];
+        sigmaw[pt] = (functions1[pt]->GetParameter(2) * functions1[pt]->Integral(0, 2) + functions2[pt]->GetParameter(2) * functions2[pt]->Integral(0, 2)) / I12[pt];
+        errsigmaw[pt] = sqrt(pow(w1[pt] / I12[pt] * functions1[pt]->GetParError(2), 2) + pow(w2[pt] / I12[pt] * functions2[pt]->GetParError(2), 2) + 2 * functions2[pt]->Integral(0, 2) * functions1[pt]->Integral(0, 2) * cov_sigma) / I12[pt];
       }
     }
     if (!UseTwoGaussUpdated || !UseTwoGauss)
@@ -1020,9 +1030,24 @@ void FitV2(
       canvas[2]->cd(pt + 4 + 1 - 8);
     else if (pt < 16)
       canvas[3]->cd(pt + 4 + 1 - 12);
-    hV2[pt]->Fit(v2FitFunction[pt], "R");
+    hV2[pt]->Fit(v2FitFunction[pt], "R0");
+    hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
+    hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
     histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+
+    hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
+    StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
+    hV2MassIntegrated[pt]->Rebin(2);
+    hV2MassIntegrated[pt]->Draw("");
+    TLegend *legendV2 = new TLegend(0.2, 0.8, 0.4, 0.9);
+    legendV2->SetTextSize(0.055);
+    legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
+    legendV2->Draw("same");
+    cout << "\nv2: " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
+    histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
+    histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+    cout << histoV2NoFit->GetBinCenter(pt+1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
   }
 
   TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
@@ -1113,7 +1138,10 @@ void FitV2(
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
-  histoB->Draw("same");
+  // histoB->Draw("same");
+  histoV2NoFit->SetTitle("v2 without fit");
+  histoV2NoFit->Scale(1. / ftcReso[mul]);
+  histoV2NoFit->Draw();
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
