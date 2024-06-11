@@ -43,7 +43,8 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TH1F *hV2C[numCent][numPtBins];
   TH1F *hV2CFromProfile[numCent][numPtBins];
   TProfile *pV2C[numCent][numPtBins];
-  TH1F *hPhiCentHisto[numCent];
+  TH2F *hPhiCentHisto[numCent];
+  TH1F *hPhiCentHisto1D[numCent][numPtBins];
   TString hName = "";
   TString profName = "";
   TString hNameMass = "";
@@ -53,29 +54,36 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
 
   // QC: phi distribution of selected candidates in centrality classes
   gStyle->SetOptStat(0);
-  TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 900, 600);
-
+  TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 1400, 1200);
+  QCPhi->Divide(4, 4);
+  for (Int_t pt = 0; pt < numPtBins; pt++)
+  {
+    QCPhi->cd(pt + 1);
+    for (Int_t cent = 0; cent < numCent; cent++)
+    {
+      // QCPlot
+      hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      if (!hPhiCentHisto[cent])
+      {
+        cout << "Histogram hPhiCentHisto not available" << endl;
+        return;
+      }
+      hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+      hPhiCentHisto1D[cent][pt] = (TH1F *)hPhiCentHisto[cent]->ProjectionY(Form("Weights_cent%i-%i_pt%.3f-%.3f", CentFT0C[cent], CentFT0C[cent + 1],PtBins[pt], PtBins[pt+1] ));
+      hPhiCentHisto1D[cent][pt]->SetMarkerStyle(20);
+      hPhiCentHisto1D[cent][pt]->SetMarkerSize(0.5);
+      hPhiCentHisto1D[cent][pt]->SetMarkerColor(ColorMult[cent]);
+      hPhiCentHisto1D[cent][pt]->SetLineColor(ColorMult[cent]);
+      hPhiCentHisto1D[cent][pt]->SetTitle(Form("%.2f < p_{T} < %.2f GeV/c", PtBins[pt], PtBins[pt + 1]));
+      // hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent]->Integral());
+      hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
+      hPhiCentHisto1D[cent][pt]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
+      hPhiCentHisto1D[cent][pt]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
+      hPhiCentHisto1D[cent][pt]->Draw("same hist");
+    }
+  }
   for (Int_t cent = 0; cent < numCent; cent++)
   {
-    // QCPlot
-    hPhiCentHisto[cent] = (TH1F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-    if (!hPhiCentHisto[cent])
-    {
-      cout << "Histogram hPhiCentHisto not available" << endl;
-      return;
-    }
-    hPhiCentHisto[cent]->SetMarkerStyle(20);
-    hPhiCentHisto[cent]->SetMarkerSize(0.5);
-    hPhiCentHisto[cent]->SetMarkerColor(ColorMult[cent]);
-    hPhiCentHisto[cent]->SetLineColor(ColorMult[cent]);
-    //hPhiCentHisto[cent]->SetTitle("Phi distribution of selected candidates");
-    hPhiCentHisto[cent]->SetTitle("");
-    hPhiCentHisto[cent]->Scale(1./hPhiCentHisto[cent]->Integral());
-    hPhiCentHisto[cent]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto[cent]->GetBinContent(hPhiCentHisto[cent]->GetMaximumBin()));
-    hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
-    QCPhi->cd();
-    hPhiCentHisto[cent]->Draw("same hist");
-
     hName = Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     profName = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName);
@@ -130,6 +138,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       hmassVsV2C[cent][pt]->Write();
       pV2C[cent][pt]->Write();
       hV2CFromProfile[cent][pt]->Write();
+      hPhiCentHisto1D[cent][pt]->Write();
     }
     hmassVsPtVsV2C[cent]->Write();
     hmassVsPt[cent]->Write();
