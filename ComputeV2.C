@@ -32,7 +32,10 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  if (isApplyWeights)
+    SinputFile += "_Weighted";
+  SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
@@ -57,11 +60,12 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 1400, 1200);
   QCPhi->Divide(4, 4);
   std::vector<double> centBins;
-  for (Int_t cent = 0; cent < numCent + 1; cent++) {
+  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  {
     centBins.push_back(static_cast<double>(CentFT0C[cent]));
   }
 
-  TH3D* weights{nullptr};
+  TH3D *weights{nullptr};
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
     QCPhi->cd(pt + 1);
@@ -74,9 +78,11 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
         cout << "Histogram hPhiCentHisto not available" << endl;
         return;
       }
-      if (!weights) {
+      if (!weights)
+      {
         std::vector<double> phiBins(hPhiCentHisto[cent]->GetYaxis()->GetNbins() + 1, 0.);
-        for (uint32_t bin = 1; bin < phiBins.size() - 1; bin++) {
+        for (uint32_t bin = 1; bin < phiBins.size() - 1; bin++)
+        {
           phiBins[bin] = bin * 2 * TMath::Pi() / (phiBins.size() - 1);
         }
         phiBins.back() = 2 * TMath::Pi();
@@ -148,7 +154,11 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
 
   QCPhi->SaveAs("QCPlots/QCPhiCasc.png");
 
-  TFile *file = new TFile("OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root", "RECREATE");
+  TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  if (isApplyWeights)
+    SOutputFile += "_Weighted";
+  SOutputFile += ".root";
+  TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     for (Int_t pt = 0; pt < numPtBins; pt++)
@@ -164,9 +174,15 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     hmassVsPt[cent]->Write();
   }
   file->Close();
-  TFile *weightsFile = new TFile("OutputAnalysis/Weights_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root", "RECREATE");
-  weightsFile->cd();
-  weights->Write();
-  weightsFile->Close();
+  TString SweightsFile = "OutputAnalysis/Weights_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TFile *weightsFile;
+  if (!isApplyWeights) //weights computed only once (when we apply weights, they have already been created!)
+  {
+    weightsFile = new TFile(SweightsFile, "RECREATE");
+    weightsFile->cd();
+    weights->Write();
+    weightsFile->Close();
+  }
   cout << "I created the file " << file->GetName() << endl;
+  if (!isApplyWeights) cout << " and the file with weights: " << SweightsFile << endl;
 }

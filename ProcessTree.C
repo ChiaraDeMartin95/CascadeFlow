@@ -22,7 +22,6 @@
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
-
 using namespace ROOT;
 using namespace std;
 
@@ -32,7 +31,7 @@ constexpr double massSigmaParameters[4][2]{
     {1.8064e-3, 0.00138},
     {1.03468e-1, 0.1898}};
 
-void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial, Bool_t isApplyWeights = 1, Int_t Charge = ExtrCharge)
+void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial, Int_t Charge = ExtrCharge)
 {
 
   ROOT::EnableImplicitMT();
@@ -45,14 +44,11 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
-  // weights to flatten phi distribution of cascades
-  // TFile *fileWeights = new TFile(SfileWeights);
-
   cout << "Input file: " << inputFileName << endl;
-  // if (isApplyWeights)
-  // cout << "Weights applied from file " << SfileWeights << endl;
+  if (isApplyWeights)
+    cout << "Weights applied from file " << weightFileName << endl;
   cout << "isXi: " << isXi << endl;
-  cout << "Charge: " << ChargeName[Charge+1] << endl;
+  cout << "Charge: " << ChargeName[Charge + 1] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
   cout << "BDTscoreCut: " << BDTscoreCut << endl;
 
@@ -71,13 +67,16 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TFile *weightFile = new TFile(weightFileName, "READ");
   TH3D *weights{weightFileName ? (TH3D *)weightFile->Get("weights") : nullptr};
 
-  auto d1 = originalDF.DefineSlot("random", [&randoms](unsigned int slot) -> float { return randoms[slot].Rndm(); }).Filter([&weights](float random, float cent, float pt, float phi) {
-    if (!weights) return true;
-    int centBin = weights->GetXaxis()->FindBin(cent);
-    int ptBin = weights->GetYaxis()->FindBin(pt);
-    int phiBin = weights->GetZaxis()->FindBin(phi);
-    return random < weights->GetBinContent(centBin, ptBin, phiBin);
-   }, {"random", "fCentFT0C", "fPt", "fPhi"});
+  auto d1 = originalDF.DefineSlot("random", [&randoms](unsigned int slot) -> float
+                                  { return randoms[slot].Rndm(); })
+                .Filter([&weights](float random, float cent, float pt, float phi)
+                        {
+                          if (!weights) return true;
+                          int centBin = weights->GetXaxis()->FindBin(cent);
+                          int ptBin = weights->GetYaxis()->FindBin(pt);
+                          int phiBin = weights->GetZaxis()->FindBin(phi);
+                          if (isApplyWeights) return random < 1./weights->GetBinContent(centBin, ptBin, phiBin); 
+                          else return random < 999; }, {"random", "fCentFT0C", "fPt", "fPhi"});
 
   auto h = d1.Histo1D("fPt");
 
@@ -157,7 +156,10 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + ChargeName[Charge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + ChargeName[Charge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  if (isApplyWeights)
+    OutputFileName += "_Weighted";
+  OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   // 3D histograms

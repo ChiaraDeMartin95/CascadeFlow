@@ -258,7 +258,10 @@ void FitV2(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  if (isApplyWeights)
+    SPathIn += "_Weighted";
+  SPathIn += ".root";
 
   TFile *filein = new TFile(SPathIn, "");
   if (!filein)
@@ -1155,6 +1158,7 @@ void FitV2(
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   Soutputfile += SBDT;
+  if (isApplyWeights) Soutputfile += "_Weighted";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1179,6 +1183,7 @@ void FitV2(
   outputfile->WriteTObject(histoPurity);
   outputfile->WriteTObject(histoSignificance);
   outputfile->WriteTObject(histoV2);
+  outputfile->WriteTObject(histoV2NoFit);
   outputfile->Close();
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;
