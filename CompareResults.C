@@ -152,6 +152,7 @@ TH1F *hDef;
 TString fileName[10] = {""};
 TH1F *h[10];
 TH1F *hRatio[10];
+TString sleg[10] = {""};
 
 void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
 {
@@ -181,6 +182,56 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     YUp = 0.5;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
+    sleg[0]="Default";
+    sleg[1]="Weighted";
+  }
+
+else if (TypeComp == 1)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23_PbPb_pass3_Train218607_";
+    fileName[1] = "LHC23zzh_pass3_Train224930_";
+    fileName[0] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[0] += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    fileName[0] += SIsBkgParab[ExtrBkgType];
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[1] += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    fileName[1] += SIsBkgParab[ExtrBkgType];
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+    
+    namehisto = "histoV2NoFit";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0]="LHC23_PbPb_pass3";
+    sleg[1]="LHC23zzh_pass3";
+  }
+  else if (TypeComp == 2)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    CommonFileName += SIsBkgParab[ExtrBkgType];
+    CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    CommonFileName += "_Weighted";
+    fileName[0] = "";
+    fileName[1] = "_SP";
+    namehisto = "histoV2NoFit";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0]="EP";
+    sleg[1]="SP";
   }
 
   for (Int_t i = 0; i < numOptions; i++)
@@ -249,13 +300,15 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     h[i]->Draw("same");
   }
 
-  TLegend * leg = new TLegend(0.6, 0.7, 0.9, 0.9);
+  TLegend * leg = new TLegend(0.3, 0.7, 0.9, 0.9);
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
-  leg->AddEntry(hDef, "Default", "lp");
+  leg->SetTextSize(0.04);
+  leg->AddEntry("", ParticleName[!ChosenParticleXi] + Form("  Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]), "");
+  leg->AddEntry(hDef, sleg[0], "lp");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    leg->AddEntry(h[i], "Weighted", "lp");
+    leg->AddEntry(h[i], sleg[1], "lp");
   }
   leg->Draw("same");
 
