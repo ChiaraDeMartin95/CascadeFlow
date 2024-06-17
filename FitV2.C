@@ -282,6 +282,7 @@ void FitV2(
   TH1F *hV2[numPtBins];
   TH2F *hmassVsV2C[numPtBins];
   TH1F *hV2MassIntegrated[numPtBins];
+  TF1* fitV2SP[numPtBins];
 
   Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
@@ -1050,14 +1051,21 @@ void FitV2(
     }
     if (!isV2FromFit[pt])
       hV2MassIntegrated[pt]->Draw("");
-    
+
     TLegend *legendV2 = new TLegend(0.2, 0.8, 0.4, 0.9);
     legendV2->SetTextSize(0.055);
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
     cout << "\nv2: " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
+    if (v2type==1) hV2MassIntegrated[pt]->ResetStats();
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+    if (v2type==1){
+      fitV2SP[pt] = new TF1(Form("fitV2SP%i", pt), "gaus", -5, 5);
+      hV2MassIntegrated[pt]->Fit(fitV2SP[pt], "R+");
+      //histoV2NoFit->SetBinContent(pt + 1, fitV2SP[pt]->GetParameter(1));
+      //histoV2NoFit->SetBinError(pt + 1, fitV2SP[pt]->GetParError(1));
+    }
     cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
 
     if (!isV2FromFit[pt])
