@@ -37,7 +37,11 @@ Int_t Nv2 = 200;
 
 bool passbdtCut(float bdtscore, float cent)
 {
-  float sbdtCut = bdtCut[int(cent / 10)];
+  float sbdtCut = 0;
+  if (useCommonBDTValue)
+    sbdtCut = DefaultBDTscoreCut;
+  else
+    sbdtCut = bdtCut[int(cent / 10)];
   return (bdtscore > sbdtCut);
 }
 
@@ -70,6 +74,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   cout << "isXi: " << isXi << endl;
   cout << "Charge: " << ChargeName[Charge + 1] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
+  cout << "Use common BDT value " << useCommonBDTValue << endl;
 
   TString TreeName = "O2cascanalysis";
 
@@ -112,12 +117,6 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.6, 1.73}, "fBDTResponseOmega", "fMassOmega");
 
   // apply BDT selection
-  // string expression = Form("fBDTResponseXi > %.3f", BDTscoreCut);
-  // if (!isXi)
-  // expression = Form("fBDTResponseOmega > %.3f", BDTscoreCut);
-  // cout << "expression: " << expression << endl;
-  // auto d2 = d1.Filter(expression);
-
   string cutvariable = "fBDTResponseXi";
   if (!isXi)
     cutvariable = "fBDTResponseOmega";
@@ -185,8 +184,13 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     OutputFileName += "_Weighted";
   if (v2type == 1)
     OutputFileName += "_SP";
-  OutputFileName += "_BDTCentDep.root";
+  if (!useCommonBDTValue)
+    OutputFileName += "_BDTCentDep";
+  if (isRun2Binning)
+    OutputFileName += "_Run2Binning";
+  OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
+  cout << file->GetName() << endl;
 
   // 3D histograms
   TH1D *MassCutHisto[numCent];
