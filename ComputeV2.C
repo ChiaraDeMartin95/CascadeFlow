@@ -35,6 +35,12 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
+  if (v2type == 1)
+    SinputFile += "_SP";
+  if (!useCommonBDTValue)
+    SinputFile += "_BDTCentDep";
+  if (isRun2Binning)
+    SinputFile += "_Run2Binning";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -157,6 +163,12 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
+  if (v2type == 1)
+    SOutputFile += "_SP";
+  if (!useCommonBDTValue)
+    SOutputFile += "_BDTCentDep";
+  if (isRun2Binning)
+    SOutputFile += "_Run2Binning";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent; cent++)
@@ -176,7 +188,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   file->Close();
   TString SweightsFile = "OutputAnalysis/Weights_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   TFile *weightsFile;
-  if (!isApplyWeights) //weights computed only once (when we apply weights, they have already been created!)
+  if (!isApplyWeights) // weights computed only once (when we apply weights, they have already been created!)
   {
     weightsFile = new TFile(SweightsFile, "RECREATE");
     weightsFile->cd();
@@ -184,5 +196,6 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     weightsFile->Close();
   }
   cout << "I created the file " << file->GetName() << endl;
-  if (!isApplyWeights) cout << " and the file with weights: " << SweightsFile << endl;
+  if (!isApplyWeights)
+    cout << " and the file with weights: " << SweightsFile << endl;
 }

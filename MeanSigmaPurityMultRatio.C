@@ -115,7 +115,7 @@ Float_t YLowMean[numPart] = {1.31, 1.66};
 Float_t YUpMean[numPart] = {1.327, 1.68};
 Float_t YLowSigma[numPart] = {0.0, 0.0};
 Float_t YUpSigma[numPart] = {0.006, 0.006};
-Float_t YLowPurity[numPart] = {0, 0};
+Float_t YLowPurity[numPart] = {0.8, 0};
 Float_t YLowV2[numPart] = {-0.4, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
 
@@ -137,8 +137,8 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
                               Int_t part = ExtrParticle,
                               Int_t ChosenMultLucia = 0,
                               Int_t ChosenMult = numCent - 3,
-                              Bool_t isDrawRun2 = 1,
-                              Bool_t isDrawLuciaRun3 = 1,
+                              Bool_t isDrawRun2 = 0,
+                              Bool_t isDrawLuciaRun3 = 0,
                               TString SysPath = "",
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               TString inputFileName = SinputFileName,
@@ -210,6 +210,12 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
+  if (isApplyWeights)
+    stringout += "_Weighted";
+  if (!useCommonBDTValue)
+    stringout += "_BDTCentDep";
+  if (isRun2Binning)
+    stringout += "_Run2Binning";
   stringoutpdf = stringout;
   stringout += "_5Cent.root";
   TFile *fileout = new TFile(stringout, "RECREATE");
@@ -257,7 +263,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + ChargeName[ExtrCharge + 1] ", |#it{#eta}| < 0.8", "");
+  LegendTitle->AddEntry("", ParticleName[part] + ChargeName[ExtrCharge + 1] + " |#it{#eta}| < 0.8", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
@@ -276,6 +282,12 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
     Smolt[m] += Form("_Cent%i-%i", CentFT0C[m], CentFT0C[m + 1]);
     SmoltBis[m] += Form("%i#minus%i", CentFT0C[m], CentFT0C[m + 1]);
     PathIn += Smolt[m];
+    if (isApplyWeights)
+      PathIn += "_Weighted";
+    if (!useCommonBDTValue)
+      PathIn += "_BDTCentDep";
+    if (isRun2Binning)
+      PathIn += "_Run2Binning";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
 
