@@ -37,24 +37,27 @@ TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 
 //---------------------------------------------------------
 Bool_t ChosenParticleXi = 1;                                 // 1 for Xi, 0 for Omega
+Int_t ExtrParticle = !ChosenParticleXi;
 TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; /*"LHC23_PbPb_pass3_Train207098";//"LHC23_PbPb_pass2_Train192773"; // 190305 --> ok for Xi, not ok for Omegas */
-// TString SinputFileName = "LHC23_PbPb_pass3_Train218607";
-TString SinputFileName = "LHC23zzh_pass3_Train224930";
+TString SinputFileName = "LHC23_PbPb_pass3_Train218607";
+//TString SinputFileName = "LHC23zzh_pass3_Train224930";
 Int_t ExtrCharge = 0;   // 0: all, 1: positive, -1: negative
 Bool_t ExtrBkgType = 1; // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
-Int_t ExtrParticle = !ChosenParticleXi;
 Bool_t isApplyWeights = 1; // weights to flatten the phi distribution of cascades
-Int_t v2type = 1;          // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
+Int_t v2type = 2;          // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
+const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to DefaultBDTscoreCut
+const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.95, 0.95, 0.95};
+const float LimitForV2woFit = 0.97; //purity limit to decide whether to extract v2 from fit or not
+//---------------------------------------------------------
 
 // systematic studies
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-
 const int trialsBDT = 10; // number of trials for the systematic studies related to BDTscore
 const int nsigmaBarlow = 2;
 const float DefaultBDTscoreCut = 0.98;
-const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to DefaultBDTscoreCut
-const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.95, 0.95, 0.95};
+const float UpperlimitBDTscoreCut = 1;
+const float LowerlimitBDTscoreCut = 0.9;
 
 TString SEtaSysChoice[3] = {"", "_Etagt0", "_Etasm0"}; // all eta, eta > 0, eta < 0
 Int_t ExtrEtaSysChoice = 0;                            // 0: all eta, 1: eta > 0, 2: eta < 0
@@ -63,9 +66,8 @@ TString SIRChoice[6] = {"", "_544013", "_544392", "_544098", "_544032", "_544184
 TString SIRValue[6] = {"", "6 kHz", "12 kHz", "18 kHz", "23 kHz", "33 kHz"};
 TString inputFileNameIR = "Train207098";
 
-const float UpperlimitBDTscoreCut = 1;
-const float LowerlimitBDTscoreCut = 0.9;
-
+//weights files
 TString weightFileName = "PhiWeights/FixedWeights_LHC23_PbPb_pass3_Train218607_Xi.root";
-TString ComputeResoFileName = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_Train224930.root"; /*"Resolution/AnalysisResults_ResoTest.root";*/
-TString ResoFileName = "Resolution/Resolution_SP.root";
+
+//resolution files
+TString ComputeResoFileName = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_Train224930.root";

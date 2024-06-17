@@ -261,6 +261,12 @@ void FitV2(
   TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SPathIn += "_Weighted";
+  if (v2type == 1)
+    SPathIn += "_SP";
+  if (!useCommonBDTValue)
+    SPathIn += "_BDTCentDep";
+  if (isRun2Binning)
+    SPathIn += "_Run2Binning";
   SPathIn += ".root";
 
   TFile *filein = new TFile(SPathIn, "");
@@ -296,6 +302,7 @@ void FitV2(
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
   TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
   TH1F *histoV2NoFit = new TH1F("histoV2NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2Mixed = new TH1F("histoV2Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
@@ -367,21 +374,6 @@ void FitV2(
       gPad->SetLogy();
     // hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
     hInvMass[pt]->Draw("e same");
-
-    if (pt < 4)
-      canvas[0]->cd(pt + 4 + 1);
-    else if (pt < 8)
-      canvas[1]->cd(pt + 4 + 1 - 4);
-    else if (pt < 12)
-      canvas[2]->cd(pt + 4 + 1 - 8);
-    else if (pt < 16)
-      canvas[3]->cd(pt + 4 + 1 - 12);
-
-    gPad->SetTopMargin(0.08);
-    gPad->SetLeftMargin(0.15);
-    gPad->SetRightMargin(0.1);
-    gPad->SetBottomMargin(0.2);
-    hV2[pt]->Draw("e same");
   }
 
   // fits
@@ -466,8 +458,11 @@ void FitV2(
   TLine *lineBkgLimitC[numPtBins];
   TLine *lineBkgLimitD[numPtBins];
 
+  Bool_t isV2FromFit[numPtBins] = {0};
+
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
+
     if (!isXi && pt == 0)
       continue;
     if (pt < 4)
@@ -726,8 +721,8 @@ void FitV2(
 
         hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
         hInvMass[pt]->Draw("same e");
-        // functions1[pt]->Draw("same");
-        // functions2[pt]->Draw("same");
+        functions1[pt]->Draw("same");
+        functions2[pt]->Draw("same");
         if (BkgType == 0)
           bkg1[pt]->Draw("same");
         else if (BkgType == 1)
@@ -1034,6 +1029,7 @@ void FitV2(
     else if (pt < 16)
       canvas[3]->cd(pt + 4 + 1 - 12);
     hV2[pt]->Fit(v2FitFunction[pt], "R0");
+
     hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
@@ -1042,7 +1038,19 @@ void FitV2(
     hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
     StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     hV2MassIntegrated[pt]->Rebin(2);
-    hV2MassIntegrated[pt]->Draw("");
+
+    if (SSB[pt] > LimitForV2woFit || PtBins[pt] > 2.)
+      isV2FromFit[pt] = 0;
+    else
+      isV2FromFit[pt] = 1;
+    if (isV2FromFit[pt])
+    {
+      hV2[pt]->Draw("e");
+      v2FitFunction[pt]->Draw("same");
+    }
+    if (!isV2FromFit[pt])
+      hV2MassIntegrated[pt]->Draw("");
+    
     TLegend *legendV2 = new TLegend(0.2, 0.8, 0.4, 0.9);
     legendV2->SetTextSize(0.055);
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
@@ -1051,6 +1059,17 @@ void FitV2(
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
     cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
+
+    if (!isV2FromFit[pt])
+    {
+      histoV2Mixed->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
+      histoV2Mixed->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+    }
+    else
+    {
+      histoV2Mixed->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
+      histoV2Mixed->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+    }
   }
 
   TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
@@ -1143,12 +1162,28 @@ void FitV2(
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
   // histoB->Draw("same");
   histoV2NoFit->SetTitle("v2 without fit");
-  histoV2NoFit->Scale(1. / ftcReso[mul]);
+
+  if (v2type == 0 || v2type == 2)
+  {
+    histoV2NoFit->Scale(1. / ftcReso[mul]);
+    histoV2Mixed->Scale(1. / ftcReso[mul]);
+  }
+  else
+  {
+    histoV2NoFit->Scale(1. / ftcResoSP[mul]);
+    histoV2Mixed->Scale(1. / ftcResoSP[mul]);
+  }
+
   histoV2NoFit->Draw();
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  histoV2->Scale(1. / ftcReso[mul]);
+
+  if (v2type == 0 || v2type == 2)
+    histoV2->Scale(1. / ftcReso[mul]);
+  else
+    histoV2->Scale(1. / ftcResoSP[mul]);
+
   histoV2->Draw();
 
   TString Soutputfile;
@@ -1158,7 +1193,14 @@ void FitV2(
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   Soutputfile += SBDT;
-  if (isApplyWeights) Soutputfile += "_Weighted";
+  if (isApplyWeights)
+    Soutputfile += "_Weighted";
+  if (v2type == 1)
+    Soutputfile += "_SP";
+  if (!useCommonBDTValue)
+    Soutputfile += "_BDTCentDep";
+  if (isRun2Binning)
+    Soutputfile += "_Run2Binning";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1184,6 +1226,13 @@ void FitV2(
   outputfile->WriteTObject(histoSignificance);
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
+  outputfile->WriteTObject(histoV2Mixed);
+
+  for (Int_t pt = 0; pt < numPtBins; pt++)
+  {
+    outputfile->WriteTObject(hV2[pt]);
+    outputfile->WriteTObject(hV2MassIntegrated[pt]);
+  }
   outputfile->Close();
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;
