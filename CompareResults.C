@@ -144,7 +144,7 @@ Float_t xLabelOffsetR = 0.02;
 Float_t yLabelOffsetR = 0.04;
 
 TString Sinputfile = "";
-TString namehisto = "";
+TString namehisto[2] = {""};
 TString CommonFileName = "";
 
 Int_t numOptions = 0;
@@ -175,7 +175,8 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[0] = "";
     fileName[1] = "_Weighted";
-    namehisto = "histoV2";
+    namehisto[0] = "histoV2";
+    namehisto[1] = "histoV2";
     hTitleY = "v_{2}";
     hTitleX = TitleXPt;
     YLow = -0.2;
@@ -203,7 +204,8 @@ else if (TypeComp == 1)
     fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[1] += "_Weighted";
     
-    namehisto = "histoV2NoFit";
+    namehisto[0] = "histoV2NoFit";
+    namehisto[1] = "histoV2NoFit";
     hTitleY = "v_{2}";
     hTitleX = TitleXPt;
     YLow = -0.2;
@@ -223,7 +225,8 @@ else if (TypeComp == 1)
     CommonFileName += "_Weighted";
     fileName[0] = "";
     fileName[1] = "_SP";
-    namehisto = "histoV2NoFit";
+    namehisto[0] = "histoV2NoFit";
+    namehisto[1] = "histoV2NoFit";
     hTitleY = "v_{2}";
     hTitleX = TitleXPt;
     YLow = -0.2;
@@ -233,6 +236,27 @@ else if (TypeComp == 1)
     sleg[0]="EP";
     sleg[1]="SP";
   }
+    else if (TypeComp == 3)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    CommonFileName += SIsBkgParab[ExtrBkgType];
+    CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    CommonFileName += "_Weighted";
+    fileName[0] = "";
+    fileName[0] = "";
+    namehisto[0] = "histoV2";
+    namehisto[1] = "histoV2NoFit";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0]="v2 from fit";
+    sleg[1]="v2 no fit";
+  }
 
   for (Int_t i = 0; i < numOptions; i++)
   {
@@ -241,7 +265,7 @@ else if (TypeComp == 1)
     TFile *inputFile = new TFile(Sinputfile);
     if (i == 0)
     {
-      hDef = (TH1F *)inputFile->Get(namehisto);
+      hDef = (TH1F *)inputFile->Get(namehisto[i]);
       if (!hDef)
       {
         cout << "Histogram not found" << endl;
@@ -251,7 +275,7 @@ else if (TypeComp == 1)
     }
     else
     {
-      h[i] = (TH1F *)inputFile->Get(namehisto);
+      h[i] = (TH1F *)inputFile->Get(namehisto[i]);
       if (!h[i])
       {
         cout << "Histogram not found" << endl;
