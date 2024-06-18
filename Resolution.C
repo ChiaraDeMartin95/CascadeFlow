@@ -112,9 +112,14 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 // 1 --> resolution for SP method
 // 0 --> resolution for EP method
 
-void Resolution(Bool_t isSPReso = 1)
+void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
 {
 
+  TString ComputeResoFileName = "";
+  if (isLFReso == 1)
+    ComputeResoFileName = ComputeResoFileNameLF;
+  else
+    ComputeResoFileName = ComputeResoFileNameCFW;
   TFile *inputfile = new TFile(ComputeResoFileName, "");
   TString nameQT0CTPCA = "QVectorsT0CTPCA";
   TString nameQT0CTPCC = "QVectorsT0CTPCC";
@@ -159,10 +164,15 @@ void Resolution(Bool_t isSPReso = 1)
     Float_t MeanT0CTPCA = h1QT0CTPCA->GetMean();
     Float_t MeanT0CTPCC = h1QT0CTPCC->GetMean();
     Float_t MeanTPCAC = h1QTPCAC->GetMean();
-    //cout << "MeanT0CTPCA: " << MeanT0CTPCA << " MeanT0CTPCC: " << MeanT0CTPCC << " MeanTPCAC: " << MeanTPCAC << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
-    //cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
-    hReso->SetBinContent(cent+1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    hReso->SetBinError(cent+1, 0);
+    Float_t ErrMeanT0CTPCA = h1QT0CTPCA->GetMeanError();
+    Float_t ErrMeanT0CTPCC = h1QT0CTPCC->GetMeanError();
+    Float_t ErrMeanTPCAC = h1QTPCAC->GetMeanError();
+    cout << "MeanT0CTPCA: " << MeanT0CTPCA << " MeanT0CTPCC: " << MeanT0CTPCC << " MeanTPCAC: " << MeanTPCAC << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
+    // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
+    Float_t RelErr2 = pow(ErrMeanT0CTPCA/MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC/MeanT0CTPCC, 2) + pow(ErrMeanTPCAC/MeanTPCAC, 2);
+    Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
+    hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
+    hReso->SetBinError(cent + 1, ErrReso);
   }
 
   gStyle->SetOptStat(0);
@@ -184,20 +194,29 @@ void Resolution(Bool_t isSPReso = 1)
   hReso->SetTitle("");
   hReso->Draw("");
 
-  TH1F* hResoSourav = (TH1F*)hReso->Clone("hResoSourav");
+  TH1F *hResoSourav = (TH1F *)hReso->Clone("hResoSourav");
   hResoSourav->SetLineColor(kRed);
   hResoSourav->SetMarkerColor(kRed);
   for (Int_t cent = 0; cent < numCent; cent++)
   {
-    hResoSourav->SetBinContent(cent+1, ftcReso[cent]);
+    hResoSourav->SetBinContent(cent + 1, ftcReso[cent]);
+    hResoSourav->SetBinError(cent + 1, 0);
   }
   if (!isSPReso)
     hResoSourav->Draw("same");
 
-  TString Soutputfile = "Resolution/Resolution_SP.root";
+  TString Soutputfile = "";
   if (!isSPReso)
-    Soutputfile = "Resolution/Resolution_EP.root";
-  TFile *outputfile = new TFile(Soutputfile, "RECREATE");
+    Soutputfile = "Resolution/Resolution_EP";
+  else
+    Soutputfile = "Resolution/Resolution_SP";
+  if (isLFReso)
+    Soutputfile = Soutputfile + "_LF";
+  else
+    Soutputfile = Soutputfile + "_CFW";
+  canvas->SaveAs(Soutputfile + ".pdf");
+  canvas->SaveAs(Soutputfile + ".png");
+  TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   hReso->Write();
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
