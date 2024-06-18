@@ -188,6 +188,9 @@ Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72};
 Float_t histoMassRangeLow[numPart] = {1.29, 1.626}; // display range of mass histograms
 Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 
+// Event plane resolution
+Float_t ftcReso[numCent] = {0};
+
 void FitV2(
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
@@ -239,6 +242,32 @@ void FitV2(
     }
   }
 
+  // Get resolution
+  TString fileResoName = "";
+  if (v2type == 1)
+  {
+    if (SinputFileName.Index("CFW") != -1)
+      fileResoName = ResoFileName_SPCFW;
+    else
+      fileResoName = ResoFileName_SPLF;
+  }
+  else
+  {
+    if (SinputFileName.Index("CFW") != -1)
+      fileResoName = ResoFileName_EPCFW;
+    else
+      fileResoName = ResoFileName_EPLF;
+  }
+  TFile *fileResoEP = new TFile(fileResoName, "");
+  TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
+  cout << "Reso name: " << fileResoName << endl;
+  for (Int_t cent = 0; cent < numCent; cent++)
+  {
+    ftcReso[cent] = hReso->GetBinContent(hReso->FindBin(CentFT0C[cent] + 0.001));
+    cout << "Centrality: " << CentFT0C[cent] << "-" << CentFT0C[cent + 1] << endl;
+    cout << "Resolution: " << ftcReso[cent] << endl;
+  }
+
   Float_t UpperLimitLSB = 0;
   Float_t LowerLimitRSB = 0;
   if (part == 0)
@@ -282,7 +311,7 @@ void FitV2(
   TH1F *hV2[numPtBins];
   TH2F *hmassVsV2C[numPtBins];
   TH1F *hV2MassIntegrated[numPtBins];
-  TF1* fitV2SP[numPtBins];
+  TF1 *fitV2SP[numPtBins];
 
   Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
@@ -1057,14 +1086,15 @@ void FitV2(
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
     cout << "\nv2: " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
-    if (v2type==1) hV2MassIntegrated[pt]->ResetStats();
+    hV2MassIntegrated[pt]->ResetStats();
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
-    if (v2type==1){
+    if (v2type == 1)
+    {
       fitV2SP[pt] = new TF1(Form("fitV2SP%i", pt), "gaus", -5, 5);
       hV2MassIntegrated[pt]->Fit(fitV2SP[pt], "R+");
-      //histoV2NoFit->SetBinContent(pt + 1, fitV2SP[pt]->GetParameter(1));
-      //histoV2NoFit->SetBinError(pt + 1, fitV2SP[pt]->GetParError(1));
+      // histoV2NoFit->SetBinContent(pt + 1, fitV2SP[pt]->GetParameter(1));
+      // histoV2NoFit->SetBinError(pt + 1, fitV2SP[pt]->GetParError(1));
     }
     cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
 
@@ -1171,27 +1201,15 @@ void FitV2(
   // histoB->Draw("same");
   histoV2NoFit->SetTitle("v2 without fit");
 
-  if (v2type == 0 || v2type == 2)
-  {
-    histoV2NoFit->Scale(1. / ftcReso[mul]);
-    histoV2Mixed->Scale(1. / ftcReso[mul]);
-  }
-  else
-  {
-    histoV2NoFit->Scale(1. / ftcResoSP[mul]);
-    histoV2Mixed->Scale(1. / ftcResoSP[mul]);
-  }
-
+  histoV2NoFit->Scale(1. / ftcReso[mul]);
+  histoV2Mixed->Scale(1. / ftcReso[mul]);
   histoV2NoFit->Draw();
+
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
 
-  if (v2type == 0 || v2type == 2)
-    histoV2->Scale(1. / ftcReso[mul]);
-  else
-    histoV2->Scale(1. / ftcResoSP[mul]);
-
+  histoV2->Scale(1. / ftcReso[mul]);
   histoV2->Draw();
 
   TString Soutputfile;
