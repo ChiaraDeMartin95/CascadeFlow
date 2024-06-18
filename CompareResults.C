@@ -115,7 +115,6 @@ Float_t YUpRatio = 0;
 
 TString hTitleX = "";
 TString hTitleY = "";
-TString hTitleYRatio = "Ratio to default";
 
 Float_t xTitle = 15;
 Float_t xOffset = 4;
@@ -183,11 +182,11 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     YUp = 0.5;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
-    sleg[0]="Default";
-    sleg[1]="Weighted";
+    sleg[0] = "Default";
+    sleg[1] = "Weighted";
   }
-
-else if (TypeComp == 1)
+  // TypeComp = 0 --> LHC23 vs LHC23zzh
+  else if (TypeComp == 1)
   {
     numOptions = 2;
     CommonFileName = "OutputAnalysis/FitV2_";
@@ -203,7 +202,7 @@ else if (TypeComp == 1)
     fileName[1] += SIsBkgParab[ExtrBkgType];
     fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[1] += "_Weighted";
-    
+
     namehisto[0] = "histoV2NoFit";
     namehisto[1] = "histoV2NoFit";
     hTitleY = "v_{2}";
@@ -212,31 +211,69 @@ else if (TypeComp == 1)
     YUp = 0.5;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
-    sleg[0]="LHC23_PbPb_pass3";
-    sleg[1]="LHC23zzh_pass3";
+    sleg[0] = "LHC23_PbPb_pass3";
+    sleg[1] = "LHC23zzh_pass3";
   }
+  // TypeComp = 2 --> SP vs EP
   else if (TypeComp == 2)
   {
     numOptions = 2;
-    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
-    CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
-    CommonFileName += SIsBkgParab[ExtrBkgType];
-    CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
-    CommonFileName += "_Weighted";
-    fileName[0] = "";
-    fileName[1] = "_SP";
-    namehisto[0] = "histoV2NoFit";
-    namehisto[1] = "histoV2NoFit";
+    // CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    // CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    // CommonFileName += SIsBkgParab[ExtrBkgType];
+    // CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    // CommonFileName += "_Weighted";
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23zzh_pass3_Train226234_CFW_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] = fileName[0];
+    fileName[0] += "";
+    fileName[1] += "_SP";
+    fileName[0] +="_Run2Binning";
+    fileName[1] +="_Run2Binning";
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
     hTitleY = "v_{2}";
     hTitleX = TitleXPt;
     YLow = -0.2;
     YUp = 0.5;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
-    sleg[0]="EP";
-    sleg[1]="SP";
+    sleg[0] = "EP";
+    sleg[1] = "SP";
   }
-    else if (TypeComp == 3)
+  // TypeComp = 3 --> BDT cut 0.97 vs default
+  else if (TypeComp == 3)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23_PbPb_pass3_Train218607_";
+    fileName[1] = "LHC23zzh_pass3_Train225737_BDT0.7_";
+    fileName[0] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[0] += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    fileName[0] += SIsBkgParab[ExtrBkgType];
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted_BDTCentDep";
+    fileName[1] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[1] += IsOneOrTwoGauss[ExtrUseTwoGauss];
+    fileName[1] += SIsBkgParab[ExtrBkgType];
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "";
+    sleg[1] = "BDTcut > 0.97";
+  }
+  // v2 from fit vs v2 from histo
+  else if (TypeComp == 4)
   {
     numOptions = 2;
     CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
@@ -254,10 +291,54 @@ else if (TypeComp == 1)
     YUp = 0.5;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
-    sleg[0]="v2 from fit";
-    sleg[1]="v2 no fit";
+    sleg[0] = "v2 from fit";
+    sleg[1] = "v2 no fit";
+  }
+  // resolution LF vs CFW
+  else if (TypeComp == 5)
+  {
+    numOptions = 2;
+    fileName[0] = "Resolution/Resolution_EP_LF";
+    fileName[1] = "Resolution/Resolution_EP_CFW";
+    namehisto[0] = "hReso";
+    namehisto[1] = "hReso";
+    hTitleY = "Resolution";
+    hTitleX = "Centrality (%)";
+    YLow = 0;
+    YUp = 1.8;
+    YLowRatio = 0.6;
+    YUpRatio = 1.2;
+    sleg[0] = "LF";
+    sleg[1] = "central FW";
+  }
+  //v2 LF vs CFW
+  else if (TypeComp == 6)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23zzh_pass3_Train226234_CFW_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] = "LHC23zzh_pass3_Train224930_Xi_BkgParab";
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+    //fileName[0] += "_SP";
+    //fileName[1] += "_SP";
+    fileName[0] +="_Run2Binning";
+    fileName[1] +="_Run2Binning";
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "CFW";
+    sleg[1] = "LF";
   }
 
+  TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
   {
     Sinputfile = CommonFileName + fileName[i] + ".root";
@@ -288,7 +369,7 @@ else if (TypeComp == 1)
     }
   }
 
-  TCanvas *canvasPtSpectra = new TCanvas("canvas", "canvas", 700, 900);
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
   Float_t LLUpperPad = 0.33;
   Float_t ULLowerPad = 0.33;
   TPad *pad1 = new TPad("pad1", "pad1", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
@@ -296,24 +377,25 @@ else if (TypeComp == 1)
 
   StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
   StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 8);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
-  canvasPtSpectra->cd();
+  canvas->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, YLow, YUp, 1, 1, hTitleX, hTitleY, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
+  if (TypeComp == 5)
+    hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
   hDummy->Draw("same");
 
-  hDef->SetMarkerColor(ColorMult[0]);
-  hDef->SetLineColor(ColorMult[0]);
+  hDef->SetMarkerColor(ColorMult[5]);
+  hDef->SetLineColor(ColorMult[5]);
   hDef->SetMarkerStyle(MarkerMult[0]);
   hDef->SetMarkerSize(0.6 * SizeMult[0]);
-
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
@@ -324,11 +406,14 @@ else if (TypeComp == 1)
     h[i]->Draw("same");
   }
 
-  TLegend * leg = new TLegend(0.3, 0.7, 0.9, 0.9);
+  TLegend *leg = new TLegend(0.3, 0.7, 0.9, 0.9);
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->SetTextSize(0.04);
-  leg->AddEntry("", ParticleName[!ChosenParticleXi] + Form("  Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]), "");
+  if (TypeComp == 5)
+    leg->AddEntry("", ParticleName[!ChosenParticleXi] + " Pb-Pb 5.36 TeV", "");
+  else
+    leg->AddEntry("", ParticleName[!ChosenParticleXi] + Form("  Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
   leg->AddEntry(hDef, sleg[0], "lp");
   for (Int_t i = 1; i < numOptions; i++)
   {
@@ -336,7 +421,7 @@ else if (TypeComp == 1)
   }
   leg->Draw("same");
 
-  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 8);
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 100);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
   SetFont(hDummyRatio);
@@ -344,7 +429,9 @@ else if (TypeComp == 1)
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
-  canvasPtSpectra->cd();
+  if (TypeComp == 5)
+    hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
+  canvas->cd();
   padL1->Draw();
   padL1->cd();
   hDummyRatio->Draw("same");
@@ -357,7 +444,11 @@ else if (TypeComp == 1)
     hRatio[i]->Draw("same");
   }
   TF1 *line = new TF1("line", "1", MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
+  if (TypeComp == 5)
+    line = new TF1("line", "1", 0, 80);
   line->SetLineColor(kBlack);
   line->SetLineStyle(9);
   line->Draw("same");
+
+  canvas->SaveAs(Form("Canvas_CompareResults%i.png", TypeComp));
 }
