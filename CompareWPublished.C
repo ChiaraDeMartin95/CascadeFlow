@@ -61,19 +61,21 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-TString NameRun2[4] = {"10-20 %", "20-30 %", "30-40 %", "40-50 %"};
+TString NameRun2[5] = {"10-20 %", "20-30 %", "30-40 %", "40-50 %", ""};
+TString NameRun1[5] = {"10-20 %", "20-30 %", "30-40 %", "40-50 %", "50-60 %"};
 Int_t Color[12] = {kYellow + 2, kGreen + 2, kBlack, kBlue + 1, kYellow + 2, kGreen + 2, kBlack, kBlue + 1, kYellow + 2, kGreen + 2, kBlack, kBlue + 1};
-Int_t Marker[] = {1, 25, 30, 27, 24};
+Int_t Marker[] = {1, 25, 30, 27, 24, 25};
 Int_t MarkerRun3[12] = {20, 21, 29, 33, 20, 21, 29, 33, 20, 21, 29, 33};
 Float_t MarkerSize[] = {1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2.};
 
-void CompareWPublished(Bool_t isXi = ChosenParticleXi,
+void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 for Run2 comparison
+                       Bool_t isXi = ChosenParticleXi,
                        TString inputFileName = SinputFileName,
                        Bool_t UseTwoGauss = ExtrUseTwoGauss,
                        Int_t BkgType = ExtrBkgType)
 {
 
-  if (numPtBins != 6)
+  if (isRun2Comparison && numPtBins != 6)
   {
     cout << "The pt binning you chose is not the one used in Run 2, please change in CommonVar.h file" << endl;
     return;
@@ -123,22 +125,53 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   }
 
   TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
-  TFile *PublishedFileRun2 = new TFile(SPublishedFileRun2);
-  TString Tables[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
-  //in classes 10-20%, 20-30%, 30-40%, 40-50%
+  TString SPublishedFileRun1 = "Run1Results/HEPData-ins1297103-v1-root.root";
+  // in classes 10-20%, 20-30%, 30-40%, 40-50%
+  TString TablesRun2[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
   if (!isXi)
   {
-    Tables[0] = "Table 80";
-    Tables[1] = "Table 88";
-    Tables[2] = "Table 96";
-    Tables[3] = "Table 104";
+    TablesRun2[0] = "Table 80";
+    TablesRun2[1] = "Table 88";
+    TablesRun2[2] = "Table 96";
+    TablesRun2[3] = "Table 104";
+  }
+  // in classes 10-20%, 20-30%, 30-40%, 40-50%, 50-60%
+  TString TablesRun1[5] = {"Table 50", "Table 51", "Table 52", "Table 53", "Table 54"}; // v2 from SP, !y! < 0.5
+  if (!isXi)
+  {
+    TablesRun1[0] = "Table 56";
+    TablesRun1[1] = "Table 57";
+    TablesRun1[2] = "Table 58";
+    TablesRun1[3] = "Table 59";
+    TablesRun1[4] = "Table 60";
+  }
+
+  TString SPublishedFile = "";
+  if (isRun2Comparison)
+    SPublishedFile = SPublishedFileRun2;
+  else
+    SPublishedFile = SPublishedFileRun1;
+  TFile *PublishedFile = new TFile(SPublishedFile);
+
+  TString NamePublished[5];
+  for (Int_t i = 0; i < 5; i++)
+  {
+    if (isRun2Comparison)
+      NamePublished[i] = NameRun2[i];
+    else
+      NamePublished[i] = NameRun1[i];
   }
 
   TDirectoryFile *dirPublished;
-  TGraphErrors *gV2Run2[4];
-  for (Int_t i = 0; i < 4; i++)
+  TGraphErrors *gV2Run2[5];
+  for (Int_t i = 0; i < 5; i++)
   {
-    dirPublished = (TDirectoryFile *)PublishedFileRun2->Get(Tables[i]);
+    if (isRun2Comparison && i == 4)
+      continue;
+    if (isRun2Comparison)
+      dirPublished = (TDirectoryFile *)PublishedFile->Get(TablesRun2[i]);
+    else
+      dirPublished = (TDirectoryFile *)PublishedFile->Get(TablesRun1[i]);
     gV2Run2[i] = (TGraphErrors *)dirPublished->Get("Graph1D_y1");
     gV2Run2[i]->SetName(NameRun2[i]);
     gV2Run2[i]->SetMarkerStyle(Marker[i + 1]);
@@ -185,6 +218,19 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
       legendRun3->AddEntry(hV2C[i], Form("%i-%i %%", CentFT0C[i], CentFT0C[i + 1]), "P");
       hV2C[i]->Draw("same");
     }
+    if (!isRun2Comparison)
+    {
+      if (CentFT0C[i] == 50)
+      {
+        legendRun3->AddEntry(hV2C[i], Form("%i-%i %%", CentFT0C[i], CentFT0C[i + 1]), "P");
+        hV2C[i]->Draw("same");
+      }
+      if (i == 4)
+      {
+        legendRun2->AddEntry(gV2Run2[4], NameRun1[4], "P");
+        gV2Run2[4]->DrawClone("same P");
+      }
+    }
   }
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", ParticleNameLegend[!isXi] + ", |#it{#eta}| < 0.8", "");
@@ -207,7 +253,7 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   Int_t index = 0;
   for (Int_t i = 0; i < numCent; i++)
   {
-    if (CentFT0C[i] == 10 || CentFT0C[i] == 20 || CentFT0C[i] == 30 || CentFT0C[i] == 40)
+    if (CentFT0C[i] == 10 || CentFT0C[i] == 20 || CentFT0C[i] == 30 || CentFT0C[i] == 40 || CentFT0C[i] == 50)
     {
       cout << "CentFT0C[i]: " << CentFT0C[i] << endl;
       if (CentFT0C[i] == 10)
@@ -218,13 +264,17 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
         index = 2;
       if (CentFT0C[i] == 40)
         index = 3;
+      if (CentFT0C[i] == 50)
+        index = 4;
+      if (isRun2Comparison && index == 4)
+        continue;
       for (Int_t b = 1; b <= hV2CRatio[i]->GetNbinsX(); b++)
       {
         hV2CRatio[i]->SetBinContent(b, hV2CRatio[i]->GetBinContent(b) / gV2Run2[index]->GetPointY(b - 1));
 
-        //cout << "V2 Run3: " << hV2C[i]->GetBinCenter(b) << endl;
-        //cout << "V2 Run2: " << gV2Run2[index]->GetPointX(b - 1) << endl;
-        //cout << "V2 Run3/Run2: " << hV2CRatio[i]->GetBinContent(b) << " +/- " << hV2CRatio[i]->GetBinError(b) << endl;
+        // cout << "V2 Run3: " << hV2C[i]->GetBinCenter(b) << endl;
+        // cout << "V2 Run2: " << gV2Run2[index]->GetPointX(b - 1) << endl;
+        // cout << "V2 Run3/Run2: " << hV2CRatio[i]->GetBinContent(b) << " +/- " << hV2CRatio[i]->GetBinError(b) << endl;
         hV2CRatio[i]->SetBinError(b, sqrt(pow(hV2C[i]->GetBinError(b) / hV2C[i]->GetBinContent(b), 2) + pow(gV2Run2[index]->GetErrorY(b - 1) / gV2Run2[index]->GetPointY(b - 1), 2)) * hV2CRatio[i]->GetBinContent(b));
       }
     }
@@ -253,6 +303,17 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
     if (CentFT0C[i] == 10 || CentFT0C[i] == 20 || CentFT0C[i] == 30 || CentFT0C[i] == 40)
     {
       hV2C[i]->Draw("same");
+    }
+    if (!isRun2Comparison)
+    {
+      if (CentFT0C[i] == 50)
+      {
+        hV2C[i]->Draw("same");
+      }
+      if (i == 4)
+      {
+        gV2Run2[i]->Draw("same P");
+      }
     }
   }
   LegendTitle->Draw();
