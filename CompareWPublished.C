@@ -73,6 +73,11 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
                        Int_t BkgType = ExtrBkgType)
 {
 
+  if (numPtBins != 6)
+  {
+    cout << "The pt binning you chose is not the one used in Run 2, please change in CommonVar.h file" << endl;
+    return;
+  }
   TString SinputFile = "";
   TFile *inputFile;
   TH1F *hV2C[numCent];
@@ -81,7 +86,7 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
   TH1F *histoDummy = new TH1F("histoDummy", "histoDummy", 100, 0, 6);
   StyleHisto(histoDummy, -0.2 + 1e-4, 0.8 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "v_{2}", "", kFALSE, 0, 100, 1, 1, 0.05);
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 100, 0, 6);
-  StyleHisto(hDummyRatio, -2 + 1e-4, 2 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "", "", kFALSE, 0, 100, 1, 1, 0.05);
+  StyleHisto(hDummyRatio, 0 + 1e-4, 2 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "", "", kFALSE, 0, 100, 1, 1, 0.05);
   hDummyRatio->GetXaxis()->SetLabelSize(0.1);
   hDummyRatio->GetYaxis()->SetLabelSize(0.1);
   hDummyRatio->GetXaxis()->SetTitleSize(0.1);
@@ -94,11 +99,20 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
     SinputFile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
     SinputFile += IsOneOrTwoGauss[UseTwoGauss];
     SinputFile += SIsBkgParab[BkgType];
-    SinputFile += Form("_Cent%i-%i.root", CentFT0C[cent], CentFT0C[cent + 1]);
+    SinputFile += Form("_Cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
+    if (isApplyWeights)
+      SinputFile += "_Weighted";
+    if (v2type == 1)
+      SinputFile += "_SP";
+    if (!useCommonBDTValue)
+      SinputFile += "_BDTCentDep";
+    if (isRun2Binning)
+      SinputFile += "_Run2Binning";
+    SinputFile += ".root";
     inputFile = new TFile(SinputFile);
     cout << "Input file with Run 3 v2: " << SinputFile << endl;
 
-    hV2C[cent] = (TH1F *)inputFile->Get("histoV2");
+    hV2C[cent] = (TH1F *)inputFile->Get("histoV2Mixed");
     hV2C[cent]->SetName(Form("hV2C_%i", cent));
     hV2C[cent]->SetMarkerStyle(MarkerRun3[cent]);
     hV2C[cent]->SetMarkerSize(MarkerSize[cent]);
@@ -110,14 +124,14 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
 
   TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
   TFile *PublishedFileRun2 = new TFile(SPublishedFileRun2);
-  //TString Tables[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; //v2 (not the mean value)
-  TString Tables[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; //mean value of v2
+  TString Tables[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
+  //in classes 10-20%, 20-30%, 30-40%, 40-50%
   if (!isXi)
   {
-    Tables[0] = "Table 9";
-    Tables[1] = "Table 18";
-    Tables[2] = "Table 27";
-    Tables[3] = "Table 36";
+    Tables[0] = "Table 80";
+    Tables[1] = "Table 88";
+    Tables[2] = "Table 96";
+    Tables[3] = "Table 104";
   }
 
   TDirectoryFile *dirPublished;
@@ -134,19 +148,19 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
     gV2Run2[i]->SetLineWidth(2);
   }
 
-  TLegend *LegendTitle = new TLegend(0.18, 0.81, 0.42, 0.91); //0.15
+  TLegend *LegendTitle = new TLegend(0.18, 0.81, 0.42, 0.91); // 0.15
   LegendTitle->SetBorderSize(0);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextSize(0.04);
   LegendTitle->SetMargin(0.);
 
-  TLegend *legendRun3 = new TLegend(0.18, 0.57, 0.42, 0.77); //0.15
+  TLegend *legendRun3 = new TLegend(0.18, 0.57, 0.42, 0.77); // 0.15
   legendRun3->SetBorderSize(0);
   legendRun3->SetFillStyle(0);
   legendRun3->SetTextSize(0.03);
   legendRun3->SetHeader("PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV");
 
-  TLegend *legendRun2 = new TLegend(0.43, 0.57, 0.6, 0.77); //0.4
+  TLegend *legendRun2 = new TLegend(0.43, 0.57, 0.6, 0.77); // 0.4
   legendRun2->SetBorderSize(0);
   legendRun2->SetFillStyle(0);
   legendRun2->SetTextSize(0.03);
@@ -207,9 +221,10 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
       for (Int_t b = 1; b <= hV2CRatio[i]->GetNbinsX(); b++)
       {
         hV2CRatio[i]->SetBinContent(b, hV2CRatio[i]->GetBinContent(b) / gV2Run2[index]->GetPointY(b - 1));
-        // cout << "V2 Run3: " << hV2C[i]->GetBinCenter(b) << endl;
-        // cout << "V2 Run2: " << gV2Run2[index]->GetPointX(b-1) << endl;
-        // cout << "V2 Run3/Run2: " << hV2CRatio[i]->GetBinContent(b) << " +/- " << hV2CRatio[i]->GetBinError(b) << endl;
+
+        //cout << "V2 Run3: " << hV2C[i]->GetBinCenter(b) << endl;
+        //cout << "V2 Run2: " << gV2Run2[index]->GetPointX(b - 1) << endl;
+        //cout << "V2 Run3/Run2: " << hV2CRatio[i]->GetBinContent(b) << " +/- " << hV2CRatio[i]->GetBinError(b) << endl;
         hV2CRatio[i]->SetBinError(b, sqrt(pow(hV2C[i]->GetBinError(b) / hV2C[i]->GetBinContent(b), 2) + pow(gV2Run2[index]->GetErrorY(b - 1) / gV2Run2[index]->GetPointY(b - 1), 2)) * hV2CRatio[i]->GetBinContent(b));
       }
     }
@@ -258,7 +273,10 @@ void CompareWPublished(Bool_t isXi = ChosenParticleXi,
       hV2CRatio[i]->Draw("same");
     }
   }
-
+  TF1 *f1 = new TF1("f1", "1", 0, 6);
+  f1->SetLineColor(kBlack);
+  f1->SetLineStyle(2);
+  f1->Draw("same");
   canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.pdf");
   canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.png");
   canvasvsRun2->Write();
