@@ -169,7 +169,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     Float_t ErrMeanTPCAC = h1QTPCAC->GetMeanError();
     cout << "MeanT0CTPCA: " << MeanT0CTPCA << " MeanT0CTPCC: " << MeanT0CTPCC << " MeanTPCAC: " << MeanTPCAC << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
-    Float_t RelErr2 = pow(ErrMeanT0CTPCA/MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC/MeanT0CTPCC, 2) + pow(ErrMeanTPCAC/MeanTPCAC, 2);
+    Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     hReso->SetBinError(cent + 1, ErrReso);
@@ -199,11 +199,20 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hResoSourav->SetMarkerColor(kRed);
   for (Int_t cent = 0; cent < numCent; cent++)
   {
-    hResoSourav->SetBinContent(cent + 1, ftcReso[cent]);
+    hResoSourav->SetBinContent(cent + 1, ftcResoSourav[cent]);
     hResoSourav->SetBinError(cent + 1, 0);
   }
   if (!isSPReso)
     hResoSourav->Draw("same");
+
+  TLegend *legend = new TLegend(0.15, 0.75, 0.75, 0.96);
+  legend->SetFillStyle(0);
+  legend->SetMargin(0);
+  legend->SetTextSize(0.05);
+  legend->SetTextAlign(12);
+  legend->AddEntry("", "#bf{ALICE Performance}", "");
+  legend->AddEntry("", "Run 3, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  legend->Draw();
 
   TString Soutputfile = "";
   if (!isSPReso)

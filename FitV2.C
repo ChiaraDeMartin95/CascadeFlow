@@ -53,6 +53,57 @@ void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, 
   histo->GetYaxis()->SetTitleOffset(yOffset);
   histo->SetTitle(title);
 }
+void SetFont(TH1F *histo)
+{
+  histo->GetXaxis()->SetTitleFont(43);
+  histo->GetXaxis()->SetLabelFont(43);
+  histo->GetYaxis()->SetTitleFont(43);
+  histo->GetYaxis()->SetLabelFont(43);
+}
+void SetTickLength(TH1F *histo, Float_t TickLengthX, Float_t TickLengthY)
+{
+  histo->GetXaxis()->SetTickLength(TickLengthX);
+  histo->GetYaxis()->SetTickLength(TickLengthY);
+}
+
+void SetHistoTextSize(TH1F *histo, Float_t XSize, Float_t XLabelSize, Float_t XOffset, Float_t XLabelOffset, Float_t YSize, Float_t YLabelSize, Float_t YOffset, Float_t YLabelOffset)
+{
+  histo->GetXaxis()->SetTitleSize(XSize);
+  histo->GetXaxis()->SetLabelSize(XLabelSize);
+  histo->GetXaxis()->SetTitleOffset(XOffset);
+  histo->GetXaxis()->SetLabelOffset(XLabelOffset);
+  histo->GetYaxis()->SetTitleSize(YSize);
+  histo->GetYaxis()->SetLabelSize(YLabelSize);
+  histo->GetYaxis()->SetTitleOffset(YOffset);
+  histo->GetYaxis()->SetLabelOffset(YLabelOffset);
+}
+void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
+{
+  pad->SetFillColor(0);
+  pad->SetTickx(1);
+  pad->SetTicky(1);
+  pad->SetLeftMargin(LMargin);
+  pad->SetRightMargin(RMargin);
+  pad->SetTopMargin(TMargin);
+  pad->SetBottomMargin(BMargin);
+}
+void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title, Float_t mSize, Float_t xOffset, Float_t yOffset)
+{
+  histo->GetYaxis()->SetRangeUser(Low, Up);
+  histo->SetLineColor(color);
+  histo->SetMarkerColor(color);
+  histo->SetMarkerStyle(style);
+  histo->SetMarkerSize(mSize);
+  histo->GetXaxis()->SetTitle(TitleX);
+  histo->GetXaxis()->SetTitleSize(0.05);
+  histo->GetXaxis()->SetLabelSize(0.05);
+  histo->GetXaxis()->SetTitleOffset(xOffset);
+  histo->GetYaxis()->SetTitle(TitleY);
+  histo->GetYaxis()->SetTitleSize(0.05);
+  histo->GetYaxis()->SetTitleOffset(yOffset); // 1.2
+  histo->GetYaxis()->SetLabelSize(0.05);
+  histo->SetTitle(title);
+}
 
 const Float_t UpperLimitLSBOmega = 1.655; // upper limit of fit of left sidebands for omega
 const Float_t LowerLimitRSBOmega = 1.689; // lower limit of fit of right sidebands for omega
@@ -170,7 +221,7 @@ Double_t fretta(Double_t *x, Double_t *par)
 TString titleYield = "dN/dp_{T}";
 TString titlePt = "p_{T} (GeV/c)";
 TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)"};
-TString SInvMass = "invariant mass (GeV/#it{c}^{2})";
+TString SInvMass = "invariant mass (GeV/c^{2})";
 
 // fit ranges
 Float_t min_range_signal[numPart] = {1.3, 1.65}; // gauss fit range
@@ -201,7 +252,7 @@ void FitV2(
     Bool_t isLogy = 1,
     Int_t part = ExtrParticle,
     Bool_t isYAxisMassZoomed = 0,
-    Int_t MassRebin = 2,
+    Int_t MassRebin = 1,
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
     Bool_t isMeanFixedPDG = 0,
     Float_t sigmacentral = 4.2,
@@ -328,6 +379,7 @@ void FitV2(
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBins, PtBins);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBins, PtBins);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBins, PtBins);
+  TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBins, PtBins);
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBins, PtBins);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
   TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
@@ -455,6 +507,8 @@ void FitV2(
   Float_t errb[numPtBins] = {0};
   Float_t SSB[numPtBins] = {0};
   Float_t errSSB[numPtBins] = {0};
+  Float_t Signif[numPtBins] = {0};
+  Float_t errSignif[numPtBins] = {0};
   Float_t entries_range[numPtBins] = {0};
   Float_t TotYield = 0;
   Float_t TotSigBkg = 0;
@@ -1022,10 +1076,16 @@ void FitV2(
     SSB[pt] = (entries_range[pt] - b[pt]) / entries_range[pt];
     errSSB[pt] = SSB[pt] * sqrt(1. / entries_range[pt] + pow(errb[pt] / b[pt], 2));
 
+    Signif[pt] = Yield[pt] / sqrt(entries_range[pt]);
+    errSignif[pt] = sqrt(pow(ErrYield[pt] / sqrt(entries_range[pt]), 2) + pow(Yield[pt] / (2 * sqrt(entries_range[pt]) * entries_range[pt]), 2));
+
     //*********************************************
 
     histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
     histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+
+    histoRelErrYield->SetBinContent(pt + 1, ErrYield[pt] / Yield[pt]);
+    histoRelErrYield->SetBinError(pt + 1, 0);
 
     histoTot->SetBinContent(pt + 1, entries_range[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
     histoTot->SetBinError(pt + 1, sqrt(entries_range[pt]) / NEvents / histoYield->GetBinWidth(pt + 1));
@@ -1193,7 +1253,9 @@ void FitV2(
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
-  histoTot->Draw("same");
+  StyleHisto(histoRelErrYield, 0, 1.2 * histoRelErrYield->GetBinContent(histoRelErrYield->GetMaximumBin()), 1, 1, titlePt, "#sigma_{Y}/Y", "histoRelErrorYield", 0, 0, 0, 1.4, 1.4, 1.2);
+  //histoTot->Draw("same");
+  histoRelErrYield->Draw("same");
   canvasSummary->cd(7);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
@@ -1255,11 +1317,195 @@ void FitV2(
   outputfile->WriteTObject(histoV2Mixed);
 
   for (Int_t pt = 0; pt < numPtBins; pt++)
-  {
-    outputfile->WriteTObject(hV2[pt]);
-    outputfile->WriteTObject(hV2MassIntegrated[pt]);
-  }
+    // outputfile->WriteTObject(hInvMass[pt])//;
+
+    for (Int_t pt = 0; pt < numPtBins; pt++)
+    {
+      // outputfile->WriteTObject(hV2[pt]);
+      // outputfile->WriteTObject(hV2MassIntegrated[pt]);
+    }
   outputfile->Close();
+
+  // Performance plot
+  Int_t ChosenPt = 7;
+  if (isXi) ChosenPt = 1;
+  Float_t LowLimitMass[numPart] = {1.29, 1.65};
+  Float_t UpLimitMass[numPart] = {1.35, 1.7};
+  Float_t UpperCutHisto = 1.6;
+  Float_t XRangeMin[numPart] = {1.3, 1.655};
+  Float_t XRangeMax[numPart] = {1.343, 1.688};
+
+  TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
+  if (!isXi)
+    TitleXMass = "#it{m}_{#LambdaK} (GeV/#it{c}^{2})";
+
+  TCanvas *canvasMassP = new TCanvas("canvasMassP", "canvasMassP", 800, 800);
+  StyleCanvas(canvasMassP, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
+
+  TLegend *legend = new TLegend(0.2, 0.68, 0.71, 0.95);
+  legend->SetFillStyle(0);
+  legend->SetMargin(0);
+  legend->SetTextSize(0.037);
+  legend->SetTextAlign(12);
+  legend->AddEntry("", "#bf{ALICE Performance}", "");
+  legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0C[mul], CentFT0C[mul + 1], "%"), "");
+  if (isXi)
+    legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
+  else
+    legend->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
+  legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  legend->AddEntry("", Form("Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+
+  TLegend *legendfit = new TLegend(0.2, 0.57, 0.71, 0.65);
+  legendfit->SetFillStyle(0);
+  legendfit->SetMargin(0.1);
+  legendfit->SetTextSize(0.031);
+  legendfit->SetTextAlign(12);
+
+  TH1F *histo = hInvMass[ChosenPt];
+  Float_t histoIntegral = histo->Integral();
+  histo->Scale(1. / histoIntegral);
+  StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
+             TitleXMass, "Normalized counts" /* per 1.0 MeV/#it{c}^{2}"*/, "", 1, LowLimitMass[part] + 0.001, UpLimitMass[part] - 0.001, 1.2, 1.8, 1.2);
+  histo->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  histo->GetXaxis()->SetLabelSize(0.043);
+  histo->GetXaxis()->SetTitleSize(0.045);
+  histo->GetYaxis()->SetLabelSize(0.043);
+  histo->GetYaxis()->SetTitleSize(0.045);
+  histo->GetYaxis()->SetTitleOffset(1.6);
+
+  histo->DrawClone("pe");
+
+  TF1 *totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[!isXi], XRangeMax[!isXi]);
+  totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
+  totalPNorm->SetParameter(1, total[ChosenPt]->GetParameter(1));
+  totalPNorm->SetParameter(2, total[ChosenPt]->GetParameter(2));
+  totalPNorm->SetParameter(3, total[ChosenPt]->GetParameter(3) / histoIntegral);
+  totalPNorm->SetParameter(4, total[ChosenPt]->GetParameter(4));
+  totalPNorm->SetParameter(5, total[ChosenPt]->GetParameter(5));
+  totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) / histoIntegral);
+  totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
+  totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
+
+  legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
+  TF1 *bkg;
+  if (BkgType == 0)
+    bkg = bkg1[ChosenPt];
+  else if (BkgType == 1)
+    bkg = bkg2[ChosenPt];
+  else if (BkgType == 2)
+    bkg = bkg3[ChosenPt];
+  else if (BkgType == 3)
+    bkg = bkg4[ChosenPt];
+  bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
+  bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
+  bkg->SetParameter(2, bkg->GetParameter(2) / histoIntegral);
+  bkg->SetLineColor(kBlack);
+  bkg->SetLineStyle(8);
+  bkg->Draw("same");
+  legendfit->AddEntry(bkg, "bkg.", "l");
+  totalPNorm->SetRange(LowLimitMass[part], UpLimitMass[part]);
+  totalPNorm->SetLineColor(kRed + 1);
+  totalPNorm->Draw("same");
+  legend->Draw("");
+  legendfit->Draw("");
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + ".pdf");
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + ".png");
+
+  TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
+  Float_t LLUpperPad = 0.44;
+  Float_t ULLowerPad = 0.44;
+  TPad *pad1 = new TPad("pad1", "pad1", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
+  TPad *padL1 = new TPad("padL1", "padL1", 0, 0, 1, ULLowerPad);
+
+  StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
+  StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
+
+  TLegend *LegendTitle = new TLegend(0.24, 0.65, 0.75, 0.95);
+  LegendTitle->SetFillStyle(0);
+  LegendTitle->SetMargin(0);
+  LegendTitle->SetTextSize(0.038);
+  LegendTitle->SetTextAlign(12);
+  LegendTitle->AddEntry("", "#bf{ALICE Performance}", "");
+  LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0C[mul], CentFT0C[mul + 1], "%"), "");
+  if (isXi)
+    LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
+  else
+    LegendTitle->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
+  LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  LegendTitle->AddEntry("", Form("Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+
+  Float_t LimSupSpectra = 9.99;
+  Float_t LimInfSpectra = 0.2 * 1e-5;
+  Float_t xTitle = 15;
+  Float_t xOffset = 4;
+  Float_t yTitle = 30;
+  Float_t yOffset = 2;
+
+  Float_t xLabel = 30;
+  Float_t yLabel = 30;
+  Float_t xLabelOffset = 0.05;
+  Float_t yLabelOffset = 0.01;
+
+  Float_t tickX = 0.03;
+  Float_t tickY = 0.042;
+
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, hInvMass[ChosenPt]->GetXaxis()->GetXmin(), hInvMass[ChosenPt]->GetXaxis()->GetXmax());
+  for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
+    hDummy->SetBinContent(i, 1e-12);
+  canvasP->cd();
+  SetFont(hDummy);
+  StyleHistoYield(hDummy, 1e-5, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, "Normalized counts", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummy, tickX, tickY);
+  hDummy->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  pad1->Draw();
+  pad1->cd();
+  // gPad->SetLogy();
+  hDummy->Draw("same");
+  hInvMass[ChosenPt]->Draw("hist same pe");
+  totalPNorm->Draw("same");
+  LegendTitle->Draw("");
+  legendfit->Draw("");
+  bkg->Draw("same");
+
+  Float_t LimSupMultRatio = 5.1;
+  Float_t LimInfMultRatio = 1e-2;
+  Float_t YoffsetSpectraRatio = 1.1;
+  Float_t xTitleR = 30;
+  Float_t xOffsetR = 1;
+  Float_t yTitleR = 30;
+  Float_t yOffsetR = 2;
+
+  Float_t xLabelR = 30;
+  Float_t yLabelR = 30;
+  Float_t xLabelOffsetR = 0.02;
+  Float_t yLabelOffsetR = 0.02;
+
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[!isXi], XRangeMax[!isXi]);
+  for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
+    hDummyRatio->SetBinContent(i, 1e-12);
+
+  StyleHistoYield(hDummyRatio, 0, hV2[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, "", "", 1, 1.15, YoffsetSpectraRatio);
+  hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  SetFont(hDummyRatio);
+  SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
+  SetHistoTextSize(hV2[ChosenPt], xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
+  SetTickLength(hDummyRatio, tickX, tickY);
+
+  canvasP->cd();
+  padL1->Draw();
+  padL1->cd();
+  hDummyRatio->Draw("same");
+  hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
+  hV2[ChosenPt]->SetTitle("");
+  hV2[ChosenPt]->Draw("same e");
+  v2FitFunction[ChosenPt]->Draw("same");
+  //  hV2MassIntegrated[ChosenPt]->Draw("");
+  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".pdf");
+  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".png");
+
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;
   cout << "\nHo creato il file: " << Soutputfile << ".root" << endl;
