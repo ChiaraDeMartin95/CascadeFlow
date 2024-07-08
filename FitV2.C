@@ -128,6 +128,11 @@ struct v2fit
   TH1D bkgfraction;
 };
 
+Double_t v2bkgfit(Double_t *x, Double_t *par){
+  return par[0] + par[1] * x[0];
+}
+
+
 Bool_t reject = 1;
 Double_t fparab(Double_t *x, Double_t *par)
 {
@@ -477,6 +482,7 @@ void FitV2(
 
   v2fit v2fitarray[numPtBins];
   TF1 **v2FitFunction = new TF1 *[numPtBins];
+  TF1 **v2BkgFunction = new TF1 *[numPtBins];
 
   Double_t parTwoGaussRetta[numPtBins + 1][8];
   Double_t parTwoGaussParab[numPtBins + 1][9];
@@ -1110,6 +1116,7 @@ void FitV2(
 
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[part], limsup[part]);
     v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[part], limsup[part], 3);
+    v2FitFunction[pt]->SetLineColor(kRed + 1);
     if (pt < 4)
       canvas[0]->cd(pt + 4 + 1);
     else if (pt < 8)
@@ -1120,6 +1127,12 @@ void FitV2(
       canvas[3]->cd(pt + 4 + 1 - 12);
     hV2[pt]->Fit(v2FitFunction[pt], "R0");
 
+    v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[part], limsup[part], 2);
+    v2BkgFunction[pt]->FixParameter(0, v2FitFunction[pt]->GetParameter(1));
+    v2BkgFunction[pt]->FixParameter(1, v2FitFunction[pt]->GetParameter(2));
+    v2BkgFunction[pt]->SetLineColor(kBlack);
+    v2BkgFunction[pt]->SetLineStyle(8);
+    
     hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
@@ -1145,7 +1158,7 @@ void FitV2(
     legendV2->SetTextSize(0.055);
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
-    cout << "\nv2: " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
+    cout << "\nv2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     hV2MassIntegrated[pt]->ResetStats();
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
@@ -1254,7 +1267,7 @@ void FitV2(
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
   StyleHisto(histoRelErrYield, 0, 1.2 * histoRelErrYield->GetBinContent(histoRelErrYield->GetMaximumBin()), 1, 1, titlePt, "#sigma_{Y}/Y", "histoRelErrorYield", 0, 0, 0, 1.4, 1.4, 1.2);
-  //histoTot->Draw("same");
+  // histoTot->Draw("same");
   histoRelErrYield->Draw("same");
   canvasSummary->cd(7);
   gPad->SetBottomMargin(0.14);
@@ -1315,20 +1328,12 @@ void FitV2(
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
-
-  for (Int_t pt = 0; pt < numPtBins; pt++)
-    // outputfile->WriteTObject(hInvMass[pt])//;
-
-    for (Int_t pt = 0; pt < numPtBins; pt++)
-    {
-      // outputfile->WriteTObject(hV2[pt]);
-      // outputfile->WriteTObject(hV2MassIntegrated[pt]);
-    }
   outputfile->Close();
 
   // Performance plot
   Int_t ChosenPt = 7;
-  if (isXi) ChosenPt = 1;
+  if (isXi)
+    ChosenPt = 1;
   Float_t LowLimitMass[numPart] = {1.29, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7};
   Float_t UpperCutHisto = 1.6;
@@ -1362,6 +1367,12 @@ void FitV2(
   legendfit->SetTextSize(0.031);
   legendfit->SetTextAlign(12);
 
+  TLegend *legendfit2 = new TLegend(0.24, 0.54, 0.71, 0.65);
+  legendfit2->SetFillStyle(0);
+  legendfit2->SetMargin(0.1);
+  legendfit2->SetTextSize(0.033);
+  legendfit2->SetTextAlign(12);
+
   TH1F *histo = hInvMass[ChosenPt];
   Float_t histoIntegral = histo->Integral();
   histo->Scale(1. / histoIntegral);
@@ -1388,6 +1399,7 @@ void FitV2(
   totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
 
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
+  legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   TF1 *bkg;
   if (BkgType == 0)
     bkg = bkg1[ChosenPt];
@@ -1404,6 +1416,7 @@ void FitV2(
   bkg->SetLineStyle(8);
   bkg->Draw("same");
   legendfit->AddEntry(bkg, "bkg.", "l");
+  legendfit2->AddEntry(bkg, "bkg.", "l");
   totalPNorm->SetRange(LowLimitMass[part], UpLimitMass[part]);
   totalPNorm->SetLineColor(kRed + 1);
   totalPNorm->Draw("same");
@@ -1466,14 +1479,14 @@ void FitV2(
   hInvMass[ChosenPt]->Draw("hist same pe");
   totalPNorm->Draw("same");
   LegendTitle->Draw("");
-  legendfit->Draw("");
+  legendfit2->Draw("");
   bkg->Draw("same");
 
   Float_t LimSupMultRatio = 5.1;
   Float_t LimInfMultRatio = 1e-2;
   Float_t YoffsetSpectraRatio = 1.1;
   Float_t xTitleR = 30;
-  Float_t xOffsetR = 1;
+  Float_t xOffsetR = 1.5;
   Float_t yTitleR = 30;
   Float_t yOffsetR = 2;
 
@@ -1482,16 +1495,20 @@ void FitV2(
   Float_t xLabelOffsetR = 0.02;
   Float_t yLabelOffsetR = 0.02;
 
+  Float_t tickXR = 0.035;
+  Float_t tickYR = 0.042;
+
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[!isXi], XRangeMax[!isXi]);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
 
-  StyleHistoYield(hDummyRatio, 0, hV2[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, "", "", 1, 1.15, YoffsetSpectraRatio);
+  StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, "v_{2}", "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
   SetFont(hDummyRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetHistoTextSize(hV2[ChosenPt], xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
-  SetTickLength(hDummyRatio, tickX, tickY);
+  hDummyRatio->GetYaxis()->SetNdivisions(704);
+  SetTickLength(hDummyRatio, tickXR, tickYR);
 
   canvasP->cd();
   padL1->Draw();
@@ -1502,6 +1519,7 @@ void FitV2(
   hV2[ChosenPt]->SetTitle("");
   hV2[ChosenPt]->Draw("same e");
   v2FitFunction[ChosenPt]->Draw("same");
+  v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
   canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".pdf");
   canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".png");
