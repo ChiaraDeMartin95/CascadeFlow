@@ -205,13 +205,14 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   if (!isSPReso)
     hResoSourav->Draw("same");
 
-  TLegend *legend = new TLegend(0.15, 0.75, 0.75, 0.96);
+  TLegend *legend = new TLegend(0.15, 0.67, 0.75, 0.93);
   legend->SetFillStyle(0);
   legend->SetMargin(0);
   legend->SetTextSize(0.05);
   legend->SetTextAlign(12);
   legend->AddEntry("", "#bf{ALICE Performance}", "");
   legend->AddEntry("", "Run 3, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  legend->AddEntry("", "T0C (#minus3.3 < #eta < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
   TString Soutputfile = "";
@@ -223,8 +224,10 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     Soutputfile = Soutputfile + "_LF";
   else
     Soutputfile = Soutputfile + "_CFW";
+  Soutputfile += "_" + SinputFileName;
   canvas->SaveAs(Soutputfile + ".pdf");
   canvas->SaveAs(Soutputfile + ".png");
+  canvas->SaveAs(Soutputfile + ".eps");
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   hReso->Write();
   outputfile->Close();

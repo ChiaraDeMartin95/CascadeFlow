@@ -652,7 +652,7 @@ void FitV2(
       total[pt]->SetParName(5, "sigma2");
 
       cout << "\n\n fit gauss1 " << endl;
-      hInvMass[pt]->Fit(functionsFirst[pt], "RB");
+      hInvMass[pt]->Fit(functionsFirst[pt], "R");
       cout << "\n\n fit gauss2 " << endl;
       hInvMass[pt]->Fit(functionsSecond[pt], "RB");
 
@@ -735,7 +735,7 @@ void FitV2(
         }
       }
 
-      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB+"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
+      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
       // la gaussiana più larga deve esserte quella più bassa
       if (total[pt]->GetParameter(2) > total[pt]->GetParameter(5))
       {
@@ -927,7 +927,7 @@ void FitV2(
       }
 
       cout << "max value " << hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()) << endl;
-      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB+"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
+      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
 
       totalbis[pt] = (TF1 *)total[pt]->Clone();
       fFitResultPtr1[pt] = fFitResultPtr0[pt];
@@ -1331,13 +1331,14 @@ void FitV2(
   outputfile->Close();
 
   // Performance plot
-  Int_t ChosenPt = 7;
+  Int_t ChosenPt = 8;
   if (isXi)
-    ChosenPt = 1;
+    ChosenPt = 2;
   Float_t LowLimitMass[numPart] = {1.29, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7};
-  Float_t UpperCutHisto = 1.6;
-  Float_t XRangeMin[numPart] = {1.3, 1.655};
+  Float_t UpperCutHisto = 1.7;
+  if (isXi) UpperCutHisto = 1.8;
+  Float_t XRangeMin[numPart] = {1.3, 1.656};
   Float_t XRangeMax[numPart] = {1.343, 1.688};
 
   TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
@@ -1359,7 +1360,7 @@ void FitV2(
   else
     legend->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
   legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  legend->AddEntry("", Form("Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  legend->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   TLegend *legendfit = new TLegend(0.2, 0.57, 0.71, 0.65);
   legendfit->SetFillStyle(0);
@@ -1374,10 +1375,12 @@ void FitV2(
   legendfit2->SetTextAlign(12);
 
   TH1F *histo = hInvMass[ChosenPt];
-  Float_t histoIntegral = histo->Integral();
+  Float_t histoIntegral = histo->Integral("width");
   histo->Scale(1. / histoIntegral);
+  TString titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", histo->GetBinWidth(1)*1000);
+  if (isXi) titleyNorm = Form("Normalized counts/(%i MeV/#it{c}^{2})", (int)(histo->GetBinWidth(1)*1000));
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
-             TitleXMass, "Normalized counts" /* per 1.0 MeV/#it{c}^{2}"*/, "", 1, LowLimitMass[part] + 0.001, UpLimitMass[part] - 0.001, 1.2, 1.8, 1.2);
+             TitleXMass, titleyNorm, "", 1, LowLimitMass[part] + 0.001, UpLimitMass[part] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
   histo->GetXaxis()->SetLabelSize(0.043);
   histo->GetXaxis()->SetTitleSize(0.045);
@@ -1422,8 +1425,9 @@ void FitV2(
   totalPNorm->Draw("same");
   legend->Draw("");
   legendfit->Draw("");
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + ".pdf");
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + ".png");
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
 
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
   Float_t LLUpperPad = 0.44;
@@ -1446,7 +1450,7 @@ void FitV2(
   else
     LegendTitle->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
   LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  LegendTitle->AddEntry("", Form("Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  LegendTitle->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   Float_t LimSupSpectra = 9.99;
   Float_t LimInfSpectra = 0.2 * 1e-5;
@@ -1468,7 +1472,7 @@ void FitV2(
     hDummy->SetBinContent(i, 1e-12);
   canvasP->cd();
   SetFont(hDummy);
-  StyleHistoYield(hDummy, 1e-5, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, "Normalized counts", "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummy, 1e-3, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
@@ -1521,8 +1525,9 @@ void FitV2(
   v2FitFunction[ChosenPt]->Draw("same");
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".pdf");
-  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + ".png");
+  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
 
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;
