@@ -165,6 +165,16 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   }
 
   // TypeComp = 0 --> weighted vs unweighted v2
+  // TypeComp = 1 --> LHC23 vs LHC23zzh
+  // TypeComp = 2 --> SP vs EP
+  // TypeComp = 3 --> BDT cut 0.7 vs default
+  // TypeComp = 4 --> v2 from fit vs v2 from histo
+  // TypeComp = 5 --> resolution LF vs CFW
+  // TypeComp = 6 --> v2 LF vs CFW
+  // TypeComp = 7 --> v2 with and without occupancy event selection
+  // TypeComp = 8 --> v2 pass4 vs pass3 (LHCzzh)
+
+  // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
   {
     numOptions = 2;
@@ -185,7 +195,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     sleg[0] = "Default";
     sleg[1] = "Weighted";
   }
-  // TypeComp = 0 --> LHC23 vs LHC23zzh
+  // TypeComp = 1 --> LHC23 vs LHC23zzh
   else if (TypeComp == 1)
   {
     numOptions = 2;
@@ -230,8 +240,8 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     fileName[1] = fileName[0];
     fileName[0] += "";
     fileName[1] += "_SP";
-    fileName[0] +="_Run2Binning";
-    fileName[1] +="_Run2Binning";
+    fileName[0] += "_Run2Binning";
+    fileName[1] += "_Run2Binning";
     namehisto[0] = "histoV2Mixed";
     namehisto[1] = "histoV2Mixed";
     hTitleY = "v_{2}";
@@ -243,7 +253,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     sleg[0] = "EP";
     sleg[1] = "SP";
   }
-  // TypeComp = 3 --> BDT cut 0.97 vs default
+  // TypeComp = 3 --> BDT cut 0.7 vs default
   else if (TypeComp == 3)
   {
     numOptions = 2;
@@ -311,7 +321,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     sleg[0] = "LF";
     sleg[1] = "central FW";
   }
-  //v2 LF vs CFW
+  // v2 LF vs CFW
   else if (TypeComp == 6)
   {
     numOptions = 2;
@@ -322,10 +332,10 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     fileName[1] = "LHC23zzh_pass3_Train224930_Xi_BkgParab";
     fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[1] += "_Weighted";
-    //fileName[0] += "_SP";
-    //fileName[1] += "_SP";
-    fileName[0] +="_Run2Binning";
-    fileName[1] +="_Run2Binning";
+    // fileName[0] += "_SP";
+    // fileName[1] += "_SP";
+    fileName[0] += "_Run2Binning";
+    fileName[1] += "_Run2Binning";
     namehisto[0] = "histoV2Mixed";
     namehisto[1] = "histoV2Mixed";
     hTitleY = "v_{2}";
@@ -336,6 +346,77 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     YUpRatio = 1.5;
     sleg[0] = "CFW";
     sleg[1] = "LF";
+  }
+  // v2 with and without occupancy event selection
+  else if (TypeComp == 7)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23_PbPb_pass3_Train218607_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] = "LHC23_PbPb_pass3_Train231308_Xi_BkgParab";
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "w/o occupancy sel.";
+    sleg[1] = "w/ occupancy sel.";
+  }
+  // v2 with pass4 vs pass3
+  else if (TypeComp == 8)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23zzh_pass3_Train224930_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] = "LHC23zzh_pass4_test3_Train232412_Xi_BkgParab";
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+    fileName[0] += "_Run2Binning";
+    fileName[1] += "_Run2Binning";
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.;
+    YUpRatio = 2.;
+    sleg[0] = "pass 3";
+    sleg[1] = "pass 4";
+  }
+  // v2 with pass4; test 5 vs test 3
+  else if (TypeComp == 9)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitV2_";
+    fileName[0] = "LHC23zzh_pass4_test3_Train232412_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_Weighted";
+    fileName[1] = "LHC23zzh_pass4_test5_Train235645_Xi_BkgParab";
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += "_Weighted";
+    fileName[0] += "_Run2Binning";
+    fileName[1] += "_Run2Binning";
+    namehisto[0] = "histoV2Mixed";
+    namehisto[1] = "histoV2Mixed";
+    hTitleY = "v_{2}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.;
+    YUpRatio = 2.;
+    sleg[0] = "test 3";
+    sleg[1] = "test 5";
   }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
