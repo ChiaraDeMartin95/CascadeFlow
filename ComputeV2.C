@@ -46,21 +46,27 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent];
+  TH3D *hmassVsPtVsPzs2[numCent];
   TProfile2D *profmassVsPt[numCent];
   TH2F *hmassVsPt[numCent];
   TH2F *hmassVsV2C[numCent][numPtBins];
+  TH2F *hmassVsPzs2[numCent][numPtBins];
   TH1F *hmass[numCent][numPtBins];
   TH1F *hV2C[numCent][numPtBins];
+  TH1F *hPzs2[numCent][numPtBins];
   TH1F *hmassVsV2Cx[numCent][numPtBins];
   TH1F *hV2CFromProfile[numCent][numPtBins];
   TProfile *pV2C[numCent][numPtBins];
+  TProfile *pPzs2[numCent][numPtBins];
   TH2F *hPhiCentHisto[numCent];
   TH1F *hPhiCentHisto1D[numCent][numPtBins];
   TString hName = "";
   TString profName = "";
   TString hNameMass = "";
   TString hNameV2C = "";
+  TString hNamePzs2 = "";
   TString hNameMassV2C = "";
+  TString hNameMassPzs2 = "";
   TString hNameV2CFromProfile2D = "";
 
   // QC: phi distribution of selected candidates in centrality classes
@@ -86,7 +92,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
         cout << "Histogram hPhiCentHisto not available" << endl;
         return;
       }
-       hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
       if (!weights)
       {
         std::vector<double> phiBins(hPhiCentHisto[cent]->GetYaxis()->GetNbins() + 1, 0.);
@@ -123,7 +129,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TCanvas *cPtDeviation = new TCanvas("cPtDeviation", "cPtDeviation", 1400, 1200);
   TH1F *hHistoPt[numCent];
   TH1F *hAvgPt[numCent];
-  TH1F* hPtDeviation[numCent];
+  TH1F *hPtDeviation[numCent];
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
@@ -141,7 +147,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       hHistoPt[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
       hAvgPt[cent]->SetBinContent(pt + 1, hHistoPt[cent]->GetMean());
       hAvgPt[cent]->SetBinError(pt + 1, hHistoPt[cent]->GetMeanError());
-      hPtDeviation[cent]->SetBinContent(pt + 1, (hHistoPt[cent]->GetMean() - (PtBins[pt] + PtBins[pt+1])/2)/((PtBins[pt] + PtBins[pt+1])/2));
+      hPtDeviation[cent]->SetBinContent(pt + 1, (hHistoPt[cent]->GetMean() - (PtBins[pt] + PtBins[pt + 1]) / 2) / ((PtBins[pt] + PtBins[pt + 1]) / 2));
       hPtDeviation[cent]->SetBinError(pt + 1, 0);
     }
     cAvgPt->cd();
@@ -150,7 +156,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     hAvgPt[cent]->SetMarkerColor(ColorMult[cent]);
     hAvgPt[cent]->SetLineColor(ColorMult[cent]);
     hAvgPt[cent]->Draw("same");
-    
+
     cPtDeviation->cd();
     hPtDeviation[cent]->SetMarkerStyle(20);
     hPtDeviation[cent]->SetMarkerSize(0.5);
@@ -159,24 +165,29 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     hPtDeviation[cent]->Draw("same");
   }
 
+  // v2 and polarization computation
   for (Int_t cent = 0; cent < numCent; cent++)
   {
     hName = Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     profName = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
+    hNamePzs2 = Form("massVsPtVsPzs2_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName);
+    hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName);
-    if (!profmassVsPt[cent])
+    hmassVsPtVsPzs2[cent] = (TH3D *)inputFile->Get(hNamePzs2);
+    if (!hmassVsPtVsPzs2[cent])
     {
-      cout << "TProfile2D not found" << endl;
+      cout << "Histogram hmassVsPtVsPzs2 not available" << endl;
       return;
     }
-    hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     for (Int_t pt = 0; pt < numPtBins; pt++)
     {
       hNameMass = Form("mass_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameV2C = Form("V2C_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
+      hNamePzs2 = Form("Pzs2_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameV2CFromProfile2D = Form("V2CFromProfile_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
       hNameMassV2C = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
+      hNameMassPzs2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0C[cent], CentFT0C[cent + 1], pt);
 
       hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
 
@@ -187,6 +198,11 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C);
       hmassVsV2C[cent][pt]->RebinY(RebinFactor);
 
+      hmassVsPtVsPzs2[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+      hmassVsPzs2[cent][pt] = (TH2F *)hmassVsPtVsPzs2[cent]->Project3D("xze"); // mass vs Pzs2
+      hmassVsPzs2[cent][pt]->SetName(hNameMassPzs2);
+      hmassVsPzs2[cent][pt]->RebinY(RebinFactor);
+
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
       hmass[cent][pt]->SetName(hNameMass);
       hmass[cent][pt]->Rebin(RebinFactor);
@@ -194,7 +210,11 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       pV2C[cent][pt] = hmassVsV2C[cent][pt]->ProfileY(); // v2C //the error is the standard error of the mean
       pV2C[cent][pt]->SetName(hNameV2C + "_Profile");
 
+      pPzs2[cent][pt] = hmassVsPzs2[cent][pt]->ProfileY(); // Pzs2 //the error is the standard error of the mean
+      pPzs2[cent][pt]->SetName(hNamePzs2 + "_Profile");
+
       hV2C[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameV2C);
+      hPzs2[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNamePzs2);
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
         // hmassVsV2Cx[cent][pt] = (TH1F *)hmassVsV2C[cent][pt]->ProjectionX("", bin + 1, bin + 1);
@@ -204,6 +224,8 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
         // hV2C[cent][pt]->SetBinError(bin + 1, hmassVsV2Cx[cent][pt]->GetMeanError());
         hV2C[cent][pt]->SetBinContent(bin + 1, hmassVsV2C[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMean());
         hV2C[cent][pt]->SetBinError(bin + 1, hmassVsV2C[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMeanError());
+        hPzs2[cent][pt]->SetBinContent(bin + 1, hmassVsPzs2[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMean());
+        hPzs2[cent][pt]->SetBinError(bin + 1, hmassVsPzs2[cent][pt]->ProjectionX("", bin + 1, bin + 1)->GetMeanError());
       }
     }
   }
@@ -228,12 +250,16 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     {
       hmass[cent][pt]->Write();
       hV2C[cent][pt]->Write();
+      hPzs2[cent][pt]->Write();
       hmassVsV2C[cent][pt]->Write();
+      hmassVsPzs2[cent][pt]->Write();
       pV2C[cent][pt]->Write();
+      pPzs2[cent][pt]->Write();
       hV2CFromProfile[cent][pt]->Write();
       hPhiCentHisto1D[cent][pt]->Write();
     }
     hmassVsPtVsV2C[cent]->Write();
+    hmassVsPtVsPzs2[cent]->Write();
     hmassVsPt[cent]->Write();
     hAvgPt[cent]->Write();
   }

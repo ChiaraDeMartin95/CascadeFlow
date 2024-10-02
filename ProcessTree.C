@@ -35,6 +35,10 @@ Float_t Minv2 = -1;
 Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
+Float_t MinPzs2 = -1;
+Float_t MaxPzs2 = 1;
+Int_t NPzs2 = 200;
+
 bool passbdtCut(float bdtscore, float cent)
 {
   float sbdtCut = 0;
@@ -59,6 +63,10 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     v2Chosen = "fV2CEP";
 
   ROOT::EnableImplicitMT();
+
+  string cosThetaStar = "fCosThetaStarLambdaFromXi";
+  if (!isXi)
+    cosThetaStar = "fCosThetaStarLambdaFromOmega";
 
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
@@ -197,6 +205,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TH1D *v2CHisto[numCent];
   TH2D *hPhiCentHisto[numCent];
   TH3D *massVsPtVsV2CHisto[numCent];
+  TH3D *massVsPtVsPzs2Histo[numCent];
   TProfile *profileHisto[numCent];
   for (Int_t cent = 0; cent < numCent; cent++)
   {
@@ -211,22 +220,28 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     auto hPhiCent = dmasscut.Histo2D({Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Phi vs pt", 100, 0, 10, 100, 0, 2 * TMath::Pi()}, "fPt", "fPhi");
     if (isXi)
     {
+      auto dcentPzs2 = dcent.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen);
+      auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2Xi");
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 80, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", v2Chosen);
       MassCutHisto[cent] = (TH1D *)hMassCut->Clone(Form("massCut_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
       profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
     else
     {
+      auto dcentPzs2 = dcent.Define("Pzs2Omega", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C))");
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen);
+      auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2Omega");
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]), "Mean invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", v2Chosen);
       MassCutHisto[cent] = (TH1D *)hMassCut->Clone(Form("massCut_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+      massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
       profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
     }
     v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2C_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
@@ -262,6 +277,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     v2CHisto[cent]->Write();
     hPhiCentHisto[cent]->Write();
     massVsPtVsV2CHisto[cent]->Write();
+    massVsPtVsPzs2Histo[cent]->Write();
     profileHisto[cent]->Write();
   }
   file->Close();
