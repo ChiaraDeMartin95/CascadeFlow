@@ -19,21 +19,23 @@ isXi = not args.isOmega
 print("isIntegratedPt: ", args.isIntegratedPt)
 
 DirName = 'TrainingPlots'
-AdditionalName = '/Pass3'
+AdditionalName = '/Pass4'
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099_New_RedFactor10.root"
+FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train268801.root"
+#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099_New_RedFactor10.root"
 #FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"
-FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
+FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24g3_pass4_Train270268.root"
+#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
 #FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC23k6e_Train190322.root"
-#bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*')
-bkgCandidates= TreeHandler(FileBkg,'O2casctraining')
+bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*') 
 sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
+#sigCandidates= TreeHandler(FileSig,'O2casctraining')
 
-preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 33 and fV0Radius < 35 and abs(fDCABachToPV) < 20 and fV0CosPA > 0.9'
+preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 33 and fV0Radius < 35 and abs(fDCABachToPV) < 20 and fV0CosPA > 0.9 and fCascCosPA > 0.9'
 
 preselection_string_sig = 'abs(fMcPdgCode) == 3312'
 preselection_string_mass = 'fMassXi > 1.28 and fMassXi < 1.36'
-preselection_sidebands = 'fMassXi > 1.305 and fMassXi < 1.31 or fMassXi > 1.332 and fMassXi < 1.338'
+preselection_sidebands = 'fMassXi > 1.304 and fMassXi < 1.31 or fMassXi > 1.332 and fMassXi < 1.338'
 if not isXi:
     preselection_string_sig = 'abs(fMcPdgCode) == 3334'
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
@@ -49,8 +51,6 @@ bkgCandidates.apply_preselections(preselection_sidebands)
 
 vars_to_draw = sigCandidates.get_var_names()
 features_for_train = vars_to_draw.copy()
-#features_for_train = ['fCpa', 'fCpaXY', 'fDecayLength', 'fDecayLengthXY', 'fDeltaMassPhi', 'fImpactParameterXY', 'fAbsCos3PiK',
-#                     'fMaxNormalisedDeltaIP'] 
 features_for_train.remove('fMassXi')
 features_for_train.remove('fMassOmega')
 features_for_train.remove('fPt')
@@ -63,12 +63,13 @@ features_for_train.remove('fMultFT0M')
 print('Number of signal candidates: ', sigCandidates.get_n_cand())
 print('Number of background candidates: ', bkgCandidates.get_n_cand())
 print('Ratio of signal to background: ', sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
-if (10*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand() < 1): 
-    bkgCandidatesRed = bkgCandidates.get_subset('', 10*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
+if (4*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand() < 1): 
+    bkgCandidatesRed = bkgCandidates.get_subset('', 4*sigCandidates.get_n_cand()/bkgCandidates.get_n_cand())
 else:
     bkgCandidatesRed = bkgCandidates.get_subset('', 1)
 print('Number of signal candidates (after): ', sigCandidates.get_n_cand())
 print('Number of background candidates (after): ', bkgCandidatesRed.get_n_cand())
+print('Ratio of signal to background: ', sigCandidates.get_n_cand()/bkgCandidatesRed.get_n_cand())
 
 leg_labels = ['background', 'signal']
 plot_utils.plot_distr([bkgCandidatesRed, sigCandidates], vars_to_draw, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
@@ -129,19 +130,20 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     print('Number of signal candidates: ', sigCandidatesNew.get_n_cand())
     print('Number of background candidates: ', bkgCandidatesPtSel.get_n_cand())
     print('Ratio of signal to background: ', sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
-    if (10*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand() < 1): 
-        bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', 10*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
+    if (4*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand() < 1): 
+        bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', 4*sigCandidatesNew.get_n_cand()/bkgCandidatesPtSel.get_n_cand())
     else: 
         bkgCandidatesNew = bkgCandidatesPtSel.get_subset('', 1)
     print('Number of signal candidates (after): ', sigCandidatesNew.get_n_cand())
     print('Number of background candidates (after): ', bkgCandidatesNew.get_n_cand())
+    print('Ratio of signal to background: ', sigCandidatesNew.get_n_cand()/bkgCandidatesNew.get_n_cand())
 
     nsig = sigCandidatesNew.get_n_cand()
     nbkg = bkgCandidatesNew.get_n_cand()
     print('nsig: ', nsig)
     print('nbkg: ', nbkg)
     #here I associate the signal and background candidates to the label 1 and 0, respectively
-    train_test_data = train_test_generator([sigCandidatesNew, bkgCandidatesNew], [1,0], test_size=0.5, random_state=42)
+    train_test_data = train_test_generator([sigCandidatesNew, bkgCandidatesNew], [1,0], test_size=0.2, random_state=42)
 
     #Draw input features in pt intervals
     plot_utils.plot_distr([bkgCandidatesNew, sigCandidatesNew], vars_to_draw_bis, bins=100, labels=leg_labels, log=True, density=True, figsize=(12, 7), alpha=0.3, grid=False)
