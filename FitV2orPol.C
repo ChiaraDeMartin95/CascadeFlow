@@ -128,10 +128,10 @@ struct v2fit
   TH1D bkgfraction;
 };
 
-Double_t v2bkgfit(Double_t *x, Double_t *par){
+Double_t v2bkgfit(Double_t *x, Double_t *par)
+{
   return par[0] + par[1] * x[0];
 }
-
 
 Bool_t reject = 1;
 Double_t fparab(Double_t *x, Double_t *par)
@@ -247,7 +247,8 @@ Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 // Event plane resolution
 Float_t ftcReso[numCent] = {0};
 
-void FitV2(
+void FitV2orPol(
+    Bool_t isV2 = 1, // 0 for polarization, 1 for v2
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
@@ -262,6 +263,9 @@ void FitV2(
     Float_t sigmacentral = 4.2,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
+  TString histoNameMassvsV2 = "";
+  TString ProfileV2 = "";
 
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
@@ -339,7 +343,7 @@ void FitV2(
 
   if (mul > numCent)
   {
-    cout << "Multiplciity out of range" << endl;
+    cout << "Multiplicity out of range" << endl;
     return;
   }
 
@@ -387,10 +391,13 @@ void FitV2(
   TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBins, PtBins);
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBins, PtBins);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
-  TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-  TH1F *histoV2NoFit = new TH1F("histoV2NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-  TH1F *histoV2Mixed = new TH1F("histoV2Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-  
+  TString ShistoV2 = "histoV2";
+  if (!isV2) // polarization
+    ShistoV2 = "histoPzs2";
+  TH1F *histoV2 = new TH1F(ShistoV2, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
     if (!isXi && pt == 0)
@@ -408,7 +415,18 @@ void FitV2(
 
     StyleHisto(hInvMass[pt], 0, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), 1, 20, TitleInvMass[part] + " " + SInvMass, "Counts", SPt[pt] + " GeV/#it{c}", 1, histoMassRangeLow[part], histoMassRangeUp[part], 1.4, 1.6, 0.7);
 
-    hmassVsV2C[pt] = (TH2F *)filein->Get(Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    if (isV2)
+    {
+      histoNameMassvsV2 = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt);
+      ProfileV2 = Form("V2C_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt);
+    }
+    else
+    { // polarization
+      histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt);
+      ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt);
+    }
+
+    hmassVsV2C[pt] = (TH2F *)filein->Get(histoNameMassvsV2);
     if (!hmassVsV2C[pt])
     {
       cout << "Histogram hmassVsV2C not available" << endl;
@@ -416,7 +434,7 @@ void FitV2(
     }
 
     // hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
-    hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    hV2[pt] = (TH1F *)filein->Get(ProfileV2);
     if (!hV2[pt])
     {
       cout << "Histogram hV2 not available" << endl;
@@ -1132,7 +1150,7 @@ void FitV2(
     v2BkgFunction[pt]->FixParameter(1, v2FitFunction[pt]->GetParameter(2));
     v2BkgFunction[pt]->SetLineColor(kBlack);
     v2BkgFunction[pt]->SetLineStyle(8);
-    
+
     hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
@@ -1158,7 +1176,10 @@ void FitV2(
     legendV2->SetTextSize(0.055);
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
-    cout << "\nv2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
+    if (isV2)
+      cout << "\nv2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
+    else
+      cout << "\nPzs2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     hV2MassIntegrated[pt]->ResetStats();
     histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
     histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
@@ -1274,21 +1295,34 @@ void FitV2(
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
   // histoB->Draw("same");
-  histoV2NoFit->SetTitle("v2 without fit");
+  if (isV2)
+    histoV2NoFit->SetTitle("v2 without fit");
+  else
+    histoV2NoFit->SetTitle("Pz,s2 without fit");
 
   histoV2NoFit->Scale(1. / ftcReso[mul]);
   histoV2Mixed->Scale(1. / ftcReso[mul]);
+  if (!isV2)
+  {
+    histoV2NoFit->Scale(1. / AlphaH[!isXi]);
+    histoV2Mixed->Scale(1. / AlphaH[!isXi]);
+  }
   histoV2NoFit->Draw();
 
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  histoV2->SetTitle("v2 from fit");
+  if (isV2)
+    histoV2->SetTitle("v2 from fit");
+  else
+    histoV2->SetTitle("Pz,s2 from fit");
   histoV2->Scale(1. / ftcReso[mul]);
+  if (!isV2)
+    histoV2->Scale(1. / AlphaH[!isXi]);
   histoV2->Draw();
 
   TString Soutputfile;
-  Soutputfile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+  Soutputfile = "OutputAnalysis/FitNew" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
@@ -1337,7 +1371,8 @@ void FitV2(
   Float_t LowLimitMass[numPart] = {1.29, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7};
   Float_t UpperCutHisto = 1.7;
-  if (isXi) UpperCutHisto = 1.8;
+  if (isXi)
+    UpperCutHisto = 1.8;
   Float_t XRangeMin[numPart] = {1.3, 1.656};
   Float_t XRangeMax[numPart] = {1.343, 1.688};
 
@@ -1377,8 +1412,9 @@ void FitV2(
   TH1F *histo = hInvMass[ChosenPt];
   Float_t histoIntegral = histo->Integral("width");
   histo->Scale(1. / histoIntegral);
-  TString titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", histo->GetBinWidth(1)*1000);
-  if (isXi) titleyNorm = Form("Normalized counts/(%i MeV/#it{c}^{2})", (int)(histo->GetBinWidth(1)*1000));
+  TString titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", histo->GetBinWidth(1) * 1000);
+  if (isXi)
+    titleyNorm = Form("Normalized counts/(%i MeV/#it{c}^{2})", (int)(histo->GetBinWidth(1) * 1000));
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
              TitleXMass, titleyNorm, "", 1, LowLimitMass[part] + 0.001, UpLimitMass[part] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
@@ -1525,9 +1561,9 @@ void FitV2(
   v2FitFunction[ChosenPt]->Draw("same");
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAndV2" + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
 
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;

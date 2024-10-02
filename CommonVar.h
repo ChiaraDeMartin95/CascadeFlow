@@ -5,6 +5,7 @@ bool isRun2Binning = 1;
 const Int_t numPtBins = 6; // Run2 binning
 const Int_t numCent = 8;
 const Int_t numChoice = 5; // mean, sigma, purity, yield, v2
+TString NameAnalysis[2] = {"V2", "Pzs2"};
 
 Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7};
 Int_t MarkerPart[numPart] = {20, 33};
@@ -24,6 +25,7 @@ float ftcResoSourav[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 
 
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245};
 TString ParticleName[numPart] = {"Xi", "Omega"};
+Float_t AlphaH[numPart] = {-0.401, 0.0157}; //from STAR paper on polarization arXiv:2012.13601v2
 TString ChargeName[numCharges] = {"Neg", "", "Pos"};
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
