@@ -257,7 +257,6 @@ void FitV2(
     Bool_t isLogy = 1,
     Int_t part = ExtrParticle,
     Bool_t isYAxisMassZoomed = 0,
-    Int_t MassRebin = 1,
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
     Bool_t isMeanFixedPDG = 0,
     Float_t sigmacentral = 4.2,
@@ -314,6 +313,7 @@ void FitV2(
     else
       fileResoName = ResoFileName_EPLF;
   }
+  fileResoName += ".root";
   TFile *fileResoEP = new TFile(fileResoName, "");
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
   cout << "Reso name: " << fileResoName << endl;
@@ -390,7 +390,7 @@ void FitV2(
   TH1F *histoV2 = new TH1F("histoV2", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
   TH1F *histoV2NoFit = new TH1F("histoV2NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
   TH1F *histoV2Mixed = new TH1F("histoV2Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-
+  
   for (Int_t pt = 0; pt < numPtBins; pt++)
   {
     if (!isXi && pt == 0)
@@ -641,7 +641,7 @@ void FitV2(
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol2(6)", liminf[part], limsup[part]);
       else if (BkgType == 2)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol3(6)", liminf[part], limsup[part]);
-      else if (BkgType == 3)
+      else
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+expo(6)", liminf[part], limsup[part]);
       total[pt]->SetLineColor(597);
       total[pt]->SetParName(0, "norm");
@@ -673,7 +673,7 @@ void FitV2(
         hInvMass[pt]->Fit(bkgparab[pt], "RB0");
       else if (BkgType == 2)
         hInvMass[pt]->Fit(bkgpol3[pt], "RB0");
-      else if (BkgType == 3)
+      else
         hInvMass[pt]->Fit(bkgexpo[pt], "RB");
 
       if (BkgType == 0)
@@ -789,7 +789,7 @@ void FitV2(
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(9));
         bkgFunction = bkg3[pt];
       }
-      else if (BkgType == 3)
+      else
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(6));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(7));
@@ -819,7 +819,7 @@ void FitV2(
           bkg2[pt]->Draw("same");
         else if (BkgType == 2)
           bkg3[pt]->Draw("same");
-        else if (BkgType == 3)
+        else
           bkg4[pt]->Draw("same");
 
         TMatrixDSym cov = fFitResultPtr0[pt]->GetCovarianceMatrix();
@@ -848,7 +848,7 @@ void FitV2(
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol2(3)", liminf[part], limsup[part]);
       else if (BkgType == 2)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol3(3)", liminf[part], limsup[part]);
-      else if (BkgType == 3)
+      else
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+expo(3)", liminf[part], limsup[part]);
 
       total[pt]->SetLineColor(7);
@@ -876,7 +876,7 @@ void FitV2(
         hInvMass[pt]->Fit(bkgparab[pt], "RB0");
       else if (BkgType == 2)
         hInvMass[pt]->Fit(bkgpol3[pt], "RB0");
-      else if (BkgType == 3)
+      else
         hInvMass[pt]->Fit(bkgexpo[pt], "RB0");
 
       if (BkgType == 0)
@@ -962,7 +962,7 @@ void FitV2(
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(6));
         bkgFunction = bkg3[pt];
       }
-      else if (BkgType == 3)
+      else
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(3));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(4));
@@ -1058,7 +1058,7 @@ void FitV2(
       errb[pt] = totalbis[pt]->IntegralError(LowLimit[pt], UpLimit[pt], fFitResultPtr1[pt]->GetParams(),
                                              (fFitResultPtr1[pt]->GetCovarianceMatrix()).GetMatrixArray());
     }
-    else if (BkgType == 3)
+    else
     {
       b[pt] = bkg4[pt]->Integral(LowLimit[pt], UpLimit[pt]);
       errb[pt] = totalbis[pt]->IntegralError(LowLimit[pt], UpLimit[pt], fFitResultPtr1[pt]->GetParams(),
@@ -1283,7 +1283,7 @@ void FitV2(
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-
+  histoV2->SetTitle("v2 from fit");
   histoV2->Scale(1. / ftcReso[mul]);
   histoV2->Draw();
 
@@ -1410,7 +1410,7 @@ void FitV2(
     bkg = bkg2[ChosenPt];
   else if (BkgType == 2)
     bkg = bkg3[ChosenPt];
-  else if (BkgType == 3)
+  else
     bkg = bkg4[ChosenPt];
   bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
   bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
