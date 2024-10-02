@@ -15,6 +15,7 @@
 #include "TLegend.h"
 #include "TPad.h"
 #include "CommonVar.h"
+#include "TGraphErrors.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString titleX, TString titleY, TString title, Bool_t XRange,
                 Float_t XLow, Float_t XUp, Float_t xOffset, Float_t yOffset, Float_t mSize)
@@ -127,6 +128,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
   TString SPublishedFileRun1 = "Run1Results/HEPData-ins1297103-v1-root.root";
   // in classes 10-20%, 20-30%, 30-40%, 40-50%
+  //TString TablesRun2[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; // v2 measured with 2-particle correlations
   TString TablesRun2[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
   if (!isXi)
   {
