@@ -115,11 +115,17 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
 {
 
-  TString ComputeResoFileName = "";
+  TString ComputeResoFileName = "TreeForAnalysis/AnalysisResults_";
   if (isLFReso == 1)
-    ComputeResoFileName = ComputeResoFileNameLF;
+    ComputeResoFileName += inputFileResoLF + ".root";
   else
-    ComputeResoFileName = ComputeResoFileNameCFW;
+    ComputeResoFileName += inputFileResoCFW + ".root";
+  if (!isLFReso && (ComputeResoFileName.Index("CFW") == -1))
+  {
+    cout << "You are looking for file: " << ComputeResoFileName << endl;
+    cout << "Error: CFW resolution not available" << endl;
+    return;
+  }
   TFile *inputfile = new TFile(ComputeResoFileName, "");
   TString nameQT0CTPCA = "QVectorsT0CTPCA";
   TString nameQT0CTPCC = "QVectorsT0CTPCC";
@@ -153,11 +159,26 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   }
 
   TH1D *hReso = new TH1D("hReso", "hReso", numCent, fCentFT0C);
-  for (Int_t cent = 0; cent < numCent; cent++)
+  TH1D *hReso080 = new TH1D("hReso080", "hReso080", 1, 0, 1);
+  Int_t CentFT0CMax = 0;
+  Int_t CentFT0CMin = 0;
+  for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
-    hQT0CTPCA->GetYaxis()->SetRangeUser(CentFT0C[cent] + 0.001, CentFT0C[cent + 1] - 0.001);
-    hQT0CTPCC->GetYaxis()->SetRangeUser(CentFT0C[cent] + 0.001, CentFT0C[cent + 1] - 0.001);
-    hQTPCAC->GetYaxis()->SetRangeUser(CentFT0C[cent] + 0.001, CentFT0C[cent + 1] - 0.001);
+    
+    if (cent == numCent)
+    { // 0-80%
+      CentFT0CMin = 0;
+      CentFT0CMax = 80;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0C[cent];
+      CentFT0CMax = CentFT0C[cent + 1];
+    }
+    cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << "%" << endl;
+    hQT0CTPCA->GetYaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
+    hQT0CTPCC->GetYaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
+    hQTPCAC->GetYaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     TH1F *h1QT0CTPCA = (TH1F *)hQT0CTPCA->ProjectionX("h1QT0CTPCA");
     TH1F *h1QT0CTPCC = (TH1F *)hQT0CTPCC->ProjectionX("h1QT0CTPCC");
     TH1F *h1QTPCAC = (TH1F *)hQTPCAC->ProjectionX("h1QTPCAC");
@@ -171,8 +192,16 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
     Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    hReso->SetBinError(cent + 1, ErrReso);
+    if (cent == numCent)
+    {
+      hReso080->SetBinContent(1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
+      hReso080->SetBinError(1, ErrReso);
+    }
+    else
+    {
+      hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
+      hReso->SetBinError(cent + 1, ErrReso);
+    }
   }
 
   gStyle->SetOptStat(0);
@@ -202,8 +231,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     hResoSourav->SetBinContent(cent + 1, ftcResoSourav[cent]);
     hResoSourav->SetBinError(cent + 1, 0);
   }
-  if (!isSPReso)
-    hResoSourav->Draw("same");
+  // if (!isSPReso)
+  // hResoSourav->Draw("same");
 
   TLegend *legend = new TLegend(0.15, 0.67, 0.75, 0.93);
   legend->SetFillStyle(0);
@@ -212,24 +241,30 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   legend->SetTextAlign(12);
   legend->AddEntry("", "#bf{ALICE Performance}", "");
   legend->AddEntry("", "Run 3, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  legend->AddEntry("", "T0C (#minus3.3 < #eta < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
+  legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
   TString Soutputfile = "";
   if (!isSPReso)
-    Soutputfile = "Resolution/Resolution_EP";
+  { // event plane method
+    if (isLFReso)
+      Soutputfile = ResoFileName_EPLF;
+    else
+      Soutputfile = ResoFileName_EPCFW;
+  }
   else
-    Soutputfile = "Resolution/Resolution_SP";
-  if (isLFReso)
-    Soutputfile = Soutputfile + "_LF";
-  else
-    Soutputfile = Soutputfile + "_CFW";
-  Soutputfile += "_" + SinputFileName;
+  {
+    if (isLFReso)
+      Soutputfile = ResoFileName_SPLF;
+    else
+      Soutputfile = ResoFileName_SPCFW;
+  }
   canvas->SaveAs(Soutputfile + ".pdf");
   canvas->SaveAs(Soutputfile + ".png");
   canvas->SaveAs(Soutputfile + ".eps");
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   hReso->Write();
+  hReso080->Write();
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
 }

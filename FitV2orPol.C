@@ -245,10 +245,9 @@ Float_t histoMassRangeLow[numPart] = {1.29, 1.626}; // display range of mass his
 Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 
 // Event plane resolution
-Float_t ftcReso[numCent] = {0};
+Float_t ftcReso[numCent + 1] = {0};
 
 void FitV2orPol(
-    Bool_t isV2 = 1, // 0 for polarization, 1 for v2
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
@@ -263,7 +262,20 @@ void FitV2orPol(
     Float_t sigmacentral = 4.2,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+  Int_t CentFT0CMax = 0;
+  Int_t CentFT0CMin = 0;
+  if (mul == numCent)
+  { // 0-80%
+    CentFT0CMin = 0;
+    CentFT0CMax = 80;
+  }
+  else
+  {
+    CentFT0CMin = CentFT0C[mul];
+    CentFT0CMax = CentFT0C[mul + 1];
+  }
 
+  cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   TString histoNameMassvsV2 = "";
   TString ProfileV2 = "";
 
@@ -295,7 +307,7 @@ void FitV2orPol(
   }
   for (Int_t b = 1; b <= hEvents->GetNbinsX(); b++)
   {
-    if (hEvents->GetBinCenter(b) >= CentFT0C[mul] && hEvents->GetBinCenter(b) < CentFT0C[mul + 1])
+    if (hEvents->GetBinCenter(b) >= CentFT0CMin && hEvents->GetBinCenter(b) < CentFT0CMax)
     {
       NEvents += hEvents->GetBinContent(b);
     }
@@ -320,13 +332,14 @@ void FitV2orPol(
   fileResoName += ".root";
   TFile *fileResoEP = new TFile(fileResoName, "");
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
+  TH1F *hReso080 = (TH1F *)fileResoEP->Get("hReso080");
   cout << "Reso name: " << fileResoName << endl;
-  for (Int_t cent = 0; cent < numCent; cent++)
-  {
-    ftcReso[cent] = hReso->GetBinContent(hReso->FindBin(CentFT0C[cent] + 0.001));
-    cout << "Centrality: " << CentFT0C[cent] << "-" << CentFT0C[cent + 1] << endl;
-    cout << "Resolution: " << ftcReso[cent] << endl;
-  }
+  if (mul == numCent)
+    ftcReso[mul] = hReso080->GetBinContent(1);
+  else
+    ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+  cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
+  cout << "Resolution: " << ftcReso[mul] << endl;
 
   Float_t UpperLimitLSB = 0;
   Float_t LowerLimitRSB = 0;
@@ -341,7 +354,7 @@ void FitV2orPol(
     LowerLimitRSB = LowerLimitRSBOmega;
   }
 
-  if (mul > numCent)
+  if (mul > numCent + 1)
   {
     cout << "Multiplicity out of range" << endl;
     return;
@@ -406,10 +419,10 @@ void FitV2orPol(
     cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
     cout << PtBins[pt] << endl;
 
-    hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
     if (!hInvMass[pt])
     {
-      cout << "Histogram not available" << endl;
+      cout << "Histogram inv. mass not available" << endl;
       return;
     }
 
@@ -417,13 +430,13 @@ void FitV2orPol(
 
     if (isV2)
     {
-      histoNameMassvsV2 = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt);
-      ProfileV2 = Form("V2C_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt);
+      histoNameMassvsV2 = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      ProfileV2 = Form("V2C_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
     }
     else
     { // polarization
-      histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt);
-      ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0C[mul], CentFT0C[mul + 1], pt);
+      histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
     }
 
     hmassVsV2C[pt] = (TH2F *)filein->Get(histoNameMassvsV2);
@@ -433,7 +446,7 @@ void FitV2orPol(
       return;
     }
 
-    // hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt));
+    // hV2[pt] = (TH1F *)filein->Get(Form("V2C_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
     hV2[pt] = (TH1F *)filein->Get(ProfileV2);
     if (!hV2[pt])
     {
@@ -1156,7 +1169,7 @@ void FitV2orPol(
     histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
     histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
 
-    hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0C[mul], CentFT0C[mul + 1], pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
+    hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
     StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     hV2MassIntegrated[pt]->Rebin(2);
 
@@ -1322,10 +1335,10 @@ void FitV2orPol(
   histoV2->Draw();
 
   TString Soutputfile;
-  Soutputfile = "OutputAnalysis/FitNew" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+  Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
-  Soutputfile += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
+  Soutputfile += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   Soutputfile += SBDT;
   if (isApplyWeights)
@@ -1336,6 +1349,7 @@ void FitV2orPol(
     Soutputfile += "_BDTCentDep";
   if (isRun2Binning)
     Soutputfile += "_Run2Binning";
+  // Soutputfile += "_Test";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1389,7 +1403,7 @@ void FitV2orPol(
   legend->SetTextSize(0.037);
   legend->SetTextAlign(12);
   legend->AddEntry("", "#bf{ALICE Performance}", "");
-  legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0C[mul], CentFT0C[mul + 1], "%"), "");
+  legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (isXi)
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else
@@ -1480,7 +1494,7 @@ void FitV2orPol(
   LegendTitle->SetTextSize(0.038);
   LegendTitle->SetTextAlign(12);
   LegendTitle->AddEntry("", "#bf{ALICE Performance}", "");
-  LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0C[mul], CentFT0C[mul + 1], "%"), "");
+  LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (isXi)
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else

@@ -1,10 +1,12 @@
+Bool_t isV2 = 0; // 0 for polarization, 1 for v2
+
 const Int_t numPart = 2;
 const Int_t numCharges = 3; // 0: all, 1: positive, -1: negative
 bool isRun2Binning = 1;
 // const Int_t numPtBins = 15;
 const Int_t numPtBins = 6; // Run2 binning
 const Int_t numCent = 8;
-const Int_t numChoice = 5; // mean, sigma, purity, yield, v2
+const Int_t numChoice = 6; // mean, sigma, purity, yield, v2, polz
 TString NameAnalysis[2] = {"V2", "Pzs2"};
 
 Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7};
@@ -25,31 +27,31 @@ float ftcResoSourav[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 
 
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245};
 TString ParticleName[numPart] = {"Xi", "Omega"};
-Float_t AlphaH[numPart] = {-0.401, 0.0157}; //from STAR paper on polarization arXiv:2012.13601v2
+Float_t AlphaH[numPart] = {-0.401, 0.0157}; // from STAR paper on polarization arXiv:2012.13601v2
 TString ChargeName[numCharges] = {"Neg", "", "Pos"};
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
 TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
 
 Float_t MinPt[numPart] = {0.8, 1.};
-//Float_t MaxPt[numPart] = {8, 8};
-Float_t MaxPt[numPart] = {6, 6}; //Run 2 binning
-TString TypeHisto[numChoice] = {"Mean", "Sigma", "Purity", "Yield", "V2Mixed"};
+// Float_t MaxPt[numPart] = {8, 8};
+Float_t MaxPt[numPart] = {6, 6}; // Run 2 binning
+TString TypeHisto[numChoice] = {"Mean", "Sigma", "Purity", "Yield", "V2Mixed", "Pzs2"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 
 //---------------------------------------------------------
 TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607";
-//TString SinputFileName = "LHC23_PbPb_pass4_Train268801";
+// TString SinputFileName = "LHC23_PbPb_pass4_Train268801";
 TString SinputFileName = "LHC23_pass4_QC1_Train268802";
-//TString SinputFileName = "LHC23zzh_pass4_test5_Train235645"; //<-- test on pass4 (test5)
-//TString SinputFileName = "LHC23zzh_pass4_test3_Train232412"; //<-- test on pass4 (test3)
-// TString SinputFileName = "LHC23zzh_pass4_test3_Train232126"; //<--test on pass4 with occupancy cut
-// TString SinputFileName = "LHC23_PbPb_pass3_Train231308"; //<--the largest dataset so far, new occupancy selection applied
-// TString SinputFileName = "LHC23_PbPb_pass3_Train218607"; //<--large dataset, no info about SP
-//   TString SinputFileName = "LHC23zzh_pass3_Train226234_CFW"; //<-- event plane from central FW
-// TString SinputFileName = "LHC23zzh_pass3_Train224930"; //<-- contains info about EP and SP from LF
-//  TString SinputFileName = "LHC23zzh_pass3_Train225737_BDT0.7"; //<-- BDT selection > 0.7
+// TString SinputFileName = "LHC23zzh_pass4_test5_Train235645"; //<-- test on pass4 (test5)
+// TString SinputFileName = "LHC23zzh_pass4_test3_Train232412"; //<-- test on pass4 (test3)
+//  TString SinputFileName = "LHC23zzh_pass4_test3_Train232126"; //<--test on pass4 with occupancy cut
+//  TString SinputFileName = "LHC23_PbPb_pass3_Train231308"; //<--the largest dataset so far, new occupancy selection applied
+//  TString SinputFileName = "LHC23_PbPb_pass3_Train218607"; //<--large dataset, no info about SP
+//    TString SinputFileName = "LHC23zzh_pass3_Train226234_CFW"; //<-- event plane from central FW
+//  TString SinputFileName = "LHC23zzh_pass3_Train224930"; //<-- contains info about EP and SP from LF
+//   TString SinputFileName = "LHC23zzh_pass3_Train225737_BDT0.7"; //<-- BDT selection > 0.7
 
 Bool_t ChosenParticleXi = 1; // 1 for Xi, 0 for Omega
 Int_t ExtrParticle = !ChosenParticleXi;
