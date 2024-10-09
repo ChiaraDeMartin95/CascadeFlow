@@ -262,6 +262,7 @@ void FitV2orPol(
     Float_t sigmacentral = 4.2,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   if (mul == numCent)
@@ -378,13 +379,13 @@ void FitV2orPol(
     return;
   }
 
-  TString SPt[numPtBins] = {""};
-  TH1F *hInvMass[numPtBins];
-  TH1F *hInvMassDraw[numPtBins];
-  TH1F *hV2[numPtBins];
-  TH2F *hmassVsV2C[numPtBins];
-  TH1F *hV2MassIntegrated[numPtBins];
-  TF1 *fitV2SP[numPtBins];
+  TString SPt[numPtBins + 1] = {""};
+  TH1F *hInvMass[numPtBins + 1];
+  TH1F *hInvMassDraw[numPtBins + 1];
+  TH1F *hV2[numPtBins + 1];
+  TH2F *hmassVsV2C[numPtBins + 1];
+  TH1F *hV2MassIntegrated[numPtBins + 1];
+  TF1 *fitV2SP[numPtBins + 1];
 
   Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
@@ -410,12 +411,17 @@ void FitV2orPol(
   TH1F *histoV2 = new TH1F(ShistoV2, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
   TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
   TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
+  TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
+  TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
 
-  for (Int_t pt = 0; pt < numPtBins; pt++)
+  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
   {
     if (!isXi && pt == 0)
       continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
+    if (pt == numPtBins) // integrated
+      SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
     cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
     cout << PtBins[pt] << endl;
 
@@ -496,24 +502,24 @@ void FitV2orPol(
 
   // fits
 
-  TF1 **functionsFirst = new TF1 *[numPtBins];
-  TF1 **functionsSecond = new TF1 *[numPtBins];
-  TF1 **functions1 = new TF1 *[numPtBins];
-  TF1 **functions2 = new TF1 *[numPtBins];
-  TF1 **bkg1 = new TF1 *[numPtBins];
-  TF1 **bkg2 = new TF1 *[numPtBins];
-  TF1 **bkg3 = new TF1 *[numPtBins];
-  TF1 **bkg4 = new TF1 *[numPtBins];
-  TF1 **bkgretta = new TF1 *[numPtBins]; // initial bkg fit
-  TF1 **bkgparab = new TF1 *[numPtBins]; // initial bkg fit
-  TF1 **bkgpol3 = new TF1 *[numPtBins];  // initial bkg fit
-  TF1 **bkgexpo = new TF1 *[numPtBins];  // initial bkg fit
-  TF1 **total = new TF1 *[numPtBins];
-  TF1 **totalbis = new TF1 *[numPtBins];
+  TF1 **functionsFirst = new TF1 *[numPtBins + 1];
+  TF1 **functionsSecond = new TF1 *[numPtBins + 1];
+  TF1 **functions1 = new TF1 *[numPtBins + 1];
+  TF1 **functions2 = new TF1 *[numPtBins + 1];
+  TF1 **bkg1 = new TF1 *[numPtBins + 1];
+  TF1 **bkg2 = new TF1 *[numPtBins + 1];
+  TF1 **bkg3 = new TF1 *[numPtBins + 1];
+  TF1 **bkg4 = new TF1 *[numPtBins + 1];
+  TF1 **bkgretta = new TF1 *[numPtBins + 1]; // initial bkg fit
+  TF1 **bkgparab = new TF1 *[numPtBins + 1]; // initial bkg fit
+  TF1 **bkgpol3 = new TF1 *[numPtBins + 1];  // initial bkg fit
+  TF1 **bkgexpo = new TF1 *[numPtBins + 1];  // initial bkg fit
+  TF1 **total = new TF1 *[numPtBins + 1];
+  TF1 **totalbis = new TF1 *[numPtBins + 1];
 
-  v2fit v2fitarray[numPtBins];
-  TF1 **v2FitFunction = new TF1 *[numPtBins];
-  TF1 **v2BkgFunction = new TF1 *[numPtBins];
+  v2fit v2fitarray[numPtBins + 1];
+  TF1 **v2FitFunction = new TF1 *[numPtBins + 1];
+  TF1 **v2BkgFunction = new TF1 *[numPtBins + 1];
 
   Double_t parTwoGaussRetta[numPtBins + 1][8];
   Double_t parTwoGaussParab[numPtBins + 1][9];
@@ -524,64 +530,64 @@ void FitV2orPol(
   Double_t parOneGaussPol3[numPtBins + 1][7];
   Double_t parOneGaussExpo[numPtBins + 1][5];
 
-  TFitResultPtr fFitResultPtr0[numPtBins];
-  TFitResultPtr fFitResultPtr1[numPtBins];
+  TFitResultPtr fFitResultPtr0[numPtBins + 1];
+  TFitResultPtr fFitResultPtr1[numPtBins + 1];
 
-  Float_t mean[numPtBins] = {0};
-  Float_t errmean[numPtBins] = {0};
-  Float_t sigma[numPtBins] = {0};
-  Float_t errsigma[numPtBins] = {0};
-  Float_t sigmaw[numPtBins] = {0};
-  Float_t errsigmaw[numPtBins] = {0};
-  Float_t w1[numPtBins] = {0};
-  Float_t w2[numPtBins] = {0};
-  Float_t I12[numPtBins] = {0};
-  Float_t Yield[numPtBins] = {0};
-  Float_t ErrYield[numPtBins] = {0};
-  Float_t LowLimit[numPtBins] = {0};
-  Float_t UpLimit[numPtBins] = {0};
-  Float_t b[numPtBins] = {0};
-  Float_t errb[numPtBins] = {0};
-  Float_t SSB[numPtBins] = {0};
-  Float_t errSSB[numPtBins] = {0};
-  Float_t Signif[numPtBins] = {0};
-  Float_t errSignif[numPtBins] = {0};
-  Float_t entries_range[numPtBins] = {0};
+  Float_t mean[numPtBins + 1] = {0};
+  Float_t errmean[numPtBins + 1] = {0};
+  Float_t sigma[numPtBins + 1] = {0};
+  Float_t errsigma[numPtBins + 1] = {0};
+  Float_t sigmaw[numPtBins + 1] = {0};
+  Float_t errsigmaw[numPtBins + 1] = {0};
+  Float_t w1[numPtBins + 1] = {0};
+  Float_t w2[numPtBins + 1] = {0};
+  Float_t I12[numPtBins + 1] = {0};
+  Float_t Yield[numPtBins + 1] = {0};
+  Float_t ErrYield[numPtBins + 1] = {0};
+  Float_t LowLimit[numPtBins + 1] = {0};
+  Float_t UpLimit[numPtBins + 1] = {0};
+  Float_t b[numPtBins + 1] = {0};
+  Float_t errb[numPtBins + 1] = {0};
+  Float_t SSB[numPtBins + 1] = {0};
+  Float_t errSSB[numPtBins + 1] = {0};
+  Float_t Signif[numPtBins + 1] = {0};
+  Float_t errSignif[numPtBins + 1] = {0};
+  Float_t entries_range[numPtBins + 1] = {0};
   Float_t TotYield = 0;
   Float_t TotSigBkg = 0;
 
-  TLine *lineP3Sigma[numPtBins];
-  TLine *lineM3Sigma[numPtBins];
+  TLine *lineP3Sigma[numPtBins + 1];
+  TLine *lineM3Sigma[numPtBins + 1];
 
-  Float_t bTest[numPtBins] = {0};
-  Float_t errbTest[numPtBins] = {0};
-  Float_t SignalTest[numPtBins] = {0};
-  Float_t errSignalTest[numPtBins] = {0};
-  Float_t YieldTest[numPtBins] = {0};
-  Float_t ErrYieldTest[numPtBins] = {0};
-  TH1F *hYieldTest[numPtBins];
-  TH1F *hYieldRelErrorTest[numPtBins];
-  TH1F *hYieldRelErrorTestRelative[numPtBins];
-  Float_t LowLimitTest[numPtBins] = {0};
-  Float_t UpLimitTest[numPtBins] = {0};
-  Float_t LowBin0[numPtBins] = {0};
-  Float_t UpBin0[numPtBins] = {0};
-  Float_t LowBin[numPtBins] = {0};
-  Float_t UpBin[numPtBins] = {0};
+  Float_t bTest[numPtBins + 1] = {0};
+  Float_t errbTest[numPtBins + 1] = {0};
+  Float_t SignalTest[numPtBins + 1] = {0};
+  Float_t errSignalTest[numPtBins + 1] = {0};
+  Float_t YieldTest[numPtBins + 1] = {0};
+  Float_t ErrYieldTest[numPtBins + 1] = {0};
+  TH1F *hYieldTest[numPtBins + 1];
+  TH1F *hYieldRelErrorTest[numPtBins + 1];
+  TH1F *hYieldRelErrorTestRelative[numPtBins + 1];
+  Float_t LowLimitTest[numPtBins + 1] = {0};
+  Float_t UpLimitTest[numPtBins + 1] = {0};
+  Float_t LowBin0[numPtBins + 1] = {0};
+  Float_t UpBin0[numPtBins + 1] = {0};
+  Float_t LowBin[numPtBins + 1] = {0};
+  Float_t UpBin[numPtBins + 1] = {0};
   Int_t numMassInt = 10;
   TF1 *LineAt1 = new TF1("LineAt1", "[0]+[1]*x", 0, numMassInt);
   LineAt1->SetParameter(0, 1);
   TF1 *LineAt995 = new TF1("LineAt995", "[0]+[1]*x", 0, numMassInt);
   LineAt995->SetParameter(0, 0.995);
 
-  TLine *lineBkgLimitA[numPtBins];
-  TLine *lineBkgLimitB[numPtBins];
-  TLine *lineBkgLimitC[numPtBins];
-  TLine *lineBkgLimitD[numPtBins];
+  TLine *lineBkgLimitA[numPtBins + 1];
+  TLine *lineBkgLimitB[numPtBins + 1];
+  TLine *lineBkgLimitC[numPtBins + 1];
+  TLine *lineBkgLimitD[numPtBins + 1];
 
-  Bool_t isV2FromFit[numPtBins] = {0};
+  Bool_t isV2FromFit[numPtBins + 1] = {0};
 
-  for (Int_t pt = 0; pt < numPtBins; pt++)
+  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
   {
 
     if (!isXi && pt == 0)
@@ -1117,33 +1123,35 @@ void FitV2orPol(
     errSignif[pt] = sqrt(pow(ErrYield[pt] / sqrt(entries_range[pt]), 2) + pow(Yield[pt] / (2 * sqrt(entries_range[pt]) * entries_range[pt]), 2));
 
     //*********************************************
+    if (pt < numPtBins)
+    {
+      histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
 
-    histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
-    histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoRelErrYield->SetBinContent(pt + 1, ErrYield[pt] / Yield[pt]);
+      histoRelErrYield->SetBinError(pt + 1, 0);
 
-    histoRelErrYield->SetBinContent(pt + 1, ErrYield[pt] / Yield[pt]);
-    histoRelErrYield->SetBinError(pt + 1, 0);
+      histoTot->SetBinContent(pt + 1, entries_range[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoTot->SetBinError(pt + 1, sqrt(entries_range[pt]) / NEvents / histoYield->GetBinWidth(pt + 1));
 
-    histoTot->SetBinContent(pt + 1, entries_range[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
-    histoTot->SetBinError(pt + 1, sqrt(entries_range[pt]) / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoB->SetBinContent(pt + 1, b[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoB->SetBinError(pt + 1, errb[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
 
-    histoB->SetBinContent(pt + 1, b[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
-    histoB->SetBinError(pt + 1, errb[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
+      histoMean->SetBinContent(pt + 1, mean[pt]);
+      histoMean->SetBinError(pt + 1, errmean[pt]);
 
-    histoMean->SetBinContent(pt + 1, mean[pt]);
-    histoMean->SetBinError(pt + 1, errmean[pt]);
+      histoSigma->SetBinContent(pt + 1, sigma[pt]);
+      histoSigma->SetBinError(pt + 1, errsigma[pt]);
 
-    histoSigma->SetBinContent(pt + 1, sigma[pt]);
-    histoSigma->SetBinError(pt + 1, errsigma[pt]);
+      histoSigmaWeighted->SetBinContent(pt + 1, sigmaw[pt]);
+      histoSigmaWeighted->SetBinError(pt + 1, errsigmaw[pt]);
 
-    histoSigmaWeighted->SetBinContent(pt + 1, sigmaw[pt]);
-    histoSigmaWeighted->SetBinError(pt + 1, errsigmaw[pt]);
+      histoPurity->SetBinContent(pt + 1, SSB[pt]);
+      histoPurity->SetBinError(pt + 1, errSSB[pt]);
 
-    histoPurity->SetBinContent(pt + 1, SSB[pt]);
-    histoPurity->SetBinError(pt + 1, errSSB[pt]);
-
-    histoSignificance->SetBinContent(pt + 1, Yield[pt] / ErrYield[pt]);
-    histoSignificance->SetBinError(pt + 1, 0);
+      histoSignificance->SetBinContent(pt + 1, Yield[pt] / ErrYield[pt]);
+      histoSignificance->SetBinError(pt + 1, 0);
+    }
 
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[part], limsup[part]);
     v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[part], limsup[part], 3);
@@ -1166,8 +1174,16 @@ void FitV2orPol(
 
     hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
-    histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
-    histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+    if (pt < numPtBins)
+    {
+      histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
+      histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+    }
+    else
+    {
+      histoV2PtInt->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
+      histoV2PtInt->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+    }
 
     hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
     StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
@@ -1194,8 +1210,16 @@ void FitV2orPol(
     else
       cout << "\nPzs2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     hV2MassIntegrated[pt]->ResetStats();
-    histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
-    histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+    if (pt < numPtBins)
+    {
+      histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
+      histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+    }
+    else
+    {
+      histoV2PtIntNoFit->SetBinContent(1, hV2MassIntegrated[pt]->GetMean());
+      histoV2PtIntNoFit->SetBinError(1, hV2MassIntegrated[pt]->GetMeanError());
+    }
     if (v2type == 1)
     {
       fitV2SP[pt] = new TF1(Form("fitV2SP%i", pt), "gaus", -5, 5);
@@ -1203,17 +1227,32 @@ void FitV2orPol(
       // histoV2NoFit->SetBinContent(pt + 1, fitV2SP[pt]->GetParameter(1));
       // histoV2NoFit->SetBinError(pt + 1, fitV2SP[pt]->GetParError(1));
     }
-    cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
-
-    if (!isV2FromFit[pt])
+    // cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
+    if (pt < numPtBins)
     {
-      histoV2Mixed->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
-      histoV2Mixed->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+      if (!isV2FromFit[pt])
+      {
+        histoV2Mixed->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
+        histoV2Mixed->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+      }
+      else
+      {
+        histoV2Mixed->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
+        histoV2Mixed->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+      }
     }
     else
     {
-      histoV2Mixed->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
-      histoV2Mixed->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+      if (!isV2FromFit[pt])
+      {
+        histoV2PtIntMixed->SetBinContent(1, hV2MassIntegrated[pt]->GetMean());
+        histoV2PtIntMixed->SetBinError(1, hV2MassIntegrated[pt]->GetMeanError());
+      }
+      else
+      {
+        histoV2PtIntMixed->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
+        histoV2PtIntMixed->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+      }
     }
   }
 
@@ -1222,7 +1261,7 @@ void FitV2orPol(
   StyleCanvas(canvasMass, 0.15, 0.05, 0.05, 0.15);
 
   Int_t index = 0;
-  for (Int_t pt = 0; pt < numPtBins; pt++)
+  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
   {
     if (!isXi && pt == 0)
       continue;
@@ -1376,6 +1415,9 @@ void FitV2orPol(
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
+  outputfile->WriteTObject(histoV2PtInt);
+  outputfile->WriteTObject(histoV2PtIntNoFit);
+  outputfile->WriteTObject(histoV2PtIntMixed);
   outputfile->Close();
 
   // Performance plot
