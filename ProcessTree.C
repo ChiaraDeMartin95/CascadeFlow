@@ -91,7 +91,7 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   RDataFrame originalDF(TreeName, inputFile);
 
   std::vector<TRandom3> randoms;
-  for (Int_t i = 0; i < originalDF.GetNSlots(); i++)
+  for (int i = 0; i < (int)originalDF.GetNSlots(); i++)
   {
     randoms.push_back(TRandom3(i + 1));
   }
@@ -147,11 +147,20 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   else if (EtaSysChoice == 2) // eta < 0 && eta > -0.8
     d3 = d3.Filter("fEta < 0 && fEta > -0.8");
 
+  // define the rapidity
+  string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[!isXi], ParticleMassPDG[!isXi]);
+  string Common2 = "fPt*std::sinh(fEta)";
+  string Num = Form("%s + %s", Common1.c_str(), Common2.c_str());
+  string Denom = Form("%s - %s", Common1.c_str(), Common2.c_str());
+  d3 = d3.Define("fRapidity", Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()));
+  cout << Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()) << endl;
+
   // apply competing mass rejection for Omega
   // if (!isXi) d3 = d3.Filter("fMassXi > 1.34 || fMassXi < 1.3"); //rough mass cut to reject Xi
   string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
   if (!isXi)
     d3 = d3.Filter(rejectMassXi);
+
   auto MassXi = d3.Histo2D({"mass_XivsPt", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35, 100, 0, 10}, "fMassXi", "fPt");
 
   auto BDT_response = d3.Histo2D({"BDT_response", "BDT response", 100, 0, 1, 100, 0, 100}, "fBDTResponseXi", "fCentFT0C");
@@ -207,6 +216,8 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   TH3D *massVsPtVsV2CHisto[numCent + 1];
   TH3D *massVsPtVsPzs2Histo[numCent + 1];
   TProfile *profileHisto[numCent + 1];
+  TH1F *rapidityHisto[numCent + 1];
+  TH1F *hEtaHisto[numCent + 1];
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   for (Int_t cent = 0; cent < numCent + 1; cent++)
@@ -221,40 +232,51 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
     }
-    auto dcent = d3.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin+0.1, CentFT0CMax-0.1));
+    auto dcent = d3.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.1, CentFT0CMax - 0.1));
     string MassCut = "";
     if (isXi)
       MassCut = Form("abs(fMassXi - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
     else
       MassCut = Form("abs(fMassOmega - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][1], massSigmaParameters[1][1], massSigmaParameters[2][1], massSigmaParameters[3][1]);
     auto dmasscut = dcent.Filter(MassCut);
+    
     auto v2C = dcent.Histo1D({Form("v2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "v2C", Nv2, Minv2, Maxv2}, v2Chosen);
     auto hPhiCent = dmasscut.Histo2D({Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Phi vs pt", 100, 0, 10, 100, 0, 2 * TMath::Pi()}, "fPt", "fPhi");
     if (isXi)
     {
       auto dcentPzs2 = dcent.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
+      dcentPzs2 = dcentPzs2.Filter("fRapidity > -0.5 && fRapidity < 0.5");
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen);
       auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2Xi");
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", v2Chosen);
+      auto hrapidity = dcentPzs2.Histo1D({"rapidity", "Rapidity distribution of selected candidates", 200, -2, 2}, "fRapidity");
+      auto hEta=dcent.Histo1D({"Eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
       MassCutHisto[cent] = (TH1D *)hMassCut->Clone(Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax));
       profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      rapidityHisto[cent] = (TH1F *)hrapidity->Clone(Form("rapidity_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      hEtaHisto[cent] = (TH1F *)hEta->Clone(Form("Eta_cent%i-%i", CentFT0CMin, CentFT0CMax));
     }
     else
     {
       auto dcentPzs2 = dcent.Define("Pzs2Omega", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C))");
+      dcentPzs2 = dcentPzs2.Filter("fRapidity > -0.5 && fRapidity < 0.5");
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen);
       auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2Omega");
       // profile: mean value of v2 vs mass and pt in centrality classes
       auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", v2Chosen);
+      auto hrapidity = dcentPzs2.Histo1D({"rapidity", "Rapidity distribution of selected candidates", 200, -2, 2}, "fRapidity");
+      auto hEta=dcent.Histo1D({"Eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
       MassCutHisto[cent] = (TH1D *)hMassCut->Clone(Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax));
       profileHisto[cent] = (TProfile *)profile->Clone(Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      rapidityHisto[cent] = (TH1F *)hrapidity->Clone(Form("rapidity_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      hEtaHisto[cent] = (TH1F *)hEta->Clone(Form("Eta_cent%i-%i", CentFT0CMin, CentFT0CMax));
     }
     v2CHisto[cent] = (TH1D *)v2C->Clone(Form("v2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
     hPhiCentHisto[cent] = (TH2D *)hPhiCent->Clone(Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -291,6 +313,8 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     massVsPtVsV2CHisto[cent]->Write();
     massVsPtVsPzs2Histo[cent]->Write();
     profileHisto[cent]->Write();
+    rapidityHisto[cent]->Write();
+    hEtaHisto[cent]->Write();
   }
   file->Close();
 
