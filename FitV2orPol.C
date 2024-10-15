@@ -248,6 +248,7 @@ Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
 Float_t ftcReso[numCent + 1] = {0};
 
 void FitV2orPol(
+    Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Bool_t isXi = ChosenParticleXi,
@@ -263,6 +264,11 @@ void FitV2orPol(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isV2 && !isPtAnalysis)
+  {
+    cout << "V2 analysis not available as a function of 2(phi-Psi)" << endl;
+    return;
+  }
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   if (mul == numCent)
@@ -379,6 +385,15 @@ void FitV2orPol(
     return;
   }
 
+  Int_t numPtBinsVar = numPtBins;
+  if (!isPtAnalysis)
+    numPtBinsVar = numPsiBins;
+  if (numPtBinsVar > numPtBins)
+  {
+    cout << "Number of bins too large" << endl;
+    return;
+  }
+
   TString SPt[numPtBins + 1] = {""};
   TH1F *hInvMass[numPtBins + 1];
   TH1F *hInvMassDraw[numPtBins + 1];
@@ -396,36 +411,58 @@ void FitV2orPol(
     StyleCanvas(canvas[c], 0.15, 0.05, 0.05, 0.15);
   }
 
-  TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBins, PtBins);
-  TH1F *histoSigma = new TH1F("histoSigma", "histoSigma", numPtBins, PtBins);
-  TH1F *histoSigmaWeighted = new TH1F("histoSigmaWeighted", "histoSigmaWeighted", numPtBins, PtBins);
-  TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBins, PtBins);
-  TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBins, PtBins);
-  TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBins, PtBins);
-  TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBins, PtBins);
-  TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBins, PtBins);
-  TH1F *histoB = new TH1F("histoB", "histoB", numPtBins, PtBins);
+  Double_t BinsVar[numPtBins + 1] = {0};
+  for (Int_t i = 0; i <= numPtBinsVar; i++)
+  {
+    if (isPtAnalysis) BinsVar[i] = PtBins[i];
+    else BinsVar[i] = i * 2 * TMath::Pi() / numPsiBins;
+  }
+
+  TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBinsVar, BinsVar);
+  TH1F *histoSigma = new TH1F("histoSigma", "histoSigma", numPtBinsVar, BinsVar);
+  TH1F *histoSigmaWeighted = new TH1F("histoSigmaWeighted", "histoSigmaWeighted", numPtBinsVar, BinsVar);
+  TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBinsVar, BinsVar);
+  TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBinsVar, BinsVar);
+  TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBinsVar, BinsVar);
+  TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBinsVar, BinsVar);
+  TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBinsVar, BinsVar);
+  TH1F *histoB = new TH1F("histoB", "histoB", numPtBinsVar, BinsVar);
   TString ShistoV2 = "histoV2";
   if (!isV2) // polarization
     ShistoV2 = "histoPzs2";
-  TH1F *histoV2 = new TH1F(ShistoV2, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-  TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
-  TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBins, PtBins);
+  TH1F *histoV2 = new TH1F(ShistoV2, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
+  TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
+  TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
   TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
   TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
   TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
 
-  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
+  Double_t PhiBins[numPsiBins + 1];
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
+    if (!isPtAnalysis)
+    {
+      if (pt == numPtBinsVar)
+        continue; // skip the integrated
+    }
+    PhiBins[pt] = pt * 2 * TMath::Pi() / numPsiBins;
     if (!isXi && pt == 0)
       continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     if (pt == numPtBins) // integrated
       SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
-    cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
-    cout << PtBins[pt] << endl;
+    if (!isPtAnalysis) // psi bins
+      SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
 
-    hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
+    if (isPtAnalysis)
+      cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+    else
+      cout << "Analysed psi interval: " << PhiBins[pt] << "-" << PhiBins[pt] + 2 * TMath::Pi() / numPsiBins << endl;
+
+    if (isPtAnalysis)
+      hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
+    else
+      hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt));
     if (!hInvMass[pt])
     {
       cout << "Histogram inv. mass not available" << endl;
@@ -443,6 +480,11 @@ void FitV2orPol(
     { // polarization
       histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      if (!isPtAnalysis)
+      {
+        histoNameMassvsV2 = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
+        ProfileV2 = Form("Pz_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      }
     }
 
     hmassVsV2C[pt] = (TH2F *)filein->Get(histoNameMassvsV2);
@@ -587,8 +629,13 @@ void FitV2orPol(
 
   Bool_t isV2FromFit[numPtBins + 1] = {0};
 
-  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
+    if (!isPtAnalysis)
+    {
+      if (pt == numPtBinsVar)
+        continue; // skip the integrated
+    }
 
     if (!isXi && pt == 0)
       continue;
@@ -1123,7 +1170,7 @@ void FitV2orPol(
     errSignif[pt] = sqrt(pow(ErrYield[pt] / sqrt(entries_range[pt]), 2) + pow(Yield[pt] / (2 * sqrt(entries_range[pt]) * entries_range[pt]), 2));
 
     //*********************************************
-    if (pt < numPtBins)
+    if (pt < numPtBinsVar)
     {
       histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
       histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
@@ -1174,7 +1221,7 @@ void FitV2orPol(
 
     hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
-    if (pt < numPtBins)
+    if (pt < numPtBinsVar)
     {
       histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
       histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
@@ -1210,7 +1257,7 @@ void FitV2orPol(
     else
       cout << "\nPzs2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     hV2MassIntegrated[pt]->ResetStats();
-    if (pt < numPtBins)
+    if (pt < numPtBinsVar)
     {
       histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
       histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
@@ -1228,7 +1275,7 @@ void FitV2orPol(
       // histoV2NoFit->SetBinError(pt + 1, fitV2SP[pt]->GetParError(1));
     }
     // cout << histoV2NoFit->GetBinCenter(pt + 1) << " bin c: " << histoV2NoFit->GetBinContent(pt + 1) << endl;
-    if (pt < numPtBins)
+    if (pt < numPtBinsVar)
     {
       if (!isV2FromFit[pt])
       {
@@ -1261,8 +1308,13 @@ void FitV2orPol(
   StyleCanvas(canvasMass, 0.15, 0.05, 0.05, 0.15);
 
   Int_t index = 0;
-  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
+    if (!isPtAnalysis)
+    {
+      if (pt == numPtBinsVar)
+        continue; // skip the integrated
+    }
     if (!isXi && pt == 0)
       continue;
     if (pt == 2)
@@ -1388,7 +1440,8 @@ void FitV2orPol(
     Soutputfile += "_BDTCentDep";
   if (isRun2Binning)
     Soutputfile += "_Run2Binning";
-  // Soutputfile += "_Test";
+  if (!isPtAnalysis)
+    Soutputfile += "_vsPsi";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

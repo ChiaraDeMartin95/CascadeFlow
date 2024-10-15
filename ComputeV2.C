@@ -47,27 +47,36 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent + 1];
   TH3D *hmassVsPtVsPzs2[numCent + 1];
+  TH3D *hmassVsPsiVsPz[numCent + 1];
   TProfile2D *profmassVsPt[numCent + 1];
   TH2F *hmassVsPt[numCent + 1];
   TH2F *hmassVsV2C[numCent + 1][numPtBins + 1];
   TH2F *hmassVsPzs2[numCent + 1][numPtBins + 1];
+  TH2F *hmassVsPz[numCent + 1][numPsiBins + 1];
   TH1F *hmass[numCent + 1][numPtBins + 1];
+  TH1F *hmassPsi[numCent + 1][numPsiBins + 1];
   TH1F *hV2C[numCent + 1][numPtBins + 1];
   TH1F *hPzs2[numCent + 1][numPtBins + 1];
+  TH1F *hPz[numCent + 1][numPsiBins + 1];
   TH1F *hmassVsV2Cx[numCent + 1][numPtBins + 1];
   TH1F *hV2CFromProfile[numCent + 1][numPtBins + 1];
   TProfile *pV2C[numCent + 1][numPtBins + 1];
   TProfile *pPzs2[numCent + 1][numPtBins + 1];
+  TProfile *pPz[numCent + 1][numPsiBins + 1];
   TH2F *hPhiCentHisto[numCent];
   TH1F *hPhiCentHisto1D[numCent][numPtBins + 1];
   TString hName[numCent + 1] = {""};
   TString hNamePzs2_3D[numCent + 1] = {""};
+  TString hNamePzVsPsi_3D[numCent + 1] = {""}; // massVsPsiVsPz
   TString profName[numCent + 1] = {""};
   TString hNameMass[numCent + 1][numPtBins + 1] = {""};
   TString hNameV2C[numCent + 1][numPtBins + 1] = {""};
   TString hNamePzs2[numCent + 1][numPtBins + 1] = {""};
+  TString hNamePz[numCent + 1][numPsiBins + 1] = {""};
   TString hNameMassV2C[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPzs2[numCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPz[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassPsi[numCent + 1][numPsiBins + 1] = {""};
   TString hNameV2CFromProfile2D[numCent + 1][numPtBins + 1] = {""};
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
@@ -194,6 +203,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName[cent]);
     hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -204,6 +214,39 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       cout << "Histogram hmassVsPtVsPzs2 not available" << endl;
       return;
     }
+
+    hmassVsPsiVsPz[cent] = (TH3D *)inputFile->Get(hNamePzVsPsi_3D[cent]);
+    if (!hmassVsPsiVsPz[cent])
+    {
+      cout << "Histogram hmassVsPsiVsPz not available" << endl;
+      return;
+    }
+    // psi binning for polarization
+    Double_t PhiBins[numPsiBins + 1];
+    for (Int_t psi = 0; psi < numPsiBins; psi++)
+    {
+      PhiBins[psi] = psi * 2 * TMath::Pi() / numPsiBins;
+      hNameMassPsi[cent][psi] = Form("mass_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hNameMassPz[cent][psi] = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hmassVsPsiVsPz[cent]->GetYaxis()->SetRangeUser(PhiBins[psi] + 0.0001, PhiBins[psi] + 2 * TMath::Pi() / numPsiBins - 0.0001);
+      hmassPsi[cent][psi] = (TH1F *)hmassVsPsiVsPz[cent]->Project3D("xe"); // mass
+      hmassPsi[cent][psi]->SetName(hNameMassPsi[cent][psi]);
+      hmassPsi[cent][psi]->Rebin(RebinFactor);
+      hmassVsPz[cent][psi] = (TH2F *)hmassVsPsiVsPz[cent]->Project3D("xze"); // mass & Pz 2D histo
+      hmassVsPz[cent][psi]->SetName(hNameMassPz[cent][psi]);
+      hPz[cent][psi] = (TH1F *)hmassVsPsiVsPz[cent]->Project3D("xe");  // Pz vs mass
+      hPz[cent][psi]->Reset();
+      hNamePz[cent][psi] = Form("Pz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hPz[cent][psi]->SetName(hNamePz[cent][psi]);
+      for (Int_t bin = 0; bin < hmassVsPz[cent][psi]->GetNbinsY(); bin++)
+      {
+        hPz[cent][psi]->SetBinContent(bin + 1, hmassVsPz[cent][psi]->ProjectionX("", bin + 1, bin + 1)->GetMean());
+        hPz[cent][psi]->SetBinError(bin + 1, hmassVsPz[cent][psi]->ProjectionX("", bin + 1, bin + 1)->GetMeanError());
+      }
+      pPz[cent][psi] = hmassVsPz[cent][psi]->ProfileY();
+      pPz[cent][psi]->SetName(hNamePz[cent][psi] + "_Profile");
+    }
+
     for (Int_t pt = 0; pt < numPtBins + 1; pt++)
     {
       // cout << "Cent bin: " << cent << " Centrality: " << CentFT0CMin << "-" << CentFT0CMax << "%" << endl;
@@ -277,7 +320,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   if (isRun2Binning)
     SOutputFile += "_Run2Binning";
   // SOutputFile += "_TestV2InRestrictedRange.root";
-  SOutputFile += "Test3.root";
+  SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
@@ -297,6 +340,13 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
       hV2CFromProfile[cent][pt]->Write();
       if (cent != numCent && pt != numPtBins)
         hPhiCentHisto1D[cent][pt]->Write();
+    }
+    for (Int_t psi = 0; psi < numPsiBins; psi++)
+    {
+      hmassVsPz[cent][psi]->Write();
+      hPz[cent][psi]->Write();
+      pPz[cent][psi]->Write();
+      hmassPsi[cent][psi]->Write();
     }
   }
   file->Close();

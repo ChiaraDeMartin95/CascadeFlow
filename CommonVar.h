@@ -5,6 +5,7 @@ const Int_t numCharges = 3; // 0: all, 1: positive, -1: negative
 bool isRun2Binning = 1;
 // const Int_t numPtBins = 15;
 const Int_t numPtBins = 6; // Run2 binning
+const Int_t numPsiBins = 6; //bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numChoice = 6; // mean, sigma, purity, yield, v2, polz
 TString NameAnalysis[2] = {"V2", "Pzs2"};
@@ -39,6 +40,8 @@ Float_t MaxPt[numPart] = {6, 6}; // Run 2 binning
 TString TypeHisto[numChoice] = {"Mean", "Sigma", "Purity", "Yield", "V2Mixed", "Pzs2"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
+TString TitleXCent = "Centrality (%)";
+TString TitleYPzs = "P_{z,s2}";
 
 //---------------------------------------------------------
 TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607";
