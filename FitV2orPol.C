@@ -388,6 +388,7 @@ void FitV2orPol(
   Int_t numPtBinsVar = numPtBins;
   if (!isPtAnalysis)
     numPtBinsVar = numPsiBins;
+  cout << "Number of bins: " << numPtBinsVar << endl;
   if (numPtBinsVar > numPtBins)
   {
     cout << "Number of bins too large" << endl;
@@ -414,8 +415,10 @@ void FitV2orPol(
   Double_t BinsVar[numPtBins + 1] = {0};
   for (Int_t i = 0; i <= numPtBinsVar; i++)
   {
-    if (isPtAnalysis) BinsVar[i] = PtBins[i];
-    else BinsVar[i] = i * 2 * TMath::Pi() / numPsiBins;
+    if (isPtAnalysis)
+      BinsVar[i] = PtBins[i];
+    else
+      BinsVar[i] = i * 2 * TMath::Pi() / numPsiBins;
   }
 
   TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBinsVar, BinsVar);
@@ -430,12 +433,15 @@ void FitV2orPol(
   TString ShistoV2 = "histoV2";
   if (!isV2) // polarization
     ShistoV2 = "histoPzs2";
-  TH1F *histoV2 = new TH1F(ShistoV2, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
-  TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
-  TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", numPtBinsVar, BinsVar);
-  TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
-  TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
-  TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}", 1, 0, 1);
+  TString titlex = "#it{p}_{T} (GeV/#it{c})";  
+  if (!isPtAnalysis)
+    titlex = "2(#varphi-#Psi_{EP})";
+  TH1F *histoV2 = new TH1F(ShistoV2, Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
+  TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
+  TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
 
   Double_t PhiBins[numPsiBins + 1];
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
@@ -716,8 +722,11 @@ void FitV2orPol(
     TF1 *totalFunction = nullptr, *bkgFunction = nullptr;
     if (UseTwoGauss)
     {
-      cout << "\n\e[35mFit with two gauss \e[39m"
-           << " Pt: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+      cout << "\n\e[35mFit with two gauss \e[39m" << endl;
+      if (isPtAnalysis)
+        cout << " Pt: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+      else
+        cout << " Psi: " << PhiBins[pt] << "-" << PhiBins[pt] + 2 * TMath::Pi() / numPsiBins << endl;
 
       if (BkgType == 0)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol1(6)", liminf[part], limsup[part]);
@@ -1362,47 +1371,52 @@ void FitV2orPol(
   TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1700, 1000);
   canvasSummary->Divide(4, 2);
 
+  TString titleX = titlePt;
+  if (!isPtAnalysis)
+    titleX = "2(#varphi-#Psi_{EP})";
   canvasSummary->cd(1);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoMean, gaussDisplayRangeLow[part], gaussDisplayRangeUp[part], 1, 1, titlePt, "#mu (GeV/c^{2})", "histoMean", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoMean, gaussDisplayRangeLow[part], gaussDisplayRangeUp[part], 1, 1, titleX, "#mu (GeV/c^{2})", "histoMean", 0, 0, 0, 1.4, 1.4, 1.2);
   histoMean->Draw("");
   canvasSummary->cd(2);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoSigma, 0, 0.010, 1, 1, titlePt, "#sigma (GeV/c^{2})", "histoSigma", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoSigma, 0, 0.010, 1, 1, titleX, "#sigma (GeV/c^{2})", "histoSigma", 0, 0, 0, 1.4, 1.4, 1.2);
   histoSigma->Draw("");
   canvasSummary->cd(3);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoSigmaWeighted, 0, 0.010, 1, 1, titlePt, "#sigma_{w} (GeV/c^{2})", "histoSigmaWeighted", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoSigmaWeighted, 0, 0.010, 1, 1, titleX, "#sigma_{w} (GeV/c^{2})", "histoSigmaWeighted", 0, 0, 0, 1.4, 1.4, 1.2);
   histoSigmaWeighted->Draw("");
   canvasSummary->cd(4);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoPurity, 0, 1, 1, 1, titlePt, "S / (S+B)", "histoPurity", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoPurity, 0, 1, 1, 1, titleX, "S / (S+B)", "histoPurity", 0, 0, 0, 1.4, 1.4, 1.2);
   histoPurity->Draw("");
   canvasSummary->cd(5);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titlePt, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titleX, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
   histoYield->Draw("same");
   canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
-  StyleHisto(histoRelErrYield, 0, 1.2 * histoRelErrYield->GetBinContent(histoRelErrYield->GetMaximumBin()), 1, 1, titlePt, "#sigma_{Y}/Y", "histoRelErrorYield", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoTot, 0, 1.2 * histoTot->GetBinContent(histoTot->GetMaximumBin()), 1, 1, titleX, "S+B", "histoTot", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoRelErrYield, 0, 1.2 * histoRelErrYield->GetBinContent(histoRelErrYield->GetMaximumBin()), 1, 1, titleX, "#sigma_{Y}/Y", "histoRelErrorYield", 0, 0, 0, 1.4, 1.4, 1.2);
   // histoTot->Draw("same");
   histoRelErrYield->Draw("same");
   canvasSummary->cd(7);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titlePt, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titleX, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
   // histoB->Draw("same");
   if (isV2)
     histoV2NoFit->SetTitle("v2 without fit");
-  else
+  else{
     histoV2NoFit->SetTitle("Pz,s2 without fit");
+    if (!isPtAnalysis) histoV2NoFit->SetTitle("Pz without fit");
+  }
 
   histoV2NoFit->Scale(1. / ftcReso[mul]);
   histoV2Mixed->Scale(1. / ftcReso[mul]);
@@ -1418,8 +1432,10 @@ void FitV2orPol(
   gPad->SetLeftMargin(0.14);
   if (isV2)
     histoV2->SetTitle("v2 from fit");
-  else
+  else{
     histoV2->SetTitle("Pz,s2 from fit");
+    if (!isPtAnalysis) histoV2->SetTitle("Pz from fit");
+  }
   histoV2->Scale(1. / ftcReso[mul]);
   if (!isV2)
     histoV2->Scale(1. / AlphaH[!isXi]);
