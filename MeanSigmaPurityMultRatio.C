@@ -127,14 +127,19 @@ Float_t YUp[numPart] = {0};
 Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, -1};
 Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 2};
 
-void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
+void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
-                              Int_t part = ExtrParticle,
                               Int_t ChosenMult = numCent /*- 3*/,
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               Int_t BkgType = ExtrBkgType,
                               Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
+
+  Int_t part = 0;
+  if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
+  {
+    part = 1;
+  }
 
   gStyle->SetOptStat(0);
   if ((ChosenMult > numCent && !isV2) || (ChosenMult > (numCent - 1) && isV2))
@@ -196,7 +201,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   TString stringoutpdf;
   stringout = OutputDir + "PlotRatios" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
-  stringout += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+  stringout += "_" + ParticleName[ChosenPart];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
@@ -229,7 +234,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
 
   TLegend *legendAllMult;
   legendAllMult = new TLegend(0.22, 0.03, 0.73, 0.28);
-  if (Choice == 2 && !isXi)
+  if (Choice == 2 && (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5))
   {
     legendAllMult = new TLegend(0.44, 0.03, 0.9, 0.28);
   }
@@ -249,7 +254,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + ChargeName[ExtrCharge + 1] + " |#it{#eta}| < 0.8", "");
+  LegendTitle->AddEntry("", ParticleName[part] + " |#it{#eta}| < 0.8", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
@@ -277,7 +282,7 @@ void MeanSigmaPurityMultRatio(Bool_t isXi = ChosenParticleXi,
 
     PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
-    PathIn += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+    PathIn += "_" + ParticleName[ChosenPart]; 
     PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);

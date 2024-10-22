@@ -19,7 +19,7 @@
 #include "CommonVar.h"
 #include "StyleFile.h"
 
-void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t RebinFactor = 1, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
+void ComputeV2(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, TString inputFileName = SinputFileName, Int_t RebinFactor = 1, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   if (isSysMultTrial)
@@ -33,7 +33,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
   if (v2type == 1)
@@ -310,7 +310,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
 
   QCPhi->SaveAs("QCPlots/QCPhiCasc.png");
 
-  TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
   if (v2type == 1)
@@ -350,7 +350,7 @@ void ComputeV2(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString
     }
   }
   file->Close();
-  TString SweightsFile = "PhiWeights/Weights_" + inputFileName + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString SweightsFile = "PhiWeights/Weights_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
   TFile *weightsFile;
   if (!isApplyWeights) // weights computed only once (when we apply weights, they have already been created!)
   {

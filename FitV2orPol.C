@@ -223,26 +223,27 @@ Double_t fretta(Double_t *x, Double_t *par)
   return par[0] + par[1] * x[0];
 }
 
-TString titleYield = "dN/dp_{T}";
+TString titleYield = "1/N_{evt} dN/dp_{T}";
+TString titleYieldNN = "dN/dp_{T}";
 TString titlePt = "p_{T} (GeV/c)";
-TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)"};
+TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})"};
 TString SInvMass = "invariant mass (GeV/c^{2})";
 
 // fit ranges
-Float_t min_range_signal[numPart] = {1.3, 1.65}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69};
-Float_t liminf[numPart] = {1.29, 1.63}; // bkg and total fit range
-Float_t limsup[numPart] = {1.352, 1.71};
+Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65}; // gauss fit range
+Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69};
+Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // bkg and total fit range
+Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71};
 
 // visualisation ranges
-Float_t LowMassRange[numPart] = {1.31, 1.655}; // range to compute approximate yield (signal + bkg)
-Float_t UpMassRange[numPart] = {1.33, 1.685};
-Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63}; // display range of gauss functions (from total fit)
-Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71};
-Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72};
-Float_t histoMassRangeLow[numPart] = {1.29, 1.626}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.35, 1.72};
+Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.655}; // range to compute approximate yield (signal + bkg)
+Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685};
+Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // display range of gauss functions (from total fit)
+Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71};
+Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of bkg function (from total fit)
+Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
+Float_t histoMassRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of mass histograms
+Float_t histoMassRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
 
 // Event plane resolution
 Float_t ftcReso[numCent + 1] = {0};
@@ -251,18 +252,26 @@ void FitV2orPol(
     Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
-    Bool_t isXi = ChosenParticleXi,
+    Int_t ChosenPart = ChosenParticle,
     TString inputFileName = SinputFileName,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
     Bool_t isLogy = 1,
-    Int_t part = ExtrParticle,
     Bool_t isYAxisMassZoomed = 0,
     Bool_t UseTwoGauss = ExtrUseTwoGauss,
     Bool_t isMeanFixedPDG = 0,
     Float_t sigmacentral = 4.2,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
+  Bool_t isXi = 0;
+  if (ChosenPart == 0 || ChosenPart == 2 || ChosenPart == 3)
+    isXi = 1;
+  Int_t part = 0;
+  if (!isXi)
+  {
+    part = 1;
+  }
 
   if (isV2 && !isPtAnalysis)
   {
@@ -350,12 +359,12 @@ void FitV2orPol(
 
   Float_t UpperLimitLSB = 0;
   Float_t LowerLimitRSB = 0;
-  if (part == 0)
+  if (isXi)
   {
     UpperLimitLSB = UpperLimitLSBXi;
     LowerLimitRSB = LowerLimitRSBXi;
   }
-  else if (part == 1)
+  else
   {
     UpperLimitLSB = UpperLimitLSBOmega;
     LowerLimitRSB = LowerLimitRSBOmega;
@@ -367,7 +376,7 @@ void FitV2orPol(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SPathIn += "_Weighted";
   if (v2type == 1)
@@ -427,13 +436,14 @@ void FitV2orPol(
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBinsVar, BinsVar);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBinsVar, BinsVar);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBinsVar, BinsVar);
+  TH1F *histoYieldNN = new TH1F("histoYieldNotNormByEvts", "histoYieldNotNormByEvts", numPtBinsVar, BinsVar);
   TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBinsVar, BinsVar);
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBinsVar, BinsVar);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBinsVar, BinsVar);
   TString ShistoV2 = "histoV2";
   if (!isV2) // polarization
     ShistoV2 = "histoPzs2";
-  TString titlex = "#it{p}_{T} (GeV/#it{c})";  
+  TString titlex = "#it{p}_{T} (GeV/#it{c})";
   if (!isPtAnalysis)
     titlex = "2(#varphi-#Psi_{EP})";
   TH1F *histoV2 = new TH1F(ShistoV2, Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
@@ -475,7 +485,7 @@ void FitV2orPol(
       return;
     }
 
-    StyleHisto(hInvMass[pt], 0, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), 1, 20, TitleInvMass[part] + " " + SInvMass, "Counts", SPt[pt] + " GeV/#it{c}", 1, histoMassRangeLow[part], histoMassRangeUp[part], 1.4, 1.6, 0.7);
+    StyleHisto(hInvMass[pt], 0, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), 1, 20, TitleInvMass[ChosenPart] + " " + SInvMass, "Counts", SPt[pt] + " GeV/#it{c}", 1, histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart], 1.4, 1.6, 0.7);
 
     if (isV2)
     {
@@ -508,25 +518,25 @@ void FitV2orPol(
       return;
     }
 
-    StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", TitleInvMass[part] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
-    hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+    StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
+    hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
 
     if (isYAxisMassZoomed)
     {
-      if (part == 0)
+      if (isXi)
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.65)));
       else
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.29)));
     }
     if (isLogy)
     {
-      if (hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[part])) > hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[part])))
+      if (hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[ChosenPart])) > hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[ChosenPart])))
       {
-        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[part])));
+        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeLow[ChosenPart])));
       }
       else
       {
-        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[part])));
+        hInvMass[pt]->SetMinimum(0.8 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(histoMassRangeUp[ChosenPart])));
       }
       hInvMass[pt]->SetMaximum(1.2 * hInvMass[pt]->GetMaximum());
     }
@@ -544,7 +554,7 @@ void FitV2orPol(
     gPad->SetBottomMargin(0.2);
     if (isLogy)
       gPad->SetLogy();
-    // hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+    // hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
     hInvMass[pt]->Draw("e same");
   }
 
@@ -654,67 +664,67 @@ void FitV2orPol(
     else if (pt < 16)
       canvas[3]->cd(pt + 1 - 12);
 
-    functionsFirst[pt] = new TF1(Form("1f_%i", pt), "gaus", min_range_signal[part], max_range_signal[part]);
+    functionsFirst[pt] = new TF1(Form("1f_%i", pt), "gaus", min_range_signal[ChosenPart], max_range_signal[ChosenPart]);
     functionsFirst[pt]->SetLineColor(881);
-    functionsFirst[pt]->SetParameter(1, ParticleMassPDG[part]);
+    functionsFirst[pt]->SetParameter(1, ParticleMassPDG[ChosenPart]);
     functionsFirst[pt]->SetParName(0, "norm");
     functionsFirst[pt]->SetParName(1, "mean");
     functionsFirst[pt]->SetParName(2, "sigma");
-    functionsFirst[pt]->SetParLimits(1, min_range_signal[part], max_range_signal[part]);
+    functionsFirst[pt]->SetParLimits(1, min_range_signal[ChosenPart], max_range_signal[ChosenPart]);
     functionsFirst[pt]->SetParLimits(2, 0.001, 0.1);
     functionsFirst[pt]->SetParLimits(0, 0, 1.1 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
 
-    functionsSecond[pt] = new TF1(Form("2f_%i", pt), "gaus", min_range_signal[part], max_range_signal[part]);
+    functionsSecond[pt] = new TF1(Form("2f_%i", pt), "gaus", min_range_signal[ChosenPart], max_range_signal[ChosenPart]);
     functionsSecond[pt]->SetLineColor(867);
-    functionsSecond[pt]->SetParameter(1, ParticleMassPDG[part]);
+    functionsSecond[pt]->SetParameter(1, ParticleMassPDG[ChosenPart]);
     functionsSecond[pt]->SetParName(0, "norm");
     functionsSecond[pt]->SetParName(1, "mean");
     functionsSecond[pt]->SetParName(2, "sigma");
-    functionsSecond[pt]->SetParLimits(1, min_range_signal[part], max_range_signal[part]);
+    functionsSecond[pt]->SetParLimits(1, min_range_signal[ChosenPart], max_range_signal[ChosenPart]);
     functionsSecond[pt]->SetParLimits(2, 0.001, 0.15);
     functionsSecond[pt]->SetParLimits(0, 0, 1.1 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
 
-    functions1[pt] = new TF1(Form("1f_%i_final", pt), "gaus", gaussDisplayRangeLow[part], gaussDisplayRangeUp[part]);
+    functions1[pt] = new TF1(Form("1f_%i_final", pt), "gaus", gaussDisplayRangeLow[ChosenPart], gaussDisplayRangeUp[ChosenPart]);
     functions1[pt]->SetLineColor(kRed); // 867
     functions1[pt]->SetParName(0, "norm");
     functions1[pt]->SetParName(1, "mean");
     functions1[pt]->SetParName(2, "sigma");
 
-    functions2[pt] = new TF1(Form("2f_%i_final", pt), "gaus", gaussDisplayRangeLow[part], gaussDisplayRangeUp[part]);
+    functions2[pt] = new TF1(Form("2f_%i_final", pt), "gaus", gaussDisplayRangeLow[ChosenPart], gaussDisplayRangeUp[ChosenPart]);
     functions2[pt]->SetLineColor(kMagenta); // 891
     functions2[pt]->SetParName(0, "norm");
     functions2[pt]->SetParName(1, "mean");
     functions2[pt]->SetParName(2, "sigma");
 
-    bkg1[pt] = new TF1(Form("bkg1%i", pt), "pol1", bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
+    bkg1[pt] = new TF1(Form("bkg1%i", pt), "pol1", bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
     bkg1[pt]->SetLineColor(418);
     bkg1[pt]->SetLineStyle(2);
 
-    bkg2[pt] = new TF1(Form("bkg2%i", pt), "pol2", bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
+    bkg2[pt] = new TF1(Form("bkg2%i", pt), "pol2", bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
     bkg2[pt]->SetLineColor(1);
     bkg2[pt]->SetLineStyle(2);
 
-    bkg3[pt] = new TF1(Form("bkg3%i", pt), "pol3", bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
+    bkg3[pt] = new TF1(Form("bkg3%i", pt), "pol3", bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
     bkg3[pt]->SetLineColor(kOrange + 7);
     bkg3[pt]->SetLineStyle(2);
 
-    bkg4[pt] = new TF1(Form("bkg4%i", pt), "expo", bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
+    bkg4[pt] = new TF1(Form("bkg4%i", pt), "expo", bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
     bkg4[pt]->SetLineColor(kOrange + 7);
     bkg4[pt]->SetLineStyle(2);
 
-    bkgretta[pt] = new TF1(Form("retta%i", pt), fretta, liminf[part], limsup[part], 3);
+    bkgretta[pt] = new TF1(Form("retta%i", pt), fretta, liminf[ChosenPart], limsup[ChosenPart], 3);
     bkgretta[pt]->SetLineColor(kGreen + 3);
     bkgretta[pt]->FixParameter(2, part);
 
-    bkgparab[pt] = new TF1(Form("parab%i", pt), fparab, liminf[part], limsup[part], 4);
+    bkgparab[pt] = new TF1(Form("parab%i", pt), fparab, liminf[ChosenPart], limsup[ChosenPart], 4);
     bkgparab[pt]->SetLineColor(kAzure + 7);
     bkgparab[pt]->FixParameter(3, part);
 
-    bkgpol3[pt] = new TF1(Form("pol3%i", pt), fpol3, liminf[part], limsup[part], 5);
+    bkgpol3[pt] = new TF1(Form("pol3%i", pt), fpol3, liminf[ChosenPart], limsup[ChosenPart], 5);
     bkgpol3[pt]->SetLineColor(kRed + 7);
     bkgpol3[pt]->FixParameter(4, part);
 
-    bkgexpo[pt] = new TF1(Form("expo%i", pt), fexpo, liminf[part], limsup[part], 3);
+    bkgexpo[pt] = new TF1(Form("expo%i", pt), fexpo, liminf[ChosenPart], limsup[ChosenPart], 3);
     bkgexpo[pt]->SetLineColor(kGreen + 2);
     bkgexpo[pt]->FixParameter(2, part);
 
@@ -729,13 +739,13 @@ void FitV2orPol(
         cout << " Psi: " << PhiBins[pt] << "-" << PhiBins[pt] + 2 * TMath::Pi() / numPsiBins << endl;
 
       if (BkgType == 0)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol1(6)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol1(6)", liminf[ChosenPart], limsup[ChosenPart]);
       else if (BkgType == 1)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol2(6)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol2(6)", liminf[ChosenPart], limsup[ChosenPart]);
       else if (BkgType == 2)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol3(6)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol3(6)", liminf[ChosenPart], limsup[ChosenPart]);
       else
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+expo(6)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+expo(6)", liminf[ChosenPart], limsup[ChosenPart]);
       total[pt]->SetLineColor(597);
       total[pt]->SetParName(0, "norm");
       total[pt]->SetParName(1, "mean");
@@ -749,15 +759,15 @@ void FitV2orPol(
       cout << "\n\n fit gauss2 " << endl;
       hInvMass[pt]->Fit(functionsSecond[pt], "RB");
 
-      bkg1[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg2[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg3[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg4[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkgparab[pt]->SetRange(liminf[part], limsup[part]);
-      bkgretta[pt]->SetRange(liminf[part], limsup[part]);
-      bkgexpo[pt]->SetRange(liminf[part], limsup[part]);
-      bkgpol3[pt]->SetRange(liminf[part], limsup[part]);
-      total[pt]->SetRange(liminf[part], limsup[part]);
+      bkg1[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg2[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg3[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg4[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkgparab[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgretta[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgexpo[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgpol3[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      total[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
 
       cout << "\n\n fit bkg " << endl;
       if (BkgType == 0)
@@ -809,8 +819,8 @@ void FitV2orPol(
         total[pt]->SetParLimits(5, 0.001, 0.01);
         if (isMeanFixedPDG)
         {
-          total[pt]->FixParameter(1, ParticleMassPDG[part]);
-          total[pt]->FixParameter(4, ParticleMassPDG[part]);
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
+          total[pt]->FixParameter(4, ParticleMassPDG[ChosenPart]);
         }
       }
       else
@@ -823,8 +833,8 @@ void FitV2orPol(
         total[pt]->SetParLimits(5, 0.001, 0.01);
         if (isMeanFixedPDG)
         {
-          total[pt]->FixParameter(1, ParticleMassPDG[part]);
-          total[pt]->FixParameter(4, ParticleMassPDG[part]);
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
+          total[pt]->FixParameter(4, ParticleMassPDG[ChosenPart]);
         }
       }
 
@@ -902,7 +912,7 @@ void FitV2orPol(
         else if (pt < 16)
           canvas[3]->cd(pt + 1 - 12);
 
-        hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+        hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
         hInvMass[pt]->Draw("same e");
         functions1[pt]->Draw("same");
         functions2[pt]->Draw("same");
@@ -936,13 +946,13 @@ void FitV2orPol(
            << " Pt: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
 
       if (BkgType == 0)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol1(3)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol1(3)", liminf[ChosenPart], limsup[ChosenPart]);
       if (BkgType == 1)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol2(3)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol2(3)", liminf[ChosenPart], limsup[ChosenPart]);
       else if (BkgType == 2)
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol3(3)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol3(3)", liminf[ChosenPart], limsup[ChosenPart]);
       else
-        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+expo(3)", liminf[part], limsup[part]);
+        total[pt] = new TF1(Form("total%i", pt), "gaus(0)+expo(3)", liminf[ChosenPart], limsup[ChosenPart]);
 
       total[pt]->SetLineColor(7);
       total[pt]->SetParName(0, "norm");
@@ -952,15 +962,15 @@ void FitV2orPol(
       cout << "\n\n fit gauss " << endl;
       hInvMass[pt]->Fit(functionsFirst[pt], "RB");
 
-      bkg1[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg2[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg3[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkg4[pt]->SetRange(bkgDisplayRangeLow[part], bkgDisplayRangeUp[part]);
-      bkgparab[pt]->SetRange(liminf[part], limsup[part]);
-      bkgretta[pt]->SetRange(liminf[part], limsup[part]);
-      bkgpol3[pt]->SetRange(liminf[part], limsup[part]);
-      bkgexpo[pt]->SetRange(liminf[part], limsup[part]);
-      total[pt]->SetRange(liminf[part], limsup[part]);
+      bkg1[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg2[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg3[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg4[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkgparab[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgretta[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgpol3[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgexpo[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      total[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
 
       cout << "\n\n fit bkg " << endl;
       if (BkgType == 0)
@@ -1005,7 +1015,7 @@ void FitV2orPol(
         total[pt]->SetParLimits(2, 0.0012, 0.010);
         if (isMeanFixedPDG)
         {
-          total[pt]->FixParameter(1, ParticleMassPDG[part]);
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
         }
       }
       else
@@ -1015,7 +1025,7 @@ void FitV2orPol(
         total[pt]->SetParLimits(2, 0.001, 0.02);
         if (isMeanFixedPDG)
         {
-          total[pt]->FixParameter(1, ParticleMassPDG[part]);
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
         }
       }
 
@@ -1071,7 +1081,7 @@ void FitV2orPol(
       else if (pt < 16)
         canvas[3]->cd(pt + 1 - 12);
 
-      hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+      hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
       hInvMass[pt]->Draw("same e");
       mean[pt] = total[pt]->GetParameter(1);
       errmean[pt] = total[pt]->GetParError(1);
@@ -1082,17 +1092,17 @@ void FitV2orPol(
     cout << "\nMean: " << mean[pt] << " +/- " << errmean[pt] << endl;
     cout << "Sigma: " << sigma[pt] << " +/- " << errsigma[pt] << endl;
 
-    TLine *linebkgFitLL = new TLine(liminf[part], 0, liminf[part], hInvMass[pt]->GetMaximum()); // low limit of left SB
-    TLine *linebkgFitRR = new TLine(limsup[part], 0, limsup[part], hInvMass[pt]->GetMaximum()); // upper limit of right SB
+    TLine *linebkgFitLL = new TLine(liminf[ChosenPart], 0, liminf[ChosenPart], hInvMass[pt]->GetMaximum()); // low limit of left SB
+    TLine *linebkgFitRR = new TLine(limsup[ChosenPart], 0, limsup[ChosenPart], hInvMass[pt]->GetMaximum()); // upper limit of right SB
     linebkgFitLL->SetLineColor(kBlue);
     linebkgFitRR->SetLineColor(kBlue);
     TLine *linebkgFitLR = new TLine(UpperLimitLSB, 0, UpperLimitLSB, hInvMass[pt]->GetMaximum()); // upper limit of left SB
     TLine *linebkgFitRL = new TLine(LowerLimitRSB, 0, LowerLimitRSB, hInvMass[pt]->GetMaximum()); // lower limit of right SB
     linebkgFitLR->SetLineColor(kBlue);
     linebkgFitRL->SetLineColor(kBlue);
-    lineBkgLimitA[pt] = new TLine(liminf[part], 0, liminf[part], hInvMass[pt]->GetMaximum());
+    lineBkgLimitA[pt] = new TLine(liminf[ChosenPart], 0, liminf[ChosenPart], hInvMass[pt]->GetMaximum());
     lineBkgLimitB[pt] = new TLine(UpperLimitLSB, 0, UpperLimitLSB, hInvMass[pt]->GetMaximum());
-    lineBkgLimitC[pt] = new TLine(limsup[part], 0, limsup[part], hInvMass[pt]->GetMaximum());
+    lineBkgLimitC[pt] = new TLine(limsup[ChosenPart], 0, limsup[ChosenPart], hInvMass[pt]->GetMaximum());
     lineBkgLimitD[pt] = new TLine(LowerLimitRSB, 0, LowerLimitRSB, hInvMass[pt]->GetMaximum());
     lineBkgLimitA[pt]->SetLineColor(kViolet + 1);
     lineBkgLimitB[pt]->SetLineColor(kViolet + 1);
@@ -1184,6 +1194,9 @@ void FitV2orPol(
       histoYield->SetBinContent(pt + 1, Yield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
       histoYield->SetBinError(pt + 1, ErrYield[pt] / NEvents / histoYield->GetBinWidth(pt + 1));
 
+      histoYieldNN->SetBinContent(pt + 1, Yield[pt] / histoYield->GetBinWidth(pt + 1));
+      histoYieldNN->SetBinError(pt + 1, ErrYield[pt] / histoYield->GetBinWidth(pt + 1));
+
       histoRelErrYield->SetBinContent(pt + 1, ErrYield[pt] / Yield[pt]);
       histoRelErrYield->SetBinError(pt + 1, 0);
 
@@ -1209,8 +1222,8 @@ void FitV2orPol(
       histoSignificance->SetBinError(pt + 1, 0);
     }
 
-    v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[part], limsup[part]);
-    v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[part], limsup[part], 3);
+    v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
+    v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[ChosenPart], limsup[ChosenPart], 3);
     v2FitFunction[pt]->SetLineColor(kRed + 1);
     if (pt < 4)
       canvas[0]->cd(pt + 4 + 1);
@@ -1222,14 +1235,17 @@ void FitV2orPol(
       canvas[3]->cd(pt + 4 + 1 - 12);
     hV2[pt]->Fit(v2FitFunction[pt], "R0");
 
-    v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[part], limsup[part], 2);
+    v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
     v2BkgFunction[pt]->FixParameter(0, v2FitFunction[pt]->GetParameter(1));
     v2BkgFunction[pt]->FixParameter(1, v2FitFunction[pt]->GetParameter(2));
     v2BkgFunction[pt]->SetLineColor(kBlack);
     v2BkgFunction[pt]->SetLineStyle(8);
 
-    hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[part] + " " + SInvMass);
+    hV2[pt]->GetXaxis()->SetTitle(TitleInvMass[ChosenPart] + " " + SInvMass);
     hV2[pt]->SetTitle(SPt[pt] + " GeV/#it{c}");
+    cout << "Pt " << SPt[pt] << " GeV/c" << endl;
+    cout << "v2: " << v2FitFunction[pt]->GetParameter(0) << " +- " << v2FitFunction[pt]->GetParError(0) << endl;
+    cout << "Rel. error: " << v2FitFunction[pt]->GetParError(0) / v2FitFunction[pt]->GetParameter(0) << endl;
     if (pt < numPtBinsVar)
     {
       histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
@@ -1346,7 +1362,7 @@ void FitV2orPol(
     gPad->SetLeftMargin(0.18);
 
     hInvMassDraw[pt] = (TH1F *)hInvMass[pt]->Clone(Form("hInvMassDraw%i", pt));
-    hInvMassDraw[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[part], histoMassRangeUp[part]);
+    hInvMassDraw[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
     hInvMassDraw[pt]->GetYaxis()->SetRangeUser(1, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
     hInvMassDraw[pt]->Draw("");
     functions1[pt]->Draw("same");
@@ -1377,7 +1393,7 @@ void FitV2orPol(
   canvasSummary->cd(1);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
-  StyleHisto(histoMean, gaussDisplayRangeLow[part], gaussDisplayRangeUp[part], 1, 1, titleX, "#mu (GeV/c^{2})", "histoMean", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoMean, gaussDisplayRangeLow[ChosenPart], gaussDisplayRangeUp[ChosenPart], 1, 1, titleX, "#mu (GeV/c^{2})", "histoMean", 0, 0, 0, 1.4, 1.4, 1.2);
   histoMean->Draw("");
   canvasSummary->cd(2);
   gPad->SetBottomMargin(0.14);
@@ -1398,6 +1414,7 @@ void FitV2orPol(
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titleX, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
+  StyleHisto(histoYieldNN, 0, 1.2 * histoYieldNN->GetBinContent(histoYieldNN->GetMaximumBin()), 1, 1, titleX, titleYieldNN, "histoYieldNotNormByEvts", 0, 0, 0, 1.4, 1.4, 1.2);
   histoYield->Draw("same");
   canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
@@ -1413,17 +1430,27 @@ void FitV2orPol(
   // histoB->Draw("same");
   if (isV2)
     histoV2NoFit->SetTitle("v2 without fit");
-  else{
+  else
+  {
     histoV2NoFit->SetTitle("Pz,s2 without fit");
-    if (!isPtAnalysis) histoV2NoFit->SetTitle("Pz without fit");
+    if (!isPtAnalysis)
+      histoV2NoFit->SetTitle("Pz without fit");
   }
 
+  histoV2->Scale(1. / ftcReso[mul]);
   histoV2NoFit->Scale(1. / ftcReso[mul]);
   histoV2Mixed->Scale(1. / ftcReso[mul]);
+  histoV2PtInt->Scale(1. / ftcReso[mul]);
+  histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
+  histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
   if (!isV2)
   {
-    histoV2NoFit->Scale(1. / AlphaH[!isXi]);
-    histoV2Mixed->Scale(1. / AlphaH[!isXi]);
+    histoV2->Scale(1. / AlphaH[ChosenPart]);
+    histoV2NoFit->Scale(1. / AlphaH[ChosenPart]);
+    histoV2Mixed->Scale(1. / AlphaH[ChosenPart]);
+    histoV2PtInt->Scale(1. / AlphaH[ChosenPart]);
+    histoV2PtIntNoFit->Scale(1. / AlphaH[ChosenPart]);
+    histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
   }
   histoV2NoFit->Draw();
 
@@ -1432,17 +1459,16 @@ void FitV2orPol(
   gPad->SetLeftMargin(0.14);
   if (isV2)
     histoV2->SetTitle("v2 from fit");
-  else{
+  else
+  {
     histoV2->SetTitle("Pz,s2 from fit");
-    if (!isPtAnalysis) histoV2->SetTitle("Pz from fit");
+    if (!isPtAnalysis)
+      histoV2->SetTitle("Pz from fit");
   }
-  histoV2->Scale(1. / ftcReso[mul]);
-  if (!isV2)
-    histoV2->Scale(1. / AlphaH[!isXi]);
   histoV2->Draw();
 
   TString Soutputfile;
-  Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+  Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -1474,6 +1500,7 @@ void FitV2orPol(
     outputfile->WriteTObject(canvas[i]);
   }
   outputfile->WriteTObject(histoYield);
+  outputfile->WriteTObject(histoYieldNN);
   outputfile->WriteTObject(histoTot);
   outputfile->WriteTObject(histoB);
   outputfile->WriteTObject(histoMean);
@@ -1493,13 +1520,13 @@ void FitV2orPol(
   Int_t ChosenPt = 8;
   if (isXi)
     ChosenPt = 2;
-  Float_t LowLimitMass[numPart] = {1.29, 1.65};
-  Float_t UpLimitMass[numPart] = {1.35, 1.7};
+  Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65};
+  Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7};
   Float_t UpperCutHisto = 1.7;
   if (isXi)
     UpperCutHisto = 1.8;
-  Float_t XRangeMin[numPart] = {1.3, 1.656};
-  Float_t XRangeMax[numPart] = {1.343, 1.688};
+  Float_t XRangeMin[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656};
+  Float_t XRangeMax[numPart] = {1.343, 1.688, 1.343, 1.343, 1.688, 1.688};
 
   TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
   if (!isXi)
@@ -1541,8 +1568,8 @@ void FitV2orPol(
   if (isXi)
     titleyNorm = Form("Normalized counts/(%i MeV/#it{c}^{2})", (int)(histo->GetBinWidth(1) * 1000));
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
-             TitleXMass, titleyNorm, "", 1, LowLimitMass[part] + 0.001, UpLimitMass[part] - 0.001, 1.2, 1.8, 1.2);
-  histo->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+             TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
+  histo->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   histo->GetXaxis()->SetLabelSize(0.043);
   histo->GetXaxis()->SetTitleSize(0.045);
   histo->GetYaxis()->SetLabelSize(0.043);
@@ -1551,7 +1578,7 @@ void FitV2orPol(
 
   histo->DrawClone("pe");
 
-  TF1 *totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[!isXi], XRangeMax[!isXi]);
+  TF1 *totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
   totalPNorm->SetParameter(1, total[ChosenPt]->GetParameter(1));
   totalPNorm->SetParameter(2, total[ChosenPt]->GetParameter(2));
@@ -1581,14 +1608,14 @@ void FitV2orPol(
   bkg->Draw("same");
   legendfit->AddEntry(bkg, "bkg.", "l");
   legendfit2->AddEntry(bkg, "bkg.", "l");
-  totalPNorm->SetRange(LowLimitMass[part], UpLimitMass[part]);
+  totalPNorm->SetRange(LowLimitMass[ChosenPart], UpLimitMass[ChosenPart]);
   totalPNorm->SetLineColor(kRed + 1);
   totalPNorm->Draw("same");
   legend->Draw("");
   legendfit->Draw("");
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.pdf", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.png", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.eps", ChosenPt));
 
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
   Float_t LLUpperPad = 0.44;
@@ -1636,7 +1663,7 @@ void FitV2orPol(
   StyleHistoYield(hDummy, 1e-3, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  hDummy->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   pad1->Draw();
   pad1->cd();
   // gPad->SetLogy();
@@ -1663,12 +1690,12 @@ void FitV2orPol(
   Float_t tickXR = 0.035;
   Float_t tickYR = 0.042;
 
-  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[!isXi], XRangeMax[!isXi]);
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
 
   StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, "v_{2}", "", 1, 1.15, YoffsetSpectraRatio);
-  hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   SetFont(hDummyRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetHistoTextSize(hV2[ChosenPt], xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
@@ -1679,16 +1706,16 @@ void FitV2orPol(
   padL1->Draw();
   padL1->cd();
   hDummyRatio->Draw("same");
-  hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[!isXi], XRangeMax[!isXi]);
+  hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
   hV2[ChosenPt]->SetTitle("");
   hV2[ChosenPt]->Draw("same e");
   v2FitFunction[ChosenPt]->Draw("same");
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.pdf", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.png", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[!isXi] + Form("_Pt%i.eps", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.pdf", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.png", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.eps", ChosenPt));
 
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;

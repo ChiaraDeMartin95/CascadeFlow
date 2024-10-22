@@ -111,13 +111,17 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLow[numPart] = {-0.002};
 Float_t YUp[numPart] = {0.002};
 
-void PzsVsCentrality(Bool_t isXi = ChosenParticleXi,
+void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Int_t Choice = 0,
-                     Int_t part = ExtrParticle,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
 
+  Int_t part = 0;
+  if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
+  {
+    part = 1;
+  }
   TString SErrorSpectrum[3] = {"stat.", "syst. uncorr.", "syst. corr."};
 
   // filein
@@ -129,7 +133,7 @@ void PzsVsCentrality(Bool_t isXi = ChosenParticleXi,
   TString stringoutpdf;
   stringout = "Pzs2VsCentrality" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
-  stringout += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+  stringout += "_" + ParticleName[ChosenPart];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
@@ -161,7 +165,7 @@ void PzsVsCentrality(Bool_t isXi = ChosenParticleXi,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + ChargeName[ExtrCharge + 1] + " |#it{y}| < 0.5", "");
+  LegendTitle->AddEntry("", ParticleName[part] + " |#it{y}| < 0.5", "");
 
   TLine *lineat0 = new TLine(0, 0, 100, 0);
   lineat0->SetLineColor(1);
@@ -188,7 +192,7 @@ void PzsVsCentrality(Bool_t isXi = ChosenParticleXi,
 
     PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
-    PathIn += "_" + ParticleName[!isXi] + ChargeName[ExtrCharge + 1];
+    PathIn += "_" + ParticleName[ChosenPart];
     PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
