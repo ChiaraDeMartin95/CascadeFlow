@@ -53,9 +53,14 @@ bool passbdtCut(float bdtscore, float cent)
   return (bdtscore > sbdtCut);
 }
 
-void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial, Int_t Charge = ExtrCharge)
+void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  Bool_t isXi = 1;
+  if ((ChosenPart == 1) || (ChosenPart == 4) || (ChosenPart == 5))
+    isXi = 0; // Omega
+  if (isEff)
+    inputFileName = SinputFileNameEff;
   string v2Chosen = "fV2C";
   if (v2type == 1)
   {
@@ -80,17 +85,18 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
-  cout << "Input file: " << inputFileName << endl;
   if (isApplyWeights)
     cout << "Weights applied from file " << weightFileName << endl;
-  cout << "isXi: " << isXi << endl;
-  cout << "Charge: " << ChargeName[Charge + 1] << endl;
+  cout << "ChosenPart: " << ParticleName[ChosenPart] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
   cout << "Use common BDT value " << useCommonBDTValue << endl;
 
   TString TreeName = "O2cascanalysis";
 
-  TString inputFile = "TreeForAnalysis/AnalysisResults_trees_" + inputFileName + "_New.root";
+  TString inputFile = "TreeForAnalysis";
+  if (isEff)
+    inputFile = "FileForEfficiency";
+  inputFile += "/AnalysisResults_trees_" + inputFileName + "_New.root";
 
   RDataFrame originalDF(TreeName, inputFile);
 
@@ -128,42 +134,57 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   if (!isXi)
     mass_vs_BDTResponse = d1.Histo2D({"mass_vs_BDTResponse", "Invariant mass vs BDT response", 100, 0, 1, 100, 1.6, 1.73}, "fBDTResponseOmega", "fMassOmega");
 
-  // apply BDT selection
-  string cutvariable = "fBDTResponseXi";
-  if (!isXi)
-    cutvariable = "fBDTResponseOmega";
-  auto d2 = d1.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
-
   // apply charge selection
   string chargecut = "abs(fSign) > 0";
-  if (Charge == 1)
+  if (ChosenParticle == 3 || ChosenParticle == 5)
     chargecut = "fSign > 0";
-  else if (Charge == -1)
+  else if (ChosenParticle == 2 || ChosenParticle == 4)
     chargecut = "fSign < 0";
-  auto d3 = d2.Filter(chargecut);
+  auto d2 = d1.Filter(chargecut);
 
   // apply eta selection for systematic studies
   // auto d = d2;
   if (EtaSysChoice == 0) // -0.8 < eta < 0.8
-    d3 = d3.Filter("fEta > -0.8 && fEta < 0.8");
+    d2 = d2.Filter("fEta > -0.8 && fEta < 0.8");
   else if (EtaSysChoice == 1) // eta > 0 && eta < 0.8
-    d3 = d3.Filter("fEta > 0 && fEta < 0.8");
+    d2 = d2.Filter("fEta > 0 && fEta < 0.8");
   else if (EtaSysChoice == 2) // eta < 0 && eta > -0.8
-    d3 = d3.Filter("fEta < 0 && fEta > -0.8");
+    d2 = d2.Filter("fEta < 0 && fEta > -0.8");
+
+  // apply competing mass rejection for Omega
+  //   if (!isXi) d3 = d3.Filter("fMassXi > 1.34 || fMassXi < 1.3"); //rough mass cut to reject Xi
+  string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[ChosenPart], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
+  if (!isXi)
+    d2 = d2.Filter(rejectMassXi);
+
+  // apply PDG code selections in case it's MC
+  if (isEff)
+  {
+    if (isXi)
+      d2 = d2.Filter("abs(fMcPdgCode) == 3312");
+    else
+      d2 = d2.Filter("abs(fMcPdgCode) == 3334");
+  }
+
+  // pt vs centrality before BDT cut
+  auto hPtvsCent_Bef = d2.Histo2D({"PtvsCent_BefBDT", "PtvsCent_BefBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
+
+  //  apply BDT selection
+  string cutvariable = "fBDTResponseXi";
+  if (!isXi)
+    cutvariable = "fBDTResponseOmega";
+  auto d3 = d2.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
+
+  // pt vs centrality after BDT cut
+  auto hPtvsCent_Aft = d3.Histo2D({"PtvsCent_AftBDT", "PtvsCent_AftBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
 
   // define the rapidity
-  string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[!isXi], ParticleMassPDG[!isXi]);
+  string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[ChosenPart], ParticleMassPDG[ChosenPart]);
   string Common2 = "fPt*std::sinh(fEta)";
   string Num = Form("%s + %s", Common1.c_str(), Common2.c_str());
   string Denom = Form("%s - %s", Common1.c_str(), Common2.c_str());
   d3 = d3.Define("fRapidity", Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()));
   cout << Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()) << endl;
-
-  // apply competing mass rejection for Omega
-  // if (!isXi) d3 = d3.Filter("fMassXi > 1.34 || fMassXi < 1.3"); //rough mass cut to reject Xi
-  string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
-  if (!isXi)
-    d3 = d3.Filter(rejectMassXi);
 
   auto MassXi = d3.Histo2D({"mass_XivsPt", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35, 100, 0, 10}, "fMassXi", "fPt");
 
@@ -191,16 +212,10 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   auto hEtaPhi = d3.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
 
   // create output file
-  Int_t ParticleIndex = 0; // 0 for Xi, 1 for Omega
-  if (isXi)
-    ParticleIndex = 0;
-  else
-    ParticleIndex = 1;
-
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ParticleIndex] + ChargeName[Charge + 1] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     OutputFileName += "_Weighted";
   if (v2type == 1)
@@ -243,9 +258,9 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
     auto dcent = d3.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.1, CentFT0CMax - 0.1));
     string MassCut = "";
     if (isXi)
-      MassCut = Form("abs(fMassXi - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
+      MassCut = Form("abs(fMassXi - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[ChosenPart], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
     else
-      MassCut = Form("abs(fMassOmega - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[!isXi], massSigmaParameters[0][1], massSigmaParameters[1][1], massSigmaParameters[2][1], massSigmaParameters[3][1]);
+      MassCut = Form("abs(fMassOmega - %.3f) < 3* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[ChosenPart], massSigmaParameters[0][1], massSigmaParameters[1][1], massSigmaParameters[2][1], massSigmaParameters[3][1]);
     auto dmasscut = dcent.Filter(MassCut);
 
     auto v2C = dcent.Histo1D({Form("v2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "v2C", Nv2, Minv2, Maxv2}, v2Chosen);
@@ -319,6 +334,8 @@ void ProcessTree(Int_t indexMultTrial = 0, Bool_t isXi = ChosenParticleXi, TStri
   hmass->Draw("E SAME");
 
   h->Write();
+  hPtvsCent_Bef->Write();
+  hPtvsCent_Aft->Write();
   cMass->Write();
   MassXi->Write();
   hmass_Bef->Write();
