@@ -107,9 +107,12 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetTopMargin(TMargin);
   pad->SetBottomMargin(BMargin);
 }
-void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
+void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 {
 
+  TString inputFileName = SinputFileName;
+  if (isEff)
+    inputFileName = SinputFileNameEff;
   gStyle->SetOptStat(0);
   Int_t nrebinx = 4;
   Int_t nrebiny = 4;
@@ -119,28 +122,32 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   if (isAfterEPSel)
     SAfterEventsel = "AfterEP";
 
-  TString SinputFile = "TreeForAnalysis/AnalysisResults_" + SinputFileName + ".root";
+  TString SinputFile = "TreeForAnalysis";
+  if (isEff) SinputFile = "FileForEfficiency";
+  SinputFile += "/AnalysisResults_" + inputFileName + ".root";
+  // TString SinputFile = "TreeForTrainingSignal/AnalysisResults_" + SinputFileName + ".root";
   // TString SinputFile = "TreeForAnalysis/AnalysisResults_3004.root";
-  // TString SinputFile = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_DerivedStrangeness_Train205658_Test.root";
+  //  TString SinputFile = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_DerivedStrangeness_Train205658_Test.root";
   TFile *file = new TFile(SinputFile, "READ");
   TDirectoryFile *dir = (TDirectoryFile *)file->Get("lf-cascade-flow");
 
   // event selection
-  TH1F *hNEvents = (TH1F *)dir->Get("hNEvents");
-  TH2F *hPVContribvsFT0CBefSel = (TH2F *)dir->Get("hEventPVcontributorsVsCentralityBefCuts");
-  TH2F *hPVContribvsFT0C = (TH2F *)dir->Get("hEventPVcontributorsVsCentrality" + SAfterEventsel);
-  TH2F *hGlobalTrkvsFT0CBefSel = (TH2F *)dir->Get("hEventGlobalTracksVsCentralityBefCuts");
-  TH2F *hGlobalTrkvsFT0C = (TH2F *)dir->Get("hEventGlobalTracksVsCentrality" + SAfterEventsel);
-  TH2F *hGlobalTrkvsPVContribBefSel = (TH2F *)dir->Get("hEventNchCorrelationBefCuts");
-  TH2F *hGlobalTrkvsPVContrib = (TH2F *)dir->Get("hEventNchCorrelation" + SAfterEventsel);
-  TH1F *hCentrality = (TH1F *)dir->Get("hEventCentrality");
-  TH1F *hVertexZ = (TH1F *)dir->Get("hEventVertexZ");
+  TDirectoryFile *dirHistos = (TDirectoryFile *)dir->Get("histos");
+  TH1F *hNEvents = (TH1F *)dirHistos->Get("hNEvents");
+  TH2F *hPVContribvsFT0CBefSel = (TH2F *)dirHistos->Get("hEventPVcontributorsVsCentralityBefCuts");
+  TH2F *hPVContribvsFT0C = (TH2F *)dirHistos->Get("hEventPVcontributorsVsCentrality" + SAfterEventsel);
+  TH2F *hGlobalTrkvsFT0CBefSel = (TH2F *)dirHistos->Get("hEventGlobalTracksVsCentralityBefCuts");
+  TH2F *hGlobalTrkvsFT0C = (TH2F *)dirHistos->Get("hEventGlobalTracksVsCentrality" + SAfterEventsel);
+  TH2F *hGlobalTrkvsPVContribBefSel = (TH2F *)dirHistos->Get("hEventNchCorrelationBefCuts");
+  TH2F *hGlobalTrkvsPVContrib = (TH2F *)dirHistos->Get("hEventNchCorrelation" + SAfterEventsel);
+  TH1F *hCentrality = (TH1F *)dirHistos->Get("hEventCentrality");
+  TH1F *hVertexZ = (TH1F *)dirHistos->Get("hEventVertexZ");
 
   // event plane vs FT0C
-  TH2F *hPsiT0CvsFT0C = (TH2F *)dir->Get("hPsiT0CvsCentFT0C");
+  TH2F *hPsiT0CvsFT0C = (TH2F *)dirHistos->Get("hPsiT0CvsCentFT0C");
 
   // v2 vs FT0C
-  TH2F *hv2CEPvsFT0C = (TH2F *)dir->Get("hv2CEPvsFT0C");
+  TH2F *hv2CEPvsFT0C = (TH2F *)dirHistos->Get("hv2CEPvsFT0C");
 
   TCanvas *c[nCanvas];
   for (int i = 0; i < nCanvas; i++)
@@ -159,8 +166,8 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hNEvents->Scale(1. / hNEvents->GetBinContent(1));
   StyleHisto(hNEvents, 0, 1.2, kBlack, 1, "", "Fraction of selected events", "");
   hNEvents->Draw("l");
-  c[0]->SaveAs("QCPlots/hNEvents" + SinputFileName + ".pdf");
-  c[0]->SaveAs("QCPlots/hNEvents" + SinputFileName + ".png");
+  c[0]->SaveAs("QCPlots/hNEvents" + inputFileName + ".pdf");
+  c[0]->SaveAs("QCPlots/hNEvents" + inputFileName + ".png");
 
   c[1]->cd();
   gPad->SetLogz();
@@ -169,8 +176,8 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hPVContribvsFT0CBefSel->SetTitle("");
   hPVContribvsFT0CBefSel->Rebin2D(nrebinx, nrebiny);
   hPVContribvsFT0CBefSel->Draw("colz");
-  c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + SinputFileName + ".pdf");
-  c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + SinputFileName + ".png");
+  c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".pdf");
+  c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".png");
 
   c[2]->cd();
   gPad->SetLogz();
@@ -179,8 +186,8 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hPVContribvsFT0C->SetTitle("");
   hPVContribvsFT0C->Rebin2D(nrebinx, nrebiny);
   hPVContribvsFT0C->Draw("colz");
-  c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + SinputFileName + ".pdf");
-  c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + SinputFileName + ".png");
+  c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + inputFileName + ".pdf");
+  c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + inputFileName + ".png");
 
   c[3]->cd();
   gPad->SetLogz();
@@ -189,8 +196,8 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsFT0CBefSel->SetTitle("");
   hGlobalTrkvsFT0CBefSel->Rebin2D(nrebinx, nrebiny);
   hGlobalTrkvsFT0CBefSel->Draw("colz");
-  c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + SinputFileName + ".pdf");
-  c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + SinputFileName + ".png");
+  c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + inputFileName + ".pdf");
+  c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + inputFileName + ".png");
 
   c[4]->cd();
   gPad->SetLogz();
@@ -199,8 +206,8 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsFT0C->SetTitle("");
   hGlobalTrkvsFT0C->Rebin2D(nrebinx, nrebiny);
   hGlobalTrkvsFT0C->Draw("colz");
-  c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + SinputFileName + ".pdf");
-  c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + SinputFileName + ".png");
+  c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + inputFileName + ".pdf");
+  c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + inputFileName + ".png");
 
   c[5]->cd();
   gPad->SetLogz();
@@ -219,16 +226,16 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsPVContrib->SetTitle("");
   hGlobalTrkvsPVContrib->Rebin2D(4 * nrebinx, 4 * nrebiny);
   hGlobalTrkvsPVContrib->Draw("colz");
-  c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + SinputFileName + ".pdf");
-  c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + SinputFileName + ".png");
+  c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + inputFileName + ".pdf");
+  c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + inputFileName + ".png");
 
   c[7]->cd();
   hPsiT0CvsFT0C->GetXaxis()->SetTitle("FT0C(%)");
   hPsiT0CvsFT0C->GetYaxis()->SetTitle("#Psi_{T0C}");
   hPsiT0CvsFT0C->SetTitle("");
   hPsiT0CvsFT0C->Draw("colz");
-  c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + SinputFileName + ".pdf");
-  c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + SinputFileName + ".png");
+  c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".pdf");
+  c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".png");
 
   TH1D *hPsiT0C[numCent];
   c[8]->cd();
@@ -257,16 +264,16 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
     leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
   }
   leg->Draw();
-  c[8]->SaveAs("QCPlots/hPsiT0C" + SinputFileName + ".pdf");
-  c[8]->SaveAs("QCPlots/hPsiT0C" + SinputFileName + ".png");
+  c[8]->SaveAs("QCPlots/hPsiT0C" + inputFileName + ".pdf");
+  c[8]->SaveAs("QCPlots/hPsiT0C" + inputFileName + ".png");
 
   c[9]->cd();
   hv2CEPvsFT0C->GetXaxis()->SetTitle("FT0C(%)");
   hv2CEPvsFT0C->GetYaxis()->SetTitle("v_{2}");
   hv2CEPvsFT0C->SetTitle("");
   hv2CEPvsFT0C->Draw("colz");
-  c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + SinputFileName + ".pdf");
-  c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + SinputFileName + ".pdg");
+  c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + inputFileName + ".pdf");
+  c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + inputFileName + ".pdg");
 
   TH1D *hv2CEP[numCent];
   c[10]->cd();
@@ -299,22 +306,22 @@ void QCPlots(TString inputFileName = SinputFileName, Bool_t isAfterEPSel = 0)
   hCentrality->GetXaxis()->SetTitle("FT0C(%)");
   hCentrality->SetTitle("");
   hCentrality->Draw("");
-  c[11]->SaveAs("QCPlots/hCentality" + SinputFileName + ".pdf");
-  c[11]->SaveAs("QCPlots/hCentality" + SinputFileName + ".png");
+  c[11]->SaveAs("QCPlots/hCentality" + inputFileName + ".pdf");
+  c[11]->SaveAs("QCPlots/hCentality" + inputFileName + ".png");
 
   c[12]->cd();
   hVertexZ->GetXaxis()->SetTitle("z (cm)");
   hVertexZ->SetTitle("");
   hVertexZ->Draw("");
-  c[12]->SaveAs("QCPlots/hVertexZ" + SinputFileName + ".pdf");
-  c[12]->SaveAs("QCPlots/hVertexZ" + SinputFileName + ".png");
+  c[12]->SaveAs("QCPlots/hVertexZ" + inputFileName + ".pdf");
+  c[12]->SaveAs("QCPlots/hVertexZ" + inputFileName + ".png");
 
   TString OutputFile = "QCPlots/QCPlots_" + inputFileName;
   for (Int_t i = 0; i < nCanvas; i++)
   {
     if (i == 0)
       c[i]->SaveAs(OutputFile + ".pdf(");
-    else if (i == nCanvas-1)
+    else if (i == nCanvas - 1)
       c[i]->SaveAs(OutputFile + ".pdf)");
     else
       c[i]->SaveAs(OutputFile + ".pdf");

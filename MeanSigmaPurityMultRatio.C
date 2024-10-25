@@ -127,7 +127,8 @@ Float_t YUp[numPart] = {0};
 Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, -1};
 Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 2};
 
-void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
+void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
+                              Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
                               Int_t ChosenMult = numCent /*- 3*/,
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
@@ -211,6 +212,8 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
     stringout += "_BDTCentDep";
   if (isRun2Binning)
     stringout += "_Run2Binning";
+  if (!isPtAnalysis)
+    stringout += "_vsPsi";
   stringoutpdf = stringout;
   stringout += "_5Cent.root";
   TFile *fileout = new TFile(stringout, "RECREATE");
@@ -254,7 +257,10 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + " |#it{#eta}| < 0.8", "");
+  if (isV2)
+    LegendTitle->AddEntry("", ParticleName[part] + " |#it{#eta}| < 0.8", "");
+  else
+    LegendTitle->AddEntry("", ParticleName[part] + " |#it{y}| < 0.5", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
@@ -282,7 +288,7 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
 
     PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
-    PathIn += "_" + ParticleName[ChosenPart]; 
+    PathIn += "_" + ParticleName[ChosenPart];
     PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -294,6 +300,8 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
       PathIn += "_BDTCentDep";
     if (isRun2Binning)
       PathIn += "_Run2Binning";
+    if (!isPtAnalysis)
+      PathIn += "_vsPsi";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -326,12 +334,16 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
   Float_t tickX = 0.03;
   Float_t tickY = 0.042;
 
+  TString titlex = "#it{p}_{T} (GeV/#it{c})";
+  if (!isPtAnalysis)
+    titlex = "2(#varphi-#Psi_{EP})";
+
   TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 8);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
   canvasPtSpectra->cd();
   SetFont(hDummy);
-  StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXPt, TitleY[Choice], "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, titlex, TitleY[Choice], "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
@@ -405,7 +417,7 @@ void MeanSigmaPurityMultRatio(Int_t ChosenPart = ChosenParticle,
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
   SetFont(hDummyRatio);
-  StyleHistoYield(hDummyRatio, YLowRatio[Choice], YUpRatio[Choice], 1, 1, TitleXPt, TitleYSpectraRatio, "", 1, 1.15, YoffsetSpectraRatio);
+  StyleHistoYield(hDummyRatio, YLowRatio[Choice], YUpRatio[Choice], 1, 1, titlex, TitleYSpectraRatio, "", 1, 1.15, YoffsetSpectraRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
