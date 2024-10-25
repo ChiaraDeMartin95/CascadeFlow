@@ -6,8 +6,10 @@
 
 // loop over AO2D directories and merge the trees into a single one
 
-void MergeTrees(Int_t isRedFactor = 1, const std::string folderName = "TreeForTrainingBkg", const std::string inputFileName = "AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099", bool isMC = 1)
+void MergeTrees(Int_t isRedFactor = 1, const std::string inputFileName = "AnalysisResults_trees_LHC24g3_pass4_Train281930", bool isMC = 0, bool isEff = 1)
 {
+    std::string folderName = "TreeForAnalysis";
+    if (isEff) folderName = "FileForEfficiency";
     TString inputFileNameNew = folderName + "/" + inputFileName + ".root";
     cout <<"Input file name: " << inputFileNameNew << endl;
     TFile inputFile(inputFileNameNew);
@@ -15,6 +17,7 @@ void MergeTrees(Int_t isRedFactor = 1, const std::string folderName = "TreeForTr
     TList *keys = dir->GetListOfKeys();
     TList *outlist = new TList;
     std::string treeName = (isMC) ? "O2casctraining" : "O2cascanalysis";
+    if (isEff) treeName = "O2cascanalysis";
     for (int i = 0; i < keys->GetEntries(); i++)
     {
         TKey *key = (TKey *)keys->At(i);
