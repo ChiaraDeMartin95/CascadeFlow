@@ -301,10 +301,16 @@ void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = 
     // double denW = lEffWeights[0]->Eval(dNdEtaAbhi[cent]);
     float par1 = 2;
     float par2 = 1;
-    dcent = dcent.Define("numW", [&](double Nch, double v2, float y)
-                                 { return par2 * std::exp(par1 * Nch * (1 + 2 * v2 * cos(y))); }, {"Nch", "v2Pub", "f2PsiDiffCorr"});
+    // dcent = dcent.Define("numW", [&](double Nch, double v2, float y)
+    //{ return par2 * std::exp(par1 * Nch * (1 + 2 * v2 * cos(y))); }, {"Nch", "v2Pub", "f2PsiDiffCorr"});
+    dcent = dcent.Define("numW", [&weights](double Nch, double v2, float y, float cent, float pt)
+                         { 
+                                  int centBin = weights->GetXaxis()->FindBin(cent);
+                                  int ptBin = weights->GetYaxis()->FindBin(pt);
+                                  return std::exp(weights->GetBinContent(centBin, ptBin) * Nch * (1 + 2 * v2 * cos(y))); }, {"Nch", "v2Pub", "f2PsiDiffCorr", "fCentFT0C", "fPt"});
+
     dcent = dcent.Define("denW", [&](double Nch)
-                                 { return par2 * std::exp(par1 * Nch); }, {"Nch"});
+                         { return par2 * std::exp(par1 * Nch); }, {"Nch"});
     dcent = dcent.Define("fEffWeight", "numW/denW");
     if (isXi)
     {
