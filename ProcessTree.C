@@ -53,9 +53,18 @@ bool passbdtCut(float bdtscore, float cent)
   return (bdtscore > sbdtCut);
 }
 
-void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, TString inputFileName = SinputFileName, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
+void ProcessTree(Bool_t isEff = 0,
+                 Int_t indexMultTrial = 0,
+                 Int_t ChosenPart = ChosenParticle,
+                 TString inputFileName = SinputFileName,
+                 Int_t EtaSysChoice = ExtrEtaSysChoice,
+                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
-
+  
+  Bool_t isApplyEffWeights = 1;
+  if (isEff)
+    isApplyEffWeights = 0; // just compute histos for efficiency, no use in applying weigths
+  
   Bool_t isXi = 1;
   if ((ChosenPart == 1) || (ChosenPart == 4) || (ChosenPart == 5))
     isXi = 0; // Omega
@@ -166,25 +175,29 @@ void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = 
       d2 = d2.Filter("abs(fMcPdgCode) == 3334");
   }
 
+  // define the rapidity
+  string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[ChosenPart], ParticleMassPDG[ChosenPart]);
+  string Common2 = "fPt*std::sinh(fEta)";
+  string Num = Form("%s + %s", Common1.c_str(), Common2.c_str());
+  string Denom = Form("%s - %s", Common1.c_str(), Common2.c_str());
+  d2 = d2.Define("fRapidity", Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()));
+  auto d2RapCut = d2.Filter("abs(fRapidity) < 0.5");
+  cout << Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()) << endl;
+
   // pt vs centrality before BDT cut
   auto hPtvsCent_Bef = d2.Histo2D({"PtvsCent_BefBDT", "PtvsCent_BefBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
+  auto hPtvsCent_RapCut_Bef = d2RapCut.Histo2D({"PtvsCent_Y05_BefBDT", "PtvsCent_Y05_BefBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
 
   //  apply BDT selection
   string cutvariable = "fBDTResponseXi";
   if (!isXi)
     cutvariable = "fBDTResponseOmega";
   auto d3 = d2.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
+  auto d3RapCut = d3.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
 
   // pt vs centrality after BDT cut
   auto hPtvsCent_Aft = d3.Histo2D({"PtvsCent_AftBDT", "PtvsCent_AftBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
-
-  // define the rapidity
-  string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[ChosenPart], ParticleMassPDG[ChosenPart]);
-  string Common2 = "fPt*std::sinh(fEta)";
-  string Num = Form("%s + %s", Common1.c_str(), Common2.c_str());
-  string Denom = Form("%s - %s", Common1.c_str(), Common2.c_str());
-  d3 = d3.Define("fRapidity", Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()));
-  cout << Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()) << endl;
+  auto hPtvsCent_RapCut_Aft = d3RapCut.Histo2D({"PtvsCent_Y05_AftBDT", "PtvsCent_Y05_AftBDT", 100, 0, 100, 200, 0, 20}, "fCentFT0C", "fPt");
 
   auto MassXi = d3.Histo2D({"mass_XivsPt", "Invariant mass of #Lambda#pi", 100, 1.29, 1.35, 100, 0, 10}, "fMassXi", "fPt");
 
@@ -221,20 +234,24 @@ void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = 
     SEffWeights += "_Run2Binning";
   SEffWeights += ".root";
   TFile *fileEffWeights = new TFile(SEffWeights, "");
-  cout << fileEffWeights->GetName() << endl;
-  if (!fileEffWeights)
+  if (isApplyEffWeights)
+    cout << fileEffWeights->GetName() << endl;
+  if (!fileEffWeights && isApplyEffWeights)
   {
     cout << "Efficiency file not found" << endl;
     return;
   }
   TF1 *lEffWeights[numPtBinsEff + 1];
-  for (Int_t i = 0; i < numPtBinsEff; i++)
+  if (isApplyEffWeights)
   {
-    lEffWeights[i] = (TF1 *)fileEffWeights->Get(Form("fitEffVsNch_%i", i));
-    if (!lEffWeights[i])
+    for (Int_t i = 0; i < numPtBinsEff; i++)
     {
-      cout << "Efficiency function not found" << endl;
-      return;
+      lEffWeights[i] = (TF1 *)fileEffWeights->Get(Form("fitEffVsNch_%i", i));
+      if (!lEffWeights[i])
+      {
+        cout << "Efficiency function not found" << endl;
+        return;
+      }
     }
   }
 
@@ -248,7 +265,8 @@ void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = 
     OutputFileName += "_BDTCentDep";
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
-  OutputFileName += "_Effweight.root";
+  // OutputFileName += "_Effweight.root";
+  OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
@@ -380,7 +398,9 @@ void ProcessTree(Bool_t isEff = 0, Int_t indexMultTrial = 0, Int_t ChosenPart = 
   hmass->Draw("E SAME");
   h->Write();
   hPtvsCent_Bef->Write();
+  hPtvsCent_RapCut_Bef->Write();
   hPtvsCent_Aft->Write();
+  hPtvsCent_RapCut_Aft->Write();
   cMass->Write();
   MassXi->Write();
   hmass_Bef->Write();

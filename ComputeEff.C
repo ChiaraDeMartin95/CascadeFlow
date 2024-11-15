@@ -25,7 +25,13 @@ Double_t SetEfficiencyError(Int_t k, Int_t n)
   return sqrt(((Double_t)k + 1) * ((Double_t)k + 2) / (n + 2) / (n + 3) - pow((Double_t)(k + 1), 2) / pow(n + 2, 2));
 }
 
-void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int_t RebinFactor = 1, TString inputFileNameEff = SinputFileNameEff, Int_t EtaSysChoice = ExtrEtaSysChoice, Bool_t isSysMultTrial = ExtrisSysMultTrial)
+void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
+                Int_t indexMultTrial = 0,
+                Int_t ChosenPart = ChosenParticle,
+                Int_t RebinFactor = 1,
+                TString inputFileNameEff = SinputFileNameEff,
+                Int_t EtaSysChoice = ExtrEtaSysChoice,
+                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   Int_t part = 0;
@@ -34,6 +40,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     part = 1;
   }
 
+  TString RapidityCoverage[2] = {"Eta08", "Y05"};
   // if (isSysMultTrial)
   // inputFileNameEff = SinputFileNameSystEff;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -61,7 +68,11 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
   }
 
   TH2F *histoRecoBeforeBDT = (TH2F *)inputFileReco->Get("PtvsCent_BefBDT");
+  if (isMidRapidity)
+    histoRecoBeforeBDT = (TH2F *)inputFileReco->Get("PtvsCent_Y05_BefBDT");
   TH2F *histoRecoAfterBDT = (TH2F *)inputFileReco->Get("PtvsCent_AftBDT");
+  if (isMidRapidity)
+    histoRecoAfterBDT = (TH2F *)inputFileReco->Get("PtvsCent_Y05_AftBDT");
   TH1F *histoRecoPtAfterBDT[numCent + 1];
   TH1F *histoRecoPtBeforeBDT[numCent + 1];
   TH1F *histoRecoPt[numCent + 1];
@@ -83,7 +94,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     cout << "Directory histosMCGen not found" << endl;
     return;
   }
-  TH2D *histoGen = (TH2D *)dirMCGen->Get("h2DGen" + ParticleName[part] + "Eta08");
+  TH2D *histoGen = (TH2D *)dirMCGen->Get("h2DGen" + ParticleName[part] + RapidityCoverage[isMidRapidity]);
   if (!histoGen)
   {
     cout << "Histogram h2DGen" << ParticleName[part] << " not found" << endl;
@@ -153,7 +164,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     histoRecovsCent->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     NEvents[m] = histoRecovsCent->Integral(histoRecovsCent->FindBin(CentFT0CMin + 0.001), histoRecovsCent->FindBin(CentFT0CMax - 0.001));
     histoGen->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
-    histoGenPt[m] = (TH1F *)histoGen->ProjectionY(Form("histoGenEta08Pt_%i-%i", CentFT0CMin, CentFT0CMax));
+    histoGenPt[m] = (TH1F *)histoGen->ProjectionY(Form("histoGen"+ RapidityCoverage[isMidRapidity] +"Pt_%i-%i", CentFT0CMin, CentFT0CMax));
     histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(numPtBinsEff, "", PtBinsEff);
     // histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(RebinFactor);
     StyleHistoYield(histoGenPt[m], 0, 1.1 * histoGenPt[numCent]->GetBinContent(histoGenPt[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
@@ -164,7 +175,12 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     cGen->cd();
     histoGenPt[m]->Draw("same e");
     cGenPerEvent->cd();
-    histoGenPtPerEvent[m]->GetYaxis()->SetRangeUser(0, 0.02);
+    for (Int_t b=1; b<=histoGenPtPerEvent[m]->GetNbinsX(); b++)
+    {
+      histoGenPtPerEvent[m]->SetBinContent(b, histoGenPtPerEvent[m]->GetBinContent(b) / histoGenPtPerEvent[m]->GetBinWidth(b));
+      histoGenPtPerEvent[m]->SetBinError(b, histoGenPtPerEvent[m]->GetBinError(b) / histoGenPtPerEvent[m]->GetBinWidth(b));
+    }
+    histoGenPtPerEvent[m]->GetYaxis()->SetRangeUser(0, 0.6);
     histoGenPtPerEvent[m]->Draw("same e");
 
     histoReco->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
@@ -197,7 +213,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     {
       histoPtEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPtAfterBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtEff[m], 0, 0.5, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtEff[m], 0, 0.1, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
     histoPtEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEff->cd();
     histoPtEff[m]->Draw("same e");
@@ -219,7 +235,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     {
       histoPtEffwoBDT[m]->SetBinError(i, SetEfficiencyError(histoRecoPtBeforeBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtEffwoBDT[m], 0, 0.7, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before BDT task cut", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtEffwoBDT[m], 0, 0.1, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before BDT task cut", "", 1, 1.15, 1.2);
     histoPtEffwoBDT[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEffwoBDT->cd();
     histoPtEffwoBDT[m]->Draw("same e");
@@ -230,7 +246,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
     {
       histoPtRecoEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPt[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtRecoEff[m], 0, 2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before any BDT cut", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtRecoEff[m], 0, 0.4, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before any BDT cut", "", 1, 1.15, 1.2);
     histoPtRecoEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEffReco->cd();
     histoPtRecoEff[m]->Draw("same e");
@@ -268,12 +284,12 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
       // cout << "Centrality: " << CentFT0C[m] << " - " << CentFT0C[m + 1] << endl;
 
       histoEffVsMult[pt]->GetXaxis()->SetBinLabel(m + 1, Form("%i-%i %%", CentFT0C[m], CentFT0C[m + 1]));
-      histoEffVsMult[pt]->SetBinContent(m + 1, histoPtBDTEff[m]->GetBinContent(pt + 1));
-      histoEffVsMult[pt]->SetBinError(m + 1, histoPtBDTEff[m]->GetBinError(pt + 1));
-      Efficiency[pt][m] = histoPtBDTEff[m]->GetBinContent(pt + 1);
-      EffError[pt][m] = histoPtBDTEff[m]->GetBinError(pt + 1);
+      histoEffVsMult[pt]->SetBinContent(m + 1, histoPtEff[m]->GetBinContent(pt + 1));
+      histoEffVsMult[pt]->SetBinError(m + 1, histoPtEff[m]->GetBinError(pt + 1));
+      Efficiency[pt][m] = histoPtEff[m]->GetBinContent(pt + 1);
+      EffError[pt][m] = histoPtEff[m]->GetBinError(pt + 1);
     }
-    StyleHistoYield(histoEffVsMult[pt], 0, 0.3, ColorMult[pt], MarkerMult[pt], TitleXCent, "Efficiency", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoEffVsMult[pt], 0, 0.1, ColorMult[pt], MarkerMult[pt], TitleXCent, "Efficiency", "", 1, 1.15, 1.2);
     legendPt->AddEntry(histoEffVsMult[pt], Form("%2.1f < p_{T} < %2.1f GeV/c", PtBinsEff[pt], PtBinsEff[pt + 1]), "pl");
     cEffvsMult->cd();
     histoEffVsMult[pt]->Draw("same e");
@@ -289,7 +305,7 @@ void ComputeEff(Int_t indexMultTrial = 0, Int_t ChosenPart = ChosenParticle, Int
   StyleCanvas(cEffVsNCh, 0.12, 0.05, 0.02, 0.13);
   TF1 *fitEffVsNch[numPtBinsEff + 1];
   TH1F *hdummy = new TH1F("hdummy", "Efficiency vs Nch", 10, 0, 2500);
-  StyleHistoYield(hdummy, 0, 0.3, 1, 1, "N_{ch}", "Efficiency", "", 1, 1.15, 1.2);
+  StyleHistoYield(hdummy, 0, 0.1, 1, 1, "N_{ch}", "Efficiency", "", 1, 1.15, 1.2);
   hdummy->Draw();
   for (Int_t pt = 0; pt < numPtBinsEff; pt++)
   {
