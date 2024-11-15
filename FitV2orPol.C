@@ -249,7 +249,8 @@ Float_t histoMassRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
 Float_t ftcReso[numCent + 1] = {0};
 
 void FitV2orPol(
-    Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
+    Bool_t isPtAnalysis = 1,    // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
+    Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Int_t ChosenPart = ChosenParticle,
@@ -441,8 +442,12 @@ void FitV2orPol(
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBinsVar, BinsVar);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBinsVar, BinsVar);
   TString ShistoV2 = "histoV2";
-  if (!isV2) // polarization
+  if (!isV2)
+  { // polarization
     ShistoV2 = "histoPzs2";
+    if (isPolFromLambda)
+      ShistoV2 = "histoPzs2LambdaFromC";
+  }
   TString titlex = "#it{p}_{T} (GeV/#it{c})";
   if (!isPtAnalysis)
     titlex = "2(#varphi-#Psi_{EP})";
@@ -496,10 +501,20 @@ void FitV2orPol(
     { // polarization
       histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      if (isPolFromLambda)
+      { // polarization from lambdas
+        histoNameMassvsV2 = Form("MassvsPzs2LambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+        ProfileV2 = Form("Pzs2LambdaFromC_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      }
       if (!isPtAnalysis)
       {
         histoNameMassvsV2 = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         ProfileV2 = Form("Pz_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        if (isPolFromLambda)
+        {
+          histoNameMassvsV2 = Form("MassvsPzLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
+          ProfileV2 = Form("PzLambdaFromC_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        }
       }
     }
 
@@ -1484,6 +1499,8 @@ void FitV2orPol(
     Soutputfile += "_Run2Binning";
   if (!isPtAnalysis)
     Soutputfile += "_vsPsi";
+  if (!isV2 && isPolFromLambda)
+    Soutputfile += "_PolFromLambda";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
