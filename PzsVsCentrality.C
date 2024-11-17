@@ -108,14 +108,18 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-Float_t YLow[numPart] = {-0.002};
-Float_t YUp[numPart] = {0.002};
+Float_t YLow[numPart] = {-0.02}; // 0.002
+Float_t YUp[numPart] = {0.02};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
-                     Int_t Choice = 0,
+                     Bool_t isPolFromLambda = 0,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
+
+  Int_t ChosenPt = -999;
+  cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
+  cin >> ChosenPt;
 
   Int_t part = 0;
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
@@ -131,18 +135,24 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // fileout name
   TString stringout;
   TString stringoutpdf;
-  stringout = "Pzs2VsCentrality" + NameAnalysis[!isV2] + "_";
+  stringout = "Pzs2VsCentrality/" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
   stringout += "_" + ParticleName[ChosenPart];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
-  stringout += "_" + TypeHisto[Choice];
+  stringout += "_Pzs2";
   if (isApplyWeights)
     stringout += "_Weighted";
   if (!useCommonBDTValue)
     stringout += "_BDTCentDep";
   if (isRun2Binning)
     stringout += "_Run2Binning";
+  if (isPolFromLambda)
+    stringout += "_PolFromLambda";
+  if (ChosenPt == 100)
+    stringout += "_PtInt";
+  else
+    stringout += Form("_Pt%.1f-%.1f", PtBins[ChosenPt], PtBins[ChosenPt + 1]);
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -156,16 +166,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gStyle->SetLegendBorderSize(0);
 
   TLegend *LegendTitle;
-  if (Choice == 2)
-    LegendTitle = new TLegend(0.54, 0.55, 0.95, 0.72);
-  else
-    LegendTitle = new TLegend(0.54, 0.75, 0.95, 0.92);
+  LegendTitle = new TLegend(0.54, 0.75, 0.95, 0.92);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleName[part] + " |#it{y}| < 0.5", "");
+  LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " |#it{y}| < 0.5", "");
+  if (ChosenPt == 100)
+    LegendTitle->AddEntry("", Form("#it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
+  else
+    LegendTitle->AddEntry("", Form("%1.1f < #it{p}_{T} < %1.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
 
   TLine *lineat0 = new TLine(0, 0, 100, 0);
   lineat0->SetLineColor(1);
@@ -176,6 +187,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistSpectrum[numCent + 1];
   TString Smolt[numCent + 1];
   TString SmoltBis[numCent + 1];
+  TString sPolFromLambda[2]= {"", "LambdaFromC"};
   // get spectra in multiplicity classes
   for (Int_t m = 0; m < numCent; m++)
   {
@@ -204,10 +216,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_BDTCentDep";
     if (isRun2Binning)
       PathIn += "_Run2Binning";
+    if (isPolFromLambda)
+      PathIn += "_PolFromLambda";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2PtIntMixed");
+    if (ChosenPt == 100)
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntMixed"); 
+    else
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2"+ sPolFromLambda[isPolFromLambda] + "Mixed");
     if (!fHistSpectrum[m])
     {
       cout << " no hist " << endl;
@@ -232,7 +249,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Float_t tickX = 0.03;
   Float_t tickY = 0.042;
 
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 8000, 0, 80);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
   canvasPzs->cd();
