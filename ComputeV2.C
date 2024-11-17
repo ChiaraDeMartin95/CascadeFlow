@@ -52,7 +52,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[numCent + 1];
   TH3D *hmassVsPtVsPzs2[numCent + 1];
-  TH3D *hmassVsPsiVsPzs2LambdaFromC[numCent + 1];
+  TH3D *hmassVsPtVsPzs2LambdaFromC[numCent + 1];
   TH3D *hmassVsPsiVsPz[numCent + 1];
   TH3D *hmassVsPsiVsPzLambdaFromC[numCent + 1];
   TProfile2D *profmassVsPt[numCent + 1];
@@ -80,7 +80,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TH1F *hPhiCentHisto1D[numCent][numPtBins + 1];
   TString hName[numCent + 1] = {""};
   TString hNamePzs2_3D[numCent + 1] = {""};
+  TString hNamePzs2LambdaFromC_3D[numCent + 1] = {""};
   TString hNamePzVsPsi_3D[numCent + 1] = {""};
+  TString hNamePzVsPsiLambdaFromC_3D[numCent + 1] = {""};
   TString profName[numCent + 1] = {""};
   TString hNameMass[numCent + 1][numPtBins + 1] = {""};
   TString hNameV2C[numCent + 1][numPtBins + 1] = {""};
@@ -90,7 +92,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString hNamePzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
   TString hNameMassV2C[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPzs2[numCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPzs2LambdaFromC[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPz[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassPzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
   TString hNameMassPsi[numCent + 1][numPsiBins + 1] = {""};
   TString hNameV2CFromProfile2D[numCent + 1][numPtBins + 1] = {""};
   Int_t CentFT0CMax = 0;
@@ -258,6 +262,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       PhiBins[psi] = psi * 2 * TMath::Pi() / numPsiBins;
       hNameMassPsi[cent][psi] = Form("mass_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
       hNameMassPz[cent][psi] = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hNameMassPzLambdaFromC[cent][psi] = Form("MassvsPzLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
 
       hmassVsPsiVsPz[cent]->GetYaxis()->SetRangeUser(PhiBins[psi] + 0.0001, PhiBins[psi] + 2 * TMath::Pi() / numPsiBins - 0.0001);
       hmassPsi[cent][psi] = (TH1F *)hmassVsPsiVsPz[cent]->Project3D("xe"); // mass
@@ -267,11 +272,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hmassVsPz[cent][psi]->SetName(hNameMassPz[cent][psi]);
 
       hmassVsPsiVsPzLambdaFromC[cent]->GetYaxis()->SetRangeUser(PhiBins[psi] + 0.0001, PhiBins[psi] + 2 * TMath::Pi() / numPsiBins - 0.0001);
-      hmassPsiLambdaFromC[cent][psi] = (TH1F *)hmassVsPsiVsPzLambdaFromC[cent]->Project3D("xe"); // mass
-      hmassPsiLambdaFromC[cent][psi]->SetName(hNameMassPsi[cent][psi] + "_LambdaFromC");
-      hmassPsiLambdaFromC[cent][psi]->Rebin(RebinFactor);
       hmassVsPzLambdaFromC[cent][psi] = (TH2F *)hmassVsPsiVsPzLambdaFromC[cent]->Project3D("xze"); // mass & Pz 2D histo
-      hmassVsPzLambdaFromC[cent][psi]->SetName(hNameMassPz[cent][psi] + "_LambdaFromC");
+      hmassVsPzLambdaFromC[cent][psi]->SetName(hNameMassPzLambdaFromC[cent][psi]);
 
       hPz[cent][psi] = (TH1F *)hmassVsPsiVsPz[cent]->Project3D("xe");                       // Pz vs mass
       hPz[cent][psi]->Reset();

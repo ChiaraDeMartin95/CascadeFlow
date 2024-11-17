@@ -394,6 +394,7 @@ void FitV2orPol(
     cout << "FileIn not available" << endl;
     return;
   }
+  cout << "FileIn: " << SPathIn << endl;
 
   Int_t numPtBinsVar = numPtBins;
   if (!isPtAnalysis)
@@ -447,6 +448,12 @@ void FitV2orPol(
     ShistoV2 = "histoPzs2";
     if (isPolFromLambda)
       ShistoV2 = "histoPzs2LambdaFromC";
+    if (!isPtAnalysis)
+    {
+      ShistoV2 = "histoPz";
+      if (isPolFromLambda)
+        ShistoV2 = "histoPzLambdaFromC";
+    }
   }
   TString titlex = "#it{p}_{T} (GeV/#it{c})";
   if (!isPtAnalysis)
@@ -521,7 +528,7 @@ void FitV2orPol(
     hmassVsV2C[pt] = (TH2F *)filein->Get(histoNameMassvsV2);
     if (!hmassVsV2C[pt])
     {
-      cout << "Histogram hmassVsV2C not available" << endl;
+      cout << "Histogram " << histoNameMassvsV2 << " not available" << endl;
       return;
     }
 
@@ -1460,12 +1467,24 @@ void FitV2orPol(
   histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
   if (!isV2)
   {
-    histoV2->Scale(1. / AlphaH[ChosenPart]);
-    histoV2NoFit->Scale(1. / AlphaH[ChosenPart]);
-    histoV2Mixed->Scale(1. / AlphaH[ChosenPart]);
-    histoV2PtInt->Scale(1. / AlphaH[ChosenPart]);
-    histoV2PtIntNoFit->Scale(1. / AlphaH[ChosenPart]);
-    histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
+    if (isPolFromLambda)
+    {
+      histoV2->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2NoFit->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2Mixed->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2PtInt->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2PtIntNoFit->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+    }
+    else
+    {
+      histoV2->Scale(1. / AlphaH[ChosenPart]);
+      histoV2NoFit->Scale(1. / AlphaH[ChosenPart]);
+      histoV2Mixed->Scale(1. / AlphaH[ChosenPart]);
+      histoV2PtInt->Scale(1. / AlphaH[ChosenPart]);
+      histoV2PtIntNoFit->Scale(1. / AlphaH[ChosenPart]);
+      histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
+    }
   }
   histoV2NoFit->Draw();
 
