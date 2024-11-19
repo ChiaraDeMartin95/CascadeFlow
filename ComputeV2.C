@@ -57,12 +57,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TH3D *hmassVsPsiVsPz[numCent + 1];
   TH3D *hmassVsPsiVsPzLambdaFromC[numCent + 1];
 
-  // acceptance correction
-  TH3D *hmassVsPtVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[numCent + 1];
-  TH3D *hmassVsPsiVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[numCent + 1];
-
   TProfile2D *profmassVsPt[numCent + 1];
   TH2F *hmassVsPt[numCent + 1];
   TH2F *hmassVsV2C[numCent + 1][numPtBins + 1];
@@ -72,12 +66,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TH2F *hmassVsPz[numCent + 1][numPsiBins + 1];
   TH2F *hmassVsPzLambdaFromC[numCent + 1][numPsiBins + 1];
 
-  // acceptance correction
-  TH2F *hmassVsCos2Theta[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsCos2ThetaPsi[numCent + 1][numPsiBins + 1];
-  TH2F *hmassVsCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
-
   TH1F *hmass[numCent + 1][numPtBins + 1];
   TH1F *hmassPsi[numCent + 1][numPsiBins + 1];
   TH1F *hV2C[numCent + 1][numPtBins + 1];
@@ -86,12 +74,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TH1F *hPzs2LambdaFromC[numCent + 1][numPtBins + 1];
   TH1F *hPz[numCent + 1][numPsiBins + 1];
   TH1F *hPzLambdaFromC[numCent + 1][numPsiBins + 1];
-
-  // acceptance correction
-  TH1F *hCos2Theta[numCent + 1][numPtBins + 1];
-  TH1F *hCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
-  TH1F *hCos2ThetaPsi[numCent + 1][numPsiBins + 1];
-  TH1F *hCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
 
   TH1F *hmassVsV2Cx[numCent + 1][numPtBins + 1];
   TH1F *hV2CFromProfile[numCent + 1][numPtBins + 1];
@@ -106,12 +88,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString hName[numCent + 1] = {""};
   TString hNamePzs2_3D[numCent + 1] = {""};
   TString hNamePzs2LambdaFromC_3D[numCent + 1] = {""};
-  TString hNameCos2Theta_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC_3D[numCent + 1] = {""};
   TString hNamePzVsPsi_3D[numCent + 1] = {""};
   TString hNamePzVsPsiLambdaFromC_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsi_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsiLambdaFromC_3D[numCent + 1] = {""};
   TString profName[numCent + 1] = {""};
 
   TString hNameMass[numCent + 1][numPtBins + 1] = {""};
@@ -120,21 +98,45 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString hNamePzs2LambdaFromC[numCent + 1][numPtBins + 1] = {""};
   TString hNamePz[numCent + 1][numPsiBins + 1] = {""};
   TString hNamePzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameCos2Theta[numCent + 1][numPtBins + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TString hNameCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
 
   TString hNameMassV2C[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPzs2[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPzs2LambdaFromC[numCent + 1][numPtBins + 1] = {""};
   TString hNameMassPz[numCent + 1][numPsiBins + 1] = {""};
   TString hNameMassPzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameMassCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameMassCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
 
   TString hNameMassPsi[numCent + 1][numPsiBins + 1] = {""};
   TString hNameV2CFromProfile2D[numCent + 1][numPtBins + 1] = {""};
+
+  // acceptance correction ***
+  TH3D *hmassVsPtVsCos2Theta[numCent + 1];
+  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[numCent + 1];
+  TH3D *hmassVsPsiVsCos2Theta[numCent + 1];
+  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[numCent + 1];
+  TString hNameCos2Theta_3D[numCent + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC_3D[numCent + 1] = {""};
+  TString hNameCos2ThetaVsPsi_3D[numCent + 1] = {""};
+  TString hNameCos2ThetaVsPsiLambdaFromC_3D[numCent + 1] = {""};
+
+  TH2F *hmassVsCos2Theta[numCent + 1][numPtBins + 1];
+  TH2F *hmassVsCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
+  TH2F *hmassVsCos2ThetaPsi[numCent + 1][numPsiBins + 1];
+  TH2F *hmassVsCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
+  TString hNameMassCos2Theta[numCent + 1][numPtBins + 1] = {""};
+  TString hNameMassCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
+  TString hNameMassCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+
+  TH1F *hCos2Theta[numCent + 1][numPtBins + 1];
+  TH1F *hCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
+  TH1F *hCos2ThetaPsi[numCent + 1][numPsiBins + 1];
+  TH1F *hCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
+  TString hNameCos2Theta[numCent + 1][numPtBins + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
+  TString hNameCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+  // end of acceptance correction ***
+
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
 
@@ -328,6 +330,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hNameMassPsi[cent][psi] = Form("mass_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
       hNameMassPz[cent][psi] = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
       hNameMassPzLambdaFromC[cent][psi] = Form("MassvsPzLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hNameMassCos2ThetaPsi[cent][psi] = Form("MassvsCos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
+      hNameMassCos2ThetaPsiLambdaFromC[cent][psi] = Form("MassvsCos2ThetaLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
 
       hmassVsPsiVsPz[cent]->GetYaxis()->SetRangeUser(PhiBins[psi] + 0.0001, PhiBins[psi] + 2 * TMath::Pi() / numPsiBins - 0.0001);
       hmassPsi[cent][psi] = (TH1F *)hmassVsPsiVsPz[cent]->Project3D("xe"); // mass
@@ -353,7 +357,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hNamePz[cent][psi] = Form("Pz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
       hPz[cent][psi]->SetName(hNamePz[cent][psi]);
       hPz[cent][psi]->Reset();
-      
+
       hCos2ThetaPsi[cent][psi] = (TH1F *)hmassVsPsiVsCos2Theta[cent]->Project3D("xe"); // cos2theta vs mass
       hNameCos2ThetaPsi[cent][psi] = Form("Cos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, psi);
       hCos2ThetaPsi[cent][psi]->SetName(hNameCos2ThetaPsi[cent][psi]);
@@ -406,6 +410,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hNameMassV2C[cent][pt] = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       hNameMassPzs2[cent][pt] = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       hNameMassPzs2LambdaFromC[cent][pt] = Form("MassvsPzs2LambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      hNameMassCos2Theta[cent][pt] = Form("MassvsCos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      hNameMassCos2ThetaLambdaFromC[cent][pt] = Form("MassvsCos2ThetaLambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
 
       if (pt == numPtBins)
       {
@@ -439,11 +445,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hmassVsPzs2LambdaFromC[cent][pt]->RebinY(RebinFactor);
 
       hmassVsCos2Theta[cent][pt] = (TH2F *)hmassVsPtVsCos2Theta[cent]->Project3D("xze"); // mass vs cos2theta
-      hmassVsCos2Theta[cent][pt]->SetName(hNameCos2Theta[cent][pt]);
+      hmassVsCos2Theta[cent][pt]->SetName(hNameMassCos2Theta[cent][pt]);
       hmassVsCos2Theta[cent][pt]->RebinY(RebinFactor);
 
       hmassVsCos2ThetaLambdaFromC[cent][pt] = (TH2F *)hmassVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xze"); // mass vs cos2thetaLambdaFromC
-      hmassVsCos2ThetaLambdaFromC[cent][pt]->SetName(hNameCos2ThetaLambdaFromC[cent][pt]);
+      hmassVsCos2ThetaLambdaFromC[cent][pt]->SetName(hNameMassCos2ThetaLambdaFromC[cent][pt]);
       hmassVsCos2ThetaLambdaFromC[cent][pt]->RebinY(RebinFactor);
 
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
@@ -463,8 +469,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
 
       hPzs2[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNamePzs2[cent][pt]);
       hPzs2LambdaFromC[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNamePzs2LambdaFromC[cent][pt]);
-      hCos2Theta[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(Form("Cos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
-      hCos2ThetaLambdaFromC[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(Form("Cos2ThetaLambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
+      hCos2Theta[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameCos2Theta[cent][pt]);
+      hCos2ThetaLambdaFromC[cent][pt] = (TH1F *)hmass[cent][pt]->Clone(hNameCos2ThetaLambdaFromC[cent][pt]);
 
       for (Int_t bin = 0; bin < hmass[cent][pt]->GetNbinsX(); bin++)
       {
@@ -512,19 +518,21 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hAvgPt[cent]->Write();
     for (Int_t pt = 0; pt < numPtBins + 1; pt++)
     {
-      hmass[cent][pt]->Write();
-      hV2C[cent][pt]->Write();
-      hPzs2[cent][pt]->Write();
-      hPzs2LambdaFromC[cent][pt]->Write();
       hmassVsV2C[cent][pt]->Write();
+      hV2C[cent][pt]->Write();
+      hV2CFromProfile[cent][pt]->Write();
+      pV2C[cent][pt]->Write();
       hmassVsPzs2[cent][pt]->Write();
       hmassVsPzs2LambdaFromC[cent][pt]->Write();
-      hmassVsCos2Theta[cent][pt]->Write();
-      hmassVsCos2ThetaLambdaFromC[cent][pt]->Write();
-      pV2C[cent][pt]->Write();
+      hPzs2[cent][pt]->Write();
+      hPzs2LambdaFromC[cent][pt]->Write();
       pPzs2[cent][pt]->Write();
       pPzs2LambdaFromC[cent][pt]->Write();
-      hV2CFromProfile[cent][pt]->Write();
+      hmassVsCos2Theta[cent][pt]->Write();
+      hmassVsCos2ThetaLambdaFromC[cent][pt]->Write();
+      hCos2Theta[cent][pt]->Write();
+      hCos2ThetaLambdaFromC[cent][pt]->Write();
+      hmass[cent][pt]->Write();
       if (cent != numCent && pt != numPtBins)
         hPhiCentHisto1D[cent][pt]->Write();
     }
