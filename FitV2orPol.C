@@ -294,7 +294,9 @@ void FitV2orPol(
 
   cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   TString histoNameMassvsV2 = "";
+  TString histoNameMassvsCos2Theta = "";
   TString ProfileV2 = "";
+  TString AcceptanceHisto = "";
 
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
@@ -414,13 +416,21 @@ void FitV2orPol(
   TH1F *hV2MassIntegrated[numPtBins + 1];
   TF1 *fitV2SP[numPtBins + 1];
 
+  TH1F *hCos2Theta[numPtBins + 1];
+  TH2F *hmassVsCos2Theta[numPtBins + 1];
+  TH1F *hCos2ThetaMassIntegrated[numPtBins + 1];
+
   Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
+  TCanvas *canvasCos2Theta[numCanvas];
   for (Int_t c = 0; c < numCanvas; c++)
   {
     canvas[c] = new TCanvas(Form("canvas_%i", c), Form("canvas%i", c), 1800, 1400);
     canvas[c]->Divide(4, 2);
     StyleCanvas(canvas[c], 0.15, 0.05, 0.05, 0.15);
+    canvasCos2Theta[c] = new TCanvas(Form("canvasCos2Theta_%i", c), Form("canvasCos2Theta%i", c), 1800, 1400);
+    canvasCos2Theta[c]->Divide(4, 2);
+    StyleCanvas(canvasCos2Theta[c], 0.15, 0.05, 0.05, 0.15);
   }
 
   Double_t BinsVar[numPtBins + 1] = {0};
@@ -455,6 +465,9 @@ void FitV2orPol(
         ShistoV2 = "histoPzLambdaFromC";
     }
   }
+  TString ShistoCos2Theta = "histoCos2Theta";
+  if (isPolFromLambda)
+    ShistoCos2Theta = "histoCos2ThetaLambdaFromC";
   TString titlex = "#it{p}_{T} (GeV/#it{c})";
   if (!isPtAnalysis)
     titlex = "2(#varphi-#Psi_{EP})";
@@ -464,6 +477,12 @@ void FitV2orPol(
   TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
   TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
   TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
+  TH1F *histoCos2Theta = new TH1F(ShistoCos2Theta, Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoCos2ThetaNoFit = new TH1F(ShistoCos2Theta + "NoFit", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoCos2ThetaMixed = new TH1F(ShistoCos2Theta + "Mixed", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoCos2ThetaPtInt = new TH1F(ShistoCos2Theta + "PtInt", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
+  TH1F *histoCos2ThetaPtIntNoFit = new TH1F(ShistoCos2Theta + "PtIntNoFit", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
+  TH1F *histoCos2ThetaPtIntMixed = new TH1F(ShistoCos2Theta + "PtIntMixed", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
 
   Double_t PhiBins[numPsiBins + 1];
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
@@ -508,19 +527,27 @@ void FitV2orPol(
     { // polarization
       histoNameMassvsV2 = Form("MassvsPzs2_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       ProfileV2 = Form("Pzs2_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      histoNameMassvsCos2Theta = Form("MassvsCos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      AcceptanceHisto = Form("Cos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       if (isPolFromLambda)
       { // polarization from lambdas
         histoNameMassvsV2 = Form("MassvsPzs2LambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
         ProfileV2 = Form("Pzs2LambdaFromC_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        histoNameMassvsCos2Theta = Form("MassvsCos2ThetaLambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+        AcceptanceHisto = Form("Cos2ThetaLambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       }
       if (!isPtAnalysis)
       {
         histoNameMassvsV2 = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         ProfileV2 = Form("Pz_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        histoNameMassvsCos2Theta = Form("MassvsCos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
+        AcceptanceHisto = Form("Cos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         if (isPolFromLambda)
         {
           histoNameMassvsV2 = Form("MassvsPzLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
           ProfileV2 = Form("PzLambdaFromC_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+          histoNameMassvsCos2Theta = Form("MassvsCos2ThetaLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
+          AcceptanceHisto = Form("Cos2ThetaLambdaFromC_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         }
       }
     }
@@ -529,6 +556,13 @@ void FitV2orPol(
     if (!hmassVsV2C[pt])
     {
       cout << "Histogram " << histoNameMassvsV2 << " not available" << endl;
+      return;
+    }
+
+    hmassVsCos2Theta[pt] = (TH2F *)filein->Get(histoNameMassvsCos2Theta);
+    if (!hmassVsCos2Theta[pt])
+    {
+      cout << "Histogram " << histoNameMassvsCos2Theta << " not available" << endl;
       return;
     }
 
@@ -542,6 +576,15 @@ void FitV2orPol(
 
     StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
     hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
+
+    hCos2Theta[pt] = (TH1F *)filein->Get(AcceptanceHisto);
+    if (!hCos2Theta[pt])
+    {
+      cout << "Histogram hCos2Theta not available" << endl;
+      return;
+    }
+    StyleHisto(hCos2Theta[pt], -1, 1, 1, 20, titlePt, "cos^{2}_{#theta*}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
+    hCos2Theta[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
 
     if (isYAxisMassZoomed)
     {
@@ -600,6 +643,8 @@ void FitV2orPol(
   v2fit v2fitarray[numPtBins + 1];
   TF1 **v2FitFunction = new TF1 *[numPtBins + 1];
   TF1 **v2BkgFunction = new TF1 *[numPtBins + 1];
+  TF1 **Cos2ThetaFitFunction = new TF1 *[numPtBins + 1];
+  TF1 **Cos2ThetaBkgFunction = new TF1 *[numPtBins + 1];
 
   Double_t parTwoGaussRetta[numPtBins + 1][8];
   Double_t parTwoGaussParab[numPtBins + 1][9];
@@ -1283,6 +1328,10 @@ void FitV2orPol(
     StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     hV2MassIntegrated[pt]->Rebin(2);
 
+    hCos2ThetaMassIntegrated[pt] = (TH1F *)hmassVsCos2Theta[pt]->ProjectionX(Form("Cos2ThetavsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(UpLimit[pt]));
+    StyleHisto(hCos2ThetaMassIntegrated[pt], 0, 1.2 * hCos2ThetaMassIntegrated[pt]->GetBinContent(hCos2ThetaMassIntegrated[pt]->GetMaximumBin()), 1, 20, "cos(2#theta)", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
+    hCos2ThetaMassIntegrated[pt]->Rebin(2);
+
     if (SSB[pt] > LimitForV2woFit || PtBins[pt] > 2.)
       isV2FromFit[pt] = 0;
     else
@@ -1299,20 +1348,62 @@ void FitV2orPol(
     legendV2->SetTextSize(0.055);
     legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
+
+    // canvas for cos2theta
+    if (pt < 4)
+      canvasCos2Theta[0]->cd(pt + 4 + 1);
+    else if (pt < 8)
+      canvasCos2Theta[1]->cd(pt + 4 + 1 - 4);
+    else if (pt < 12)
+      canvasCos2Theta[2]->cd(pt + 4 + 1 - 8);
+    else if (pt < 16)
+      canvasCos2Theta[3]->cd(pt + 4 + 1 - 12);
+    Cos2ThetaFitFunction[pt] = new TF1(Form("cosfunction%i", pt), v2fitarray[pt], liminf[ChosenPart], limsup[ChosenPart], 3);
+    Cos2ThetaFitFunction[pt]->SetLineColor(kRed + 1);
+
+    hCos2Theta[pt]->Fit(Cos2ThetaFitFunction[pt], "R0");
+    if (isV2FromFit[pt])
+    {
+      hCos2Theta[pt]->Draw("e");
+      Cos2ThetaFitFunction[pt]->Draw("same");
+    }
+    if (!isV2FromFit[pt])
+      hCos2ThetaMassIntegrated[pt]->Draw("");
+    if (pt < numPtBinsVar)
+    {
+      histoCos2Theta->SetBinContent(pt + 1, Cos2ThetaFitFunction[pt]->GetParameter(0));
+      histoCos2Theta->SetBinError(pt + 1, Cos2ThetaFitFunction[pt]->GetParError(0));
+    }
+    else
+    {
+      histoCos2ThetaPtInt->SetBinContent(1, Cos2ThetaFitFunction[pt]->GetParameter(0));
+      histoCos2ThetaPtInt->SetBinError(1, Cos2ThetaFitFunction[pt]->GetParError(0));
+    }
+    TLegend *legendCos2Theta = new TLegend(0.2, 0.8, 0.4, 0.9);
+    legendCos2Theta->SetTextSize(0.055);
+    legendCos2Theta->AddEntry("", Form("Mean = %.3f +- %.3f", hCos2ThetaMassIntegrated[pt]->GetMean(), hCos2ThetaMassIntegrated[pt]->GetMeanError()), "");
+    legendCos2Theta->Draw("same");
+
     if (isV2)
       cout << "\nv2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     else
       cout << "\nPzs2 (no fit): " << hV2MassIntegrated[pt]->GetMean() << " +- " << hV2MassIntegrated[pt]->GetMeanError() << endl;
     hV2MassIntegrated[pt]->ResetStats();
+    hCos2ThetaMassIntegrated[pt]->ResetStats();
+
     if (pt < numPtBinsVar)
     {
       histoV2NoFit->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
       histoV2NoFit->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+      histoCos2ThetaNoFit->SetBinContent(pt + 1, hCos2ThetaMassIntegrated[pt]->GetMean());
+      histoCos2ThetaNoFit->SetBinError(pt + 1, hCos2ThetaMassIntegrated[pt]->GetMeanError());
     }
     else
     {
       histoV2PtIntNoFit->SetBinContent(1, hV2MassIntegrated[pt]->GetMean());
       histoV2PtIntNoFit->SetBinError(1, hV2MassIntegrated[pt]->GetMeanError());
+      histoCos2ThetaPtIntNoFit->SetBinContent(1, hCos2ThetaMassIntegrated[pt]->GetMean());
+      histoCos2ThetaPtIntNoFit->SetBinError(1, hCos2ThetaMassIntegrated[pt]->GetMeanError());
     }
     if (v2type == 1)
     {
@@ -1328,11 +1419,15 @@ void FitV2orPol(
       {
         histoV2Mixed->SetBinContent(pt + 1, hV2MassIntegrated[pt]->GetMean());
         histoV2Mixed->SetBinError(pt + 1, hV2MassIntegrated[pt]->GetMeanError());
+        histoCos2ThetaMixed->SetBinContent(pt + 1, hCos2ThetaMassIntegrated[pt]->GetMean());
+        histoCos2ThetaMixed->SetBinError(pt + 1, hCos2ThetaMassIntegrated[pt]->GetMeanError());
       }
       else
       {
         histoV2Mixed->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
         histoV2Mixed->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+        histoCos2ThetaMixed->SetBinContent(pt + 1, Cos2ThetaFitFunction[pt]->GetParameter(0));
+        histoCos2ThetaMixed->SetBinError(pt + 1, Cos2ThetaFitFunction[pt]->GetParError(0));
       }
     }
     else
@@ -1341,11 +1436,15 @@ void FitV2orPol(
       {
         histoV2PtIntMixed->SetBinContent(1, hV2MassIntegrated[pt]->GetMean());
         histoV2PtIntMixed->SetBinError(1, hV2MassIntegrated[pt]->GetMeanError());
+        histoCos2ThetaPtIntMixed->SetBinContent(1, hCos2ThetaMassIntegrated[pt]->GetMean());
+        histoCos2ThetaPtIntMixed->SetBinError(1, hCos2ThetaMassIntegrated[pt]->GetMeanError());
       }
       else
       {
         histoV2PtIntMixed->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
         histoV2PtIntMixed->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+        histoCos2ThetaPtIntMixed->SetBinContent(1, Cos2ThetaFitFunction[pt]->GetParameter(0));
+        histoCos2ThetaPtIntMixed->SetBinError(1, Cos2ThetaFitFunction[pt]->GetParError(0));
       }
     }
   }
@@ -1406,8 +1505,8 @@ void FitV2orPol(
     lineM3Sigma[pt]->Draw("same");
   }
 
-  TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1700, 1000);
-  canvasSummary->Divide(4, 2);
+  TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1900, 800);
+  canvasSummary->Divide(5, 2);
 
   TString titleX = titlePt;
   if (!isPtAnalysis)
@@ -1465,6 +1564,18 @@ void FitV2orPol(
   histoV2PtInt->Scale(1. / ftcReso[mul]);
   histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
   histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
+
+  // acceptance correction for polarization
+  if (!isV2)
+  {
+    histoV2->Divide(histoCos2Theta);
+    histoV2NoFit->Divide(histoCos2ThetaNoFit);
+    histoV2Mixed->Divide(histoCos2ThetaMixed);
+    histoV2PtInt->Divide(histoCos2ThetaPtInt);
+    histoV2PtIntNoFit->Divide(histoCos2ThetaPtIntNoFit);
+    histoV2PtIntMixed->Divide(histoCos2ThetaPtIntMixed);
+  }
+
   if (!isV2)
   {
     if (isPolFromLambda)
@@ -1501,6 +1612,26 @@ void FitV2orPol(
   }
   histoV2->Draw();
 
+  canvasSummary->cd(9);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  StyleHisto(histoCos2ThetaNoFit, 0, 0.4, 1, 1, titleX, "cos^{2}(#theta*)", "histoCos2ThetaNoFit", 0, 0, 0, 1.4, 1.4, 1.2);
+  if (!isV2)
+  {
+    histoCos2ThetaNoFit->SetTitle("cos^{2}(#theta*) without fit");
+    histoCos2ThetaNoFit->Draw();
+  }
+
+  canvasSummary->cd(10);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  StyleHisto(histoCos2Theta, 0, 0.4, 1, 1, titleX, "cos^{2}(#theta*)", "histoCos2Theta", 0, 0, 0, 1.4, 1.4, 1.2);
+  if (!isV2)
+  {
+    histoCos2Theta->SetTitle("cos^{2}(#theta*) from fit");
+    histoCos2Theta->Draw();
+  }
+
   TString Soutputfile;
   Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
@@ -1530,7 +1661,7 @@ void FitV2orPol(
   canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
   canvasMass->SaveAs(Soutputfile + "_MassPlot.png");
 
-  TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
+  TFile *outputfile = new TFile(Soutputfile + "_New.root", "RECREATE");
   for (Int_t i = 0; i < numCanvas; i++)
   {
     outputfile->WriteTObject(canvas[i]);
