@@ -1558,6 +1558,38 @@ void FitV2orPol(
       histoV2NoFit->SetTitle("Pz without fit");
   }
 
+  // subtract baseline
+  Float_t baseline = 0;
+  Float_t baselineNoFit = 0;
+  Float_t baselineMixed = 0;
+  TH1F *histobaseline = (TH1F *)histoV2->Clone("histobaseline");
+  TH1F *histobaselineNoFit = (TH1F *)histoV2NoFit->Clone("histobaselineNoFit");
+  TH1F *histobaselineMixed = (TH1F *)histoV2Mixed->Clone("histobaselineMixed");
+  histobaseline->Reset();
+  histobaselineNoFit->Reset();
+  histobaselineMixed->Reset();
+  if (!isPtAnalysis)
+  {
+    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
+    {
+      baseline += histoV2->GetBinContent(pt);
+      baselineNoFit += histoV2NoFit->GetBinContent(pt);
+      baselineMixed += histoV2Mixed->GetBinContent(pt);
+    }
+    baseline /= histoV2->GetNbinsX();
+    baselineNoFit /= histoV2->GetNbinsX();
+    baselineMixed /= histoV2->GetNbinsX();
+    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
+    {
+      histobaseline->SetBinContent(pt, baseline);
+      histobaselineNoFit->SetBinContent(pt, baselineNoFit);
+      histobaselineMixed->SetBinContent(pt, baselineMixed);
+    }
+    histoV2->Add(histobaseline, -1);
+    histoV2NoFit->Add(histobaselineNoFit, -1);
+    histoV2Mixed->Add(histobaselineMixed, -1);
+  }
+
   histoV2->Scale(1. / ftcReso[mul]);
   histoV2NoFit->Scale(1. / ftcReso[mul]);
   histoV2Mixed->Scale(1. / ftcReso[mul]);
@@ -1661,7 +1693,7 @@ void FitV2orPol(
   canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
   canvasMass->SaveAs(Soutputfile + "_MassPlot.png");
 
-  TFile *outputfile = new TFile(Soutputfile + "_New.root", "RECREATE");
+  TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   for (Int_t i = 0; i < numCanvas; i++)
   {
     outputfile->WriteTObject(canvas[i]);
@@ -1681,6 +1713,12 @@ void FitV2orPol(
   outputfile->WriteTObject(histoV2PtInt);
   outputfile->WriteTObject(histoV2PtIntNoFit);
   outputfile->WriteTObject(histoV2PtIntMixed);
+  outputfile->WriteTObject(histoCos2Theta);
+  outputfile->WriteTObject(histoCos2ThetaNoFit);
+  outputfile->WriteTObject(histoCos2ThetaMixed);
+  outputfile->WriteTObject(histoCos2ThetaPtInt);
+  outputfile->WriteTObject(histoCos2ThetaPtIntNoFit);
+  outputfile->WriteTObject(histoCos2ThetaPtIntMixed);
   outputfile->Close();
 
   // Performance plot
