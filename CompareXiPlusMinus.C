@@ -118,20 +118,23 @@ Float_t YUpSigma[numPart] = {0.006, 0.006};
 Float_t YLowPurity[numPart] = {0.8, 0};
 Float_t YLowV2[numPart] = {-0.4, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
-Float_t YLowPzs2[numPart] = {-0.1, -0.1};
-Float_t YUpPzs2[numPart] = {0.1, 0.1};
+Float_t YLowPzs2[numPart] = {-0.5, -0.5};
+Float_t YUpPzs2[numPart] = {0.5, 0.5};
+Float_t YLowCos2Theta[numPart] = {0, 0};
+Float_t YUpCos2Theta[numPart] = {0.4, 0.4};
 
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-// choices: 0: mean, 1: sigma, 2: purity, 3: yield, 4: v2, 5: Pzs2 (Pz if vs Psi), 6: Pzs2FromLambda (Pz if vs Psi)
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -1.5, -1.5};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 2, -0.5, -0.5};
+// choices: 0: mean, 1: sigma, 2: purity, 3: yield, 4: v2,
+// 5: Pzs2 (Pz if vs Psi), 6: Pzs2FromLambda (Pz if vs Psi), 7:cos2Theta, 8:cos2ThetaFromLambda
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1};
 
 void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
                         Int_t ChosenPart = ChosenParticle,
                         Int_t Choice = 0,
-                        Int_t ChosenMult = 5, /*numCent,*/
+                        Int_t ChosenMult = numCent,
                         TString OutputDir = "MeanSigmaPurityMultClasses/",
                         Int_t BkgType = ExtrBkgType,
                         Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -157,13 +160,21 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   {
     if (Choice == 5)
     {
-      TypeHisto[Choice] = "Pz";
+      TypeHisto[Choice] = "PzMixed";
       TitleY[Choice] = "P_{z}";
+      YLowPzs2[part] = -0.2;
+      YUpPzs2[part] = 0.2;
+      YLowRatio[Choice] = 0;
+      YUpRatio[Choice] = 2;
     }
     if (Choice == 6)
     {
-      TypeHisto[Choice] = "PzLambdaFromC";
+      TypeHisto[Choice] = "PzLambdaFromCMixed";
       TitleY[Choice] = "P_{z}";
+      YLowPzs2[part] = -0.2;
+      YUpPzs2[part] = 0.2;
+      YLowRatio[Choice] = 0;
+      YUpRatio[Choice] = 2;
     }
   }
   cout << Choice << " " << TypeHisto[Choice] << endl;
@@ -197,16 +208,17 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
     YLow[part] = YLowV2[part];
     YUp[part] = YUpV2[part];
   }
-  else if (Choice == 5)
+  else if (Choice == 5 || Choice == 6)
   {
     YLow[part] = YLowPzs2[part];
     YUp[part] = YUpPzs2[part];
   }
-  else if (Choice == 6)
+  else if (Choice == 7 || Choice == 8)
   {
-    YLow[part] = YLowPzs2[part];
-    YUp[part] = YUpPzs2[part];
+    YLow[part] = YLowCos2Theta[part];
+    YUp[part] = YUpCos2Theta[part];
   }
+  cout << Choice << " " << TypeHisto[Choice] << endl;
 
   // multiplicity related variables
   TString Smolt[numCent + 1];
@@ -257,11 +269,15 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   {
     legendAllMult = new TLegend(0.44, 0.03, 0.9, 0.28);
   }
-  legendAllMult->SetHeader("");
-  legendAllMult->SetNColumns(3);
+  legendAllMult->SetNColumns(2);
   legendAllMult->SetFillStyle(0);
-  TLegendEntry *lheaderAllMult = (TLegendEntry *)legendAllMult->GetListOfPrimitives()->First();
-  lheaderAllMult->SetTextSize(0.04);
+  legendAllMult->SetTextSize(0.04);
+
+  TLegend *legendAllMultBis;
+  legendAllMultBis = new TLegend(0.22, 0.2, 0.73, 0.25);
+  legendAllMultBis->SetNColumns(2);
+  legendAllMultBis->SetFillStyle(0);
+  legendAllMultBis->SetTextSize(0.04);
 
   TLegend *LegendTitle;
   if (Choice == 2)
@@ -270,14 +286,14 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
     LegendTitle = new TLegend(0.54, 0.7, 0.95, 0.92);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
-  LegendTitle->SetTextSize(0.04);
+  LegendTitle->SetTextSize(0.05);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isV2)
     LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{#eta}| < 0.8", "");
   else
-    LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{y}| < 0.5", "");
-  LegendTitle->AddEntry("", Form("FT0C %i#minus%i", CentFT0CMin, CentFT0CMax), "");
+    LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{y} | < 0.5", "");
+  LegendTitle->AddEntry("", Form("FT0C %i#minus%i %%", CentFT0CMin, CentFT0CMax), "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   lineat1Mult->SetLineColor(1);
@@ -306,7 +322,7 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
       PathIn += "_Run2Binning";
     if (!isPtAnalysis)
       PathIn += "_vsPsi";
-    if (Choice == 6)
+    if (Choice == 6 || Choice == 8)
       PathIn += "_PolFromLambda";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
@@ -386,9 +402,15 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
     else
       sScaleFactorFinal[ChosenMult] = "";
     if (part == 0)
+    {
       legendAllMult->AddEntry(fHistSpectrum[ChosenMult][charge], ParticleNameLegend[2 + charge] + sScaleFactorFinal[ChosenMult] + " ", "pef");
+      legendAllMultBis->AddEntry(fHistSpectrum[ChosenMult][charge], ParticleNameLegend[2 + charge] + sScaleFactorFinal[ChosenMult] + " ", "pef");
+    }
     else
+    {
       legendAllMult->AddEntry(fHistSpectrum[ChosenMult][charge], ParticleNameLegend[4 + charge] + sScaleFactorFinal[ChosenMult] + " ", "pef");
+      legendAllMultBis->AddEntry(fHistSpectrum[ChosenMult][charge], ParticleNameLegend[4 + charge] + sScaleFactorFinal[ChosenMult] + " ", "pef");
+    }
   } // end loop on charge
   LegendTitle->Draw("");
   legendAllMult->Draw("");
@@ -472,6 +494,7 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   // fileout name
   TString stringout;
   TString stringoutpdf;
+  TString stringoutShort;
   stringout = OutputDir + "PlotXiMinusPlusRatios" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
   stringout += Smolt[ChosenMult];
@@ -479,6 +502,9 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
+  stringoutShort = OutputDir + "XiMinus_" + TypeHisto[Choice] + "_";
+  stringoutShort += SinputFileName;
+  stringoutShort += "_" + ParticleName[ChosenPart];
   if (isApplyWeights)
     stringout += "_Weighted";
   if (!useCommonBDTValue)
@@ -489,11 +515,31 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
     stringout += "_vsPsi";
   stringoutpdf = stringout;
   stringout += "_5Cent.root";
+
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
+  StyleCanvas(canvas, 0.03, 0.1, 0.15, 0.02);
+  canvas->cd();
+  if (Choice == 3)
+    gPad->SetLogy();
+  hDummy->GetXaxis()->SetLabelSize(0.05);
+  SetHistoTextSize(hDummy, xTitleR, xLabelR, 1, 0.015, yTitle, yLabel, 1.8, yLabelOffset);
+  hDummy->Draw("same");
+  for (Int_t charge = 0; charge <= 2; charge++)
+  {
+    if (Choice >= 5 && charge == 2)
+      continue; // Pzs is studied for separate charged only
+    fHistSpectrum[ChosenMult][charge]->Draw("same e0x0");
+  }
+  LegendTitle->Draw("");
+  legendAllMultBis->Draw("");
+
   TFile *fileout = new TFile(stringout, "RECREATE");
   fileout->Close();
 
-  canvasPtSpectra->SaveAs(stringoutpdf + ".pdf");
-  canvasPtSpectra->SaveAs(stringoutpdf + ".png");
+  canvasPtSpectra->SaveAs(stringoutShort + ".pdf");
+  canvasPtSpectra->SaveAs(stringoutShort + ".png");
+  canvas->SaveAs(stringoutShort + "_Top.pdf");
+  canvas->SaveAs(stringoutShort + "_Top.png");
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
 
   cout << "\nI have created the file:\n " << stringout << endl;

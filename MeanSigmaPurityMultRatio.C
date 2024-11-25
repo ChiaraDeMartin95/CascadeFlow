@@ -118,14 +118,18 @@ Float_t YUpSigma[numPart] = {0.006, 0.006};
 Float_t YLowPurity[numPart] = {0.8, 0};
 Float_t YLowV2[numPart] = {-0.4, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
-Float_t YLowPzs2[numPart] = {-0.01, -0.01};
-Float_t YUpPzs2[numPart] = {0.01, 0.01};
+Float_t YLowPzs2[numPart] = {-0.5, -0.5};
+Float_t YUpPzs2[numPart] = {0.5, 0.5};
+Float_t YLowCos2Theta[numPart] = {0, 0};
+Float_t YUpCos2Theta[numPart] = {0.4, 0.4};
+Float_t YLowCos2ThetaLambda[numPart] = {0, 0};
+Float_t YUpCos2ThetaLambda[numPart] = {0.3, 0.3};
 
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, -1};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 2};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
@@ -147,6 +151,27 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     cout << "Chosen Mult outside of available range" << endl;
     return;
+  }
+  if (!isPtAnalysis)
+  {
+    if (Choice == 5)
+    {
+      TypeHisto[Choice] = "PzMixed";
+      TitleY[Choice] = "P_{z}";
+      YLowPzs2[part] = -0.2;
+      YUpPzs2[part] = 0.2;
+      YLowRatio[Choice] = 0;
+      YUpRatio[Choice] = 2;
+    }
+    if (Choice == 6)
+    {
+      TypeHisto[Choice] = "PzLambdaFromCMixed";
+      TitleY[Choice] = "P_{z}";
+      YLowPzs2[part] = -0.2;
+      YUpPzs2[part] = 0.2;
+      YLowRatio[Choice] = 0;
+      YUpRatio[Choice] = 2;
+    }
   }
   cout << Choice << " " << TypeHisto[Choice] << endl;
   if (Choice > (numChoice - 1))
@@ -179,10 +204,20 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     YLow[part] = YLowV2[part];
     YUp[part] = YUpV2[part];
   }
-  else if (Choice == 5)
+  else if (Choice == 5 || Choice == 6)
   {
     YLow[part] = YLowPzs2[part];
     YUp[part] = YUpPzs2[part];
+  }
+  else if (Choice == 7)
+  {
+    YLow[part] = YLowCos2Theta[part];
+    YUp[part] = YUpCos2Theta[part];
+  }
+  else if (Choice == 8)
+  {
+    YLow[part] = YLowCos2ThetaLambda[part];
+    YUp[part] = YUpCos2ThetaLambda[part];
   }
 
   // multiplicity related variables
@@ -200,12 +235,16 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   // fileout name
   TString stringout;
   TString stringoutpdf;
+  TString stringoutShort;
   stringout = OutputDir + "PlotRatios" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
   stringout += "_" + ParticleName[ChosenPart];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
+  stringoutShort = OutputDir + "PlotRatios" + "_" + TypeHisto[Choice] + "_";
+  stringoutShort += SinputFileName;
+  stringoutShort += "_" + ParticleName[ChosenPart];
   if (isApplyWeights)
     stringout += "_Weighted";
   if (!useCommonBDTValue)
@@ -247,22 +286,32 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   TLegendEntry *lheaderAllMult = (TLegendEntry *)legendAllMult->GetListOfPrimitives()->First();
   lheaderAllMult->SetTextSize(0.04);
 
+  TLegend *legendAllMultBis;
+  legendAllMultBis = new TLegend(0.22, 0.16, 0.73, 0.36);
+  legendAllMultBis->SetHeader("FT0C Centrality Percentile");
+  legendAllMultBis->SetNColumns(3);
+  legendAllMultBis->SetFillStyle(0);
+  TLegendEntry *lheaderAllMultBis = (TLegendEntry *)legendAllMultBis->GetListOfPrimitives()->First();
+  lheaderAllMultBis->SetTextSize(0.04);
+
   TLegend *LegendTitle;
   if (Choice == 2)
     LegendTitle = new TLegend(0.54, 0.55, 0.95, 0.72);
   else
-    LegendTitle = new TLegend(0.54, 0.75, 0.95, 0.92);
+    LegendTitle = new TLegend(0.54, 0.7, 0.95, 0.92);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
-  LegendTitle->SetTextSize(0.04);
+  LegendTitle->SetTextSize(0.05);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isV2)
-    LegendTitle->AddEntry("", ParticleName[part] + " |#it{#eta}| < 0.8", "");
+    LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{#eta}| < 0.8", "");
   else
-    LegendTitle->AddEntry("", ParticleName[part] + " |#it{y}| < 0.5", "");
+    LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{y} | < 0.5", "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
+  if (!isPtAnalysis)
+    lineat1Mult = new TLine(0, 1, 2 * TMath::Pi(), 1);
   lineat1Mult->SetLineColor(1);
   lineat1Mult->SetLineStyle(2);
 
@@ -273,7 +322,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (m == numCent && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 3) && m != numCent))
+    if (m == 0 || (m > (numCent - 2) && m != numCent))
       continue;
     if (m == numCent)
     { // 0-80%
@@ -302,6 +351,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_Run2Binning";
     if (!isPtAnalysis)
       PathIn += "_vsPsi";
+    if (Choice == 6 || Choice == 8)
+      PathIn += "_PolFromLambda";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -347,6 +398,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+  if (!isPtAnalysis)
+    hDummy->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   pad1->Draw();
   pad1->cd();
   if (Choice == 3)
@@ -357,7 +410,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (m == numCent && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 3) && m != numCent))
+    if (m == 0 || (m > (numCent - 2) && m != numCent))
       continue;
     ScaleFactorFinal[m] = ScaleFactor[m];
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
@@ -379,6 +432,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     else
       sScaleFactorFinal[m] = "";
     legendAllMult->AddEntry(fHistSpectrumScaled[m], SmoltBis[m] + "%" + sScaleFactorFinal[m] + " ", "pef");
+    legendAllMultBis->AddEntry(fHistSpectrumScaled[m], SmoltBis[m] + "%", "pef");
   } // end loop on mult
   LegendTitle->Draw("");
   legendAllMult->Draw("");
@@ -421,6 +475,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+  if (!isPtAnalysis)
+    hDummyRatio->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   canvasPtSpectra->cd();
   padL1->Draw();
   padL1->cd();
@@ -430,7 +486,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (m == numCent && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 3) && m != numCent))
+    if (m == 0 || (m > (numCent - 2) && m != numCent))
       continue;
     fHistSpectrumMultRatio[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumMultRatio_" + Smolt[m]);
     fHistSpectrumMultRatio[m]->Divide(fHistSpectrum[ChosenMult]);
@@ -453,9 +509,30 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     lineat1Mult->Draw("same");
 
   } // end loop on mult
+
+  TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
+  StyleCanvas(canvas, 0.03, 0.1, 0.15, 0.02);
+  canvas->cd();
+  if (Choice == 3)
+    gPad->SetLogy();
+  hDummy->GetXaxis()->SetLabelSize(0.05);
+  SetHistoTextSize(hDummy, xTitleR, xLabelR, 1, 0.015, yTitle, yLabel, 1.8, yLabelOffset);
+  hDummy->Draw("same");
+  for (Int_t m = numCent; m >= 0; m--)
+  {
+    if (m == numCent && isV2)
+      continue;
+    if (m == 0 || (m > (numCent - 2) && m != numCent))
+      continue;
+    fHistSpectrumScaled[m]->Draw("same e0x0");
+  }
+  LegendTitle->Draw("");
+  legendAllMultBis->Draw("");
+
   fileout->Close();
-  canvasPtSpectra->SaveAs(stringoutpdf + ".pdf");
-  canvasPtSpectra->SaveAs(stringoutpdf + ".png");
+  canvasPtSpectra->SaveAs(stringoutShort + ".pdf");
+  canvasPtSpectra->SaveAs(stringoutShort + ".png");
+  canvas->SaveAs(stringoutShort + "_Top.png");
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
 
   cout << "\nI have created the file:\n " << stringout << endl;
