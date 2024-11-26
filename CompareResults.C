@@ -152,8 +152,14 @@ TString fileName[10] = {""};
 TH1F *h[10];
 TH1F *hRatio[10];
 TString sleg[10] = {""};
+TString Smolt[numCent + 1];
 
-void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
+void CompareResults(Int_t TypeComp = 0,
+                    Int_t mult = 0,
+                    Bool_t isPtAnalysis = 1,
+                    Int_t ChosenPart = ChosenParticle,
+                    Int_t BkgType = ExtrBkgType,
+                    Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
 
   gStyle->SetOptStat(0);
@@ -164,6 +170,22 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     return;
   }
 
+  Int_t CentFT0CMax = 0;
+  Int_t CentFT0CMin = 0;
+  if (mult == numCent)
+  { // 0-80%
+    CentFT0CMin = 0;
+    CentFT0CMax = 80;
+  }
+  else
+  {
+    CentFT0CMin = CentFT0C[mult];
+    CentFT0CMax = CentFT0C[mult + 1];
+  }
+
+  Float_t MinHistoX = MinPt[ChosenPart];
+  Float_t MaxHistoX = MaxPt[ChosenPart];
+
   // TypeComp = 0 --> weighted vs unweighted v2
   // TypeComp = 1 --> LHC23 vs LHC23zzh
   // TypeComp = 2 --> SP vs EP
@@ -173,12 +195,15 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   // TypeComp = 6 --> v2 LF vs CFW
   // TypeComp = 7 --> v2 with and without occupancy event selection
   // TypeComp = 8 --> v2 pass4 vs pass3 (LHCzzh)
+  // TypeComp = 9 --> v2 with pass4; test 5 vs test 3
+  // TypeComp = 10 --> Pz from Xi vs Pz from daughter Lambda
+  // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
   {
     numOptions = 2;
-    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
     CommonFileName += SIsBkgParab[ExtrBkgType];
     CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
@@ -202,12 +227,12 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     CommonFileName = "OutputAnalysis/FitV2_";
     fileName[0] = "LHC23_PbPb_pass3_Train218607_";
     fileName[1] = "LHC23zzh_pass3_Train224930_";
-    fileName[0] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[0] += ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     fileName[0] += IsOneOrTwoGauss[ExtrUseTwoGauss];
     fileName[0] += SIsBkgParab[ExtrBkgType];
     fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[0] += "_Weighted";
-    fileName[1] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[1] += ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     fileName[1] += IsOneOrTwoGauss[ExtrUseTwoGauss];
     fileName[1] += SIsBkgParab[ExtrBkgType];
     fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
@@ -228,7 +253,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   else if (TypeComp == 2)
   {
     numOptions = 2;
-    // CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    // CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     // CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
     // CommonFileName += SIsBkgParab[ExtrBkgType];
     // CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
@@ -260,12 +285,12 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     CommonFileName = "OutputAnalysis/FitV2_";
     fileName[0] = "LHC23_PbPb_pass3_Train218607_";
     fileName[1] = "LHC23zzh_pass3_Train225737_BDT0.7_";
-    fileName[0] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[0] += ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     fileName[0] += IsOneOrTwoGauss[ExtrUseTwoGauss];
     fileName[0] += SIsBkgParab[ExtrBkgType];
     fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
     fileName[0] += "_Weighted_BDTCentDep";
-    fileName[1] += ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    fileName[1] += ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     fileName[1] += IsOneOrTwoGauss[ExtrUseTwoGauss];
     fileName[1] += SIsBkgParab[ExtrBkgType];
     fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
@@ -286,7 +311,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   else if (TypeComp == 4)
   {
     numOptions = 2;
-    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[!ChosenParticleXi] + ChargeName[ExtrCharge + 1] + SEtaSysChoice[ExtrEtaSysChoice];
+    CommonFileName = "OutputAnalysis/FitV2_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[ExtrEtaSysChoice];
     CommonFileName += IsOneOrTwoGauss[ExtrUseTwoGauss];
     CommonFileName += SIsBkgParab[ExtrBkgType];
     CommonFileName += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
@@ -418,6 +443,65 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     sleg[0] = "test 3";
     sleg[1] = "test 5";
   }
+  // TypeComp = 10 --> Pz from Xi vs Pz from daughter Lambda
+  else if (TypeComp == 10)
+  {
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitPzs2_" + SinputFileName + "_" + ParticleName[ChosenPart];
+    CommonFileName += IsOneOrTwoGauss[UseTwoGauss];
+    CommonFileName += SIsBkgParab[BkgType];
+    Smolt[mult] = Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
+    CommonFileName += Smolt[mult];
+    if (isApplyWeights)
+      CommonFileName += "_Weighted";
+    if (!useCommonBDTValue)
+      CommonFileName += "_BDTCentDep";
+    if (isRun2Binning)
+      CommonFileName += "_Run2Binning";
+    if (!isPtAnalysis)
+      CommonFileName += "_vsPsi";
+    fileName[0] = "";
+    fileName[1] = "_PolFromLambda";
+    namehisto[0] = "histoPzs2";
+    namehisto[1] = "histoPzs2LambdaFromC";
+    hTitleY = "P_{z}";
+    hTitleX = TitleXPt;
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "P_{z} from #Xi";
+    sleg[1] = "P_{z} from #Lambda";
+  }
+  // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
+  else if (TypeComp == 11)
+  {
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_" + ParticleName[ChosenPart];
+    CommonFileName += SIsBkgParab[BkgType] + "_Pzs2";
+    if (isApplyWeights)
+      CommonFileName += "_Weighted";
+    if (!useCommonBDTValue)
+      CommonFileName += "_BDTCentDep";
+    if (isRun2Binning)
+      CommonFileName += "_Run2Binning";
+    fileName[0] = "";
+    fileName[1] = "_PolFromLambda";
+    fileName[0] += "_PtInt";
+    fileName[1] += "_PtInt";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    MinHistoX = 0;
+    MaxHistoX = 70;
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.05;
+    YUp = 0.05;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "P_{z,s2} from #Xi";
+    sleg[1] = "P_{z,s2} from #Lambda";
+  }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
@@ -446,7 +530,8 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
       h[i]->SetName(Form("hVar_%i", i));
       hRatio[i] = (TH1F *)h[i]->Clone(Form("hRatio_%i", i));
       hRatio[i]->Divide(hDef);
-      ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+      if (TypeComp==11) ErrRatioCorr(h[i], hDef, hRatio[i], 1);
+      else ErrRatioCorr(h[i], hDef, hRatio[i], 0);
     }
   }
 
@@ -466,12 +551,12 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   StyleHistoYield(hDummy, YLow, YUp, 1, 1, hTitleX, hTitleY, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
+  hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   if (TypeComp == 5)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
-  hDummy->Draw("same");
+  hDummy->DrawCopy("same");
 
   hDef->SetMarkerColor(ColorMult[5]);
   hDef->SetLineColor(ColorMult[5]);
@@ -492,9 +577,11 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   leg->SetFillStyle(0);
   leg->SetTextSize(0.04);
   if (TypeComp == 5)
-    leg->AddEntry("", ParticleName[!ChosenParticleXi] + " Pb-Pb 5.36 TeV", "");
+    leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
+  else if (TypeComp == 11)
+    leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else
-    leg->AddEntry("", ParticleName[!ChosenParticleXi] + Form("  Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
+    leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
   leg->AddEntry(hDef, sleg[0], "lp");
   for (Int_t i = 1; i < numOptions; i++)
   {
@@ -509,7 +596,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   StyleHistoYield(hDummyRatio, YLowRatio, YUpRatio, 1, 1, hTitleX, hTitleYRatio, "", 1, 1.15, YoffsetSpectraRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
-  hDummyRatio->GetXaxis()->SetRangeUser(MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
+  hDummyRatio->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   if (TypeComp == 5)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
   canvas->cd();
@@ -524,7 +611,7 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
     hRatio[i]->SetMarkerSize(0.6 * SizeMult[1]);
     hRatio[i]->Draw("same");
   }
-  TF1 *line = new TF1("line", "1", MinPt[!ChosenParticleXi], MaxPt[!ChosenParticleXi]);
+  TF1 *line = new TF1("line", "1", MinHistoX, MaxHistoX);
   if (TypeComp == 5)
     line = new TF1("line", "1", 0, 80);
   line->SetLineColor(kBlack);
@@ -532,4 +619,18 @@ void CompareResults(Int_t TypeComp = 0, Int_t mult = 0)
   line->Draw("same");
 
   canvas->SaveAs(Form("Canvas_CompareResults%i.png", TypeComp));
+
+  TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); //without ratio
+  StyleCanvas(canvas2, 0.05, 0.15, 0.15, 0.05);
+  hDummy->GetXaxis()->SetLabelOffset(0.02);
+  hDummy->GetXaxis()->SetTitleSize(30);
+  hDummy->GetXaxis()->SetTitleOffset(1.5);
+  hDummy->Draw();
+   hDef->Draw("same");
+  for (Int_t i = 1; i < numOptions; i++)
+  {
+    h[i]->Draw("same");
+  }
+  leg->Draw("same");
+  canvas2->SaveAs(Form("Canvas_CompareResults%i_NoRatio.png", TypeComp));
 }
