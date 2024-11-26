@@ -307,7 +307,14 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   if (isV2)
     LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{#eta}| < 0.8", "");
   else
-    LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{y} | < 0.5", "");
+  {
+    if (Choice == 6)
+    {
+      LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{y} | < 0.5", "");
+    }
+    else
+      LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{y} | < 0.5", "");
+  }
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
   if (!isPtAnalysis)
