@@ -292,7 +292,14 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   if (isV2)
     LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{#eta}| < 0.8", "");
   else
-    LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{y} | < 0.5", "");
+  {
+    if (Choice == 6)
+    {
+      LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{y} | < 0.5", "");
+    }
+    else
+      LegendTitle->AddEntry("", ParticleNameLegend[part] + ", |#it{y} | < 0.5", "");
+  }
   LegendTitle->AddEntry("", Form("FT0C %i#minus%i %%", CentFT0CMin, CentFT0CMax), "");
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
