@@ -388,6 +388,10 @@ void FitV2orPol(
     SPathIn += "_BDTCentDep";
   if (isRun2Binning)
     SPathIn += "_Run2Binning";
+  if (ExtrisApplyEffWeights)
+  {
+    SPathIn += "_EffW";
+  }
   SPathIn += ".root";
 
   TFile *filein = new TFile(SPathIn, "");
@@ -522,6 +526,8 @@ void FitV2orPol(
     {
       histoNameMassvsV2 = Form("MassvsV2C_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       ProfileV2 = Form("V2C_cent%i-%i_pt%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+      histoNameMassvsCos2Theta = Form("MassvsCos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+      AcceptanceHisto = Form("Cos2Theta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
     }
     else
     { // polarization
@@ -1683,6 +1689,10 @@ void FitV2orPol(
     Soutputfile += "_vsPsi";
   if (!isV2 && isPolFromLambda)
     Soutputfile += "_PolFromLambda";
+  if (ExtrisApplyEffWeights)
+  {
+    Soutputfile += "_EffW";
+  }
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

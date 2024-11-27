@@ -260,6 +260,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       CentFT0CMax = CentFT0C[cent + 1];
     }
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (ExtrisApplyEffWeights) hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -504,6 +505,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_BDTCentDep";
   if (isRun2Binning)
     SOutputFile += "_Run2Binning";
+  if (ExtrisApplyEffWeights){
+    SOutputFile += "_EffW";
+  }
   // SOutputFile += "_TestV2InRestrictedRange.root";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
