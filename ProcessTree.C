@@ -227,10 +227,10 @@ void ProcessTree(Bool_t isEff = 0,
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  //TString SEffWeights = "Efficiency/Efficiency_" + SinputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  // TString SEffWeights = "Efficiency/Efficiency_" + SinputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   TString SEffWeights = "Efficiency/Efficiency_" + SinputFileNameEff + "_" + ParticleName[!isXi] + SEtaSysChoice[EtaSysChoice] + SBDT;
-  //if (!useCommonBDTValue)
-    //SEffWeights += "_BDTCentDep";
+  // if (!useCommonBDTValue)
+  // SEffWeights += "_BDTCentDep";
   if (isRun2Binning)
     SEffWeights += "_Run2Binning";
   SEffWeights += ".root";
@@ -255,6 +255,10 @@ void ProcessTree(Bool_t isEff = 0,
     }
   }
 
+  // Published v2 values vs cent and pt
+  //TFile *v2PubFile = new TFile("v2Histo.root", "");
+  //TH2F *v2Histo = (TH2F *)v2PubFile->Get("v2Histo");
+
   // create output file
   TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
@@ -265,8 +269,8 @@ void ProcessTree(Bool_t isEff = 0,
     OutputFileName += "_BDTCentDep";
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
-  // OutputFileName += "_Effweight.root";
-  OutputFileName += "_Test.root";
+  //OutputFileName += "_EffWBis.root";
+  // OutputFileName += "_Test.root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
@@ -278,6 +282,7 @@ void ProcessTree(Bool_t isEff = 0,
 
   TH3D *massVsPtVsV2CHisto[numCent + 1];
   TH3D *massVsPtVsV2CWeightedHisto[numCent + 1];
+  TH2D *effWeightHisto[numCent + 1];
   TH3D *massVsPtVsPzs2Histo[numCent + 1];
   TH3D *massVsPtVsPzs2LambdaFromCHisto[numCent + 1];
   TH3D *massVsPsiVsPzHisto[numCent + 1];
@@ -326,11 +331,20 @@ void ProcessTree(Bool_t isEff = 0,
     auto dcentPzs2 = dcent.Filter("fRapidity > -0.5 && fRapidity < 0.5");
     if (isApplyEffWeights)
     {
-      dcent = dcent.Define("numW", [&par0_Eff, &par1_Eff](double Nch, double v2, float y, float pt)
+      dcent = dcent.Define("denW", [&par0_Eff, &par1_Eff](double Nch, double v2, float y, float pt)
                            {
                             int ptBin = par0_Eff->GetXaxis()->FindBin(pt);
                             return std::exp(par0_Eff->GetBinContent(ptBin) + par1_Eff->GetBinContent(ptBin) * Nch * (1 + 2 * v2 * cos(y))); }, {"Nch", "v2Pub", "f2PsiDiffCorr", "fPt"});
-      dcent = dcent.Define("denW", [&par0_Eff, &par1_Eff](double Nch, float pt)
+      /*/
+        dcent = dcent.Define("denW", [&par0_Eff, &par1_Eff, &v2Histo](double Nch, float CentT0C, float y, float pt)
+                             {
+                              int ptBinV2Histo = v2Histo->GetYaxis()->FindBin(pt);
+                              int centBinV2Histo = v2Histo->GetXaxis()->FindBin(CentT0C);
+                              int ptBin = par0_Eff->GetXaxis()->FindBin(pt);
+                              int v2Published = v2Histo->GetBinContent(centBinV2Histo, ptBinV2Histo);
+                              return std::exp(par0_Eff->GetBinContent(ptBin) + par1_Eff->GetBinContent(ptBin) * Nch * (1 + 2 * v2Published * cos(y))); }, {"Nch", "fCentFT0C", "f2PsiDiffCorr", "fPt"});
+  */
+      dcent = dcent.Define("numW", [&par0_Eff, &par1_Eff](double Nch, float pt)
                            {
                            int ptBin = par0_Eff->GetXaxis()->FindBin(pt);
                            return std::exp(par0_Eff->GetBinContent(ptBin) + par1_Eff->GetBinContent(ptBin) * Nch); }, {"Nch", "fPt"});
@@ -348,6 +362,7 @@ void ProcessTree(Bool_t isEff = 0,
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen);
       auto massVsPtVsV2CWeighted = dcent.Histo3D({Form("massVsPtVsV2CHistWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen, "fEffWeight");
+      auto effWeight = dcent.Histo2D({Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax), "Efficiency weight vs 2*(Psi-Phi)", 20, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "fEffWeight");
       auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2Xi");
       auto massVsPtVsPzs2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2LambdaFromC");
       auto massVsPsiVsPz = dcentPzs2.Histo3D({Form("massVsPsiVsPzHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassXi", "f2PsiDiffCorr", "fCosThetaStarLambdaFromXi");
@@ -369,6 +384,7 @@ void ProcessTree(Bool_t isEff = 0,
 
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsV2CWeightedHisto[cent] = (TH3D *)massVsPtVsV2CWeighted->Clone(Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      effWeightHisto[cent] = (TH2D *)effWeight->Clone(Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2LambdaFromCHisto[cent] = (TH3D *)massVsPtVsPzs2LambdaFromC->Clone(Form("massVsPtVsPzs2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPsiVsPzHisto[cent] = (TH3D *)massVsPsiVsPz->Clone(Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -470,6 +486,7 @@ void ProcessTree(Bool_t isEff = 0,
 
     massVsPtVsV2CHisto[cent]->Write();
     massVsPtVsV2CWeightedHisto[cent]->Write();
+    effWeightHisto[cent]->Write();
     massVsPtVsPzs2Histo[cent]->Write();
     massVsPtVsPzs2LambdaFromCHisto[cent]->Write();
     massVsPsiVsPzHisto[cent]->Write();
