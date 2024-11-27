@@ -70,12 +70,15 @@ Int_t MarkerRun3[12] = {20, 21, 29, 33, 20, 21, 29, 33, 20, 21, 29, 33};
 Float_t MarkerSize[] = {1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2.};
 
 void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 for Run2 comparison
-                       Bool_t isXi = ChosenParticleXi,
+                       Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Bool_t UseTwoGauss = ExtrUseTwoGauss,
                        Int_t BkgType = ExtrBkgType)
 {
 
+  Bool_t isXi = 0;
+  if (ChosenPart == 0 || ChosenPart == 2 || ChosenPart == 3)
+    isXi = 1;
   if (isRun2Comparison && numPtBins != 6)
   {
     cout << "The pt binning you chose is not the one used in Run 2, please change in CommonVar.h file" << endl;
@@ -111,6 +114,8 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
       SinputFile += "_BDTCentDep";
     if (isRun2Binning)
       SinputFile += "_Run2Binning";
+    if (ExtrisApplyEffWeights)
+      SinputFile += "_EffW";
     SinputFile += ".root";
     inputFile = new TFile(SinputFile);
     cout << "Input file with Run 3 v2: " << SinputFile << endl;
@@ -128,7 +133,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
   TString SPublishedFileRun1 = "Run1Results/HEPData-ins1297103-v1-root.root";
   // in classes 10-20%, 20-30%, 30-40%, 40-50%
-  //TString TablesRun2[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; // v2 measured with 2-particle correlations
+  // TString TablesRun2[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; // v2 measured with 2-particle correlations
   TString TablesRun2[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
   if (!isXi)
   {
@@ -201,7 +206,11 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   legendRun2->SetTextSize(0.03);
   legendRun2->SetHeader("PbPb, #sqrt{#it{s}_{NN}} = 5.02 TeV, JHEP 05 (2023) 243");
 
-  TFile *file = new TFile("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".root", "RECREATE");
+  TString SfileComp = "OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi];
+  if (ExtrisApplyEffWeights)
+    SfileComp += "_EffW";
+  SfileComp += ".root";
+  TFile *file = new TFile(SfileComp, "RECREATE");
   TCanvas *canvasvsRun2 = new TCanvas("canvasvsRun2", "canvasvsRun2", 1200, 800);
   StyleCanvas(canvasvsRun2, 0.1, 0.05, 0.05, 0.15);
   gStyle->SetOptStat(0);
