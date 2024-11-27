@@ -88,6 +88,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     cout << "File " << SinputFileGen << " not found" << endl;
     return;
   }
+  cout << "Reading file: " << SinputFileGen << endl;
   TDirectoryFile *dirMCGen = (TDirectoryFile *)inputFileGen->Get("lf-cascade-flow/histosMCGen");
   if (!dirMCGen)
   {
@@ -115,9 +116,13 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     return;
   }
   Float_t NEvents[numCent + 1] = {0};
+  // TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent" + RapidityCoverage[isMidRapidity]);
   TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent");
   if (part == 1)
+  {
+    // histoReco = (TH2F *)dirReco->Get("hOmegaPtvsCent" + RapidityCoverage[isMidRapidity]);
     histoReco = (TH2F *)dirReco->Get("hOmegaPtvsCent");
+  }
   if (!histoReco)
   {
     cout << "Histogram hXiPtvsCent (or hOmegaPtvsCent) not found" << endl;
@@ -164,7 +169,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     histoRecovsCent->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     NEvents[m] = histoRecovsCent->Integral(histoRecovsCent->FindBin(CentFT0CMin + 0.001), histoRecovsCent->FindBin(CentFT0CMax - 0.001));
     histoGen->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
-    histoGenPt[m] = (TH1F *)histoGen->ProjectionY(Form("histoGen"+ RapidityCoverage[isMidRapidity] +"Pt_%i-%i", CentFT0CMin, CentFT0CMax));
+    histoGenPt[m] = (TH1F *)histoGen->ProjectionY(Form("histoGen" + RapidityCoverage[isMidRapidity] + "Pt_%i-%i", CentFT0CMin, CentFT0CMax));
     histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(numPtBinsEff, "", PtBinsEff);
     // histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(RebinFactor);
     StyleHistoYield(histoGenPt[m], 0, 1.1 * histoGenPt[numCent]->GetBinContent(histoGenPt[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
@@ -175,7 +180,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     cGen->cd();
     histoGenPt[m]->Draw("same e");
     cGenPerEvent->cd();
-    for (Int_t b=1; b<=histoGenPtPerEvent[m]->GetNbinsX(); b++)
+    for (Int_t b = 1; b <= histoGenPtPerEvent[m]->GetNbinsX(); b++)
     {
       histoGenPtPerEvent[m]->SetBinContent(b, histoGenPtPerEvent[m]->GetBinContent(b) / histoGenPtPerEvent[m]->GetBinWidth(b));
       histoGenPtPerEvent[m]->SetBinError(b, histoGenPtPerEvent[m]->GetBinError(b) / histoGenPtPerEvent[m]->GetBinWidth(b));
@@ -284,12 +289,12 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       // cout << "Centrality: " << CentFT0C[m] << " - " << CentFT0C[m + 1] << endl;
 
       histoEffVsMult[pt]->GetXaxis()->SetBinLabel(m + 1, Form("%i-%i %%", CentFT0C[m], CentFT0C[m + 1]));
-      histoEffVsMult[pt]->SetBinContent(m + 1, histoPtEff[m]->GetBinContent(pt + 1));
-      histoEffVsMult[pt]->SetBinError(m + 1, histoPtEff[m]->GetBinError(pt + 1));
-      Efficiency[pt][m] = histoPtEff[m]->GetBinContent(pt + 1);
-      EffError[pt][m] = histoPtEff[m]->GetBinError(pt + 1);
+      histoEffVsMult[pt]->SetBinContent(m + 1, histoPtRecoEff[m]->GetBinContent(pt + 1));
+      histoEffVsMult[pt]->SetBinError(m + 1, histoPtRecoEff[m]->GetBinError(pt + 1));
+      Efficiency[pt][m] = histoPtRecoEff[m]->GetBinContent(pt + 1);
+      EffError[pt][m] = histoPtRecoEff[m]->GetBinError(pt + 1);
     }
-    StyleHistoYield(histoEffVsMult[pt], 0, 0.1, ColorMult[pt], MarkerMult[pt], TitleXCent, "Efficiency", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoEffVsMult[pt], 0, 0.3, ColorMult[pt], MarkerMult[pt], TitleXCent, "Efficiency", "", 1, 1.15, 1.2);
     legendPt->AddEntry(histoEffVsMult[pt], Form("%2.1f < p_{T} < %2.1f GeV/c", PtBinsEff[pt], PtBinsEff[pt + 1]), "pl");
     cEffvsMult->cd();
     histoEffVsMult[pt]->Draw("same e");
@@ -305,7 +310,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   StyleCanvas(cEffVsNCh, 0.12, 0.05, 0.02, 0.13);
   TF1 *fitEffVsNch[numPtBinsEff + 1];
   TH1F *hdummy = new TH1F("hdummy", "Efficiency vs Nch", 10, 0, 2500);
-  StyleHistoYield(hdummy, 0, 0.1, 1, 1, "N_{ch}", "Efficiency", "", 1, 1.15, 1.2);
+  StyleHistoYield(hdummy, 0, 0.2, 1, 1, "N_{ch}", "Efficiency", "", 1, 1.15, 1.2);
   hdummy->Draw();
   for (Int_t pt = 0; pt < numPtBinsEff; pt++)
   {
@@ -315,6 +320,27 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     gEffVsNch[pt]->Draw("same p");
   }
   legendPt->Draw();
+
+  TH1D *hpar0_Eff = new TH1D("hpar0_Eff", "hpar0_Eff", numPtBinsEff, 0, numPtBinsEff);
+  TH1D *hpar1_Eff = new TH1D("hpar1_Eff", "hpar1_Eff", numPtBinsEff, 0, numPtBinsEff);
+  for (Int_t pt = 0; pt < numPtBinsEff; pt++)
+  {
+    hpar0_Eff->SetBinContent(pt + 1, fitEffVsNch[pt]->GetParameter(0));
+    hpar0_Eff->SetBinError(pt + 1, fitEffVsNch[pt]->GetParError(0));
+    hpar1_Eff->SetBinContent(pt + 1, fitEffVsNch[pt]->GetParameter(1));
+    hpar1_Eff->SetBinError(pt + 1, fitEffVsNch[pt]->GetParError(1));
+  }
+
+  TCanvas *Chi2VsPt = new TCanvas("Chi2VsPt", "Chi2VsPt", 1200, 800);
+  StyleCanvas(Chi2VsPt, 0.12, 0.05, 0.02, 0.13);
+  TH1F *histoChi2VsPt = (TH1F *)histoRecoPt[0]->Clone("histoChi2VsPt");
+  for (Int_t pt = 0; pt < numPtBinsEff; pt++)
+  {
+    histoChi2VsPt->SetBinContent(pt + 1, fitEffVsNch[pt]->GetChisquare() / fitEffVsNch[pt]->GetNDF());
+    histoChi2VsPt->SetBinError(pt + 1, 0);
+  }
+  StyleHistoYield(histoChi2VsPt, 0, 3, 1, 1, "p_{T}", "#chi^{2}/NDF", "", 1, 1.15, 1.2);
+  histoChi2VsPt->Draw();
 
   cGen->cd();
   legendMult->Draw();
@@ -345,6 +371,13 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
   cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
 
+  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+
   TString SOutputFile = "Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (!useCommonBDTValue)
     SOutputFile += "_BDTCentDep";
@@ -356,6 +389,8 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   {
     fitEffVsNch[pt]->Write();
   }
+  hpar0_Eff->Write();
+  hpar1_Eff->Write();
   file->Close();
   cout << "I created the file " << file->GetName() << endl;
 }
