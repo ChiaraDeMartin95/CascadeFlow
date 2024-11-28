@@ -198,6 +198,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 9 --> v2 with pass4; test 5 vs test 3
   // TypeComp = 10 --> Pz from Xi vs Pz from daughter Lambda
   // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
+  // TypeComp = 12 --> Pzs2 vs centrality; XIMinus vs XiPlus
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -502,6 +503,27 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "P_{z,s2} from #Xi";
     sleg[1] = "P_{z,s2} from #Lambda";
   }
+  // TypeComp = 12 --> Pzs2 vs centrality : XiPlus vs XiMinus
+  else if (TypeComp == 12)
+  {
+    numOptions = 2;
+    //CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_";
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_pass4_QC1_Train268802_";
+    fileName[0] = ParticleName[2] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_BDTCentDep_Run2Binning_PtInt";
+    fileName[1] = ParticleName[3] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_BDTCentDep_Run2Binning_PtInt";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    MinHistoX = 0;
+    MaxHistoX = 70;
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.05;
+    YUp = 0.05;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "#Xi^{-}";
+    sleg[1] = "#Xi^{+}";
+  }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
@@ -530,8 +552,10 @@ void CompareResults(Int_t TypeComp = 0,
       h[i]->SetName(Form("hVar_%i", i));
       hRatio[i] = (TH1F *)h[i]->Clone(Form("hRatio_%i", i));
       hRatio[i]->Divide(hDef);
-      if (TypeComp==11) ErrRatioCorr(h[i], hDef, hRatio[i], 1);
-      else ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+      if (TypeComp == 11)
+        ErrRatioCorr(h[i], hDef, hRatio[i], 1);
+      else
+        ErrRatioCorr(h[i], hDef, hRatio[i], 0);
     }
   }
 
@@ -620,13 +644,13 @@ void CompareResults(Int_t TypeComp = 0,
 
   canvas->SaveAs(Form("Canvas_CompareResults%i.png", TypeComp));
 
-  TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); //without ratio
+  TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); // without ratio
   StyleCanvas(canvas2, 0.05, 0.15, 0.15, 0.05);
   hDummy->GetXaxis()->SetLabelOffset(0.02);
   hDummy->GetXaxis()->SetTitleSize(30);
   hDummy->GetXaxis()->SetTitleOffset(1.5);
   hDummy->Draw();
-   hDef->Draw("same");
+  hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
     h[i]->Draw("same");

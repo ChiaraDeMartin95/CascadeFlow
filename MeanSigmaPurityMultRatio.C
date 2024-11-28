@@ -116,7 +116,7 @@ Float_t YUpMean[numPart] = {1.327, 1.68};
 Float_t YLowSigma[numPart] = {0.0, 0.0};
 Float_t YUpSigma[numPart] = {0.006, 0.006};
 Float_t YLowPurity[numPart] = {0.8, 0};
-Float_t YLowV2[numPart] = {-0.4, -0.4};
+Float_t YLowV2[numPart] = {-0.3, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
 Float_t YLowPzs2[numPart] = {-0.5, -0.5};
 Float_t YUpPzs2[numPart] = {0.5, 0.5};
@@ -327,9 +327,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   // get spectra in multiplicity classes
   for (Int_t m = numCent; m >= 0; m--)
   {
-    if (m == numCent && isV2)
+    if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 2) && m != numCent))
+    if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
     if (m == numCent)
     { // 0-80%
@@ -398,7 +398,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 8);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
-    hDummy->SetBinContent(i, 1e-12);
+    hDummy->SetBinContent(i, -100000);
   canvasPtSpectra->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, titlex, TitleY[Choice], "", 1, 1.15, 1.6);
@@ -415,9 +415,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   for (Int_t m = numCent; m >= 0; m--)
   {
-    if (m == numCent && isV2)
+    if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 2) && m != numCent))
+    if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
     ScaleFactorFinal[m] = ScaleFactor[m];
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
@@ -491,9 +491,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   for (Int_t m = numCent; m >= 0; m--)
   {
-    if (m == numCent && isV2)
+    if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 2) && m != numCent))
+    if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
     fHistSpectrumMultRatio[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumMultRatio_" + Smolt[m]);
     fHistSpectrumMultRatio[m]->Divide(fHistSpectrum[ChosenMult]);
@@ -527,9 +527,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   hDummy->Draw("same");
   for (Int_t m = numCent; m >= 0; m--)
   {
-    if (m == numCent && isV2)
+    if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
-    if (m == 0 || (m > (numCent - 2) && m != numCent))
+    if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
     fHistSpectrumScaled[m]->Draw("same e0x0");
   }

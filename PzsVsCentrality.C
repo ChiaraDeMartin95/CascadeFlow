@@ -108,8 +108,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-Float_t YLow[numPart] = {-0.02}; // 0.002
-Float_t YUp[numPart] = {0.02};
+Float_t YLow[numPart] = {-0.05}; // 0.002
+Float_t YUp[numPart] = {0.05};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
@@ -258,6 +258,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzs, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXCent, TitleYPzs, "", MarkerPartSize[part], 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
+  hDummy->GetXaxis()->SetRangeUser(0, 70);
   hDummy->Draw("");
   fHistPzs->Draw("same");
   LegendTitle->Draw("");
