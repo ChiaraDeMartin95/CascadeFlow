@@ -63,7 +63,7 @@ void ProcessTree(Bool_t isEff = 0,
 {
 
   TString weightFileName = "PhiWeights/Weights_" + SinputFileName + "_" + ParticleName[ChosenParticle] + ".root";
-  
+
   if (isEff)
     isApplyEffWeights = 0; // just compute histos for efficiency, no use in applying weigths
 
@@ -153,15 +153,6 @@ void ProcessTree(Bool_t isEff = 0,
     chargecut = "fSign < 0";
   auto d2 = d1.Filter(chargecut);
 
-  // apply eta selection for systematic studies
-  // auto d = d2;
-  if (EtaSysChoice == 0) // -0.8 < eta < 0.8
-    d2 = d2.Filter("fEta > -0.8 && fEta < 0.8");
-  else if (EtaSysChoice == 1) // eta > 0 && eta < 0.8
-    d2 = d2.Filter("fEta > 0 && fEta < 0.8");
-  else if (EtaSysChoice == 2) // eta < 0 && eta > -0.8
-    d2 = d2.Filter("fEta < 0 && fEta > -0.8");
-
   // apply competing mass rejection for Omega
   //   if (!isXi) d3 = d3.Filter("fMassXi > 1.34 || fMassXi < 1.3"); //rough mass cut to reject Xi
   string rejectMassXi = Form("abs(fMassXi - %.3f) > 5* (%.3f * exp(%.3f * fPt) + %.3f * exp(%.3f * fPt))", ParticleMassPDG[ChosenPart], massSigmaParameters[0][0], massSigmaParameters[1][0], massSigmaParameters[2][0], massSigmaParameters[3][0]);
@@ -183,8 +174,16 @@ void ProcessTree(Bool_t isEff = 0,
   string Num = Form("%s + %s", Common1.c_str(), Common2.c_str());
   string Denom = Form("%s - %s", Common1.c_str(), Common2.c_str());
   d2 = d2.Define("fRapidity", Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()));
-  auto d2RapCut = d2.Filter("abs(fRapidity) < 0.5");
-  cout << Form("0.5 * std::log((%s) / (%s))", Num.c_str(), Denom.c_str()) << endl;
+
+  // rapidity and eta selections
+  auto d2RapCut = d2.Filter("abs(fRapidity) < 0.5"); // only |y| < 0.5 selection (no pseudorapidity selection)
+
+  if (EtaSysChoice == 0) // -0.8 < eta < 0.8
+    d2 = d2.Filter("fEta > -0.8 && fEta < 0.8");
+  else if (EtaSysChoice == 1) // eta > 0 && eta < 0.8
+    d2 = d2.Filter("fEta > 0 && fEta < 0.8");
+  else if (EtaSysChoice == 2) // eta < 0 && eta > -0.8
+    d2 = d2.Filter("fEta < 0 && fEta > -0.8");
 
   // pt vs centrality before BDT cut
   auto hPtvsCent_Bef = d2.Histo2D({"PtvsCent_BefBDT", "PtvsCent_BefBDT", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -195,7 +194,7 @@ void ProcessTree(Bool_t isEff = 0,
   if (!isXi)
     cutvariable = "fBDTResponseOmega";
   auto d3 = d2.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
-  auto d3RapCut = d3.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
+  auto d3RapCut = d2RapCut.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
 
   // pt vs centrality after BDT cut
   auto hPtvsCent_Aft = d3.Histo2D({"PtvsCent_AftBDT", "PtvsCent_AftBDT", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -235,6 +234,7 @@ void ProcessTree(Bool_t isEff = 0,
   // SEffWeights += "_BDTCentDep";
   if (isRun2Binning)
     SEffWeights += "_Run2Binning";
+  SEffWeights += "_" + RapidityCoverage[!isV2];
   SEffWeights += ".root";
   TFile *fileEffWeights = new TFile(SEffWeights, "");
   if (isApplyEffWeights)
@@ -285,7 +285,9 @@ void ProcessTree(Bool_t isEff = 0,
   TH3D *massVsPtVsV2CHisto[numCent + 1];
   TH3D *massVsPtVsV2CWeightedHisto[numCent + 1];
   TH2D *NchVarHisto[numCent + 1];
+  TH2D *NchTimesV2Histo[numCent + 1];
   TH2D *effWeightHisto[numCent + 1];
+  TH3D *effWeight3DHisto[numCent + 1];
   TH3D *massVsPtVsPzs2Histo[numCent + 1];
   TH3D *massVsPtVsPzs2LambdaFromCHisto[numCent + 1];
   TH3D *massVsPsiVsPzHisto[numCent + 1];
@@ -354,14 +356,25 @@ void ProcessTree(Bool_t isEff = 0,
       dcent = dcent.Define("fEffWeight", "numW/denW");
       dcent = dcent.Define("NchVar", [](double v2, float y)
                            { return (1 + 2 * v2 * cos(y)); }, {"v2Pub", "f2PsiDiffCorr"});
+      dcent = dcent.Define("NchxV2", "Nch * v2Pub");
     }
     else
     {
       dcent = dcent.Define("fEffWeight", "1");
       dcent = dcent.Define("NchVar", "1");
+      dcent = dcent.Define("Nchxv2", "1");
     }
     dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromC", "fCosThetaStarProton * sin(2*(fPhi-fPsiT0C))");
     dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarProton", "fCosThetaStarProton * fCosThetaStarProton");
+    auto NchVar = dcent.Histo2D({Form("NchVar_cent%i-%i", CentFT0CMin, CentFT0CMax), "Rel. variation of Nch vs 2*(Psi-Phi)", 100, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "NchVar");
+    auto NchTimesV2 = dcent.Histo2D({Form("NchTimesV2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Nch * v2 vs 2*(Psi-Phi)", 100, 0, 2 * TMath::Pi(), 1000, 0, 1000}, "f2PsiDiffCorr", "NchxV2");
+    auto effWeight = dcent.Histo2D({Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax), "Efficiency weight vs 2*(Psi-Phi)", 20, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "fEffWeight");
+    auto effWeight3D = dcent.Histo3D({Form("EffWeight3D_cent%i-%i", CentFT0CMin, CentFT0CMax), "Efficiency weight vs Pt vs 2*(Psi-Phi)", 100, 0, 10, 20, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "fPt", "f2PsiDiffCorr", "fEffWeight");
+    effWeightHisto[cent] = (TH2D *)effWeight->Clone(Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax));
+    effWeight3DHisto[cent] = (TH3D *)effWeight3D->Clone(Form("EffWeight3D_cent%i-%i", CentFT0CMin, CentFT0CMax));
+    NchVarHisto[cent] = (TH2D *)NchVar->Clone(Form("NchVar_cent%i-%i", CentFT0CMin, CentFT0CMax));
+    NchTimesV2Histo[cent] = (TH2D *)NchTimesV2->Clone(Form("NchTimesV2_cent%i-%i", CentFT0CMin, CentFT0CMax));
+
     if (isXi)
     {
       dcentPzs2 = dcentPzs2.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
@@ -370,8 +383,6 @@ void ProcessTree(Bool_t isEff = 0,
       auto hMassCut = dmasscut.Histo1D({"massCut", "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen);
       auto massVsPtVsV2CWeighted = dcent.Histo3D({Form("massVsPtVsV2CHistWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.28, 1.36, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassXi", "fPt", v2Chosen, "fEffWeight");
-      auto NchVar = dcent.Histo2D({Form("NchVar_cent%i-%i", CentFT0CMin, CentFT0CMax), "Rel. variation of Nch vs 2*(Psi-Phi)", 100, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "NchVar");
-      auto effWeight = dcent.Histo2D({Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax), "Efficiency weight vs 2*(Psi-Phi)", 20, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "fEffWeight");
       auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2Xi");
       auto massVsPtVsPzs2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassXi", "fPt", "Pzs2LambdaFromC");
       auto massVsPsiVsPz = dcentPzs2.Histo3D({Form("massVsPsiVsPzHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassXi", "f2PsiDiffCorr", "fCosThetaStarLambdaFromXi");
@@ -393,8 +404,6 @@ void ProcessTree(Bool_t isEff = 0,
 
       massVsPtVsV2CHisto[cent] = (TH3D *)massVsPtVsV2C->Clone(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsV2CWeightedHisto[cent] = (TH3D *)massVsPtVsV2CWeighted->Clone(Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax));
-      effWeightHisto[cent] = (TH2D *)effWeight->Clone(Form("EffWeight_cent%i-%i", CentFT0CMin, CentFT0CMax));
-      NchVarHisto[cent] = (TH2D *)NchVar->Clone(Form("NchVar_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2Histo[cent] = (TH3D *)massVsPtVsPzs2->Clone(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPtVsPzs2LambdaFromCHisto[cent] = (TH3D *)massVsPtVsPzs2LambdaFromC->Clone(Form("massVsPtVsPzs2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax));
       massVsPsiVsPzHisto[cent] = (TH3D *)massVsPsiVsPz->Clone(Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -497,7 +506,9 @@ void ProcessTree(Bool_t isEff = 0,
     massVsPtVsV2CHisto[cent]->Write();
     massVsPtVsV2CWeightedHisto[cent]->Write();
     NchVarHisto[cent]->Write();
+    NchTimesV2Histo[cent]->Write();
     effWeightHisto[cent]->Write();
+    effWeight3DHisto[cent]->Write();
     massVsPtVsPzs2Histo[cent]->Write();
     massVsPtVsPzs2LambdaFromCHisto[cent]->Write();
     massVsPsiVsPzHisto[cent]->Write();
