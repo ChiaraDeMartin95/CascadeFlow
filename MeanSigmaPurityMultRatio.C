@@ -128,8 +128,8 @@ Float_t YUpCos2ThetaLambda[numPart] = {0.3, 0.3};
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
@@ -199,7 +199,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     YLow[part] = 1e-9;
     YUp[part] = 100;
   }
-  else if (Choice == 4)
+  else if (Choice == 4 || Choice == 9)
   {
     YLow[part] = YLowV2[part];
     YUp[part] = YUpV2[part];
@@ -253,6 +253,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += "_Run2Binning";
   if (!isPtAnalysis)
     stringout += "_vsPsi";
+  if (ExtrisApplyEffWeights)
+    stringout += "_EffW";
   stringoutpdf = stringout;
   stringout += "_5Cent.root";
   TFile *fileout = new TFile(stringout, "RECREATE");
@@ -360,6 +362,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_vsPsi";
     if (Choice == 6 || Choice == 8)
       PathIn += "_PolFromLambda";
+    if (ExtrisApplyEffWeights)
+      PathIn += "_EffW";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
