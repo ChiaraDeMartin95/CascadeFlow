@@ -143,7 +143,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     cout << "Error: input file not found" << endl;
     return;
   }
-  TDirectory *dir = (TDirectory *)inputfile->Get("lf-cascade-flow");
+  TDirectory *dir = (TDirectory *)inputfile->Get("lf-cascade-flow/resolution");
   if (!dir)
   {
     cout << "Error: input directory not found" << endl;
