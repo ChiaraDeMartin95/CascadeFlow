@@ -40,7 +40,6 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     part = 1;
   }
 
-  TString RapidityCoverage[2] = {"Eta08", "Y05"};
   // if (isSysMultTrial)
   // inputFileNameEff = SinputFileNameSystEff;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -57,6 +56,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     SinputFileReco += "_BDTCentDep";
   if (isRun2Binning)
     SinputFileReco += "_Run2Binning";
+  // SinputFileReco += "_EffTrain305015";
   SinputFileReco += ".root";
   cout << "Input file: " << SinputFileReco << endl;
 
@@ -116,12 +116,11 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     return;
   }
   Float_t NEvents[numCent + 1] = {0};
-  // TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent" + RapidityCoverage[isMidRapidity]);
   TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent");
+  // TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent" + RapidityCoverage[isMidRapidity]);
   if (part == 1)
   {
-    // histoReco = (TH2F *)dirReco->Get("hOmegaPtvsCent" + RapidityCoverage[isMidRapidity]);
-    histoReco = (TH2F *)dirReco->Get("hOmegaPtvsCent");
+    histoReco = (TH2F *)dirReco->Get("hOmegaPtvsCent" + RapidityCoverage[isMidRapidity]);
   }
   if (!histoReco)
   {
@@ -321,8 +320,8 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   }
   legendPt->Draw();
 
-  TH1D *hpar0_Eff = new TH1D("hpar0_Eff", "hpar0_Eff", numPtBinsEff, 0, numPtBinsEff);
-  TH1D *hpar1_Eff = new TH1D("hpar1_Eff", "hpar1_Eff", numPtBinsEff, 0, numPtBinsEff);
+  TH1F *hpar0_Eff = new TH1F("hpar0_Eff", "hpar0_Eff", numPtBinsEff, PtBinsEff);
+  TH1F *hpar1_Eff = new TH1F("hpar1_Eff", "hpar1_Eff", numPtBinsEff, PtBinsEff);
   for (Int_t pt = 0; pt < numPtBinsEff; pt++)
   {
     hpar0_Eff->SetBinContent(pt + 1, fitEffVsNch[pt]->GetParameter(0));
@@ -383,6 +382,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     SOutputFile += "_BDTCentDep";
   if (isRun2Binning)
     SOutputFile += "_Run2Binning";
+  SOutputFile += "_" + RapidityCoverage[isMidRapidity];
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t pt = 0; pt < numPtBinsEff; pt++)
@@ -392,5 +392,19 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   hpar0_Eff->Write();
   hpar1_Eff->Write();
   file->Close();
+
+  TCanvas *par0Eff = new TCanvas("par0Eff", "par0Eff", 1200, 800);
+  StyleCanvas(par0Eff, 0.12, 0.05, 0.02, 0.13);
+  StyleHistoYield(hpar0_Eff, -4, -1, ColorMult[0], MarkerMult[0], TitleXPt, "par0", "", 1, 1.15, 1.2);
+  hpar0_Eff->Draw();
+  TCanvas *par1Eff = new TCanvas("par1Eff", "par1Eff", 1200, 800);
+  StyleCanvas(par1Eff, 0.12, 0.05, 0.02, 0.13);
+  StyleHistoYield(hpar1_Eff, -0.0015, -0.0002, ColorMult[0], MarkerMult[0], TitleXPt, "par1", "", 1, 1.15, 1.2);
+  hpar1_Eff->Draw();
+  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+
   cout << "I created the file " << file->GetName() << endl;
 }
