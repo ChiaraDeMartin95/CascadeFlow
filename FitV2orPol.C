@@ -317,7 +317,7 @@ void FitV2orPol(
     cout << "File Evt does not exist" << endl;
     return;
   }
-  TDirectoryFile *dirEvt = (TDirectoryFile *)fileEvt->Get("lf-cascade-flow");
+  TDirectoryFile *dirEvt = (TDirectoryFile *)fileEvt->Get("lf-cascade-flow/histos");
   TH1F *hEvents = (TH1F *)dirEvt->Get("hEventCentrality");
   if (!hEvents)
   {
@@ -478,6 +478,7 @@ void FitV2orPol(
   TH1F *histoV2 = new TH1F(ShistoV2, Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2MixedCorr = new TH1F(ShistoV2 + "MixedCorr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
   TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
   TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
@@ -1596,13 +1597,6 @@ void FitV2orPol(
     histoV2Mixed->Add(histobaselineMixed, -1);
   }
 
-  histoV2->Scale(1. / ftcReso[mul]);
-  histoV2NoFit->Scale(1. / ftcReso[mul]);
-  histoV2Mixed->Scale(1. / ftcReso[mul]);
-  histoV2PtInt->Scale(1. / ftcReso[mul]);
-  histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
-  histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
-
   // acceptance correction for polarization
   if (!isV2)
   {
@@ -1635,6 +1629,32 @@ void FitV2orPol(
       histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
     }
   }
+
+  // scaling by resolution
+  histoV2->Scale(1. / ftcReso[mul]);
+  histoV2NoFit->Scale(1. / ftcReso[mul]);
+  histoV2Mixed->Scale(1. / ftcReso[mul]);
+  histoV2PtInt->Scale(1. / ftcReso[mul]);
+  histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
+  histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
+
+  // v2 corrected by weights a posteriori
+  histoV2MixedCorr = (TH1F *)histoV2Mixed->Clone("histoV2MixedCorr");
+  TFile *fileV2Correction = new TFile("V2Corr.root", "READ");
+  TH1F *histoV2Corr = (TH1F *)fileV2Correction->Get(Form("v2CorrCent%i", mul));
+  //this histogram is already corrected by resolution
+  if (!histoV2Corr)
+  {
+    cout << "Error: histoV2Corr not found" << endl;
+    return;
+  }
+  if (!ExtrisApplyEffWeights)
+    histoV2MixedCorr->Add(histoV2Corr, 1);
+  for (Int_t pt = 0; pt < numPtBinsVar; pt++)
+  {
+    histoV2MixedCorr->SetBinError(pt + 1, histoV2Mixed->GetBinError(pt + 1));
+  }
+
   histoV2NoFit->Draw();
 
   canvasSummary->cd(8);
@@ -1720,6 +1740,7 @@ void FitV2orPol(
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
+  outputfile->WriteTObject(histoV2MixedCorr);
   outputfile->WriteTObject(histoV2PtInt);
   outputfile->WriteTObject(histoV2PtIntNoFit);
   outputfile->WriteTObject(histoV2PtIntMixed);
