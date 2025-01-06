@@ -43,13 +43,20 @@ Float_t MinPz = -1;
 Float_t MaxPz = 1;
 Int_t NPz = 200;
 
-bool passbdtCut(float bdtscore, float cent)
+bool passbdtCut(float bdtscore, float cent, int indexMultTrial)
 {
   float sbdtCut = 0;
-  if (useCommonBDTValue)
-    sbdtCut = DefaultBDTscoreCut;
+  if (ExtrisSysMultTrial)
+  {
+    sbdtCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
+  }
   else
-    sbdtCut = bdtCut[int(cent / 10)];
+  {
+    if (useCommonBDTValue)
+      sbdtCut = DefaultBDTscoreCut;
+    else
+      sbdtCut = bdtCut[int(cent / 10)];
+  }
   return (bdtscore > sbdtCut);
 }
 
@@ -89,7 +96,11 @@ void ProcessTree(Bool_t isEff = 0,
     cosThetaStar = "fCosThetaStarLambdaFromOmega";
 
   if (isSysMultTrial)
+  {
     inputFileName = SinputFileNameSyst;
+    if (isEff)
+      inputFileName = SinputFileNameEff;
+  }
   Float_t BDTscoreCut = DefaultBDTscoreCut;
   if (indexMultTrial > trialsBDT)
     return;
@@ -168,6 +179,9 @@ void ProcessTree(Bool_t isEff = 0,
       d2 = d2.Filter("abs(fMcPdgCode) == 3334");
   }
 
+  // define variable for syst studies
+  d2 = d2.Define("BDTVarindex", Form("%i", indexMultTrial));
+
   // define the rapidity
   string Common1 = Form("std::sqrt(fPt*fPt*std::cosh(fEta)*std::cosh(fEta) + %.3f*%.3f)", ParticleMassPDG[ChosenPart], ParticleMassPDG[ChosenPart]);
   string Common2 = "fPt*std::sinh(fEta)";
@@ -188,13 +202,17 @@ void ProcessTree(Bool_t isEff = 0,
   // pt vs centrality before BDT cut
   auto hPtvsCent_Bef = d2.Histo2D({"PtvsCent_BefBDT", "PtvsCent_BefBDT", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
   auto hPtvsCent_RapCut_Bef = d2RapCut.Histo2D({"PtvsCent_Y05_BefBDT", "PtvsCent_Y05_BefBDT", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
+  auto BDT_response_Bef2 = d1.Histo1D({"BDT_response_Bef2", "BDT response", 100, 0, 1}, "fBDTResponseXi");
+  if (!isXi)
+    BDT_response_Bef2 = d1.Histo1D({"BDT_response_Bef2", "BDT response", 100, 0, 1}, "fBDTResponseOmega");
 
   //  apply BDT selection
   string cutvariable = "fBDTResponseXi";
   if (!isXi)
     cutvariable = "fBDTResponseOmega";
-  auto d3 = d2.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
-  auto d3RapCut = d2RapCut.Filter(passbdtCut, {cutvariable, "fCentFT0C"});
+
+  auto d3 = d2.Filter(passbdtCut, {cutvariable, "fCentFT0C", "BDTVarindex"});
+  auto d3RapCut = d2RapCut.Filter(passbdtCut, {cutvariable, "fCentFT0C", "BDTVarindex"});
 
   // pt vs centrality after BDT cut
   auto hPtvsCent_Aft = d3.Histo2D({"PtvsCent_AftBDT", "PtvsCent_AftBDT", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -362,7 +380,7 @@ void ProcessTree(Bool_t isEff = 0,
     {
       dcent = dcent.Define("fEffWeight", "1");
       dcent = dcent.Define("NchVar", "1");
-      dcent = dcent.Define("Nchxv2", "1");
+      dcent = dcent.Define("NchxV2", "1");
     }
     dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromC", "fCosThetaStarProton * sin(2*(fPhi-fPsiT0C))");
     dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarProton", "fCosThetaStarProton * fCosThetaStarProton");
@@ -489,6 +507,7 @@ void ProcessTree(Bool_t isEff = 0,
   MassXi->Write();
   hmass_Bef->Write();
   BDT_response_Bef->Write();
+  BDT_response_Bef2->Write();
   mass_vs_BDTResponse->Write();
   hmass->Write();
   hmassvsPt->Write();
