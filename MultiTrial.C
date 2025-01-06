@@ -142,15 +142,49 @@ TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = ""
 
 void MultiTrial(
     Int_t mul = 0,
+    Int_t Choice = 0,        // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
+    Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     TString SisSyst = "BDT",
-    Bool_t isXi = ChosenParticleXi,
+    Int_t ChosenPart = ChosenParticle,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
     TString inputFileName = SinputFileNameSyst,
     Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
+  Int_t CentFT0CMax = 0;
+  Int_t CentFT0CMin = 0;
+  if (mul == numCent)
+  { // 0-80%
+    CentFT0CMin = 0;
+    CentFT0CMax = 80;
+  }
+  else
+  {
+    CentFT0CMin = CentFT0C[mul];
+    CentFT0CMax = CentFT0C[mul + 1];
+  }
 
-  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[!isXi] + "_" + SisSyst + ".pdf";
+  // histoName
+  Bool_t isPolFromLambda = 0;
+  TString TypeHisto = "";
+  if (Choice == 0)
+    TypeHisto = "V2Mixed";
+  else if (Choice == 1)
+  {
+    TypeHisto = "Pzs2Mixed";
+    if (!isPtAnalysis)
+      TypeHisto = "PzMixed";
+  }
+  else if (Choice == 2)
+  {
+    isPolFromLambda = 1;
+    TypeHisto = "Pzs2LambdaFromCMixed";
+    if (!isPtAnalysis)
+      TypeHisto = "PzLambdaFromCMixed";
+  }
+  TString histoName = "histo" + TypeHisto;
+
+  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + ".pdf";
 
   Int_t trials = 0;
   if (SisSyst == "BDT")
@@ -159,10 +193,24 @@ void MultiTrial(
     trials = 2; // eta > 0 and eta < 0
   else if (SisSyst == "IR")
     trials = 5; // different interaction rates
-  TString Sdef = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
+  TString Sdef = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
-  Sdef += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
+  Sdef += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
+  if (isApplyWeights)
+    Sdef += "_Weighted";
+  if (v2type == 1)
+    Sdef += "_SP";
+  if (!useCommonBDTValue)
+    Sdef += "_BDTCentDep";
+  if (!isPtAnalysis)
+    Sdef += "_vsPsi";
+  if (!isV2 && isPolFromLambda)
+    Sdef += "_PolFromLambda";
+  if (ExtrisApplyEffWeights)
+  {
+    Sdef += "_EffW";
+  }
 
   TString Svaried = "";
 
@@ -177,7 +225,7 @@ void MultiTrial(
   TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 800);
   StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
   cv2->cd();
-  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
+  TH1F *hDefault = (TH1F *)fdef->Get(histoName);
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
   hDefault->Draw();
@@ -186,8 +234,10 @@ void MultiTrial(
   TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
   hDefaultPurity->SetName("hDefaultPurity");
   TLegend *legTrial;
-  if (SisSyst == "IR") legTrial = new TLegend(0.66, 0.7, 0.96, 0.9);
-  else legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
+  if (SisSyst == "IR")
+    legTrial = new TLegend(0.66, 0.7, 0.96, 0.9);
+  else
+    legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
   legTrial->SetBorderSize(0);
   legTrial->SetFillStyle(0);
   legTrial->SetTextSize(0.03);
@@ -220,7 +270,7 @@ void MultiTrial(
       Svaried = Sdef + SEtaSysChoice[i + 1];
     else if (SisSyst == "IR")
     {
-      Svaried = "OutputAnalysis/FitV2_" + inputFileNameIR + SIRChoice[i + 1] + "_" + ParticleName[!isXi];
+      Svaried = "OutputAnalysis/FitV2_" + inputFileNameIR + SIRChoice[i + 1] + "_" + ParticleName[ChosenPart];
       Svaried += IsOneOrTwoGauss[UseTwoGauss];
       Svaried += SIsBkgParab[BkgType];
       Svaried += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
@@ -234,9 +284,9 @@ void MultiTrial(
       cout << "File not found: " << Svaried << endl;
       return;
     }
-    TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
-    hVariedCut->SetName(Form("histoV2_%i", i));
-    hRatio[i] = (TH1F *)hVariedCut->Clone(Form("histoV2Ratio_%i", i));
+    TH1F *hVariedCut = (TH1F *)fvaried->Get(histoName);
+    hVariedCut->SetName(histoName + Form("_%i", i));
+    hRatio[i] = (TH1F *)hVariedCut->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
 
     hRawYield[i] = (TH1F *)fvaried->Get("histoYield");
@@ -485,7 +535,18 @@ void MultiTrial(
   hMaxDev->Draw("same");
 
   // save histos in output files
-  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + CentFT0C[mul] + "_" + ParticleName[!isXi] + "_" + SisSyst + ".root";
+  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + CentFT0C[mul] + "_" + ParticleName[ChosenPart] + "_";
+  OutputFile += SisSyst;
+  if (isApplyWeights)
+    OutputFile += "_Weighted";
+  if (!isPtAnalysis)
+    OutputFile += "_vsPsi";
+  if (!isV2 && isPolFromLambda)
+    OutputFile += "_PolFromLambda";
+  if (ExtrisApplyEffWeights)
+    OutputFile += "_EffW";
+  OutputFile += ".root";
+
   TFile *Write = new TFile(OutputFile, "RECREATE");
   for (int pt = 0; pt < bins; pt++)
   {
