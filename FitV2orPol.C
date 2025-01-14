@@ -501,15 +501,17 @@ void FitV2orPol(
     if (!isXi && pt == 0)
       continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
-    if (pt == numPtBins) // integrated
+    if (pt == numPtBins)
+    { // integrated
       SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
+    }
     if (!isPtAnalysis) // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
 
     if (isPtAnalysis)
-      cout << "Analysed pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+      cout << "Analysed pt interval: " << SPt[pt] << endl;
     else
-      cout << "Analysed psi interval: " << PhiBins[pt] << "-" << PhiBins[pt] + 2 * TMath::Pi() / numPsiBins << endl;
+      cout << "Analysed psi interval: " << SPt[pt] << endl;
 
     if (isPtAnalysis)
       hInvMass[pt] = (TH1F *)filein->Get(Form("mass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt));
@@ -912,7 +914,7 @@ void FitV2orPol(
         }
       }
 
-      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
+      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB+"); // per errore gaussiana, S indica che il risultato del fit e' accessibile da fFitResultPtr0
       // la gaussiana più larga deve esserte quella più bassa
       if (total[pt]->GetParameter(2) > total[pt]->GetParameter(5))
       {
@@ -1612,12 +1614,12 @@ void FitV2orPol(
   {
     if (isPolFromLambda)
     {
-      histoV2->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
-      histoV2NoFit->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
-      histoV2Mixed->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
-      histoV2PtInt->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
-      histoV2PtIntNoFit->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
-      histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] * CXiToLambda);
+      histoV2->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      histoV2NoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      histoV2Mixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      histoV2PtInt->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      histoV2PtIntNoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
     }
     else
     {
@@ -1642,13 +1644,13 @@ void FitV2orPol(
   histoV2MixedCorr = (TH1F *)histoV2Mixed->Clone("histoV2MixedCorr");
   TFile *fileV2Correction = new TFile("V2Corr.root", "READ");
   TH1F *histoV2Corr = (TH1F *)fileV2Correction->Get(Form("v2CorrCent%i", mul));
-  //this histogram is already corrected by resolution
-  if (!histoV2Corr)
+  // this histogram is already corrected by resolution
+  if (!histoV2Corr && (mul != numCent))
   {
     cout << "Error: histoV2Corr not found" << endl;
     return;
   }
-  if (!ExtrisApplyEffWeights)
+  if (!ExtrisApplyEffWeights && (mul != numCent))
     histoV2MixedCorr->Add(histoV2Corr, 1);
   for (Int_t pt = 0; pt < numPtBinsVar; pt++)
   {
@@ -1695,8 +1697,6 @@ void FitV2orPol(
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
-  Soutputfile += SEtaSysChoice[EtaSysChoice];
-  Soutputfile += SBDT;
   if (isApplyWeights)
     Soutputfile += "_Weighted";
   if (v2type == 1)
@@ -1713,6 +1713,8 @@ void FitV2orPol(
   {
     Soutputfile += "_EffW";
   }
+  Soutputfile += SBDT;
+  Soutputfile += SEtaSysChoice[EtaSysChoice];
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

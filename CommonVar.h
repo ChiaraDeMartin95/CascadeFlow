@@ -1,5 +1,5 @@
-Bool_t isV2 = 1;          // 0 for polarization, 1 for v2
-Int_t ChosenParticle = 0; // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
+Bool_t isV2 = 0;          // 0 for polarization, 1 for v2
+Int_t ChosenParticle = 3; // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
 
 const Int_t numPart = 6; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+
 bool isRun2Binning = 0;
@@ -40,7 +40,7 @@ TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus
 Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.0181};
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.006, 0.0073, 0.0020, 0.0038};
-Float_t CXiToLambda = 1./0.944;
+Float_t CXiToLambda = 0.944;
 Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757}; // decay parameter for Lambda -> p pi
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
@@ -58,16 +58,17 @@ TString TitleYPzs = "P_{z,s2}";
 
 //---------------------------------------------------------
 TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607";
-TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
+//TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
+TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
 TString SinputFileNameEff = "LHC24g3_pass4_Train305015";
+TString SinputFileNameEffSyst = "LHC24g3_pass4_Train305015";
 
-Int_t ExtrCharge = 0;   // 0: all, 1: positive, -1: negative
 Bool_t ExtrBkgType = 1; // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 1;        // weights to flatten the phi distribution of cascades
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-const bool useCommonBDTValue = 0; // common BDT cut for all centralities, set to DefaultBDTscoreCut
+const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to DefaultBDTscoreCut
 const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.96, 0.96, 0.96};
 const float LimitForV2woFit = 0.97; // purity limit to decide whether to extract v2 from fit or not
 //---------------------------------------------------------
@@ -76,7 +77,7 @@ const float LimitForV2woFit = 0.97; // purity limit to decide whether to extract
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 const int trialsBDT = 10;    // number of trials for the systematic studies related to BDTscore
 const int nsigmaBarlow = 2;
-const float DefaultBDTscoreCut = 0.98; // 0.98
+const float DefaultBDTscoreCut = 0.98;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.9;
 
