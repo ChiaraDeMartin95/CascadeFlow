@@ -1,0 +1,15 @@
+How to run the full analysis:
+
+1. QC: QCPlots.C
+2. Resolution: Resolution.C
+3. ProcessTree.C with isApplyWeights = 0 in CommonVar.h 
+4. ComputeV2.C with isApplyWeights = 0 in CommonVar.h 
+5. ProcessTree.C with isApplyWeights = 1 in CommonVar.h 
+6. ComputeV2.C with isApplyWeights = 1 in CommonVar.h 
+7. FitV2orPol.C in all multiplicity classes (use script_AnalysisWorkflow.sh)
+
+To plot results:
+MeanSigmaPurityMultRatio.C --> To plot mean, sigma, purity, v2, Pzs2, Pz (vs Psi and Pt) for different multiplicity classes
+CompareXiPlusMinus.C --> To plot same quantities above vs charge
+PzsVsCentrality.C --> To plot Pzs2 vs centrality 
+CompareResults.C --> see options in the macro itself
