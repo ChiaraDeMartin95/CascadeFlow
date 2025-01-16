@@ -36,7 +36,11 @@ Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
+Float_t MinPzs2WithAlphaXi = -2.8;
+Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
+Float_t MaxPzs2WithAlphaXi = 2.8;
+Float_t MaxPzs2WithAlphaOmega = 65;
 Int_t NPzs2 = 200;
 
 Float_t MinPz = -1;
@@ -290,7 +294,7 @@ void ProcessTree(Bool_t isEff = 0,
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
   // OutputFileName += "_EffWBis.root";
-  OutputFileName += "_Prova123.root";
+  OutputFileName += "_Prova1234.root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
@@ -319,6 +323,8 @@ void ProcessTree(Bool_t isEff = 0,
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2LambdaFromCVector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVector;
+
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2VectorWithAlpha; // decay parameter included in the calculation
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2LambdaFromCVector;
@@ -403,7 +409,10 @@ void ProcessTree(Bool_t isEff = 0,
 
     if (isXi)
     {
+      dcentPzs2 = dcentPzs2.Define("fAlphaXi", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[2], AlphaH[3]));
+      cout << Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[2], AlphaH[3]) << endl;
       dcentPzs2 = dcentPzs2.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
+      dcentPzs2 = dcentPzs2.Define("Pzs2XiAlpha", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C)) / fAlphaXi");
       dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarLambda", "fCosThetaStarLambdaFromXi * fCosThetaStarLambdaFromXi");
 
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
@@ -422,6 +431,9 @@ void ProcessTree(Bool_t isEff = 0,
       auto massVsPsiVsPzLambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassXi", "f2PsiDiffCorr", "fCosThetaStarProton");
       massVsPsiVsPzLambdaFromCVector.push_back(massVsPsiVsPzLambdaFromC);
 
+      auto massVsPtVsPzs2WithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2WithAlphaXi, MaxPzs2WithAlphaXi}, "fMassXi", "fPt", "Pzs2XiAlpha");
+      massVsPtVsPzs2VectorWithAlpha.push_back(massVsPtVsPzs2WithAlpha);
+
       auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarLambda");
       massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
       auto massVsPtVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsCos2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarProton");
@@ -437,7 +449,9 @@ void ProcessTree(Bool_t isEff = 0,
     }
     else
     {
+      dcentPzs2 = dcentPzs2.Define("fAlphaOmega", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[5], AlphaH[5]));
       dcentPzs2 = dcentPzs2.Define("Pzs2Omega", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C))");
+      dcentPzs2 = dcentPzs2.Define("Pzs2OmegaAlpha", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C)) / fAlphaOmega");
       dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarLambda", "fCosThetaStarLambdaFromOmega * fCosThetaStarLambdaFromOmega");
 
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
@@ -455,6 +469,9 @@ void ProcessTree(Bool_t isEff = 0,
       massVsPsiVsPzVector.push_back(massVsPsiVsPz);
       auto massVsPsiVsPzLambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarProton");
       massVsPsiVsPzLambdaFromCVector.push_back(massVsPsiVsPzLambdaFromC);
+
+      auto massVsPtVsPzs2WithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2WithAlphaOmega, MaxPzs2WithAlphaOmega}, "fMassOmega", "fPt", "Pzs2OmegaAlpha");
+      massVsPtVsPzs2VectorWithAlpha.push_back(massVsPtVsPzs2WithAlpha);
 
       auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarLambda");
       massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
@@ -476,6 +493,7 @@ void ProcessTree(Bool_t isEff = 0,
   TString TitleX = "M_{#Lambda#pi}";
   if (!isXi)
     TitleX = "M_{#LambdaK}";
+
   StyleCanvas(cMass, 0.1, 0.1, 0.03, 0.1);
   StyleHisto(*hmass_Bef, 0, 1.2 * hmass_Bef->GetMaximum(), kRed, 20, "M_{#Lambda#pi}", "Counts", "", kTRUE, 1.2, 1.4, 1.2, 1.2, 0.7);
   StyleHisto(*hmass, 0, 1.2 * hmass_Bef->GetMaximum(), kBlue, 20, "M_{#Lambda#pi}", "Counts", "", kTRUE, 1.2, 1.4, 1.2, 1.2, 0.7);
@@ -498,6 +516,7 @@ void ProcessTree(Bool_t isEff = 0,
   hphi->Write();
   hEtaPhi->Write();
   BDT_response->Write();
+
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
     hrapidityVector[cent]->Write();
@@ -519,6 +538,7 @@ void ProcessTree(Bool_t isEff = 0,
     effWeight3DVector[cent]->Write();
 
     massVsPtVsPzs2Vector[cent]->Write();
+    massVsPtVsPzs2VectorWithAlpha[cent]->Write();
     massVsPtVsPzs2LambdaFromCVector[cent]->Write();
     massVsPsiVsPzVector[cent]->Write();
     massVsPsiVsPzLambdaFromCVector[cent]->Write();
@@ -530,6 +550,7 @@ void ProcessTree(Bool_t isEff = 0,
 
     profileVector[cent]->Write();
   }
+
   file->Close();
 
   cout << "I created the file " << file->GetName() << endl;
