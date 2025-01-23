@@ -79,15 +79,15 @@ double PassRogerBarlowCriterion(int nsigmas, Double_t dev, Double_t RBsigma)
   }
 }
 
-TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "")
+TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "", TString histoName = "")
 {
 
   TFile *fdef = TFile::Open(Sdef);
   TFile *fvaried = TFile::Open(Svaried);
 
-  TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
+  TH1F *hVariedCut = (TH1F *)fvaried->Get(histoName);
   hVariedCut->SetName(Form("hVarCutSet%i", num));
-  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
+  TH1F *hDefault = (TH1F *)fdef->Get(histoName);
   hDefault->SetName(Form("hDefault"));
 
   TH1F *hDev = (TH1F *)hDefault->Clone("hDev");
@@ -110,15 +110,15 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "")
   return hDev;
 }
 
-TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = "")
+TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = "", TString histoName = "")
 {
 
   TFile *fdef = TFile::Open(Sdef);
   TFile *fvaried = TFile::Open(Svaried);
 
-  TH1F *hVariedCut = (TH1F *)fvaried->Get("histoV2");
+  TH1F *hVariedCut = (TH1F *)fvaried->Get(histoName);
   hVariedCut->SetName(Form("hVarCutSet%i", num));
-  TH1F *hDefault = (TH1F *)fdef->Get("histoV2");
+  TH1F *hDefault = (TH1F *)fdef->Get(histoName);
   hDefault->SetName(Form("hDefault"));
 
   TH1F *hNSigmaBarlow = (TH1F *)hDefault->Clone("hNSigmaBarlow");
@@ -146,7 +146,6 @@ void MultiTrial(
     Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     TString SisSyst = "BDT",
     Int_t ChosenPart = ChosenParticle,
-    Int_t EtaSysChoice = ExtrEtaSysChoice,
     Int_t BkgType = ExtrBkgType,
     TString inputFileName = SinputFileNameSyst,
     Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -214,6 +213,7 @@ void MultiTrial(
 
   TString Svaried = "";
 
+  cout << "Default input file: " << Sdef << endl;
   TFile *fdef = TFile::Open(Sdef + ".root");
   if (!fdef)
   {
@@ -225,13 +225,29 @@ void MultiTrial(
   TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 800);
   StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
   cv2->cd();
+  cout << "histoName: " << histoName << endl;
   TH1F *hDefault = (TH1F *)fdef->Get(histoName);
+  if (!hDefault)
+  {
+    cout << "histo not found in " << Sdef << endl;
+    return;
+  }
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
   hDefault->Draw();
   TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield");
+  if (!hDefaultYield)
+  {
+    cout << "histoYield not found in " << Sdef << endl;
+    return;
+  }
   hDefaultYield->SetName("hDefaultYield");
   TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
+  if (!hDefaultPurity)
+  {
+    cout << "histoPurity not found in " << Sdef << endl;
+    return;
+  }
   hDefaultPurity->SetName("hDefaultPurity");
   TLegend *legTrial;
   if (SisSyst == "IR")
@@ -259,6 +275,7 @@ void MultiTrial(
   Float_t BDTscoreCut = 0;
   for (int i = 0; i < trials; i++)
   {
+    cout << "Trial: " << i << endl;
     if (i == 8)
       continue;
 
@@ -285,16 +302,31 @@ void MultiTrial(
       return;
     }
     TH1F *hVariedCut = (TH1F *)fvaried->Get(histoName);
+    if (!hVariedCut)
+    {
+      cout << "histo not found in " << Svaried << endl;
+      return;
+    }
     hVariedCut->SetName(histoName + Form("_%i", i));
     hRatio[i] = (TH1F *)hVariedCut->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
 
     hRawYield[i] = (TH1F *)fvaried->Get("histoYield");
+    if (!hRawYield[i])
+    {
+      cout << "histoYield not found in " << Svaried << endl;
+      return;
+    }
     hRawYield[i]->SetName(Form("histoYield_%i", i));
     hRawYieldRatio[i] = (TH1F *)hRawYield[i]->Clone(Form("histoYieldRatio_%i", i));
     hRawYieldRatio[i]->Divide(hDefaultYield);
 
     hPurity[i] = (TH1F *)fvaried->Get("histoPurity");
+    if (!hPurity[i])
+    {
+      cout << "histoPurity not found in " << Svaried << endl;
+      return;
+    }
     hPurity[i]->SetName(Form("histoPurity_%i", i));
     hPurityRatio[i] = (TH1F *)hPurity[i]->Clone(Form("histoPurity_%i", i));
     hPurityRatio[i]->Divide(hDefaultPurity);
@@ -312,12 +344,21 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut, SIRValue[i + 1], "pl");
     hVariedCut->Draw("same");
 
-    h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root");
-    hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, Sdef + ".root", Svaried + ".root");
+    h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root", histoName);
+    hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, Sdef + ".root", Svaried + ".root", histoName);
   }
+  
   legTrial->Draw();
-  cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
-  cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".png");
+  if (isV2)
+  {
+    cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
+    cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".png");
+  }
+  else
+  {
+    cv2->SaveAs("Systematics/Pzs2MultTrial" + Suffix + ".pdf");
+    cv2->SaveAs("Systematics/Pzs2MultTrial" + Suffix + ".png");
+  }
 
   TCanvas *cNSigmaBarlow = new TCanvas("cNSigmaBarlow", "cNSigmaBarlow", 1000, 800);
   StyleCanvas(cNSigmaBarlow, 0.15, 0.05, 0.05, 0.15);
@@ -329,6 +370,7 @@ void MultiTrial(
   hdummy->Draw();
   for (int i = 0; i < trials; i++)
   {
+    cout << "Trial: " << i << endl;
     if (i == 8)
       continue;
     hNSigmaBarlow[i]->SetLineColor(ColorMult[i]);
@@ -359,8 +401,16 @@ void MultiTrial(
   lineat1->SetLineStyle(7);
   legTrial->Draw();
   lineat1->Draw("same");
-  cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".pdf");
-  cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".png");
+  if (isV2)
+  {
+    cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".pdf");
+    cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".png");
+  }
+  else
+  {
+    cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".pdf");
+    cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".png");
+  }
 
   // raw yields plots
   TCanvas *cYield = new TCanvas("cYield", "cYield", 1000, 800);
