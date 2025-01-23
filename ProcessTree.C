@@ -44,7 +44,11 @@ Float_t MaxPzs2WithAlphaOmega = 65;
 Int_t NPzs2 = 200;
 
 Float_t MinPz = -1;
+Float_t MinPzWithAlphaXi = -2.8;
+Float_t MinPzWithAlphaOmega = -65;
 Float_t MaxPz = 1;
+Float_t MaxPzWithAlphaXi = 2.8;
+Float_t MaxPzWithAlphaOmega = 65;
 Int_t NPz = 200;
 
 bool passbdtCut(float bdtscore, float cent, int indexMultTrial)
@@ -294,7 +298,8 @@ void ProcessTree(Bool_t isEff = 0,
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
   // OutputFileName += "_EffWBis.root";
-  OutputFileName += "_Prova1234.root";
+  //OutputFileName += "_Prova1234.root";
+  OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
@@ -325,6 +330,9 @@ void ProcessTree(Bool_t isEff = 0,
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVector;
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2VectorWithAlpha; // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2LambdaFromCVectorWithAlpha; // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVectorWithAlpha; // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVectorWithAlpha; // decay parameter included in the calculation
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2LambdaFromCVector;
@@ -410,10 +418,12 @@ void ProcessTree(Bool_t isEff = 0,
     if (isXi)
     {
       dcentPzs2 = dcentPzs2.Define("fAlphaXi", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[2], AlphaH[3]));
-      cout << Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[2], AlphaH[3]) << endl;
       dcentPzs2 = dcentPzs2.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
       dcentPzs2 = dcentPzs2.Define("Pzs2XiAlpha", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C)) / fAlphaXi");
       dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarLambda", "fCosThetaStarLambdaFromXi * fCosThetaStarLambdaFromXi");
+      dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromCAlpha", "Pzs2LambdaFromC / fAlphaXi");
+      dcentPzs2 = dcentPzs2.Define("fCosThetaStarLambdaFromXiAlpha", "fCosThetaStarLambdaFromXi / fAlphaXi");
+      dcentPzs2 = dcentPzs2.Define("fCosThetaStarProtonAlpha", "fCosThetaStarProton / fAlphaXi");
 
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       hMassCutVector.push_back(hMassCut);
@@ -433,18 +443,24 @@ void ProcessTree(Bool_t isEff = 0,
 
       auto massVsPtVsPzs2WithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2WithAlphaXi, MaxPzs2WithAlphaXi}, "fMassXi", "fPt", "Pzs2XiAlpha");
       massVsPtVsPzs2VectorWithAlpha.push_back(massVsPtVsPzs2WithAlpha);
+      auto massVsPtVsPzs2LambdaFromCWithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2WithAlphaXi, MaxPzs2WithAlphaXi}, "fMassXi", "fPt", "Pzs2LambdaFromCAlpha");
+      massVsPtVsPzs2LambdaFromCVectorWithAlpha.push_back(massVsPtVsPzs2LambdaFromCWithAlpha);
+      auto massVsPsiVsPzWithAlpha = dcentPzs2.Histo3D({Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), NPz, MinPzWithAlphaXi, MaxPzWithAlphaXi}, "fMassXi", "f2PsiDiffCorr", "fCosThetaStarLambdaFromXiAlpha");
+      massVsPsiVsPzVectorWithAlpha.push_back(massVsPsiVsPzWithAlpha);
+      auto massVsPsiVsPzLambdaFromCWithAlpha = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), NPz, MinPzWithAlphaXi, MaxPzWithAlphaXi}, "fMassXi", "f2PsiDiffCorr", "fCosThetaStarProtonAlpha");
+      massVsPsiVsPzLambdaFromCVectorWithAlpha.push_back(massVsPsiVsPzLambdaFromCWithAlpha);
 
-      auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarLambda");
+      auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarLambda");
       massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
-      auto massVsPtVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsCos2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarProton");
+      auto massVsPtVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.28, 1.36, 100, 0, 10, 100, 0, 1}, "fMassXi", "fPt", "fCos2ThetaStarProton");
       massVsPtVsCos2LambdaFromCVector.push_back(massVsPtVsCos2LambdaFromC);
-      auto massVsPsiVsCos2 = dcentPzs2.Histo3D({Form("massVsPsiVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassXi", "f2PsiDiffCorr", "fCos2ThetaStarLambda");
+      auto massVsPsiVsCos2 = dcentPzs2.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassXi", "f2PsiDiffCorr", "fCos2ThetaStarLambda");
       massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
-      auto massVsPsiVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsCos2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassXi", "f2PsiDiffCorr", "fCos2ThetaStarProton");
+      auto massVsPsiVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.28, 1.36, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassXi", "f2PsiDiffCorr", "fCos2ThetaStarProton");
       massVsPsiVsCos2LambdaFromCVector.push_back(massVsPsiVsCos2LambdaFromC);
 
       // profile: mean value of v2 vs mass and pt in centrality classes
-      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", v2Chosen);
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.28, 1.36, numPtBins, PtBins}, "fMassXi", "fPt", v2Chosen);
       profileVector.push_back(profile);
     }
     else
@@ -457,33 +473,33 @@ void ProcessTree(Bool_t isEff = 0,
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
       hMassCutVector.push_back(hMassCut);
 
-      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen);
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen);
       massVsPtVsV2CVector.push_back(massVsPtVsV2C);
-      auto massVsPtVsV2CWeighted = dcent.Histo3D({Form("massVsPtVsV2CHistWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen, "fEffWeight");
+      auto massVsPtVsV2CWeighted = dcent.Histo3D({Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassOmega", "fPt", v2Chosen, "fEffWeight");
       massVsPtVsV2CWeightedVector.push_back(massVsPtVsV2CWeighted);
-      auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2Omega");
+      auto massVsPtVsPzs2 = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.28, 1.36, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2Omega");
       massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
-      auto massVsPtVsPzs2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2LambdaFromC");
+      auto massVsPtVsPzs2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassOmega", "fPt", "Pzs2LambdaFromC");
       massVsPtVsPzs2LambdaFromCVector.push_back(massVsPtVsPzs2LambdaFromC);
-      auto massVsPsiVsPz = dcentPzs2.Histo3D({Form("massVsPsiVsPzHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarLambdaFromOmega");
+      auto massVsPsiVsPz = dcentPzs2.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarLambdaFromOmega");
       massVsPsiVsPzVector.push_back(massVsPsiVsPz);
-      auto massVsPsiVsPzLambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarProton");
+      auto massVsPsiVsPzLambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarProton");
       massVsPsiVsPzLambdaFromCVector.push_back(massVsPsiVsPzLambdaFromC);
 
       auto massVsPtVsPzs2WithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2WithAlphaOmega, MaxPzs2WithAlphaOmega}, "fMassOmega", "fPt", "Pzs2OmegaAlpha");
       massVsPtVsPzs2VectorWithAlpha.push_back(massVsPtVsPzs2WithAlpha);
 
-      auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarLambda");
+      auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarLambda");
       massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
-      auto massVsPtVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsCos2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarProton");
+      auto massVsPtVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarProton");
       massVsPtVsCos2LambdaFromCVector.push_back(massVsPtVsCos2LambdaFromC);
-      auto massVsPsiVsCos2 = dcentPzs2.Histo3D({Form("massVsPsiVsCos2Hist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassOmega", "f2PsiDiffCorr", "fCos2ThetaStarLambda");
+      auto massVsPsiVsCos2 = dcentPzs2.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassOmega", "f2PsiDiffCorr", "fCos2ThetaStarLambda");
       massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
-      auto massVsPsiVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsCos2LambdaFromCHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassOmega", "f2PsiDiffCorr", "fCos2ThetaStarProton");
+      auto massVsPsiVsCos2LambdaFromC = dcentPzs2.Histo3D({Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassOmega", "f2PsiDiffCorr", "fCos2ThetaStarProton");
       massVsPsiVsCos2LambdaFromCVector.push_back(massVsPsiVsCos2LambdaFromC);
 
       // profile: mean value of v2 vs mass and pt in centrality classes
-      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2CHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", v2Chosen);
+      auto profile = dcent.Profile2D({Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Mean invariant mass vs Pt vs V2C", 80, 1.63, 1.726, 100, 0, 10, -2, 2}, "fMassOmega", "fPt", v2Chosen);
       profileVector.push_back(profile);
     }
   }
