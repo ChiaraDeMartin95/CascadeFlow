@@ -121,7 +121,7 @@ struct v2fit
   }
   void setBkgFraction(TF1 *bkg, TF1 *total, float min, float max)
   {
-    bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 1600, min, max);
+    bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 2000, min, max);
     bkgfraction.Add(bkg);
     bkgfraction.Divide(total);
   }
@@ -1371,6 +1371,13 @@ void FitV2orPol(
     Cos2ThetaFitFunction[pt]->SetLineColor(kRed + 1);
 
     hCos2Theta[pt]->Fit(Cos2ThetaFitFunction[pt], "R0");
+
+    Cos2ThetaBkgFunction[pt] = new TF1(Form("cosbkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
+    Cos2ThetaBkgFunction[pt]->FixParameter(0, Cos2ThetaFitFunction[pt]->GetParameter(1));
+    Cos2ThetaBkgFunction[pt]->FixParameter(1, Cos2ThetaFitFunction[pt]->GetParameter(2));
+    Cos2ThetaBkgFunction[pt]->SetLineColor(kBlack);
+    Cos2ThetaBkgFunction[pt]->SetLineStyle(8);
+
     if (isV2FromFit[pt])
     {
       hCos2Theta[pt]->Draw("e");
@@ -1650,7 +1657,7 @@ void FitV2orPol(
     cout << "Error: histoV2Corr not found" << endl;
     return;
   }
-  if (!ExtrisApplyEffWeights && (mul != numCent))
+  if (ExtrisApplyEffWeights && (mul != numCent))
     histoV2MixedCorr->Add(histoV2Corr, 1);
   for (Int_t pt = 0; pt < numPtBinsVar; pt++)
   {
@@ -1671,6 +1678,12 @@ void FitV2orPol(
       histoV2->SetTitle("Pz from fit");
   }
   histoV2->Draw();
+
+  cout << "************ Rel error of histoV2 ********" << endl;
+  for (Int_t b = 1; b <= histoV2->GetNbinsX(); b++)
+  {
+    cout << "Centre of the bin: " << histoV2->GetBinCenter(b) << " rel. error: " << histoV2->GetBinError(b) / histoV2->GetBinContent(b) << endl;
+  }
 
   canvasSummary->cd(9);
   gPad->SetBottomMargin(0.14);
@@ -1757,7 +1770,7 @@ void FitV2orPol(
   // Performance plot
   Int_t ChosenPt = 8;
   if (isXi)
-    ChosenPt = 2;
+    ChosenPt = 0; //2
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7};
   Float_t UpperCutHisto = 1.7;
@@ -1856,13 +1869,18 @@ void FitV2orPol(
   canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.eps", ChosenPt));
 
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
+  TCanvas *canvasCos2 = new TCanvas("canvasCos2", "canvasCos2", 800, 1100);
   Float_t LLUpperPad = 0.44;
   Float_t ULLowerPad = 0.44;
   TPad *pad1 = new TPad("pad1", "pad1", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
   TPad *padL1 = new TPad("padL1", "padL1", 0, 0, 1, ULLowerPad);
+  TPad *pad2 = new TPad("pad2", "pad2", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
+  TPad *padL2 = new TPad("padL2", "padL2", 0, 0, 1, ULLowerPad);
 
   StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
   StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
+  StylePad(pad2, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
+  StylePad(padL2, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
 
   TLegend *LegendTitle = new TLegend(0.24, 0.65, 0.75, 0.95);
   LegendTitle->SetFillStyle(0);
@@ -1912,6 +1930,16 @@ void FitV2orPol(
   legendfit2->Draw("");
   bkg->Draw("same");
 
+  canvasCos2->cd();
+  pad2->Draw();
+  pad2->cd();
+  hDummy->Draw("same");
+  hInvMass[ChosenPt]->Draw("hist same pe");
+  totalPNorm->Draw("same");
+  LegendTitle->Draw("");
+  legendfit2->Draw("");
+  bkg->Draw("same");
+
   Float_t LimSupMultRatio = 5.1;
   Float_t LimInfMultRatio = 1e-2;
   Float_t YoffsetSpectraRatio = 1.1;
@@ -1932,7 +1960,10 @@ void FitV2orPol(
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
 
-  StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, "v_{2}", "", 1, 1.15, YoffsetSpectraRatio);
+  TString TitleDummyRatio = "v_{2}";
+  if (!isV2)
+    TitleDummyRatio = "P_{z,s2}";
+  StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, TitleDummyRatio, "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   SetFont(hDummyRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
@@ -1943,6 +1974,8 @@ void FitV2orPol(
   canvasP->cd();
   padL1->Draw();
   padL1->cd();
+  if (!isV2)
+    hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
@@ -1951,9 +1984,28 @@ void FitV2orPol(
   v2FitFunction[ChosenPt]->Draw("same");
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.pdf", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.png", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + Form("_Pt%i.eps", ChosenPt));
+  TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.pdf", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.png", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.eps", ChosenPt));
+
+
+  canvasCos2->cd();
+  padL2->Draw();
+  padL2->cd();
+  TH1F* hDummyRatioClone = (TH1F*)hDummyRatio->Clone("hDummyRatioClone");
+  hDummyRatioClone->GetYaxis()->SetRangeUser(0, 0.3);
+  hDummyRatioClone->GetYaxis()->SetTitle("cos^{2}(#theta*)");
+  hDummyRatioClone->Draw("same");
+  hCos2Theta[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+  hCos2Theta[ChosenPt]->SetTitle("");
+  hCos2Theta[ChosenPt]->Draw("same e");
+  Cos2ThetaFitFunction[ChosenPt]->Draw("same");
+  Cos2ThetaBkgFunction[ChosenPt]->Draw("same");
+  //  hV2MassIntegrated[ChosenPt]->Draw("");
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.pdf", ChosenPt));
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.png", ChosenPt));
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.eps", ChosenPt));
 
   cout << "\nA partire dal file:\n"
        << SPathIn << endl;
