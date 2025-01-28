@@ -115,6 +115,7 @@ void ProcessTree(Bool_t isEff = 0,
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
+  cout << "BDT score cut: " << BDTscoreCut << endl;
   if (isApplyWeights)
     cout << "Weights applied from file " << weightFileName << endl;
   cout << "ChosenPart: " << ParticleName[ChosenPart] << endl;
@@ -298,7 +299,7 @@ void ProcessTree(Bool_t isEff = 0,
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
   // OutputFileName += "_EffWBis.root";
-  //OutputFileName += "_Prova1234.root";
+  // OutputFileName += "_Prova1234.root";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
@@ -329,10 +330,10 @@ void ProcessTree(Bool_t isEff = 0,
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVector;
 
-  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2VectorWithAlpha; // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2VectorWithAlpha;            // decay parameter included in the calculation
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2LambdaFromCVectorWithAlpha; // decay parameter included in the calculation
-  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVectorWithAlpha; // decay parameter included in the calculation
-  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVectorWithAlpha; // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVectorWithAlpha;             // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzLambdaFromCVectorWithAlpha;  // decay parameter included in the calculation
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2LambdaFromCVector;
