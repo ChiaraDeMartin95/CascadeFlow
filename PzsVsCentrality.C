@@ -108,8 +108,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-Float_t YLow[numPart] = {-0.05}; // 0.002
-Float_t YUp[numPart] = {0.05};
+Float_t YLow[numPart] = {-0.004}; // 0.002
+Float_t YUp[numPart] = {0.015};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
@@ -131,6 +131,51 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // filein
   TString PathIn;
   TFile *fileIn[numCent + 1];
+
+  // fileinLambda
+  TString PathInLambda = "Run2Results/HEPData-ins1891389-v1-P_z_vsCent.root";
+  TFile *fileInLambda = TFile::Open(PathInLambda);
+  if (!fileInLambda)
+  {
+    cout << "No file found" << endl;
+    return;
+  }
+  TDirectoryFile *dirLambda = (TDirectoryFile *)fileInLambda->Get("P_z vs. centrality (5.02 TeV)");
+  if (!dirLambda)
+  {
+    cout << "No directory found" << endl;
+    return;
+  }
+  TH1F *fHistPzsLambda = (TH1F *)dirLambda->Get("Hist1D_y1");
+  if (!fHistPzsLambda)
+  {
+    cout << "No hist found" << endl;
+    return;
+  }
+  TH1F *fHistPzsLambdaSist = (TH1F *)fHistPzsLambda->Clone("fHistPzsLambdaSist");
+  TH1F *fHistPzsLambda_StatErr = (TH1F *)dirLambda->Get("Hist1D_y1_e1");
+  if (!fHistPzsLambda_StatErr)
+  {
+    cout << "No hist Stat found" << endl;
+    return;
+  }
+  TH1F *fHistPzsLambda_SystErr = (TH1F *)dirLambda->Get("Hist1D_y1_e2");
+  if (!fHistPzsLambda_SystErr)
+  {
+    cout << "No hist Stat found" << endl;
+    return;
+  }
+  for (Int_t i = 1; i <= fHistPzsLambda->GetNbinsX(); i++)
+  {
+    fHistPzsLambda->SetBinError(i, fHistPzsLambda_StatErr->GetBinContent(i));
+    fHistPzsLambdaSist->SetBinError(i, fHistPzsLambda_SystErr->GetBinContent(i));
+  }
+  fHistPzsLambda->SetMarkerStyle(20);
+  fHistPzsLambda->SetMarkerSize(1.5);
+  fHistPzsLambda->SetMarkerColor(kBlue);
+  fHistPzsLambda->SetLineColor(kBlue);
+  fHistPzsLambdaSist->SetMarkerColor(kBlue);
+  fHistPzsLambdaSist->SetLineColor(kBlue);
 
   // fileout name
   TString stringout;
@@ -187,7 +232,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistSpectrum[numCent + 1];
   TString Smolt[numCent + 1];
   TString SmoltBis[numCent + 1];
-  TString sPolFromLambda[2]= {"", "LambdaFromC"};
+  TString sPolFromLambda[2] = {"", "LambdaFromC"};
   // get spectra in multiplicity classes
   for (Int_t m = 0; m < numCent; m++)
   {
@@ -222,9 +267,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
     if (ChosenPt == 100)
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntMixed"); 
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntMixed");
     else
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2"+ sPolFromLambda[isPolFromLambda] + "Mixed");
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Mixed");
     if (!fHistSpectrum[m])
     {
       cout << " no hist " << endl;
@@ -261,6 +306,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummy->GetXaxis()->SetRangeUser(0, 70);
   hDummy->Draw("");
   fHistPzs->Draw("same");
+  fHistPzsLambda->Draw("same e0x0");
+  fHistPzsLambdaSist->SetFillStyle(0);
+  fHistPzsLambdaSist->Draw("same e2");
   LegendTitle->Draw("");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
