@@ -235,6 +235,14 @@ void MultiTrial(
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
   hDefault->Draw();
+  
+  TH1F * hDefaultError = (TH1F*)hDefault->Clone("hError");
+  hDefaultError->Reset();
+  for (int i = 1; i <= hDefault->GetNbinsX(); i++)
+  {
+    hDefaultError->SetBinContent(i, hDefault->GetBinError(i));
+  }
+
   TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield");
   if (!hDefaultYield)
   {
@@ -249,6 +257,14 @@ void MultiTrial(
     return;
   }
   hDefaultPurity->SetName("hDefaultPurity");
+  TH1F *hDefaultSignificance = (TH1F *)fdef->Get("histoSignificance");
+  if (!hDefaultSignificance)
+  {
+    cout << "histoSignificance not found in " << Sdef << endl;
+    return;
+  }
+  hDefaultSignificance->SetName("hDefaultSignificance");
+
   TLegend *legTrial;
   if (SisSyst == "IR")
     legTrial = new TLegend(0.66, 0.7, 0.96, 0.9);
@@ -268,10 +284,14 @@ void MultiTrial(
   TH1F *h[trials];
   TH1F *hNSigmaBarlow[trials];
   TH1F *hRatio[trials];
+  TH1F *hError[trials];
+  TH1F *hErrorRatio[trials];
   TH1F *hRawYield[trials];
   TH1F *hRawYieldRatio[trials];
   TH1F *hPurity[trials];
   TH1F *hPurityRatio[trials];
+  TH1F *hSignificance[trials];
+  TH1F *hSignificanceRatio[trials];
   Float_t BDTscoreCut = 0;
   for (int i = 0; i < trials; i++)
   {
@@ -330,6 +350,25 @@ void MultiTrial(
     hPurity[i]->SetName(Form("histoPurity_%i", i));
     hPurityRatio[i] = (TH1F *)hPurity[i]->Clone(Form("histoPurity_%i", i));
     hPurityRatio[i]->Divide(hDefaultPurity);
+
+    hSignificance[i] = (TH1F *)fvaried->Get("histoSignificance");
+    if (!hSignificance[i])
+    {
+      cout << "histoSignificance not found in " << Svaried << endl;
+      return;
+    }
+    hSignificance[i]->SetName(Form("histoSignificance_%i", i));
+    hSignificanceRatio[i] = (TH1F *)hSignificance[i]->Clone(Form("histoSignificanceRatio_%i", i));
+    hSignificanceRatio[i]->Divide(hDefaultSignificance);
+
+    hError[i] = (TH1F*)hVariedCut->Clone(Form("hError_%i", i));
+    hError[i]->Reset();
+    for (int j = 1; j <= hVariedCut->GetNbinsX(); j++)
+    {
+      hError[i]->SetBinContent(j, hVariedCut->GetBinError(j));
+    }
+    hErrorRatio[i] = (TH1F*)hError[i]->Clone(Form("hErrorRatio_%i", i));
+    hErrorRatio[i]->Divide(hDefaultError);
 
     // v2 plots
     cv2->cd();
@@ -495,6 +534,86 @@ void MultiTrial(
   legTrial->Draw();
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".pdf");
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".png");
+
+  // significance plots
+  TCanvas *cSignificance = new TCanvas("cSignificance", "cSignificance", 1000, 800);
+  StyleCanvas(cSignificance, 0.15, 0.05, 0.05, 0.15);
+  cSignificance->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hSignificance[i]->SetLineColor(ColorMult[i]);
+    hSignificance[i]->SetMarkerColor(ColorMult[i]);
+    hSignificance[i]->SetMarkerStyle(MarkerMult[i]);
+    hSignificance[i]->SetTitle("");
+    hSignificance[i]->Draw("same");
+  }
+  legTrial->Draw();
+  cSignificance->SaveAs("Systematics/SignificanceMultTrial" + Suffix + ".pdf");
+  cSignificance->SaveAs("Systematics/SignificanceMultTrial" + Suffix + ".png");
+
+  // ratio of significances to default one
+  TCanvas *cSignificanceRatio = new TCanvas("cSignificanceRatio", "cSignificanceRatio", 1000, 800);
+  StyleCanvas(cSignificanceRatio, 0.15, 0.05, 0.05, 0.15);
+  cSignificanceRatio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hSignificanceRatio[i]->SetLineColor(ColorMult[i]);
+    hSignificanceRatio[i]->SetMarkerColor(ColorMult[i]);
+    hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hSignificanceRatio[i]->SetTitle("");
+    hSignificanceRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hSignificanceRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
+    hSignificanceRatio[i]->Draw("same");
+  }
+  legTrial->Draw();
+  lineat1->Draw("same");
+  cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".pdf");
+  cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".png");
+
+  // Stat. uncertainties
+  TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
+  StyleCanvas(cStat, 0.15, 0.05, 0.05, 0.15);
+  cStat->cd();
+  hDefaultError->SetLineColor(kBlack);
+  hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
+  hDefaultError->Draw();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hError[i]->SetLineColor(ColorMult[i]);
+    hError[i]->SetMarkerColor(ColorMult[i]);
+    hError[i]->SetMarkerStyle(MarkerMult[i]);
+    hError[i]->Draw("same");
+  }
+  legTrial->Draw();
+  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
+  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
+
+  // ratio of stat. uncertainties to default one
+  TCanvas *cStatRatio = new TCanvas("cStatRatio", "cStatRatio", 1000, 800);
+  StyleCanvas(cStatRatio, 0.15, 0.05, 0.05, 0.15);
+  cStatRatio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == 8)
+      continue;
+    hErrorRatio[i]->SetLineColor(ColorMult[i]);
+    hErrorRatio[i]->SetMarkerColor(ColorMult[i]);
+    hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hErrorRatio[i]->SetTitle("");
+    hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hErrorRatio[i]->GetYaxis()->SetRangeUser(0.6, 1.4);
+    hErrorRatio[i]->Draw("same");
+  }
+  lineat1->Draw("same");
+  legTrial->Draw();
+  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
+  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
 
   // systematic computation taking 0.5 * (max - min) variation
   const int bins = h[0]->GetNbinsX(); // pt bins
