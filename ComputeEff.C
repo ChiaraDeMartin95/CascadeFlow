@@ -142,7 +142,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   StyleCanvas(cEffReco, 0.12, 0.05, 0.02, 0.13);
   TCanvas *cEff = new TCanvas("cEff", "reco after BDT / gen", 800, 600);
   StyleCanvas(cEff, 0.12, 0.05, 0.02, 0.13);
-  TCanvas *cEffwoBDT = new TCanvas("cEffwoBDT", "reco before macro BDT / gen", 800, 600);
+  TCanvas *cEffwoBDT = new TCanvas("cEffwoBDT", "reco before any BDT selection / gen", 800, 600);
   StyleCanvas(cEffwoBDT, 0.12, 0.05, 0.02, 0.13);
   TCanvas *cEffBDT = new TCanvas("cEffBDT", "reco after BDT / reco before any BDT", 800, 600);
   StyleCanvas(cEffBDT, 0.12, 0.05, 0.02, 0.13);
@@ -222,7 +222,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     {
       histoPtEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPtAfterBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtEff[m], 0, 0.1, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtEff[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
     histoPtEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEff->cd();
     histoPtEff[m]->Draw("same e");
@@ -255,7 +255,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     {
       histoPtEffwoBDT[m]->SetBinError(i, SetEfficiencyError(histoRecoPtBeforeBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtEffwoBDT[m], 0, 0.1, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before BDT task cut", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtEffwoBDT[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before BDT task cut", "", 1, 1.15, 1.2);
     histoPtEffwoBDT[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEffwoBDT->cd();
     histoPtEffwoBDT[m]->Draw("same e");
@@ -266,7 +266,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     {
       histoPtRecoEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPt[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
-    StyleHistoYield(histoPtRecoEff[m], 0, 0.4, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before any BDT cut", "", 1, 1.15, 1.2);
+    StyleHistoYield(histoPtRecoEff[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before any BDT cut", "", 1, 1.15, 1.2);
     histoPtRecoEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
     cEffReco->cd();
     histoPtRecoEff[m]->Draw("same e");

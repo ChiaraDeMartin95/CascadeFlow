@@ -1,11 +1,11 @@
-Bool_t isV2 = 0;          // 0 for polarization, 1 for v2
-Int_t ChosenParticle = 3; // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
+Bool_t isV2 = 1;          // 0 for polarization, 1 for v2
+Int_t ChosenParticle = 1; // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
 
 const Int_t numPart = 6; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+
 bool isRun2Binning = 0;
 const Int_t numPtBins = 15;
 // const Int_t numPtBins = 6; // Run2 binning
-const Int_t numPtBinsEff = 16; // for efficiency
+const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numChoice = 10; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr
@@ -23,7 +23,7 @@ Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 
 // Double_t PtBins[numPtBins + 1] = {0.8, 1.4, 2, 2.5, 3, 4, 6}; // Run 2 binning
 Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
-Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3, 3.5, 4, 5, 6, 8};
+Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
@@ -37,9 +37,9 @@ Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245,
 TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus"};
 // from PDG 2024 //for Xi+ and Omega+-, set to 1 as it has no meaning:
 // Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.0181};
-Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.0181};
+Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018};
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
-Float_t AlphaHErrors[numPart] = {1, 1, 0.006, 0.0073, 0.0020, 0.0038};
+Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004};
 Float_t CXiToLambda = 0.944;
 Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757}; // decay parameter for Lambda -> p pi
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}"};
@@ -50,26 +50,34 @@ Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1.};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8};
 //Float_t MaxPt[numPart] = {10, 10, 10, 10, 10, 10};
 // Float_t MaxPt[numPart] = {6, 6, 6, 6, 6, 6}; // Run 2 binning
-TString TypeHisto[numChoice] = {"Mean", "Sigma", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaMixed", "Cos2ThetaLambdaFromCMixed", "V2MixedCorr"};
+TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaMixed", "Cos2ThetaLambdaFromCMixed", "V2MixedCorr"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta)#GT", "#LTcos^{2}(#theta)#GT", "v2, corr"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "P_{z,s2}";
 
 //---------------------------------------------------------
-TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607";
+//TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
 //TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
-TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
-TString SinputFileNameEff = "LHC24g3_pass4_Train305015";
-TString SinputFileNameEffSyst = "LHC24g3_pass4_Train305015";
+//TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
+
+//TString SinputFileName = "LHC23_PbPb_pass4_Train332687"; //Partial 2023 PbPb statistics, pass4 training, BDT > 0.8
+//TString SinputFileName = "LHC23_PbPb_pass4_Train331632"; //Partial 2023 PbPb statistics, pass4 training
+TString SinputFileName = "LHC23_PbPb_pass4_Train333596"; //All PbPb stata, pass4 training, bug in Pz fixed
+TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
+//TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train332687";
+//TString SinputFileNameEff = "LHC24g3_pass4_Train305015"; //most recent
+TString SinputFileNameEff = "LHC24g3_pass4_Train331315"; 
+TString SinputFileNameEffSyst = "LHC24g3_pass4_Train331315";
 
 Bool_t ExtrBkgType = 1; // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
-Bool_t isApplyWeights = 1;        // weights to flatten the phi distribution of cascades
+Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to DefaultBDTscoreCut
-const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.96, 0.96, 0.96};
+//const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.96, 0.96, 0.96};
+const float bdtCut[numCent] = {0.95, 0.94, 0.94, 0.85, 0.85, 0.85, 0.85, 0.85}; //based on pass4 training
 const float LimitForV2woFit = 0.97; // purity limit to decide whether to extract v2 from fit or not
 //---------------------------------------------------------
 

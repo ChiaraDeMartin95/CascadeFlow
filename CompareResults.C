@@ -198,7 +198,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 9 --> v2 with pass4; test 5 vs test 3
   // TypeComp = 10 --> Pz from Xi vs Pz from daughter Lambda
   // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
-  // TypeComp = 12 --> Pzs2 vs centrality; XIMinus vs XiPlus
+  // TypeComp = 12 --> Pzs2 vs centrality: XiMinus vs XiPlus
   // TypeComp = 13 --> weighted vs unweighted v2 (eff weight)
   // TypeComp = 14 --> default v2 vs corrected v2
   // TypeComp = 15 --> weighted vs corrected v2
@@ -499,8 +499,8 @@ void CompareResults(Int_t TypeComp = 0,
     MaxHistoX = 70;
     hTitleY = "P_{z,s2}";
     hTitleX = "FT0C Centrality";
-    YLow = -0.05;
-    YUp = 0.05;
+    YLow = -0.01;
+    YUp = 0.01;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     sleg[0] = "P_{z,s2} from #Xi";
@@ -510,18 +510,18 @@ void CompareResults(Int_t TypeComp = 0,
   else if (TypeComp == 12)
   {
     numOptions = 2;
-    // CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_";
-    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_pass4_QC1_Train268802_";
-    fileName[0] = ParticleName[2] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_BDTCentDep_Run2Binning_PtInt";
-    fileName[1] = ParticleName[3] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_BDTCentDep_Run2Binning_PtInt";
+    CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_";
+    // CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_pass4_QC1_Train268802_";
+    fileName[0] = ParticleName[2] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PtInt";
+    fileName[1] = ParticleName[3] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PtInt";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     MinHistoX = 0;
-    MaxHistoX = 70;
+    MaxHistoX = 80;
     hTitleY = "P_{z,s2}";
     hTitleX = "FT0C Centrality";
-    YLow = -0.05;
-    YUp = 0.05;
+    YLow = -0.03;
+    YUp = 0.03;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     sleg[0] = "#Xi^{-}";
@@ -570,7 +570,7 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "Default";
     sleg[1] = "Corrected";
   }
-else if (TypeComp == 15)
+  else if (TypeComp == 15)
   {
     // TypeComp = 15 --> weighted vs corrected v2
     numOptions = 2;
@@ -673,6 +673,8 @@ else if (TypeComp == 15)
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 11)
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
+  else if (TypeComp == 12)
+    leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
   leg->AddEntry(hDef, sleg[0], "lp");
@@ -712,7 +714,8 @@ else if (TypeComp == 15)
   line->SetLineStyle(9);
   line->Draw("same");
 
-  canvas->SaveAs(Form("Canvas_CompareResults%i.png", TypeComp));
+  canvas->SaveAs(Form("CompareResults/Canvas_CompareResults%i.png", TypeComp));
+  canvas->SaveAs(Form("CompareResults/Canvas_CompareResults%i.pdf", TypeComp));
 
   TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); // without ratio
   StyleCanvas(canvas2, 0.05, 0.15, 0.15, 0.05);
@@ -726,5 +729,6 @@ else if (TypeComp == 15)
     h[i]->DrawCopy("same");
   }
   leg->Draw("same");
-  canvas2->SaveAs(Form("Canvas_CompareResults%i_NoRatio.png", TypeComp));
+  canvas2->SaveAs(Form("CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
+  canvas2->SaveAs(Form("CompareResults/Canvas_CompareResults%i_NoRatio.pdf", TypeComp));
 }
