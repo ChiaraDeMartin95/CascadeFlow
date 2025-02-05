@@ -300,6 +300,7 @@ void ProcessTree(Bool_t isEff = 0,
     OutputFileName += "_Run2Binning";
   // OutputFileName += "_EffWBis.root";
   // OutputFileName += "_Prova1234.root";
+  //OutputFileName += "_TestWithAlpha.root";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
@@ -395,8 +396,11 @@ void ProcessTree(Bool_t isEff = 0,
       dcent = dcent.Define("NchVar", "1");
       dcent = dcent.Define("NchxV2", "1");
     }
+    dcentPzs2 = dcentPzs2.Define("fAlphaLambda", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaLambda[2], AlphaLambda[3]));
     dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromC", "fCosThetaStarProton * sin(2*(fPhi-fPsiT0C))");
     dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarProton", "fCosThetaStarProton * fCosThetaStarProton");
+    dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromCAlpha", "Pzs2LambdaFromC / fAlphaLambda");
+    dcentPzs2 = dcentPzs2.Define("fCosThetaStarProtonAlpha", "fCosThetaStarProton / fAlphaLambda");
 
     auto NchVar = dcent.Histo2D({Form("NchVar_cent%i-%i", CentFT0CMin, CentFT0CMax), "Rel. variation of Nch vs 2*(Psi-Phi)", 100, 0, 2 * TMath::Pi(), 100, 0.7, 1.3}, "f2PsiDiffCorr", "NchVar");
     NchVarVector.push_back(NchVar);
@@ -420,11 +424,9 @@ void ProcessTree(Bool_t isEff = 0,
     {
       dcentPzs2 = dcentPzs2.Define("fAlphaXi", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[2], AlphaH[3]));
       dcentPzs2 = dcentPzs2.Define("Pzs2Xi", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C))");
-      dcentPzs2 = dcentPzs2.Define("Pzs2XiAlpha", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C)) / fAlphaXi");
       dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarLambda", "fCosThetaStarLambdaFromXi * fCosThetaStarLambdaFromXi");
-      dcentPzs2 = dcentPzs2.Define("Pzs2LambdaFromCAlpha", "Pzs2LambdaFromC / fAlphaXi");
+      dcentPzs2 = dcentPzs2.Define("Pzs2XiAlpha", "fCosThetaStarLambdaFromXi * sin(2*(fPhi-fPsiT0C)) / fAlphaXi");
       dcentPzs2 = dcentPzs2.Define("fCosThetaStarLambdaFromXiAlpha", "fCosThetaStarLambdaFromXi / fAlphaXi");
-      dcentPzs2 = dcentPzs2.Define("fCosThetaStarProtonAlpha", "fCosThetaStarProton / fAlphaXi");
 
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassXi");
       hMassCutVector.push_back(hMassCut);
@@ -466,10 +468,11 @@ void ProcessTree(Bool_t isEff = 0,
     }
     else
     {
-      dcentPzs2 = dcentPzs2.Define("fAlphaOmega", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[5], AlphaH[5]));
+      dcentPzs2 = dcentPzs2.Define("fAlphaOmega", Form("if (fSign < 0) return %.4f; else return %.4f;", AlphaH[4], AlphaH[5]));
       dcentPzs2 = dcentPzs2.Define("Pzs2Omega", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C))");
-      dcentPzs2 = dcentPzs2.Define("Pzs2OmegaAlpha", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C)) / fAlphaOmega");
       dcentPzs2 = dcentPzs2.Define("fCos2ThetaStarLambda", "fCosThetaStarLambdaFromOmega * fCosThetaStarLambdaFromOmega");
+      dcentPzs2 = dcentPzs2.Define("Pzs2OmegaAlpha", "fCosThetaStarLambdaFromOmega * sin(2*(fPhi-fPsiT0C)) / fAlphaOmega");
+      dcentPzs2 = dcentPzs2.Define("fCosThetaStarLambdaFromOmegaAlpha", "fCosThetaStarLambdaFromOmega / fAlphaOmega");
 
       auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #LambdaK", 100, 1.6, 1.73}, "fMassOmega");
       hMassCutVector.push_back(hMassCut);
@@ -489,6 +492,12 @@ void ProcessTree(Bool_t isEff = 0,
 
       auto massVsPtVsPzs2WithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2WithAlphaOmega, MaxPzs2WithAlphaOmega}, "fMassOmega", "fPt", "Pzs2OmegaAlpha");
       massVsPtVsPzs2VectorWithAlpha.push_back(massVsPtVsPzs2WithAlpha);
+      auto massVsPtVsPzs2LambdaFromCWithAlpha = dcentPzs2.Histo3D({Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.63, 1.726, 100, 0, 10, NPzs2, MinPzs2WithAlphaOmega, MaxPzs2WithAlphaOmega}, "fMassOmega", "fPt", "Pzs2LambdaFromCAlpha");
+      massVsPtVsPzs2LambdaFromCVectorWithAlpha.push_back(massVsPtVsPzs2LambdaFromCWithAlpha);
+      auto massVsPsiVsPzWithAlpha = dcentPzs2.Histo3D({Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPzWithAlphaOmega, MaxPzWithAlphaOmega}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarLambdaFromOmegaAlpha");
+      massVsPsiVsPzVectorWithAlpha.push_back(massVsPsiVsPzWithAlpha);
+      auto massVsPsiVsPzLambdaFromCWithAlpha = dcentPzs2.Histo3D({Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.63, 1.726, 20, 0, 2 * TMath::Pi(), NPz, MinPzWithAlphaOmega, MaxPzWithAlphaOmega}, "fMassOmega", "f2PsiDiffCorr", "fCosThetaStarProtonAlpha");
+      massVsPsiVsPzLambdaFromCVectorWithAlpha.push_back(massVsPsiVsPzLambdaFromCWithAlpha);
 
       auto massVsPtVsCos2 = dcentPzs2.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.63, 1.726, 100, 0, 10, 100, 0, 1}, "fMassOmega", "fPt", "fCos2ThetaStarLambda");
       massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
@@ -555,10 +564,14 @@ void ProcessTree(Bool_t isEff = 0,
     effWeight3DVector[cent]->Write();
 
     massVsPtVsPzs2Vector[cent]->Write();
-    massVsPtVsPzs2VectorWithAlpha[cent]->Write();
     massVsPtVsPzs2LambdaFromCVector[cent]->Write();
     massVsPsiVsPzVector[cent]->Write();
     massVsPsiVsPzLambdaFromCVector[cent]->Write();
+
+    massVsPtVsPzs2VectorWithAlpha[cent]->Write();
+    massVsPtVsPzs2LambdaFromCVectorWithAlpha[cent]->Write();
+    massVsPsiVsPzVectorWithAlpha[cent]->Write();
+    massVsPsiVsPzLambdaFromCVectorWithAlpha[cent]->Write();
 
     massVsPtVsCos2Vector[cent]->Write();
     massVsPtVsCos2LambdaFromCVector[cent]->Write();

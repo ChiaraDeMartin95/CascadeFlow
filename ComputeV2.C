@@ -260,12 +260,15 @@ void ComputeV2(Int_t indexMultTrial = 0,
       CentFT0CMax = CentFT0C[cent + 1];
     }
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ExtrisApplyEffWeights) hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (ExtrisApplyEffWeights)
+      hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPzLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
+
+    hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
+
     hNameCos2Theta_3D[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaLambdaFromC_3D[cent] = Form("massVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaVsPsi_3D[cent] = Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -505,10 +508,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_BDTCentDep";
   if (isRun2Binning)
     SOutputFile += "_Run2Binning";
-  if (ExtrisApplyEffWeights){
+  if (ExtrisApplyEffWeights)
+  {
     SOutputFile += "_EffW";
   }
   // SOutputFile += "_TestV2InRestrictedRange.root";
+  SOutputFile += "_WithAlpha";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent + 1; cent++)

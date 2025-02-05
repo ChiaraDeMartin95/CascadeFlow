@@ -392,6 +392,7 @@ void FitV2orPol(
   {
     SPathIn += "_EffW";
   }
+  SPathIn += "_WithAlpha";
   SPathIn += ".root";
 
   TFile *filein = new TFile(SPathIn, "");
@@ -1621,21 +1622,29 @@ void FitV2orPol(
   {
     if (isPolFromLambda)
     {
-      histoV2->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
-      histoV2NoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
-      histoV2Mixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
-      histoV2PtInt->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
-      histoV2PtIntNoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
-      histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2NoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2Mixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2PtInt->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2PtIntNoFit->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
+      // NOTE: Alpha already integrated in ProcessTree.C
+      histoV2->Scale(1. / CXiToLambda);
+      histoV2NoFit->Scale(1. / CXiToLambda);
+      histoV2Mixed->Scale(1. / CXiToLambda);
+      histoV2PtInt->Scale(1. / CXiToLambda);
+      histoV2PtIntNoFit->Scale(1. / CXiToLambda);
+      histoV2PtIntMixed->Scale(1. / CXiToLambda);
     }
     else
     {
-      histoV2->Scale(1. / AlphaH[ChosenPart]);
-      histoV2NoFit->Scale(1. / AlphaH[ChosenPart]);
-      histoV2Mixed->Scale(1. / AlphaH[ChosenPart]);
-      histoV2PtInt->Scale(1. / AlphaH[ChosenPart]);
-      histoV2PtIntNoFit->Scale(1. / AlphaH[ChosenPart]);
-      histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
+      // NOTE: Alpha already integrated in ProcessTree.C
+      // histoV2->Scale(1. / AlphaH[ChosenPart]);
+      // histoV2NoFit->Scale(1. / AlphaH[ChosenPart]);
+      // histoV2Mixed->Scale(1. / AlphaH[ChosenPart]);
+      // histoV2PtInt->Scale(1. / AlphaH[ChosenPart]);
+      // histoV2PtIntNoFit->Scale(1. / AlphaH[ChosenPart]);
+      // histoV2PtIntMixed->Scale(1. / AlphaH[ChosenPart]);
     }
   }
 
@@ -1743,6 +1752,12 @@ void FitV2orPol(
   {
     outputfile->WriteTObject(canvas[i]);
   }
+  for (Int_t pt = 0; pt <= numPtBinsVar; pt++)
+  {
+    // outputfile->WriteTObject(hInvMass[pt]);
+    // outputfile->WriteTObject(hV2[pt]);
+    // outputfile->WriteTObject(hCos2Theta[pt]);
+  }
   outputfile->WriteTObject(histoYield);
   outputfile->WriteTObject(histoYieldNN);
   outputfile->WriteTObject(histoTot);
@@ -1770,7 +1785,7 @@ void FitV2orPol(
   // Performance plot
   Int_t ChosenPt = 8;
   if (isXi)
-    ChosenPt = 0; //2
+    ChosenPt = 0; // 2
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7};
   Float_t UpperCutHisto = 1.7;
@@ -1989,12 +2004,11 @@ void FitV2orPol(
   canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.png", ChosenPt));
   canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.eps", ChosenPt));
 
-
   canvasCos2->cd();
   padL2->Draw();
   padL2->cd();
-  TH1F* hDummyRatioClone = (TH1F*)hDummyRatio->Clone("hDummyRatioClone");
-  hDummyRatioClone->GetYaxis()->SetRangeUser(0, 0.3);
+  TH1F *hDummyRatioClone = (TH1F *)hDummyRatio->Clone("hDummyRatioClone");
+  hDummyRatioClone->GetYaxis()->SetRangeUser(0, 0.5);
   hDummyRatioClone->GetYaxis()->SetTitle("cos^{2}(#theta*)");
   hDummyRatioClone->Draw("same");
   hCos2Theta[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
