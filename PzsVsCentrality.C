@@ -169,6 +169,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   {
     fHistPzsLambda->SetBinError(i, fHistPzsLambda_StatErr->GetBinContent(i));
     fHistPzsLambdaSist->SetBinError(i, fHistPzsLambda_SystErr->GetBinContent(i));
+    fHistPzsLambda_StatErr->SetBinError(i, 0);
   }
   fHistPzsLambda->SetMarkerStyle(20);
   fHistPzsLambda->SetMarkerSize(1.5);
@@ -176,6 +177,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda->SetLineColor(kBlue);
   fHistPzsLambdaSist->SetMarkerColor(kBlue);
   fHistPzsLambdaSist->SetLineColor(kBlue);
+
+  fHistPzsLambda_StatErr->SetMarkerStyle(20);
+  fHistPzsLambda_StatErr->SetMarkerSize(1.5);
+  fHistPzsLambda_StatErr->SetMarkerColor(kBlue);
+  fHistPzsLambda_StatErr->SetLineColor(kBlue);
 
   // fileout name
   TString stringout;
@@ -206,18 +212,27 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TCanvas *canvasPzs = new TCanvas("canvasPzs", "canvasPzs", 900, 700);
   StyleCanvas(canvasPzs, 0.05, 0.15, 0.15, 0.05);
   TH1F *fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
+  TH1F *fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
 
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
+  TLegend *legendLambda = new TLegend(0.5, 0.53, 0.9, 0.73);
+  legendLambda->SetFillStyle(0);
+  legendLambda->SetTextSize(0.03);
+  legendLambda->AddEntry(fHistPzsLambda, "#Lambda + #bar{#Lambda}, Phys. Rev. Lett. 128.17 (2022)", "pl");
+
   TLegend *LegendTitle;
-  LegendTitle = new TLegend(0.54, 0.75, 0.95, 0.92);
+  LegendTitle = new TLegend(0.54, 0.72, 0.93, 0.9);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " |#it{y}| < 0.5", "");
+  if (isPolFromLambda)
+    LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " from daughter #Lambda, |#it{y}| < 0.5", "");
+  else
+    LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " |#it{y}| < 0.5", "");
   if (ChosenPt == 100)
     LegendTitle->AddEntry("", Form("#it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
   else
@@ -278,6 +293,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistSpectrum[m]->SetName("histoPzs2_" + Smolt[m]);
     fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
     fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+    fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
+    fHistPzsError->SetBinError(m + 1, 0);
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << endl;
   } // end loop on mult
 
@@ -303,20 +320,42 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzs, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXCent, TitleYPzs, "", MarkerPartSize[part], 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(0, 70);
+  hDummy->GetXaxis()->SetRangeUser(0, 80);
   hDummy->Draw("");
   fHistPzs->Draw("same");
   fHistPzsLambda->Draw("same e0x0");
   fHistPzsLambdaSist->SetFillStyle(0);
   fHistPzsLambdaSist->Draw("same e2");
   LegendTitle->Draw("");
+  legendLambda->Draw("");
+  canvasPzs->SaveAs(stringoutpdf + ".pdf");
+  canvasPzs->SaveAs(stringoutpdf + ".png");
+
+  // Relative stat. uncertainty
+  TCanvas *canvasPzsError = new TCanvas("canvasPzsError", "canvasPzsError", 900, 700);
+  StyleCanvas(canvasPzsError, 0.05, 0.15, 0.15, 0.05);
+  TH1F *hDummyError = new TH1F("hDummyError", "hDummyError", 8000, 0, 80);
+  for (Int_t i = 1; i <= hDummyError->GetNbinsX(); i++)
+    hDummyError->SetBinContent(i, 1e-12);
+  canvasPzsError->cd();
+  SetFont(hDummyError);
+  StyleHistoYield(hDummyError, 0, 0.01, 1, 1, TitleXCent, "Absolute stat. uncertainty", "", 1, 1.15, 1.6);
+  StyleHistoYield(fHistPzsError, 0, 0.01, ColorPart[part], MarkerPart[part], TitleXCent, "Absolute stat. uncertainty", "", MarkerPartSize[part], 1.15, 1.6);
+  SetHistoTextSize(hDummyError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyError, tickX, tickY);
+  hDummyError->GetXaxis()->SetRangeUser(0, 80);
+  hDummyError->Draw("");
+  fHistPzsError->Draw("same");
+  fHistPzsLambda_StatErr->Draw("same e0x0");
+  LegendTitle->Draw("");
+  legendLambda->Draw("");
+  canvasPzsError->SaveAs(stringoutpdf + "_Error.pdf");
+  canvasPzsError->SaveAs(stringoutpdf + "_Error.png");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistPzs->Write();
   fileout->Close();
 
-  canvasPzs->SaveAs(stringoutpdf + ".pdf");
-  canvasPzs->SaveAs(stringoutpdf + ".png");
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
 
   cout << "\nI have created the file:\n " << stringout << endl;
