@@ -143,7 +143,7 @@ Float_t xLabelOffsetR = 0.02;
 Float_t yLabelOffsetR = 0.04;
 
 TString Sinputfile = "";
-TString namehisto[2] = {""};
+TString namehisto[10] = {""};
 TString CommonFileName = "";
 
 Int_t numOptions = 0;
@@ -198,7 +198,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 9 --> v2 with pass4; test 5 vs test 3
   // TypeComp = 10 --> Pz from Xi vs Pz from daughter Lambda
   // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
-  // TypeComp = 12 --> Pzs2 vs centrality: XiMinus vs XiPlus
+  // TypeComp = 12 --> Pzs2 vs centrality: XiMinus vs XiPlus vs Xi
   // TypeComp = 13 --> weighted vs unweighted v2 (eff weight)
   // TypeComp = 14 --> default v2 vs corrected v2
   // TypeComp = 15 --> weighted vs corrected v2
@@ -496,36 +496,39 @@ void CompareResults(Int_t TypeComp = 0,
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     MinHistoX = 0;
-    MaxHistoX = 70;
+    MaxHistoX = 80;
     hTitleY = "P_{z,s2}";
     hTitleX = "FT0C Centrality";
     YLow = -0.01;
-    YUp = 0.01;
+    YUp = 0.03;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     sleg[0] = "P_{z,s2} from #Xi";
     sleg[1] = "P_{z,s2} from #Lambda";
   }
-  // TypeComp = 12 --> Pzs2 vs centrality : XiPlus vs XiMinus
+  // TypeComp = 12 --> Pzs2 vs centrality : XiPlus vs XiMinus vs Xi
   else if (TypeComp == 12)
   {
-    numOptions = 2;
+    numOptions = 3;
     CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_";
     // CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_pass4_QC1_Train268802_";
-    fileName[0] = ParticleName[2] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PtInt";
-    fileName[1] = ParticleName[3] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PtInt";
+    fileName[0] = ParticleName[0] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PolFromLambda_PtInt";
+    fileName[1] = ParticleName[2] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PolFromLambda_PtInt";
+    fileName[2] = ParticleName[3] + SIsBkgParab[BkgType] + "_Pzs2_Weighted_PolFromLambda_PtInt";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
+    namehisto[2] = "fHistPzs";
     MinHistoX = 0;
     MaxHistoX = 80;
     hTitleY = "P_{z,s2}";
     hTitleX = "FT0C Centrality";
-    YLow = -0.03;
+    YLow = -0.01;
     YUp = 0.03;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
-    sleg[0] = "#Xi^{-}";
-    sleg[1] = "#Xi^{+}";
+    sleg[0] = "#Xi";
+    sleg[1] = "#Xi^{-}";
+    sleg[2] = "#Xi^{+}";
   }
   else if (TypeComp == 13)
   {
@@ -658,10 +661,10 @@ void CompareResults(Int_t TypeComp = 0,
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    h[i]->SetMarkerColor(ColorMult[1]);
-    h[i]->SetLineColor(ColorMult[1]);
-    h[i]->SetMarkerStyle(MarkerMult[1]);
-    h[i]->SetMarkerSize(0.6 * SizeMult[1]);
+    h[i]->SetMarkerColor(ColorMult[i+1]);
+    h[i]->SetLineColor(ColorMult[i+1]);
+    h[i]->SetMarkerStyle(MarkerMult[i+1]);
+    h[i]->SetMarkerSize(0.6 * SizeMult[i+1]);
     h[i]->Draw("same");
   }
 
