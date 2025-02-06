@@ -253,6 +253,7 @@ void FitV2orPol(
     Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
+    Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t ChosenPart = ChosenParticle,
     TString inputFileName = SinputFileName,
     Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -393,6 +394,8 @@ void FitV2orPol(
     SPathIn += "_EffW";
   }
   SPathIn += "_WithAlpha";
+  if (!isRapiditySel)
+    SPathIn += "_Eta08";
   SPathIn += ".root";
 
   TFile *filein = new TFile(SPathIn, "");
@@ -1737,6 +1740,8 @@ void FitV2orPol(
   }
   Soutputfile += SBDT;
   Soutputfile += SEtaSysChoice[EtaSysChoice];
+  if (!isRapiditySel)
+    Soutputfile += "_Eta08";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

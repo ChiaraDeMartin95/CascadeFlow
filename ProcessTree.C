@@ -70,6 +70,7 @@ bool passbdtCut(float bdtscore, float cent, int indexMultTrial)
 
 void ProcessTree(Bool_t isEff = 0,
                  Int_t indexMultTrial = 0,
+                 Bool_t isRapiditySel = ExtrisRapiditySel,
                  Int_t ChosenPart = ChosenParticle,
                  Bool_t isApplyEffWeights = 0,
                  TString inputFileName = SinputFileName,
@@ -300,7 +301,9 @@ void ProcessTree(Bool_t isEff = 0,
     OutputFileName += "_Run2Binning";
   // OutputFileName += "_EffWBis.root";
   // OutputFileName += "_Prova1234.root";
-  //OutputFileName += "_TestWithAlpha.root";
+  // OutputFileName += "_TestWithAlpha.root";
+  if (!isRapiditySel)
+    OutputFileName += "_Eta08";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
@@ -310,6 +313,7 @@ void ProcessTree(Bool_t isEff = 0,
 
   std::vector<ROOT::RDF::RResultPtr<TH1D>> hrapidityVector;
   std::vector<ROOT::RDF::RResultPtr<TH1D>> hEtaVector;
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hEtaPzs2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH1D>> PsiDiffVector;
   std::vector<ROOT::RDF::RResultPtr<TH1D>> PsiDiff2Vector;
 
@@ -373,7 +377,17 @@ void ProcessTree(Bool_t isEff = 0,
     dcent = dcent.Define("f2PsiDiff", "2*fPhi-2*fPsiT0C");
     dcent = dcent.Define("Nch", Form("%.2f", dNdEtaAbhi[cent]));
     dcent = dcent.Define("v2Pub", Form("%.3f", v2PubRun2[cent]));
-    auto dcentPzs2 = dcent.Filter("fRapidity > -0.5 && fRapidity < 0.5");
+
+    // rapidity or eta selection
+    auto dcentPzs2 = dcent;
+    if (isRapiditySel)
+    {
+      dcentPzs2 = dcent.Filter("fRapidity > -0.5 && fRapidity < 0.5");
+    }
+    else
+    {
+      dcentPzs2 = dcent.Filter("fEta > -0.8 && fEta < 0.8");
+    }
 
     if (isApplyEffWeights)
     {
@@ -419,6 +433,8 @@ void ProcessTree(Bool_t isEff = 0,
     hrapidityVector.push_back(hrapidity);
     auto hEta = dcent.Histo1D({Form("Eta_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
     hEtaVector.push_back(hEta);
+    auto hEtaPzs2 = dcentPzs2.Histo1D({Form("EtaPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta distribution of selected candidates for Pzs2 analysis", 200, -2, 2}, "fEta");
+    hEtaPzs2Vector.push_back(hEtaPzs2);
 
     if (isXi)
     {
@@ -547,6 +563,7 @@ void ProcessTree(Bool_t isEff = 0,
   {
     hrapidityVector[cent]->Write();
     hEtaVector[cent]->Write();
+    hEtaPzs2Vector[cent]->Write();
     PsiDiffVector[cent]->Write();
     PsiDiff2Vector[cent]->Write();
 

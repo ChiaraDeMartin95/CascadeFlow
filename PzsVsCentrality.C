@@ -113,6 +113,7 @@ Float_t YUp[numPart] = {0.015};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
+                     Bool_t isRapiditySel = ExtrisRapiditySel,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
@@ -204,6 +205,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_PtInt";
   else
     stringout += Form("_Pt%.1f-%.1f", PtBins[ChosenPt], PtBins[ChosenPt + 1]);
+  if (!isRapiditySel)
+    stringout += "_Eta08";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -278,6 +281,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_Run2Binning";
     if (isPolFromLambda)
       PathIn += "_PolFromLambda";
+    if (!isRapiditySel)
+      PathIn += "_Eta08";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);

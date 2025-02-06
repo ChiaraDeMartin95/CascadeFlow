@@ -21,6 +21,7 @@
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
+               Bool_t isRapiditySel = ExtrisRapiditySel,
                TString inputFileName = SinputFileName,
                Int_t RebinFactor = 1,
                Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -47,6 +48,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_BDTCentDep";
   if (isRun2Binning)
     SinputFile += "_Run2Binning";
+  if (!isRapiditySel)
+    SinputFile += "_Eta08";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -514,6 +517,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
   // SOutputFile += "_TestV2InRestrictedRange.root";
   SOutputFile += "_WithAlpha";
+  if (!isRapiditySel)
+    SOutputFile += "_Eta08";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent + 1; cent++)
@@ -561,7 +566,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     }
   }
   file->Close();
-  TString SweightsFile = "PhiWeights/Weights_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".root";
+  TString SweightsFile = "PhiWeights/Weights_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  if (!isRapiditySel)
+    SweightsFile += "_Eta08";
+  SweightsFile += ".root";
   TFile *weightsFile;
   if (!isApplyWeights) // weights computed only once (when we apply weights, they have already been created!)
   {
