@@ -39,7 +39,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
   if (v2type == 1)
@@ -154,46 +154,49 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
 
   TH3D *weights{nullptr};
-  for (Int_t pt = 0; pt < numPtBins; pt++)
+  if (!ExtrisFromTHN)
   {
-    QCPhi->cd(pt + 1);
-    for (Int_t cent = 0; cent < numCent; cent++)
+    for (Int_t pt = 0; pt < numPtBins; pt++)
     {
-      // QCPlot
-      hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-      if (!hPhiCentHisto[cent])
+      QCPhi->cd(pt + 1);
+      for (Int_t cent = 0; cent < numCent; cent++)
       {
-        cout << "Histogram hPhiCentHisto not available" << endl;
-        return;
-      }
-      hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-      if (!weights)
-      {
-        std::vector<double> phiBins(hPhiCentHisto[cent]->GetYaxis()->GetNbins() + 1, 0.);
-        for (uint32_t bin = 1; bin < phiBins.size() - 1; bin++)
+        // QCPlot
+        hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+        if (!hPhiCentHisto[cent])
         {
-          phiBins[bin] = bin * 2 * TMath::Pi() / (phiBins.size() - 1);
+          cout << "Histogram hPhiCentHisto not available" << endl;
+          return;
         }
-        phiBins.back() = 2 * TMath::Pi();
-        weights = new TH3D("weights", "weights", numCent, centBins.data(), numPtBins, PtBins, hPhiCentHisto[cent]->GetYaxis()->GetNbins(), phiBins.data());
-      }
+        hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+        if (!weights)
+        {
+          std::vector<double> phiBins(hPhiCentHisto[cent]->GetYaxis()->GetNbins() + 1, 0.);
+          for (uint32_t bin = 1; bin < phiBins.size() - 1; bin++)
+          {
+            phiBins[bin] = bin * 2 * TMath::Pi() / (phiBins.size() - 1);
+          }
+          phiBins.back() = 2 * TMath::Pi();
+          weights = new TH3D("weights", "weights", numCent, centBins.data(), numPtBins, PtBins, hPhiCentHisto[cent]->GetYaxis()->GetNbins(), phiBins.data());
+        }
 
-      hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
-      hPhiCentHisto1D[cent][pt] = (TH1F *)hPhiCentHisto[cent]->ProjectionY(Form("Weights_cent%i-%i_pt%.3f-%.3f", CentFT0C[cent], CentFT0C[cent + 1], PtBins[pt], PtBins[pt + 1]));
-      hPhiCentHisto1D[cent][pt]->SetMarkerStyle(20);
-      hPhiCentHisto1D[cent][pt]->SetMarkerSize(0.5);
-      hPhiCentHisto1D[cent][pt]->SetMarkerColor(ColorMult[cent]);
-      hPhiCentHisto1D[cent][pt]->SetLineColor(ColorMult[cent]);
-      hPhiCentHisto1D[cent][pt]->SetTitle(Form("%.2f < p_{T} < %.2f GeV/c", PtBins[pt], PtBins[pt + 1]));
-      // hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent]->Integral());
-      hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMinimumBin()));
-      hPhiCentHisto1D[cent][pt]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
-      hPhiCentHisto1D[cent][pt]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
-      hPhiCentHisto1D[cent][pt]->Draw("same hist");
+        hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+        hPhiCentHisto1D[cent][pt] = (TH1F *)hPhiCentHisto[cent]->ProjectionY(Form("Weights_cent%i-%i_pt%.3f-%.3f", CentFT0C[cent], CentFT0C[cent + 1], PtBins[pt], PtBins[pt + 1]));
+        hPhiCentHisto1D[cent][pt]->SetMarkerStyle(20);
+        hPhiCentHisto1D[cent][pt]->SetMarkerSize(0.5);
+        hPhiCentHisto1D[cent][pt]->SetMarkerColor(ColorMult[cent]);
+        hPhiCentHisto1D[cent][pt]->SetLineColor(ColorMult[cent]);
+        hPhiCentHisto1D[cent][pt]->SetTitle(Form("%.2f < p_{T} < %.2f GeV/c", PtBins[pt], PtBins[pt + 1]));
+        // hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent]->Integral());
+        hPhiCentHisto1D[cent][pt]->Scale(1. / hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMinimumBin()));
+        hPhiCentHisto1D[cent][pt]->GetYaxis()->SetRangeUser(0, 1.2 * hPhiCentHisto1D[cent][pt]->GetBinContent(hPhiCentHisto1D[cent][pt]->GetMaximumBin()));
+        hPhiCentHisto1D[cent][pt]->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
+        hPhiCentHisto1D[cent][pt]->Draw("same hist");
 
-      for (Int_t bin = 0; bin < hPhiCentHisto1D[cent][pt]->GetNbinsX(); bin++)
-      {
-        weights->Fill(CentFT0C[cent] + 0.0001, PtBins[pt] + 0.0001, hPhiCentHisto1D[cent][pt]->GetBinCenter(bin + 1), hPhiCentHisto1D[cent][pt]->GetBinContent(bin + 1));
+        for (Int_t bin = 0; bin < hPhiCentHisto1D[cent][pt]->GetNbinsX(); bin++)
+        {
+          weights->Fill(CentFT0C[cent] + 0.0001, PtBins[pt] + 0.0001, hPhiCentHisto1D[cent][pt]->GetBinCenter(bin + 1), hPhiCentHisto1D[cent][pt]->GetBinContent(bin + 1));
+        }
       }
     }
   }
@@ -204,49 +207,53 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TH1F *hHistoPt[numCent + 1];
   TH1F *hAvgPt[numCent + 1];
   TH1F *hPtDeviation[numCent + 1];
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  if (!ExtrisFromTHN)
   {
-    if (cent == numCent)
-    { // 0-80%
-      CentFT0CMin = 0;
-      CentFT0CMax = 80;
-    }
-    else
+    for (Int_t cent = 0; cent < numCent + 1; cent++)
     {
-      CentFT0CMin = CentFT0C[cent];
-      CentFT0CMax = CentFT0C[cent + 1];
-    }
-    hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax));
-    if (!hPhiCentHisto[cent])
-    {
-      cout << "Histogram hPhiCentHisto not available" << endl;
-      return;
-    }
-    hPhiCentHisto[cent]->GetYaxis()->SetRangeUser(0, 2 * TMath::Pi());
-    hHistoPt[cent] = (TH1F *)hPhiCentHisto[cent]->ProjectionX(Form("PtHist_cent%i-%i", 0, -1));
-    hAvgPt[cent] = new TH1F(Form("AvgPt_cent%i-%i", CentFT0CMin, CentFT0CMax), Form("AvgPt_cent%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
-    hPtDeviation[cent] = new TH1F(Form("PtDeviation_cent%i-%i", CentFT0CMin, CentFT0CMax), Form("PtDeviation_cent%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
-    for (Int_t pt = 0; pt < numPtBins; pt++)
-    {
-      hHistoPt[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
-      hAvgPt[cent]->SetBinContent(pt + 1, hHistoPt[cent]->GetMean());
-      hAvgPt[cent]->SetBinError(pt + 1, hHistoPt[cent]->GetMeanError());
-      hPtDeviation[cent]->SetBinContent(pt + 1, (hHistoPt[cent]->GetMean() - (PtBins[pt] + PtBins[pt + 1]) / 2) / ((PtBins[pt] + PtBins[pt + 1]) / 2));
-      hPtDeviation[cent]->SetBinError(pt + 1, 0);
-    }
-    cAvgPt->cd();
-    hAvgPt[cent]->SetMarkerStyle(20);
-    hAvgPt[cent]->SetMarkerSize(0.5);
-    hAvgPt[cent]->SetMarkerColor(ColorMult[cent]);
-    hAvgPt[cent]->SetLineColor(ColorMult[cent]);
-    hAvgPt[cent]->Draw("same");
+      if (cent == numCent)
+      { // 0-80%
+        CentFT0CMin = 0;
+        CentFT0CMax = 80;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0C[cent];
+        CentFT0CMax = CentFT0C[cent + 1];
+      }
 
-    cPtDeviation->cd();
-    hPtDeviation[cent]->SetMarkerStyle(20);
-    hPtDeviation[cent]->SetMarkerSize(0.5);
-    hPtDeviation[cent]->SetMarkerColor(ColorMult[cent]);
-    hPtDeviation[cent]->SetLineColor(ColorMult[cent]);
-    hPtDeviation[cent]->Draw("same");
+      hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax));
+      if (!hPhiCentHisto[cent])
+      {
+        cout << "Histogram hPhiCentHisto not available" << endl;
+        return;
+      }
+      hPhiCentHisto[cent]->GetYaxis()->SetRangeUser(0, 2 * TMath::Pi());
+      hHistoPt[cent] = (TH1F *)hPhiCentHisto[cent]->ProjectionX(Form("PtHist_cent%i-%i", 0, -1));
+      hAvgPt[cent] = new TH1F(Form("AvgPt_cent%i-%i", CentFT0CMin, CentFT0CMax), Form("AvgPt_cent%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
+      hPtDeviation[cent] = new TH1F(Form("PtDeviation_cent%i-%i", CentFT0CMin, CentFT0CMax), Form("PtDeviation_cent%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
+      for (Int_t pt = 0; pt < numPtBins; pt++)
+      {
+        hHistoPt[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+        hAvgPt[cent]->SetBinContent(pt + 1, hHistoPt[cent]->GetMean());
+        hAvgPt[cent]->SetBinError(pt + 1, hHistoPt[cent]->GetMeanError());
+        hPtDeviation[cent]->SetBinContent(pt + 1, (hHistoPt[cent]->GetMean() - (PtBins[pt] + PtBins[pt + 1]) / 2) / ((PtBins[pt] + PtBins[pt + 1]) / 2));
+        hPtDeviation[cent]->SetBinError(pt + 1, 0);
+      }
+      cAvgPt->cd();
+      hAvgPt[cent]->SetMarkerStyle(20);
+      hAvgPt[cent]->SetMarkerSize(0.5);
+      hAvgPt[cent]->SetMarkerColor(ColorMult[cent]);
+      hAvgPt[cent]->SetLineColor(ColorMult[cent]);
+      hAvgPt[cent]->Draw("same");
+
+      cPtDeviation->cd();
+      hPtDeviation[cent]->SetMarkerStyle(20);
+      hPtDeviation[cent]->SetMarkerSize(0.5);
+      hPtDeviation[cent]->SetMarkerColor(ColorMult[cent]);
+      hPtDeviation[cent]->SetLineColor(ColorMult[cent]);
+      hPtDeviation[cent]->Draw("same");
+    }
   }
 
   // v2 and polarization computation
@@ -279,7 +286,13 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName[cent]);
     hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
-    profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName[cent]);
+    if (!ExtrisFromTHN)
+      profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName[cent]);
+    if (!profmassVsPt[cent] && !ExtrisFromTHN)
+    {
+      cout << "Profile profmassVsPt not available" << endl;
+      return;
+    }
     hmassVsPtVsPzs2[cent] = (TH3D *)inputFile->Get(hNamePzs2_3D[cent]);
     if (!hmassVsPtVsPzs2[cent])
     {
@@ -423,7 +436,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       if (pt == numPtBins)
       {
         hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
-        profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
+        if (!ExtrisFromTHN)
+          profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
         hmassVsPtVsPzs2[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
         hmassVsPtVsPzs2LambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
         hmassVsPtVsCos2Theta[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
@@ -432,14 +446,16 @@ void ComputeV2(Int_t indexMultTrial = 0,
       else
       {
         hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
-        profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+        if (!ExtrisFromTHN)
+          profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsPzs2[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsPzs2LambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsCos2Theta[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
       }
-      hV2CFromProfile[cent][pt] = (TH1F *)profmassVsPt[cent]->ProjectionX(hNameV2CFromProfile2D[cent][pt], 0, -1, "e"); // v2C from TProfile2D
-      hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xze");                                            // mass vs V2C //"e" option does not change the results
+      if (!ExtrisFromTHN)
+        hV2CFromProfile[cent][pt] = (TH1F *)profmassVsPt[cent]->ProjectionX(hNameV2CFromProfile2D[cent][pt], 0, -1, "e"); // v2C from TProfile2D
+      hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xze");                                              // mass vs V2C //"e" option does not change the results
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C[cent][pt]);
       hmassVsV2C[cent][pt]->RebinY(RebinFactor);
 
@@ -499,7 +515,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
       }
     }
   }
-
   QCPhi->SaveAs("QCPlots/QCPhiCasc.png");
 
   TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
@@ -515,11 +530,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
   {
     SOutputFile += "_EffW";
   }
-  // SOutputFile += "_TestV2InRestrictedRange.root";
   SOutputFile += "_WithAlpha";
   if (!isRapiditySel)
     SOutputFile += "_Eta08";
-  SOutputFile += ".root";
+  SOutputFile += STHN[ExtrisFromTHN] + ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
@@ -529,12 +543,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hmassVsPtVsCos2Theta[cent]->Write();
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->Write();
     hmassVsPt[cent]->Write();
-    hAvgPt[cent]->Write();
+    if (!ExtrisFromTHN)
+      hAvgPt[cent]->Write();
     for (Int_t pt = 0; pt < numPtBins + 1; pt++)
-    {
+    { 
       hmassVsV2C[cent][pt]->Write();
       hV2C[cent][pt]->Write();
-      hV2CFromProfile[cent][pt]->Write();
+      if (!ExtrisFromTHN)
+        hV2CFromProfile[cent][pt]->Write();
       pV2C[cent][pt]->Write();
       hmassVsPzs2[cent][pt]->Write();
       hmassVsPzs2LambdaFromC[cent][pt]->Write();
@@ -547,22 +563,22 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hCos2Theta[cent][pt]->Write();
       hCos2ThetaLambdaFromC[cent][pt]->Write();
       hmass[cent][pt]->Write();
-      if (cent != numCent && pt != numPtBins)
+      if (cent != numCent && pt != numPtBins && !ExtrisFromTHN)
         hPhiCentHisto1D[cent][pt]->Write();
     }
     for (Int_t psi = 0; psi < numPsiBins; psi++)
     {
-      hmassVsPz[cent][psi]->Write();
-      hmassVsPzLambdaFromC[cent][psi]->Write();
-      hPz[cent][psi]->Write();
-      hPzLambdaFromC[cent][psi]->Write();
-      hmassVsCos2ThetaPsi[cent][psi]->Write();
-      hmassVsCos2ThetaPsiLambdaFromC[cent][psi]->Write();
-      hCos2ThetaPsi[cent][psi]->Write();
-      hCos2ThetaPsiLambdaFromC[cent][psi]->Write();
-      pPz[cent][psi]->Write();
-      pPzLambdaFromC[cent][psi]->Write();
-      hmassPsi[cent][psi]->Write();
+      //   hmassVsPz[cent][psi]->Write();
+      // hmassVsPzLambdaFromC[cent][psi]->Write();
+      // hPz[cent][psi]->Write();
+      // hPzLambdaFromC[cent][psi]->Write();
+      // hmassVsCos2ThetaPsi[cent][psi]->Write();
+      // hmassVsCos2ThetaPsiLambdaFromC[cent][psi]->Write();
+      // hCos2ThetaPsi[cent][psi]->Write();
+      // hCos2ThetaPsiLambdaFromC[cent][psi]->Write();
+      // pPz[cent][psi]->Write();
+      // pPzLambdaFromC[cent][psi]->Write();
+      // hmassPsi[cent][psi]->Write();
     }
   }
   file->Close();
@@ -571,14 +587,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SweightsFile += "_Eta08";
   SweightsFile += ".root";
   TFile *weightsFile;
-  if (!isApplyWeights) // weights computed only once (when we apply weights, they have already been created!)
+  if (!isApplyWeights && !ExtrisFromTHN) // weights computed only once (when we apply weights, they have already been created!)
   {
-    weightsFile = new TFile(SweightsFile, "RECREATE");
-    weightsFile->cd();
-    weights->Write();
-    weightsFile->Close();
+    // weightsFile = new TFile(SweightsFile, "RECREATE");
+    // weightsFile->cd();
+    // weights->Write();
+    // weightsFile->Close();
   }
   cout << "I created the file " << file->GetName() << endl;
-  if (!isApplyWeights)
+  if (!isApplyWeights && !ExtrisFromTHN)
     cout << " and the file with weights: " << SweightsFile << endl;
 }

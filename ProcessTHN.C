@@ -26,32 +26,6 @@
 using namespace ROOT;
 using namespace std;
 
-constexpr double massSigmaParameters[4][2]{
-    {4.9736e-3, 0.006815},
-    {-2.39594, -2.257},
-    {1.8064e-3, 0.00138},
-    {1.03468e-1, 0.1898}};
-
-Float_t Minv2 = -1;
-Float_t Maxv2 = 1;
-Int_t Nv2 = 200;
-
-Float_t MinPzs2 = -1;
-Float_t MinPzs2WithAlphaXi = -2.8;
-Float_t MinPzs2WithAlphaOmega = -65;
-Float_t MaxPzs2 = 1;
-Float_t MaxPzs2WithAlphaXi = 2.8;
-Float_t MaxPzs2WithAlphaOmega = 65;
-Int_t NPzs2 = 200;
-
-Float_t MinPz = -1;
-Float_t MinPzWithAlphaXi = -2.8;
-Float_t MinPzWithAlphaOmega = -65;
-Float_t MaxPz = 1;
-Float_t MaxPzWithAlphaXi = 2.8;
-Float_t MaxPzWithAlphaOmega = 65;
-Int_t NPz = 200;
-
 void ProcessTHN(Bool_t isEff = 0,
                 Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
@@ -71,15 +45,6 @@ void ProcessTHN(Bool_t isEff = 0,
   }
   if (isEff)
     inputFileName = SinputFileNameEff;
-  string v2Chosen = "fV2C";
-  if (v2type == 1)
-  {
-    v2Chosen = "fV2CSP";
-    Minv2 = -5;
-    Maxv2 = 5;
-  }
-  else if (v2type == 2)
-    v2Chosen = "fV2CEP";
 
   if (isSysMultTrial)
   {
@@ -87,6 +52,7 @@ void ProcessTHN(Bool_t isEff = 0,
     if (isEff)
       inputFileName = SinputFileNameEff;
   }
+
   Float_t BDTscoreCut = DefaultBDTscoreCut;
   if (indexMultTrial > trialsBDT)
     return;
@@ -140,6 +106,8 @@ void ProcessTHN(Bool_t isEff = 0,
   TString hNameCos2ThetaVsPsi_3D[numCent + 1] = {""};
   TString hNameCos2ThetaVsPsiLambdaFromC_3D[numCent + 1] = {""};
 
+  TH2F *hPhiCentHisto[numCent];
+
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
 
@@ -154,12 +122,12 @@ void ProcessTHN(Bool_t isEff = 0,
   TH1F *hBDT[numCent + 1];
   TH1F *hMassLambda[numCent + 1];
 
-  TH1F *hDummyCentrality =  (TH1F *)hV2->Projection(0);
-  TH1F *hDummyCharge =  (TH1F *)hV2->Projection(1);
-  TH1F *hDummyPt =  (TH1F *)hV2->Projection(2);
-  TH1F *hDummyMass =  (TH1F *)hV2->Projection(3);
-  TH1F *hDummyBDT =  (TH1F *)hV2->Projection(4);
-  TH1F *hDummyMassLambda =  (TH1F *)hXiPzs2->Projection(4);
+  TH1F *hDummyCentrality = (TH1F *)hV2->Projection(0);
+  TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
+  TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
+  TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
+  TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
+  TH1F *hDummyMassLambda = (TH1F *)hXiPzs2->Projection(4);
   hDummyCentrality->Reset();
   hDummyCharge->Reset();
   hDummyPt->Reset();
@@ -172,6 +140,8 @@ void ProcessTHN(Bool_t isEff = 0,
   hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
   hDummyBDT->GetYaxis()->SetRangeUser(0, 0.4);
   hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
+
+  TH1F *hBDTSelection = new TH1F("hBDTSelection", "BDT selection", 8, 0, 80);
 
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
@@ -186,9 +156,9 @@ void ProcessTHN(Bool_t isEff = 0,
       CentFT0CMax = CentFT0C[cent + 1];
     }
     // Selection of centrality range
-    hV2->GetAxis(0)->SetRange(hV2->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hV2->GetAxis(0)->FindBin(CentFT0CMax-0.001));
-    hXiPzs2->GetAxis(0)->SetRange(CentFT0CMin + 1, CentFT0CMax);
-    hXiCos2Theta->GetAxis(0)->SetRange(CentFT0CMin + 1, CentFT0CMax);
+    hV2->GetAxis(0)->SetRange(hV2->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hV2->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
+    hXiPzs2->GetAxis(0)->SetRange(hXiPzs2->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiPzs2->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
+    hXiCos2Theta->GetAxis(0)->SetRange(hXiCos2Theta->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiCos2Theta->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
 
     // Selection of charge
     if (ChosenParticle == 2 || ChosenParticle == 4)
@@ -210,9 +180,16 @@ void ProcessTHN(Bool_t isEff = 0,
       hXiCos2Theta->GetAxis(1)->SetRange(1, 2); // All charges
     }
 
-    // Selection on BDT score
+    // Selection on BDT score -- be careful, in the 0-80% case, the BDT score is not defined and I apply the same cut as in the 0-10% case
+    Float_t BDTscoreCut = DefaultBDTscoreCut;
+    if (!useCommonBDTValue)
+      BDTscoreCut = bdtCut[cent];
+    hV2->GetAxis(4)->SetRange(hV2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hV2->GetAxis(4)->FindBin(1 - 0.001));
 
     // QCPlots
+    hBDTSelection->SetBinContent(cent + 1, BDTscoreCut);
+    hBDTSelection->SetBinError(cent + 1, 0);
+
     gStyle->SetOptStat(0);
     canvasQC->cd(1);
     hCentrality[cent] = (TH1F *)hV2->Projection(0);
@@ -220,7 +197,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hCentrality[cent]->SetLineColor(ColorMult[cent]);
     hCentrality[cent]->SetMarkerColor(ColorMult[cent]);
     hCentrality[cent]->GetXaxis()->SetRangeUser(0, 80);
-    if (cent==0) hDummyCentrality->Draw();
+    if (cent == 0)
+      hDummyCentrality->Draw();
     hCentrality[cent]->Draw("same");
 
     canvasQC->cd(2);
@@ -229,7 +207,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hCharge[cent]->SetLineColor(ColorMult[cent]);
     hCharge[cent]->SetMarkerColor(ColorMult[cent]);
     hCharge[cent]->GetXaxis()->SetRangeUser(0, 2);
-    if (cent==0) hDummyCharge->Draw();
+    if (cent == 0)
+      hDummyCharge->Draw();
     hCharge[cent]->Draw("same");
 
     canvasQC->cd(3);
@@ -238,7 +217,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hPt[cent]->SetLineColor(ColorMult[cent]);
     hPt[cent]->SetMarkerColor(ColorMult[cent]);
     hPt[cent]->GetXaxis()->SetRangeUser(0, 10);
-    if (cent==0) hDummyPt->Draw();
+    if (cent == 0)
+      hDummyPt->Draw();
     hPt[cent]->Draw("same");
 
     canvasQC->cd(4);
@@ -247,7 +227,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hMass[cent]->SetLineColor(ColorMult[cent]);
     hMass[cent]->SetMarkerColor(ColorMult[cent]);
     hMass[cent]->GetXaxis()->SetRangeUser(1.3, 1.345);
-    if (cent==0) hDummyMass->Draw();
+    if (cent == 0)
+      hDummyMass->Draw();
     hMass[cent]->Draw("same");
 
     canvasQC->cd(5);
@@ -257,7 +238,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
     hBDT[cent]->GetXaxis()->SetRangeUser(0.4, 1);
     hBDT[cent]->GetYaxis()->SetRangeUser(0, 0.4);
-    if (cent==0) hDummyBDT->Draw();
+    if (cent == 0)
+      hDummyBDT->Draw();
     hBDT[cent]->Draw("same");
 
     canvasQC->cd(6);
@@ -266,7 +248,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hMassLambda[cent]->SetLineColor(ColorMult[cent]);
     hMassLambda[cent]->SetMarkerColor(ColorMult[cent]);
     hMassLambda[cent]->GetXaxis()->SetRangeUser(1.1, 1.13);
-    if (cent==0) hDummyMassLambda->Draw();
+    if (cent == 0)
+      hDummyMassLambda->Draw();
     hMassLambda[cent]->Draw("same");
 
     // Histo name definition
@@ -292,30 +275,35 @@ void ProcessTHN(Bool_t isEff = 0,
     hmassVsPtVsPzs2[cent]->SetName(hNamePzs2_3D[cent]);
     hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 7); // mass, pt, pzs2LambdaFromC
     hmassVsPtVsPzs2LambdaFromC[cent]->SetName(hNamePzs2LambdaFromC_3D[cent]);
-    /* not yet implemented
-    hmassVsPsiVsPz[cent] = (TH3D *)hXiPzs2->Projection(x,x,x); // mass, psi, cosThetaLambda
+
+    // BE CAREFUL: AXES TO BE UPDATED
+    hmassVsPsiVsPz[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 6); // mass, psi, cosThetaLambda
     hmassVsPsiVsPz[cent]->SetName(hNamePzVsPsi_3D[cent]);
-    hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(x,x,x); // mass, psi, cosThetaProton
+    hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 6); // mass, psi, cosThetaProton
     hmassVsPsiVsPzLambdaFromC[cent]->SetName(hNamePzVsPsiLambdaFromC_3D[cent]);
-    */
 
     hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, pt, cos2ThetaLambda
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
     hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 7); // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
-    /* not yet implemented
-    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(x,x,x); // mass, psi, cos2ThetaLambda
+
+    // BE CAREFUL: AXES TO BE UPDATED
+    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, psi, cos2ThetaLambda
     hmassVsPsiVsCos2Theta[cent]->SetName(hNameCos2ThetaVsPsi_3D[cent]);
-    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(x,x,x); // mass, psi, cos2ThetaProton
+    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, psi, cos2ThetaProton
     hmassVsPsiVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaVsPsiLambdaFromC_3D[cent]);
-    */
   }
+
+  // canvasBDT
+  TCanvas *canvasBDT = new TCanvas("canvasBDT", "canvasBDT", 800, 800);
+  StyleCanvas(canvasBDT, 0.1, 0.05, 0.05, 0.15);
+  hBDTSelection->Draw("HIST");
 
   // create output file
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/OutputFromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString OutputFileName = "OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     OutputFileName += "_Weighted";
   if (v2type == 1)
@@ -328,44 +316,18 @@ void ProcessTHN(Bool_t isEff = 0,
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
-  // h->Write();
-  // hPtvsCent_Bef->Write();
-  // hPtvsCent_RapCut_Bef->Write();
-  // hPtvsCent_Aft->Write();
-  // hPtvsCent_RapCut_Aft->Write();
-  // cMass->Write();
-  // MassXi->Write();
-  // hmass_Bef->Write();
-  // BDT_response_Bef->Write();
-  // BDT_response_Bef2->Write();
-  // mass_vs_BDTResponse->Write();
-  // hmass->Write();
-  // hmassvsPt->Write();
-  // heta->Write();
-  // hphi->Write();
-  // hEtaPhi->Write();
-  // BDT_response->Write();
-
+  hBDTSelection->Write();
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
-     // hrapidity[cent]->Write();
-    // hEta[cent]->Write();
-    // PsiDiff[cent]->Write();
-    // PsiDiff2[cent]->Write();
-    // hMassCut[cent]->Write();
-    // v2C[cent]->Write();
-    // hPhiCent[cent]->Write();
-    // hPsiCent[cent]->Write();
     hmassVsPtVsV2C[cent]->Write();
-    // massVsPtVsV2CWeighted[cent]->Write();
     hmassVsPtVsPzs2[cent]->Write();
     hmassVsPtVsPzs2LambdaFromC[cent]->Write();
-    // massVsPsiVsPz[cent]->Write();
-    // massVsPsiVsPzLambdaFromC[cent]->Write();
+    hmassVsPsiVsPz[cent]->Write();
+    hmassVsPsiVsPzLambdaFromC[cent]->Write();
     hmassVsPtVsCos2Theta[cent]->Write();
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->Write();
-    // massVsPsiVsCos2[cent]->Write();
-    // massVsPsiVsCos2LambdaFromC[cent]->Write();
+    hmassVsPsiVsCos2Theta[cent]->Write();
+    hmassVsPsiVsCos2ThetaLambdaFromC[cent]->Write();
   }
 
   file->Close();
