@@ -205,8 +205,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_PtInt";
   else
     stringout += Form("_Pt%.1f-%.1f", PtBins[ChosenPt], PtBins[ChosenPt + 1]);
-  if (!isRapiditySel)
+  if (!isRapiditySel || ExtrisFromTHN)
     stringout += "_Eta08";
+  stringout += STHN[ExtrisFromTHN];
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -291,8 +292,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_Run2Binning";
     if (isPolFromLambda)
       PathIn += "_PolFromLambda";
-    if (!isRapiditySel)
+    if (!isRapiditySel || ExtrisFromTHN)
       PathIn += "_Eta08";
+    PathIn += STHN[ExtrisFromTHN];
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);

@@ -1,5 +1,9 @@
-Bool_t isV2 = 1;          // 0 for polarization, 1 for v2
-Int_t ChosenParticle = 1; // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
+Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
+Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
+Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
+
+TString STHN[2] = {"", "_FromTHN"};
+Bool_t ExtrisFromTHN = 1; //0: process the tree, 1: process the THnSparse
 
 const Int_t numPart = 6; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+
 bool isRun2Binning = 0;
@@ -40,7 +44,7 @@ TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus
 Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018};
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004};
-Float_t CXiToLambda = 0.944;
+Float_t CXiToLambda = 0.925;
 Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757}; // decay parameter for Lambda -> p pi
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
@@ -48,8 +52,8 @@ TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
 
 Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1.};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8};
-//Float_t MaxPt[numPart] = {10, 10, 10, 10, 10, 10};
-// Float_t MaxPt[numPart] = {6, 6, 6, 6, 6, 6}; // Run 2 binning
+// Float_t MaxPt[numPart] = {10, 10, 10, 10, 10, 10};
+//  Float_t MaxPt[numPart] = {6, 6, 6, 6, 6, 6}; // Run 2 binning
 TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaMixed", "Cos2ThetaLambdaFromCMixed", "V2MixedCorr"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta)#GT", "#LTcos^{2}(#theta)#GT", "v2, corr"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
@@ -57,17 +61,20 @@ TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "P_{z,s2}";
 
 //---------------------------------------------------------
-//TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
-//TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
-//TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
+// TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
+// TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
+// TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
 
-//TString SinputFileName = "LHC23_PbPb_pass4_Train332687"; //Partial 2023 PbPb statistics, pass4 training, BDT > 0.8
-//TString SinputFileName = "LHC23_PbPb_pass4_Train331632"; //Partial 2023 PbPb statistics, pass4 training
-TString SinputFileName = "LHC23_PbPb_pass4_Train333596"; //All PbPb stata, pass4 training, bug in Pz fixed
-TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
-//TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train332687";
-//TString SinputFileNameEff = "LHC24g3_pass4_Train305015"; //most recent
-TString SinputFileNameEff = "LHC24g3_pass4_Train331315"; 
+// TString SinputFileName = "LHC23_PbPb_pass4_Train332687"; //Partial 2023 PbPb statistics, pass4 training, BDT > 0.8
+// TString SinputFileName = "LHC23_PbPb_pass4_Train331632"; //Partial 2023 PbPb statistics, pass4 training
+//TString SinputFileName = "LHC23_PbPb_pass4_Train333596"; //All PbPb stata, pass4 training, bug in Pz fixed
+//TString SinputFileName = "TestTHN";
+TString SinputFileName = "LHC23_PbPb_pass4_medium_Train346163";
+
+//TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
+TString SinputFileNameSyst = "LHC23_PbPb_pass4_medium_Train346163";
+
+TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
 TString SinputFileNameEffSyst = "LHC24g3_pass4_Train331315";
 
 Bool_t ExtrBkgType = 1; // 0: pol1, 1:pol2, 2:pol3, 3:expo
@@ -76,18 +83,17 @@ Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of 
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to DefaultBDTscoreCut
-//const float bdtCut[numCent] = {0.98, 0.98, 0.98, 0.97, 0.97, 0.96, 0.96, 0.96};
-const float bdtCut[numCent] = {0.95, 0.94, 0.94, 0.85, 0.85, 0.85, 0.85, 0.85}; //based on pass4 training
-const float LimitForV2woFit = 0.97; // purity limit to decide whether to extract v2 from fit or not
+const float bdtCut[numCent+1] = {0.95, 0.95, 0.95, 0.85, 0.85, 0.85, 0.85, 0.85, 0.95}; // based on pass4 training
+const float LimitForV2woFit = 0.97;                                             // purity limit to decide whether to extract v2 from fit or not
 //---------------------------------------------------------
 
 // systematic studies
-bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 10;    // number of trials for the systematic studies related to BDTscore
+bool ExtrisSysMultTrial = 1; // 1 for systematic studies, 0 for default analysis
+const int trialsBDT = 15;    // number of trials for the systematic studies related to BDTscore
 const int nsigmaBarlow = 2;
-const float DefaultBDTscoreCut = 0.98;
+const float DefaultBDTscoreCut = 0.96;
 const float UpperlimitBDTscoreCut = 1;
-const float LowerlimitBDTscoreCut = 0.9;
+const float LowerlimitBDTscoreCut = 0.4;
 
 TString SEtaSysChoice[3] = {"", "_Etagt0", "_Etasm0"}; // all eta, eta > 0, eta < 0
 Int_t ExtrEtaSysChoice = 0;                            // 0: all eta, 1: eta > 0, 2: eta < 0

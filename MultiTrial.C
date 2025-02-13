@@ -140,12 +140,15 @@ TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = ""
   return hNSigmaBarlow;
 }
 
+Int_t IndexNotDisplayed = 14;
+
 void MultiTrial(
     Int_t mul = 0,
     Int_t Choice = 0,        // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
     Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     TString SisSyst = "BDT",
     Int_t ChosenPart = ChosenParticle,
+    Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
     TString inputFileName = SinputFileNameSyst,
     Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -183,7 +186,7 @@ void MultiTrial(
   }
   TString histoName = "histo" + TypeHisto;
 
-  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + ".pdf";
+  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst;
 
   Int_t trials = 0;
   if (SisSyst == "BDT")
@@ -210,14 +213,20 @@ void MultiTrial(
   {
     Sdef += "_EffW";
   }
+  // if (!ExtrisFromTHN) Sdef += "_WithAlpha";
+  TString Sdef1 = "";
+  if (!isRapiditySel || ExtrisFromTHN)
+    Sdef1 = "_Eta08";
+  Sdef1 += STHN[ExtrisFromTHN];
+  TString SdefFinal = Sdef + Sdef1;
 
   TString Svaried = "";
 
-  cout << "Default input file: " << Sdef << endl;
-  TFile *fdef = TFile::Open(Sdef + ".root");
+  cout << "Default input file: " << SdefFinal << endl;
+  TFile *fdef = TFile::Open(SdefFinal + ".root");
   if (!fdef)
   {
-    cout << "File not found: " << Sdef << endl;
+    cout << "File not found: " << SdefFinal << endl;
     return;
   }
 
@@ -229,14 +238,14 @@ void MultiTrial(
   TH1F *hDefault = (TH1F *)fdef->Get(histoName);
   if (!hDefault)
   {
-    cout << "histo not found in " << Sdef << endl;
+    cout << "histo not found in " << SdefFinal << endl;
     return;
   }
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
   hDefault->Draw();
-  
-  TH1F * hDefaultError = (TH1F*)hDefault->Clone("hError");
+
+  TH1F *hDefaultError = (TH1F *)hDefault->Clone("hError");
   hDefaultError->Reset();
   for (int i = 1; i <= hDefault->GetNbinsX(); i++)
   {
@@ -246,21 +255,21 @@ void MultiTrial(
   TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield");
   if (!hDefaultYield)
   {
-    cout << "histoYield not found in " << Sdef << endl;
+    cout << "histoYield not found in " << SdefFinal << endl;
     return;
   }
   hDefaultYield->SetName("hDefaultYield");
   TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
   if (!hDefaultPurity)
   {
-    cout << "histoPurity not found in " << Sdef << endl;
+    cout << "histoPurity not found in " << SdefFinal << endl;
     return;
   }
   hDefaultPurity->SetName("hDefaultPurity");
   TH1F *hDefaultSignificance = (TH1F *)fdef->Get("histoSignificance");
   if (!hDefaultSignificance)
   {
-    cout << "histoSignificance not found in " << Sdef << endl;
+    cout << "histoSignificance not found in " << SdefFinal << endl;
     return;
   }
   hDefaultSignificance->SetName("hDefaultSignificance");
@@ -288,21 +297,20 @@ void MultiTrial(
   TH1F *hErrorRatio[trials];
   TH1F *hRawYield[trials];
   TH1F *hRawYieldRatio[trials];
+  TH1F *hRawYieldRatioToTighter[trials];
   TH1F *hPurity[trials];
   TH1F *hPurityRatio[trials];
   TH1F *hSignificance[trials];
   TH1F *hSignificanceRatio[trials];
   Float_t BDTscoreCut = 0;
+
   for (int i = 0; i < trials; i++)
   {
     cout << "Trial: " << i << endl;
-    if (i == 8)
-      continue;
-
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
     TString SBDT = Form("_BDT%.3f", BDTscoreCut);
     if (SisSyst == "BDT")
-      Svaried = Sdef + SBDT;
+      Svaried = Sdef + SBDT + Sdef1;
     else if (SisSyst == "eta")
       Svaried = Sdef + SEtaSysChoice[i + 1];
     else if (SisSyst == "IR")
@@ -327,6 +335,7 @@ void MultiTrial(
       cout << "histo not found in " << Svaried << endl;
       return;
     }
+
     hVariedCut->SetName(histoName + Form("_%i", i));
     hRatio[i] = (TH1F *)hVariedCut->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
@@ -361,13 +370,13 @@ void MultiTrial(
     hSignificanceRatio[i] = (TH1F *)hSignificance[i]->Clone(Form("histoSignificanceRatio_%i", i));
     hSignificanceRatio[i]->Divide(hDefaultSignificance);
 
-    hError[i] = (TH1F*)hVariedCut->Clone(Form("hError_%i", i));
+    hError[i] = (TH1F *)hVariedCut->Clone(Form("hError_%i", i));
     hError[i]->Reset();
     for (int j = 1; j <= hVariedCut->GetNbinsX(); j++)
     {
       hError[i]->SetBinContent(j, hVariedCut->GetBinError(j));
     }
-    hErrorRatio[i] = (TH1F*)hError[i]->Clone(Form("hErrorRatio_%i", i));
+    hErrorRatio[i] = (TH1F *)hError[i]->Clone(Form("hErrorRatio_%i", i));
     hErrorRatio[i]->Divide(hDefaultError);
 
     // v2 plots
@@ -383,10 +392,19 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut, SIRValue[i + 1], "pl");
     hVariedCut->Draw("same");
 
-    h[i] = makeSystPlots(i + 1, Sdef + ".root", Svaried + ".root", histoName);
-    hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, Sdef + ".root", Svaried + ".root", histoName);
+    h[i] = makeSystPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
+    hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
   }
-  
+
+  for (Int_t i = 0; i < trials; i++)
+  {
+    hRawYieldRatioToTighter[i] = (TH1F *)hRawYield[i]->Clone(Form("histoYieldRatioToTighter_%i", i));
+    if (i == (trials - 1))
+      continue;
+    else
+      hRawYieldRatioToTighter[i]->Divide(hRawYield[i + 1]);
+  }
+
   legTrial->Draw();
   if (isV2)
   {
@@ -409,8 +427,7 @@ void MultiTrial(
   hdummy->Draw();
   for (int i = 0; i < trials; i++)
   {
-    cout << "Trial: " << i << endl;
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hNSigmaBarlow[i]->SetLineColor(ColorMult[i]);
     hNSigmaBarlow[i]->SetLineWidth(2);
@@ -425,7 +442,7 @@ void MultiTrial(
   cv2Ratio->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hRatio[i]->SetLineColor(ColorMult[i]);
     hRatio[i]->SetMarkerColor(ColorMult[i]);
@@ -461,7 +478,7 @@ void MultiTrial(
   hDefaultYield->Draw();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hRawYield[i]->SetLineColor(ColorMult[i]);
     hRawYield[i]->SetMarkerColor(ColorMult[i]);
@@ -478,7 +495,7 @@ void MultiTrial(
   cYieldRatio->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hRawYieldRatio[i]->SetLineColor(ColorMult[i]);
     hRawYieldRatio[i]->SetMarkerColor(ColorMult[i]);
@@ -493,6 +510,27 @@ void MultiTrial(
   cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + Suffix + ".pdf");
   cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + Suffix + ".png");
 
+  // ratio of raw yields to previous one
+  TCanvas *cYieldRatioToTighter = new TCanvas("cYieldRatioToTighter", "cYieldRatioToTighter", 1000, 800);
+  StyleCanvas(cYieldRatioToTighter, 0.15, 0.05, 0.05, 0.15);
+  cYieldRatioToTighter->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[i]);
+    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[i]);
+    hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYieldRatioToTighter[i]->SetTitle("");
+    hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
+    hRawYieldRatioToTighter[i]->GetYaxis()->SetRangeUser(0.9, 1.5);
+    hRawYieldRatioToTighter[i]->Draw("same");
+  }
+  legTrial->Draw();
+  lineat1->Draw("same");
+  cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".pdf");
+  cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".png");
+
   // purity plots
   TCanvas *cPurity = new TCanvas("cPurity", "cPurity", 1000, 800);
   StyleCanvas(cPurity, 0.15, 0.05, 0.05, 0.15);
@@ -503,7 +541,7 @@ void MultiTrial(
   hDefaultPurity->Draw();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hPurity[i]->SetLineColor(ColorMult[i]);
     hPurity[i]->SetMarkerColor(ColorMult[i]);
@@ -520,14 +558,14 @@ void MultiTrial(
   cPurityRatio->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hPurityRatio[i]->SetLineColor(ColorMult[i]);
     hPurityRatio[i]->SetMarkerColor(ColorMult[i]);
     hPurityRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hPurityRatio[i]->SetTitle("");
     hPurityRatio[i]->GetYaxis()->SetTitle("Ratio to default");
-    hPurityRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
+    hPurityRatio[i]->GetYaxis()->SetRangeUser(0, 1.1);
     hPurityRatio[i]->Draw("same");
   }
   lineat1->Draw("same");
@@ -541,7 +579,7 @@ void MultiTrial(
   cSignificance->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hSignificance[i]->SetLineColor(ColorMult[i]);
     hSignificance[i]->SetMarkerColor(ColorMult[i]);
@@ -559,7 +597,7 @@ void MultiTrial(
   cSignificanceRatio->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hSignificanceRatio[i]->SetLineColor(ColorMult[i]);
     hSignificanceRatio[i]->SetMarkerColor(ColorMult[i]);
@@ -580,10 +618,11 @@ void MultiTrial(
   cStat->cd();
   hDefaultError->SetLineColor(kBlack);
   hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
+  hDefaultError->GetYaxis()->SetTitle("Statistical uncertainty");
   hDefaultError->Draw();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hError[i]->SetLineColor(ColorMult[i]);
     hError[i]->SetMarkerColor(ColorMult[i]);
@@ -600,7 +639,7 @@ void MultiTrial(
   cStatRatio->cd();
   for (int i = 0; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     hErrorRatio[i]->SetLineColor(ColorMult[i]);
     hErrorRatio[i]->SetMarkerColor(ColorMult[i]);
@@ -623,7 +662,7 @@ void MultiTrial(
   {
     for (int i = 1; i < trials; i++)
     {
-      if (i == 8)
+      if (i == IndexNotDisplayed)
         continue;
       if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
       {
@@ -649,7 +688,7 @@ void MultiTrial(
 
   for (int i = 1; i < trials; i++)
   {
-    if (i == 8)
+    if (i == IndexNotDisplayed)
       continue;
     for (int pt = 0; pt < bins; pt++)
     {
@@ -714,6 +753,9 @@ void MultiTrial(
     OutputFile += "_PolFromLambda";
   if (ExtrisApplyEffWeights)
     OutputFile += "_EffW";
+  if (!isRapiditySel || ExtrisFromTHN)
+    OutputFile += "_Eta08";
+  OutputFile += STHN[ExtrisFromTHN];
   OutputFile += ".root";
 
   TFile *Write = new TFile(OutputFile, "RECREATE");

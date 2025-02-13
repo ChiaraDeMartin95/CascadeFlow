@@ -234,6 +234,8 @@ Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65}; // gauss 
 Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69};
 Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // bkg and total fit range
 Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71};
+Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656};
+Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688};
 
 // visualisation ranges
 Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.655}; // range to compute approximate yield (signal + bkg)
@@ -242,8 +244,8 @@ Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; //
 Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71};
 Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of bkg function (from total fit)
 Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
-Float_t histoMassRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
+Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626}; // display range of mass histograms
+Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72};
 
 // Event plane resolution
 Float_t ftcReso[numCent + 1] = {0};
@@ -394,9 +396,9 @@ void FitV2orPol(
     SPathIn += "_EffW";
   }
   SPathIn += "_WithAlpha";
-  if (!isRapiditySel)
+  if (!isRapiditySel || ExtrisFromTHN)
     SPathIn += "_Eta08";
-  SPathIn += ".root";
+  SPathIn += STHN[ExtrisFromTHN] + ".root";
 
   TFile *filein = new TFile(SPathIn, "");
   if (!filein)
@@ -632,7 +634,6 @@ void FitV2orPol(
     gPad->SetBottomMargin(0.2);
     if (isLogy)
       gPad->SetLogy();
-    // hInvMass[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
     hInvMass[pt]->Draw("e same");
   }
 
@@ -1374,6 +1375,7 @@ void FitV2orPol(
     Cos2ThetaFitFunction[pt] = new TF1(Form("cosfunction%i", pt), v2fitarray[pt], liminf[ChosenPart], limsup[ChosenPart], 3);
     Cos2ThetaFitFunction[pt]->SetLineColor(kRed + 1);
 
+    cout << "\n\n Cos2Theta fit function " << endl;
     hCos2Theta[pt]->Fit(Cos2ThetaFitFunction[pt], "R0");
 
     Cos2ThetaBkgFunction[pt] = new TF1(Form("cosbkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
@@ -1740,8 +1742,9 @@ void FitV2orPol(
   }
   Soutputfile += SBDT;
   Soutputfile += SEtaSysChoice[EtaSysChoice];
-  if (!isRapiditySel)
+  if (!isRapiditySel || ExtrisFromTHN)
     Soutputfile += "_Eta08";
+  Soutputfile += STHN[ExtrisFromTHN];
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1796,8 +1799,6 @@ void FitV2orPol(
   Float_t UpperCutHisto = 1.7;
   if (isXi)
     UpperCutHisto = 1.8;
-  Float_t XRangeMin[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656};
-  Float_t XRangeMax[numPart] = {1.343, 1.688, 1.343, 1.343, 1.688, 1.688};
 
   TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
   if (!isXi)

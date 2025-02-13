@@ -39,7 +39,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
   if (v2type == 1)
@@ -50,6 +50,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_Run2Binning";
   if (!isRapiditySel)
     SinputFile += "_Eta08";
+  SinputFile += SBDT;
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -531,7 +532,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_EffW";
   }
   SOutputFile += "_WithAlpha";
-  if (!isRapiditySel)
+  if (!isRapiditySel || ExtrisFromTHN)
     SOutputFile += "_Eta08";
   SOutputFile += STHN[ExtrisFromTHN] + ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
@@ -546,7 +547,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     if (!ExtrisFromTHN)
       hAvgPt[cent]->Write();
     for (Int_t pt = 0; pt < numPtBins + 1; pt++)
-    { 
+    {
       hmassVsV2C[cent][pt]->Write();
       hV2C[cent][pt]->Write();
       if (!ExtrisFromTHN)
@@ -583,7 +584,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
   file->Close();
   TString SweightsFile = "PhiWeights/Weights_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
-  if (!isRapiditySel)
+  if (!isRapiditySel || ExtrisFromTHN)
     SweightsFile += "_Eta08";
   SweightsFile += ".root";
   TFile *weightsFile;

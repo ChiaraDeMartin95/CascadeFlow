@@ -6,7 +6,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TH3D.h"
-#include "THnSparse.h"
+#include "THn.h"
 #include "TProfile2D.h"
 #include "TProfile.h"
 #include "TCanvas.h"
@@ -26,8 +26,7 @@
 using namespace ROOT;
 using namespace std;
 
-void ProcessTHN(Bool_t isEff = 0,
-                Int_t indexMultTrial = 0,
+void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -43,14 +42,10 @@ void ProcessTHN(Bool_t isEff = 0,
     isXi = 0; // Omega
     Part = 1;
   }
-  if (isEff)
-    inputFileName = SinputFileNameEff;
 
   if (isSysMultTrial)
   {
     inputFileName = SinputFileNameSyst;
-    if (isEff)
-      inputFileName = SinputFileNameEff;
   }
 
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -59,7 +54,7 @@ void ProcessTHN(Bool_t isEff = 0,
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
-  inputFileName = "TestTHN";
+  // inputFileName = "TestTHN";
   TString SinputFile = "TreeForAnalysis";
   SinputFile += "/AnalysisResults_" + inputFileName + ".root";
 
@@ -77,12 +72,41 @@ void ProcessTHN(Bool_t isEff = 0,
   }
   TDirectoryFile *dir = (TDirectoryFile *)inputFile->Get("lf-cascade-flow");
   TDirectoryFile *dir1 = (TDirectoryFile *)dir->Get("histos");
-  THnSparseF *hV2 = (THnSparseF *)dir1->Get("h" + ParticleName[Part] + "V2");
+  THn *hV2 = (THnF *)dir1->Get("h" + ParticleName[Part] + "V2");
   // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisV2
-  THnSparseF *hXiPzs2 = (THnSparseF *)dir1->Get("h" + ParticleName[Part] + "Pzs2");
-  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisMassLambda, thnAxisBDTScore, thnAxisPzs2Xi, thnAxisPzs2Lambda
-  THnSparseF *hXiCos2Theta = (THnSparseF *)dir1->Get("h" + ParticleName[Part] + "Cos2Theta");
-  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisMassLambda, thnAxisBDTScore, thnAxisCos2Theta, thnAxisCos2Theta
+  if (!hV2)
+  {
+    cout << "THn hV2 not found" << endl;
+    return;
+  }
+  THn *hXiPzs2 = (THnF *)dir1->Get("h" + ParticleName[Part] + "Pzs2");
+  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisPzs2Xi
+  if (!hXiPzs2)
+  {
+    cout << "THn hXiPzs2 not found" << endl;
+    return;
+  }
+  THn *hXiPzs2FromLambda = (THnF *)dir1->Get("h" + ParticleName[Part] + "Pzs2FromLambda");
+  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisPzs2Lambda
+  if (!hXiPzs2FromLambda)
+  {
+    cout << "THn hXiPzs2FromLambda not found" << endl;
+    return;
+  }
+  THn *hXiCos2Theta = (THnF *)dir1->Get("h" + ParticleName[Part] + "Cos2Theta");
+  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisCos2Theta
+  if (!hXiCos2Theta)
+  {
+    cout << "THn hXiCos2Theta not found" << endl;
+    return;
+  }
+  THn *hXiCos2ThetaFromLambda = (THnF *)dir1->Get("h" + ParticleName[Part] + "Cos2ThetaFromLambda");
+  // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisCos2ThetaLambda
+  if (!hXiCos2ThetaFromLambda)
+  {
+    cout << "THn hXiCos2ThetaFromLambda not found" << endl;
+    return;
+  }
 
   // V2, Pzs2, Cos2Theta ***
   TH3D *hmassVsPtVsV2C[numCent + 1];
@@ -127,19 +151,19 @@ void ProcessTHN(Bool_t isEff = 0,
   TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
   TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
   TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
-  TH1F *hDummyMassLambda = (TH1F *)hXiPzs2->Projection(4);
+  // TH1F *hDummyMassLambda = (TH1F *)hXiPzs2->Projection(4);
   hDummyCentrality->Reset();
   hDummyCharge->Reset();
   hDummyPt->Reset();
   hDummyMass->Reset();
   hDummyBDT->Reset();
-  hDummyMassLambda->Reset();
-  hDummyCentrality->GetYaxis()->SetRangeUser(0, 0.2);
+  // hDummyMassLambda->Reset();
+  hDummyCentrality->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyCharge->GetYaxis()->SetRangeUser(0, 1);
   hDummyPt->GetYaxis()->SetRangeUser(0, 0.25);
   hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
-  hDummyBDT->GetYaxis()->SetRangeUser(0, 0.4);
-  hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
+  hDummyBDT->GetYaxis()->SetRangeUser(0, 1.2);
+  // hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
 
   TH1F *hBDTSelection = new TH1F("hBDTSelection", "BDT selection", 8, 0, 80);
 
@@ -159,6 +183,8 @@ void ProcessTHN(Bool_t isEff = 0,
     hV2->GetAxis(0)->SetRange(hV2->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hV2->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
     hXiPzs2->GetAxis(0)->SetRange(hXiPzs2->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiPzs2->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
     hXiCos2Theta->GetAxis(0)->SetRange(hXiCos2Theta->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiCos2Theta->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
+    hXiPzs2FromLambda->GetAxis(0)->SetRange(hXiPzs2FromLambda->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiPzs2FromLambda->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
+    hXiCos2ThetaFromLambda->GetAxis(0)->SetRange(hXiCos2ThetaFromLambda->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiCos2ThetaFromLambda->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
 
     // Selection of charge
     if (ChosenParticle == 2 || ChosenParticle == 4)
@@ -166,25 +192,34 @@ void ProcessTHN(Bool_t isEff = 0,
       hV2->GetAxis(1)->SetRange(1, 1);          // Charge < 0
       hXiPzs2->GetAxis(1)->SetRange(1, 1);      // Charge < 0
       hXiCos2Theta->GetAxis(1)->SetRange(1, 1); // Charge < 0
+      hXiPzs2FromLambda->GetAxis(1)->SetRange(1, 1);
+      hXiCos2ThetaFromLambda->GetAxis(1)->SetRange(1, 1);
     }
     else if (ChosenParticle == 3 || ChosenParticle == 5)
     {
       hV2->GetAxis(1)->SetRange(2, 2);          // Charge > 0
       hXiPzs2->GetAxis(1)->SetRange(2, 2);      // Charge > 0
       hXiCos2Theta->GetAxis(1)->SetRange(2, 2); // Charge > 0
+      hXiPzs2FromLambda->GetAxis(1)->SetRange(2, 2);
+      hXiCos2ThetaFromLambda->GetAxis(1)->SetRange(2, 2);
     }
     else
     {
       hV2->GetAxis(1)->SetRange(1, 2);          // All charges
       hXiPzs2->GetAxis(1)->SetRange(1, 2);      // All charges
       hXiCos2Theta->GetAxis(1)->SetRange(1, 2); // All charges
+      hXiPzs2FromLambda->GetAxis(1)->SetRange(1, 2);
+      hXiCos2ThetaFromLambda->GetAxis(1)->SetRange(1, 2);
     }
 
     // Selection on BDT score -- be careful, in the 0-80% case, the BDT score is not defined and I apply the same cut as in the 0-10% case
-    Float_t BDTscoreCut = DefaultBDTscoreCut;
-    if (!useCommonBDTValue)
+    if (!useCommonBDTValue && !isSysMultTrial)
       BDTscoreCut = bdtCut[cent];
     hV2->GetAxis(4)->SetRange(hV2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hV2->GetAxis(4)->FindBin(1 - 0.001));
+    hXiPzs2->GetAxis(4)->SetRange(hXiPzs2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiPzs2->GetAxis(4)->FindBin(1 - 0.001));
+    hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiCos2Theta->GetAxis(4)->FindBin(1 - 0.001));
+    hXiPzs2FromLambda->GetAxis(4)->SetRange(hXiPzs2FromLambda->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiPzs2FromLambda->GetAxis(4)->FindBin(1 - 0.001));
+    hXiCos2ThetaFromLambda->GetAxis(4)->SetRange(hXiCos2ThetaFromLambda->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiCos2ThetaFromLambda->GetAxis(4)->FindBin(1 - 0.001));
 
     // QCPlots
     hBDTSelection->SetBinContent(cent + 1, BDTscoreCut);
@@ -243,14 +278,14 @@ void ProcessTHN(Bool_t isEff = 0,
     hBDT[cent]->Draw("same");
 
     canvasQC->cd(6);
-    hMassLambda[cent] = (TH1F *)hXiPzs2->Projection(4);
-    hMassLambda[cent]->Scale(1. / hMassLambda[cent]->Integral());
-    hMassLambda[cent]->SetLineColor(ColorMult[cent]);
-    hMassLambda[cent]->SetMarkerColor(ColorMult[cent]);
-    hMassLambda[cent]->GetXaxis()->SetRangeUser(1.1, 1.13);
-    if (cent == 0)
-      hDummyMassLambda->Draw();
-    hMassLambda[cent]->Draw("same");
+    // hMassLambda[cent] = (TH1F *)hXiPzs2->Projection(4);
+    // hMassLambda[cent]->Scale(1. / hMassLambda[cent]->Integral());
+    // hMassLambda[cent]->SetLineColor(ColorMult[cent]);
+    // hMassLambda[cent]->SetMarkerColor(ColorMult[cent]);
+    // hMassLambda[cent]->GetXaxis()->SetRangeUser(1.1, 1.13);
+    // if (cent == 0)
+    // hDummyMassLambda->Draw();
+    // hMassLambda[cent]->Draw("same");
 
     // Histo name definition
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -271,26 +306,26 @@ void ProcessTHN(Bool_t isEff = 0,
     hmassVsPtVsV2C[cent] = (TH3D *)hV2->Projection(3, 2, 5); // mass, pt, v2
     hmassVsPtVsV2C[cent]->SetName(hName[cent]);
 
-    hmassVsPtVsPzs2[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 6); // mass, pt, pzs2
+    hmassVsPtVsPzs2[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 5); // mass, pt, pzs2
     hmassVsPtVsPzs2[cent]->SetName(hNamePzs2_3D[cent]);
-    hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 7); // mass, pt, pzs2LambdaFromC
+    hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)hXiPzs2FromLambda->Projection(3, 2, 5); // mass, pt, pzs2LambdaFromC
     hmassVsPtVsPzs2LambdaFromC[cent]->SetName(hNamePzs2LambdaFromC_3D[cent]);
 
     // BE CAREFUL: AXES TO BE UPDATED
-    hmassVsPsiVsPz[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 6); // mass, psi, cosThetaLambda
+    hmassVsPsiVsPz[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 5); // mass, psi, cosThetaLambda
     hmassVsPsiVsPz[cent]->SetName(hNamePzVsPsi_3D[cent]);
-    hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 6); // mass, psi, cosThetaProton
+    hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, 5); // mass, psi, cosThetaProton
     hmassVsPsiVsPzLambdaFromC[cent]->SetName(hNamePzVsPsiLambdaFromC_3D[cent]);
 
-    hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, pt, cos2ThetaLambda
+    hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 5); // mass, pt, cos2ThetaLambda
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
-    hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 7); // mass, pt, cos2ThetaProton
+    hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(3, 2, 5); // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
 
     // BE CAREFUL: AXES TO BE UPDATED
-    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, psi, cos2ThetaLambda
+    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 5); // mass, psi, cos2ThetaLambda
     hmassVsPsiVsCos2Theta[cent]->SetName(hNameCos2ThetaVsPsi_3D[cent]);
-    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 6); // mass, psi, cos2ThetaProton
+    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, 5); // mass, psi, cos2ThetaProton
     hmassVsPsiVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaVsPsiLambdaFromC_3D[cent]);
   }
 
@@ -303,7 +338,7 @@ void ProcessTHN(Bool_t isEff = 0,
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString OutputFileName = "OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
   if (isApplyWeights)
     OutputFileName += "_Weighted";
   if (v2type == 1)
@@ -313,6 +348,7 @@ void ProcessTHN(Bool_t isEff = 0,
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
   OutputFileName += "_Eta08";
+  OutputFileName += SBDT;
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
