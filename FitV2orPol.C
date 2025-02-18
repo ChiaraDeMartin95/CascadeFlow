@@ -223,6 +223,45 @@ Double_t fretta(Double_t *x, Double_t *par)
   return par[0] + par[1] * x[0];
 }
 
+Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
+{
+  if (CentFT0C[mul] >= 40)
+  {
+    return 0.4;
+  }
+  else
+  {
+    if (PtBins[pt] < 1)
+    {
+      return 0.96;
+    }
+    else if (PtBins[pt] < 1.2)
+    {
+      return 0.8;
+    }
+    else if (PtBins[pt] < 2)
+    {
+      return 0.64;
+    }
+    else
+    {
+      return 0.4;
+    }
+  }
+}
+
+Float_t DefineMixedBDTValuePtInt(Int_t mul = 0)
+{
+  if (CentFT0C[mul] >= 40)
+  {
+    return 0.96;
+  }
+  else
+  {
+    return 0.4;
+  }
+}
+
 TString titleYield = "1/N_{evt} dN/dp_{T}";
 TString titleYieldNN = "dN/dp_{T}";
 TString titlePt = "p_{T} (GeV/c)";
@@ -268,6 +307,17 @@ void FitV2orPol(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (useMixedBDTValueInFitMacro && !useCommonBDTValue)
+  {
+    cout << "If you set useMixedBDTValueInFitMacro = 1, input files are correct only if you set UseCommonBDTValue = 1" << endl;
+    return;
+  }
+  if (useMixedBDTValueInFitMacro && ExtrisSysMultTrial)
+  {
+    cout << "UseMixedBDTValueInFitMacro must be set to zero to compute systematics" << endl;
+    return;
+  }
+
   Bool_t isXi = 0;
   if (ChosenPart == 0 || ChosenPart == 2 || ChosenPart == 3)
     isXi = 1;
@@ -309,8 +359,6 @@ void FitV2orPol(
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
-  if (BDTscoreCut != DefaultBDTscoreCut)
-    SBDT = Form("_BDT%.3f", BDTscoreCut);
 
   Int_t NEvents = 0;
   TString PathInEvents = "TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
@@ -382,32 +430,6 @@ void FitV2orPol(
     return;
   }
 
-  TString SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
-  if (isApplyWeights)
-    SPathIn += "_Weighted";
-  if (v2type == 1)
-    SPathIn += "_SP";
-  if (!useCommonBDTValue)
-    SPathIn += "_BDTCentDep";
-  if (isRun2Binning)
-    SPathIn += "_Run2Binning";
-  if (ExtrisApplyEffWeights)
-  {
-    SPathIn += "_EffW";
-  }
-  SPathIn += "_WithAlpha";
-  if (!isRapiditySel || ExtrisFromTHN)
-    SPathIn += "_Eta08";
-  SPathIn += STHN[ExtrisFromTHN] + ".root";
-
-  TFile *filein = new TFile(SPathIn, "");
-  if (!filein)
-  {
-    cout << "FileIn not available" << endl;
-    return;
-  }
-  cout << "FileIn: " << SPathIn << endl;
-
   Int_t numPtBinsVar = numPtBins;
   if (!isPtAnalysis)
     numPtBinsVar = numPsiBins;
@@ -453,15 +475,35 @@ void FitV2orPol(
   }
 
   TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBinsVar, BinsVar);
+  TH1F *histoMeanPtInt = new TH1F("histoMeanPtInt", "histoMeanPtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoSigma = new TH1F("histoSigma", "histoSigma", numPtBinsVar, BinsVar);
+  TH1F *histoSigmaPtInt = new TH1F("histoSigmaPtInt", "histoSigmaPtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoSigmaWeighted = new TH1F("histoSigmaWeighted", "histoSigmaWeighted", numPtBinsVar, BinsVar);
+  TH1F *histoSigmaPtIntWeighted = new TH1F("histoSigmaPtInt", "histoSigmaPtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBinsVar, BinsVar);
+  TH1F *histoPurityPtInt = new TH1F("histoPurityPtInt", "histoPurityPtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoSignificance = new TH1F("histoSignificance", "histoSignificance", numPtBinsVar, BinsVar);
+  TH1F *histoSignificancePtInt = new TH1F("histoSignificancePtInt", "histoSignificancePtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoYield = new TH1F("histoYield", "histoYield", numPtBinsVar, BinsVar);
+  TH1F *histoYieldPtInt = new TH1F("histoYieldPtInt", "histoYieldPtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoYieldNN = new TH1F("histoYieldNotNormByEvts", "histoYieldNotNormByEvts", numPtBinsVar, BinsVar);
   TH1F *histoRelErrYield = new TH1F("histoRelErrYield", "histoRelErrYield", numPtBinsVar, BinsVar);
   TH1F *histoTot = new TH1F("histoTot", "histoTot", numPtBinsVar, BinsVar);
   TH1F *histoB = new TH1F("histoB", "histoB", numPtBinsVar, BinsVar);
+
+  histoMeanPtInt->SetLineColor(kMagenta);
+  histoMeanPtInt->SetMarkerColor(kMagenta);
+  histoSigmaPtInt->SetLineColor(kMagenta);
+  histoSigmaPtInt->SetMarkerColor(kMagenta);
+  histoSigmaPtIntWeighted->SetLineColor(kMagenta);
+  histoSigmaPtIntWeighted->SetMarkerColor(kMagenta);
+  histoPurityPtInt->SetLineColor(kMagenta);
+  histoPurityPtInt->SetMarkerColor(kMagenta);
+  histoSignificancePtInt->SetLineColor(kMagenta);
+  histoSignificancePtInt->SetMarkerColor(kMagenta);
+  histoYieldPtInt->SetLineColor(kMagenta);
+  histoYieldPtInt->SetMarkerColor(kMagenta);
+
   TString ShistoV2 = "histoV2";
   if (!isV2)
   { // polarization
@@ -485,19 +527,87 @@ void FitV2orPol(
   TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2MixedCorr = new TH1F(ShistoV2 + "MixedCorr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
-  TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
-  TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
-  TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, 1);
+
+  TH1F *histoV2Err = new TH1F(ShistoV2 + "Err", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2NoFitErr = new TH1F(ShistoV2 + "NoFitErr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2MixedErr = new TH1F(ShistoV2 + "MixedErr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+
+  TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+
+  TH1F *histoV2PtIntErr = new TH1F(ShistoV2 + "PtIntErr", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2PtIntNoFitErr = new TH1F(ShistoV2 + "PtIntNoFitErr", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2PtIntMixedErr = new TH1F(ShistoV2 + "PtIntMixedErr", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+
   TH1F *histoCos2Theta = new TH1F(ShistoCos2Theta, Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoCos2ThetaNoFit = new TH1F(ShistoCos2Theta + "NoFit", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoCos2ThetaMixed = new TH1F(ShistoCos2Theta + "Mixed", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), numPtBinsVar, BinsVar);
-  TH1F *histoCos2ThetaPtInt = new TH1F(ShistoCos2Theta + "PtInt", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
-  TH1F *histoCos2ThetaPtIntNoFit = new TH1F(ShistoCos2Theta + "PtIntNoFit", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
-  TH1F *histoCos2ThetaPtIntMixed = new TH1F(ShistoCos2Theta + "PtIntMixed", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, 1);
+  TH1F *histoCos2ThetaPtInt = new TH1F(ShistoCos2Theta + "PtInt", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoCos2ThetaPtIntNoFit = new TH1F(ShistoCos2Theta + "PtIntNoFit", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoCos2ThetaPtIntMixed = new TH1F(ShistoCos2Theta + "PtIntMixed", Form(";%s ;cos^{2}{#theta*}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+
+  histoV2PtInt->SetLineColor(kMagenta);
+  histoV2PtInt->SetMarkerColor(kMagenta);
+  histoV2PtIntNoFit->SetLineColor(kMagenta);
+  histoV2PtIntNoFit->SetMarkerColor(kMagenta);
+  histoV2PtIntMixed->SetLineColor(kMagenta);
+  histoV2PtIntMixed->SetMarkerColor(kMagenta);
+  histoCos2ThetaPtInt->SetLineColor(kMagenta);
+  histoCos2ThetaPtInt->SetMarkerColor(kMagenta);
+  histoCos2ThetaPtIntNoFit->SetLineColor(kMagenta);
 
   Double_t PhiBins[numPsiBins + 1];
+
+  TString SPathIn = "";
+  TString SPathInPtInt = "";
+  TFile *filein;
+  Float_t BDTscoreCutPtInt = 0;
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
+    // Define mult and pt-dependent BDt selection
+    if (useMixedBDTValueInFitMacro)
+    {
+      BDTscoreCut = DefineMixedBDTValue(mul, pt);
+      if (pt == numPtBinsVar)
+        BDTscoreCut = DefineMixedBDTValuePtInt(mul);
+    }
+    if (BDTscoreCut != DefaultBDTscoreCut)
+      SBDT = Form("_BDT%.3f", BDTscoreCut);
+    else
+      SBDT = "";
+    if (pt == numPtBinsVar)
+      BDTscoreCutPtInt = BDTscoreCut;
+
+    SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
+    SPathIn += SBDT;
+    if (isApplyWeights)
+      SPathIn += "_Weighted";
+    if (v2type == 1)
+      SPathIn += "_SP";
+    if (!useCommonBDTValue)
+      SPathIn += "_BDTCentDep";
+    if (isRun2Binning)
+      SPathIn += "_Run2Binning";
+    if (ExtrisApplyEffWeights)
+    {
+      SPathIn += "_EffW";
+    }
+    SPathIn += "_WithAlpha";
+    if (!isRapiditySel || ExtrisFromTHN)
+      SPathIn += "_Eta08";
+    SPathIn += STHN[ExtrisFromTHN] + ".root";
+
+    if (pt == numPtBinsVar)
+      SPathInPtInt = SPathIn;
+
+    filein = new TFile(SPathIn, "");
+    if (!filein)
+    {
+      cout << "FileIn not available" << endl;
+      return;
+    }
+
     if (!isPtAnalysis)
     {
       if (pt == numPtBinsVar)
@@ -507,12 +617,15 @@ void FitV2orPol(
     if (!isXi && pt == 0)
       continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
-    if (pt == numPtBins)
+    if (pt == numPtBinsVar)
     { // integrated
       SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
     }
     if (!isPtAnalysis) // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
+
+    cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
+    cout << "FileIn: " << SPathIn << endl;
 
     if (isPtAnalysis)
       cout << "Analysed pt interval: " << SPt[pt] << endl;
@@ -589,7 +702,7 @@ void FitV2orPol(
       return;
     }
 
-    StyleHisto(hV2[pt], -0.2, 0.2, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
+    StyleHisto(hV2[pt], -0.02, 0.02, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
     hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
 
     hCos2Theta[pt] = (TH1F *)filein->Get(AcceptanceHisto);
@@ -815,7 +928,7 @@ void FitV2orPol(
     {
       cout << "\n\e[35mFit with two gauss \e[39m" << endl;
       if (isPtAnalysis)
-        cout << " Pt: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+        cout << "Analysed pt interval: " << SPt[pt] << endl;
       else
         cout << " Psi: " << PhiBins[pt] << "-" << PhiBins[pt] + 2 * TMath::Pi() / numPsiBins << endl;
 
@@ -1336,6 +1449,16 @@ void FitV2orPol(
     {
       histoV2PtInt->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
       histoV2PtInt->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+      histoMeanPtInt->SetBinContent(1, mean[pt]);
+      histoMeanPtInt->SetBinError(1, errmean[pt]);
+      histoSigmaPtInt->SetBinContent(1, sigma[pt]);
+      histoSigmaPtInt->SetBinError(1, errsigma[pt]);
+      histoSigmaPtIntWeighted->SetBinContent(1, sigmaw[pt]);
+      histoSigmaPtIntWeighted->SetBinError(1, errsigmaw[pt]);
+      histoPurityPtInt->SetBinContent(1, SSB[pt]);
+      histoPurityPtInt->SetBinError(1, errSSB[pt]);
+      histoYieldPtInt->SetBinContent(1, Yield[pt] / NEvents / histoYieldPtInt->GetBinWidth(1));
+      histoYieldPtInt->SetBinError(1, ErrYield[pt] / NEvents / histoYieldPtInt->GetBinWidth(1));
     }
 
     hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
@@ -1346,7 +1469,8 @@ void FitV2orPol(
     StyleHisto(hCos2ThetaMassIntegrated[pt], 0, 1.2 * hCos2ThetaMassIntegrated[pt]->GetBinContent(hCos2ThetaMassIntegrated[pt]->GetMaximumBin()), 1, 20, "cos(2#theta)", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     hCos2ThetaMassIntegrated[pt]->Rebin(2);
 
-    if (SSB[pt] > LimitForV2woFit || PtBins[pt] > 2.)
+    // if (SSB[pt] > LimitForV2woFit || PtBins[pt] > 2.)
+    if (SSB[pt] > LimitForV2woFit || (PtBins[pt] > 2. && CentFT0CMin >= 40 && pt != numPtBinsVar))
       isV2FromFit[pt] = 0;
     else
       isV2FromFit[pt] = 1;
@@ -1527,8 +1651,8 @@ void FitV2orPol(
     lineM3Sigma[pt]->Draw("same");
   }
 
-  TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1900, 800);
-  canvasSummary->Divide(5, 2);
+  TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1900, 1200);
+  canvasSummary->Divide(5, 3);
 
   TString titleX = titlePt;
   if (!isPtAnalysis)
@@ -1538,27 +1662,32 @@ void FitV2orPol(
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoMean, gaussDisplayRangeLow[ChosenPart], gaussDisplayRangeUp[ChosenPart], 1, 1, titleX, "#mu (GeV/c^{2})", "histoMean", 0, 0, 0, 1.4, 1.4, 1.2);
   histoMean->Draw("");
+  histoMeanPtInt->Draw("same");
   canvasSummary->cd(2);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoSigma, 0, 0.010, 1, 1, titleX, "#sigma (GeV/c^{2})", "histoSigma", 0, 0, 0, 1.4, 1.4, 1.2);
   histoSigma->Draw("");
+  histoSigmaPtInt->Draw("same");
   canvasSummary->cd(3);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoSigmaWeighted, 0, 0.010, 1, 1, titleX, "#sigma_{w} (GeV/c^{2})", "histoSigmaWeighted", 0, 0, 0, 1.4, 1.4, 1.2);
   histoSigmaWeighted->Draw("");
+  histoSigmaPtIntWeighted->Draw("same");
   canvasSummary->cd(4);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoPurity, 0, 1, 1, 1, titleX, "S / (S+B)", "histoPurity", 0, 0, 0, 1.4, 1.4, 1.2);
   histoPurity->Draw("");
+  histoPurityPtInt->Draw("same");
   canvasSummary->cd(5);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
   StyleHisto(histoYield, 0, 1.2 * histoYield->GetBinContent(histoYield->GetMaximumBin()), 1, 1, titleX, titleYield, "histoYield", 0, 0, 0, 1.4, 1.4, 1.2);
   StyleHisto(histoYieldNN, 0, 1.2 * histoYieldNN->GetBinContent(histoYieldNN->GetMaximumBin()), 1, 1, titleX, titleYieldNN, "histoYieldNotNormByEvts", 0, 0, 0, 1.4, 1.4, 1.2);
-  histoYield->Draw("same");
+  histoYield->Draw("");
+  histoYieldPtInt->Draw("same");
   canvasSummary->cd(6);
   gPad->SetBottomMargin(0.14);
   gPad->SetLeftMargin(0.14);
@@ -1572,12 +1701,25 @@ void FitV2orPol(
   StyleHisto(histoB, 0, 1.2 * histoB->GetBinContent(histoB->GetMaximumBin()), 1, 1, titleX, "S+B", "histoB", 0, 0, 0, 1.4, 1.4, 1.2);
   // histoB->Draw("same");
   if (isV2)
+  {
     histoV2NoFit->SetTitle("v2 without fit");
+    histoV2NoFitErr->SetTitle("Error of v2 without fit");
+    histoV2MixedErr->SetTitle("Error of v2 mixed");
+    histoV2Err->SetTitle("Error of v2");
+  }
   else
   {
     histoV2NoFit->SetTitle("Pz,s2 without fit");
+    histoV2NoFitErr->SetTitle("Error of Pz,s2 without fit");
+    histoV2MixedErr->SetTitle("Error of Pz,s2 mixed");
+    histoV2Err->SetTitle("Error of Pz,s2");
     if (!isPtAnalysis)
+    {
       histoV2NoFit->SetTitle("Pz without fit");
+      histoV2NoFitErr->SetTitle("Error of Pz without fit");
+      histoV2MixedErr->SetTitle("Error of Pz mixed");
+      histoV2Err->SetTitle("Error of Pz");
+    }
   }
 
   // subtract baseline
@@ -1661,6 +1803,62 @@ void FitV2orPol(
   histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
   histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
 
+  // Histograms with errors
+  for (Int_t pt = 0; pt < histoV2->GetNbinsX(); pt++)
+  {
+    if (isV2)
+      histoV2Err->SetBinContent(pt + 1, histoV2->GetBinError(pt + 1) / histoV2->GetBinContent(pt + 1));
+    else
+      histoV2Err->SetBinContent(pt + 1, histoV2->GetBinError(pt + 1));
+    histoV2Err->SetBinError(pt + 1, 0);
+    if (isV2)
+      histoV2NoFitErr->SetBinContent(pt + 1, histoV2NoFit->GetBinError(pt + 1) / histoV2NoFit->GetBinContent(pt + 1));
+    else
+      histoV2NoFitErr->SetBinContent(pt + 1, histoV2NoFit->GetBinError(pt + 1));
+    histoV2NoFitErr->SetBinError(pt + 1, 0);
+    if (isV2)
+      histoV2MixedErr->SetBinContent(pt + 1, histoV2Mixed->GetBinError(pt + 1) / histoV2Mixed->GetBinContent(pt + 1));
+    else
+      histoV2MixedErr->SetBinContent(pt + 1, histoV2Mixed->GetBinError(pt + 1));
+    histoV2MixedErr->SetBinError(pt + 1, 0);
+  }
+  if (isV2)
+    histoV2PtIntErr->SetBinContent(1, histoV2PtInt->GetBinError(1) / histoV2PtInt->GetBinContent(1));
+  else
+    histoV2PtIntErr->SetBinContent(1, histoV2PtInt->GetBinError(1));
+  histoV2PtIntErr->SetBinError(1, 0);
+  if (isV2)
+    histoV2PtIntNoFitErr->SetBinContent(1, histoV2PtIntNoFit->GetBinError(1) / histoV2PtIntNoFit->GetBinContent(1));
+  else
+    histoV2PtIntNoFitErr->SetBinContent(1, histoV2PtIntNoFit->GetBinError(1));
+  histoV2PtIntNoFitErr->SetBinError(1, 0);
+  if (isV2)
+    histoV2PtIntMixedErr->SetBinContent(1, histoV2PtIntMixed->GetBinError(1) / histoV2PtIntMixed->GetBinContent(1));
+  else
+    histoV2PtIntMixedErr->SetBinContent(1, histoV2PtIntMixed->GetBinError(1));
+  histoV2PtIntMixedErr->SetBinError(1, 0);
+  if (isV2)
+  {
+    histoV2NoFitErr->SetTitle("Rel. error of v2 without fit");
+    histoV2MixedErr->SetTitle("Rel. error of v2 mixed");
+    histoV2Err->SetTitle("Rel error of v2");
+  }
+  else
+  {
+    histoV2NoFitErr->SetTitle("Error of Pz,s2 without fit");
+    histoV2MixedErr->SetTitle("Error of Pz,s2 mixed");
+    histoV2Err->SetTitle("Error of Pz,s2");
+    if (!isPtAnalysis)
+    {
+      histoV2NoFitErr->SetTitle("Error of Pz without fit");
+      histoV2MixedErr->SetTitle("Error of Pz mixed");
+      histoV2Err->SetTitle("Error of Pz");
+    }
+  }
+  histoV2PtIntErr->SetLineColor(kMagenta);
+  histoV2PtIntNoFitErr->SetLineColor(kMagenta);
+  histoV2PtIntMixedErr->SetLineColor(kMagenta);
+
   // v2 corrected by weights a posteriori
   histoV2MixedCorr = (TH1F *)histoV2Mixed->Clone("histoV2MixedCorr");
   TFile *fileV2Correction = new TFile("V2Corr.root", "READ");
@@ -1679,6 +1877,7 @@ void FitV2orPol(
   }
 
   histoV2NoFit->Draw();
+  histoV2PtIntNoFit->Draw("same");
 
   canvasSummary->cd(8);
   gPad->SetBottomMargin(0.14);
@@ -1692,6 +1891,7 @@ void FitV2orPol(
       histoV2->SetTitle("Pz from fit");
   }
   histoV2->Draw();
+  histoV2PtInt->Draw("same");
 
   cout << "************ Rel error of histoV2 ********" << endl;
   for (Int_t b = 1; b <= histoV2->GetNbinsX(); b++)
@@ -1707,6 +1907,7 @@ void FitV2orPol(
   {
     histoCos2ThetaNoFit->SetTitle("cos^{2}(#theta*) without fit");
     histoCos2ThetaNoFit->Draw();
+    histoCos2ThetaPtIntNoFit->Draw("same");
   }
 
   canvasSummary->cd(10);
@@ -1717,7 +1918,22 @@ void FitV2orPol(
   {
     histoCos2Theta->SetTitle("cos^{2}(#theta*) from fit");
     histoCos2Theta->Draw();
+    histoCos2ThetaPtInt->Draw("same");
   }
+
+  canvasSummary->cd(11);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  histoV2PtIntNoFitErr->GetYaxis()->SetRangeUser(0, histoV2Err->GetBinContent(histoV2Err->GetMaximumBin()) * 1.2);
+  histoV2PtIntNoFitErr->Draw("");
+  histoV2NoFitErr->Draw("same");
+
+  canvasSummary->cd(12);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  histoV2PtIntErr->GetYaxis()->SetRangeUser(0, histoV2Err->GetBinContent(histoV2Err->GetMaximumBin()) * 1.2);
+  histoV2PtIntErr->Draw("");
+  histoV2Err->Draw("same");
 
   TString Soutputfile;
   Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
@@ -1740,11 +1956,14 @@ void FitV2orPol(
   {
     Soutputfile += "_EffW";
   }
-  Soutputfile += SBDT;
+  if (isSysMultTrial)
+    Soutputfile += SBDT;
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   if (!isRapiditySel || ExtrisFromTHN)
     Soutputfile += "_Eta08";
   Soutputfile += STHN[ExtrisFromTHN];
+  if (useMixedBDTValueInFitMacro)
+    Soutputfile += "_MixedBDT";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -1775,13 +1994,22 @@ void FitV2orPol(
   outputfile->WriteTObject(histoSigmaWeighted);
   outputfile->WriteTObject(histoPurity);
   outputfile->WriteTObject(histoSignificance);
+
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
   outputfile->WriteTObject(histoV2MixedCorr);
+  outputfile->WriteTObject(histoV2Err);
+  outputfile->WriteTObject(histoV2NoFitErr);
+  outputfile->WriteTObject(histoV2MixedErr);
+
   outputfile->WriteTObject(histoV2PtInt);
   outputfile->WriteTObject(histoV2PtIntNoFit);
   outputfile->WriteTObject(histoV2PtIntMixed);
+  outputfile->WriteTObject(histoV2PtIntErr);
+  outputfile->WriteTObject(histoV2PtIntNoFitErr);
+  outputfile->WriteTObject(histoV2PtIntMixedErr);
+
   outputfile->WriteTObject(histoCos2Theta);
   outputfile->WriteTObject(histoCos2ThetaNoFit);
   outputfile->WriteTObject(histoCos2ThetaMixed);
@@ -1793,7 +2021,7 @@ void FitV2orPol(
   // Performance plot
   Int_t ChosenPt = 8;
   if (isXi)
-    ChosenPt = 0; // 2
+    ChosenPt = numPtBinsVar;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7};
   Float_t UpperCutHisto = 1.7;
@@ -1818,7 +2046,10 @@ void FitV2orPol(
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else
     legend->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
-  legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  if (ChosenPt == numPtBinsVar)
+    legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+  else
+    legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   legend->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   TLegend *legendfit = new TLegend(0.2, 0.57, 0.71, 0.65);
@@ -1838,7 +2069,7 @@ void FitV2orPol(
   histo->Scale(1. / histoIntegral);
   TString titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", histo->GetBinWidth(1) * 1000);
   if (isXi)
-    titleyNorm = Form("Normalized counts/(%i MeV/#it{c}^{2})", (int)(histo->GetBinWidth(1) * 1000));
+    titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", (float)(histo->GetBinWidth(1) * 1000));
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
              TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -1885,9 +2116,9 @@ void FitV2orPol(
   totalPNorm->Draw("same");
   legend->Draw("");
   legendfit->Draw("");
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.pdf", ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.png", ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Pt%i.eps", ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.eps",  CentFT0CMin,  CentFT0CMax, ChosenPt));
 
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
   TCanvas *canvasCos2 = new TCanvas("canvasCos2", "canvasCos2", 800, 1100);
@@ -1914,7 +2145,10 @@ void FitV2orPol(
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else
     LegendTitle->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
-  LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  if (ChosenPt == numPtBinsVar)
+    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+  else
+    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   LegendTitle->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   Float_t LimSupSpectra = 9.99;
@@ -1996,7 +2230,7 @@ void FitV2orPol(
   padL1->Draw();
   padL1->cd();
   if (!isV2)
-    hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
+    hDummyRatio->GetYaxis()->SetRangeUser(-0.004, 0.004);
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
@@ -2006,9 +2240,9 @@ void FitV2orPol(
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
   TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.pdf", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.png", ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.eps", ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps",  CentFT0CMin,  CentFT0CMax, ChosenPt));
 
   canvasCos2->cd();
   padL2->Draw();
@@ -2023,11 +2257,19 @@ void FitV2orPol(
   Cos2ThetaFitFunction[ChosenPt]->Draw("same");
   Cos2ThetaBkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.pdf", ChosenPt));
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.png", ChosenPt));
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Pt%i.eps", ChosenPt));
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png",  CentFT0CMin,  CentFT0CMax, ChosenPt));
+  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps",  CentFT0CMin,  CentFT0CMax, ChosenPt));
 
-  cout << "\nA partire dal file:\n"
-       << SPathIn << endl;
+  // cout << "\nA partire dal file:\n"
+  //      << SPathIn << endl;
   cout << "\nHo creato il file: " << Soutputfile << ".root" << endl;
+
+  cout << "\n\nFor the result intergated in pt these are important info:" << endl;
+  cout << "BDT score > " << BDTscoreCutPtInt << endl;
+  cout << "Input file: " << SPathInPtInt << endl;
+  cout << "Is the final V2 from fit? " << isV2FromFit[numPtBinsVar] << endl;
+  cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
+  cout << "Error of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
+  cout << "Error of pt integrated measurement (fit): " << histoV2PtIntErr->GetBinContent(1) << endl;
 }
