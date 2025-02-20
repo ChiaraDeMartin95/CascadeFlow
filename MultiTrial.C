@@ -141,11 +141,13 @@ TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = ""
 }
 
 Int_t IndexNotDisplayed = 14;
+TString SisPtIntegrated[2] = {"", "PtInt"};
 
 void MultiTrial(
     Int_t mul = 0,
-    Int_t Choice = 0,        // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
-    Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
+    Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
+    Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
+    Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
     TString SisSyst = "BDT",
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
@@ -170,23 +172,26 @@ void MultiTrial(
   Bool_t isPolFromLambda = 0;
   TString TypeHisto = "";
   if (Choice == 0)
-    TypeHisto = "V2Mixed";
+    TypeHisto = "V2";
   else if (Choice == 1)
   {
-    TypeHisto = "Pzs2Mixed";
+    TypeHisto = "Pzs";
     if (!isPtAnalysis)
-      TypeHisto = "PzMixed";
+      TypeHisto = "Pz";
   }
   else if (Choice == 2)
   {
     isPolFromLambda = 1;
-    TypeHisto = "Pzs2LambdaFromCMixed";
+    TypeHisto = "Pzs2LambdaFromC";
     if (!isPtAnalysis)
-      TypeHisto = "PzLambdaFromCMixed";
+      TypeHisto = "PzLambdaFromC";
   }
+  TypeHisto += SisPtIntegrated[isPtIntegrated];
+  TypeHisto += "Mixed";
+
   TString histoName = "histo" + TypeHisto;
 
-  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst;
+  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + "_" + SisPtIntegrated[isPtIntegrated];
 
   Int_t trials = 0;
   if (SisSyst == "BDT")
@@ -231,7 +236,20 @@ void MultiTrial(
   }
 
   // v2 plots
-  TCanvas *cv2 = new TCanvas("cv2", "cv2", 1000, 800);
+  TString Titlecv2 = "v2";
+  if (Choice == 1)
+  {
+    Titlecv2 = "Pzs";
+    if (!isPtAnalysis)
+      Titlecv2 = "Pz";
+  }
+  else if (Choice == 2)
+  {
+    Titlecv2 = "Pzs2LambdaFromC";
+    if (!isPtAnalysis)
+      Titlecv2 = "PzLambdaFromC";
+  }
+  TCanvas *cv2 = new TCanvas("cv2", Titlecv2, 1000, 800);
   StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
   cv2->cd();
   cout << "histoName: " << histoName << endl;
@@ -243,6 +261,7 @@ void MultiTrial(
   }
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
+  hDefault->GetYaxis()->SetTitle(Titlecv2);
   hDefault->Draw();
 
   TH1F *hDefaultError = (TH1F *)hDefault->Clone("hError");
@@ -252,21 +271,21 @@ void MultiTrial(
     hDefaultError->SetBinContent(i, hDefault->GetBinError(i));
   }
 
-  TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield");
+  TH1F *hDefaultYield = (TH1F *)fdef->Get("histoYield" + SisPtIntegrated[isPtIntegrated]);
   if (!hDefaultYield)
   {
     cout << "histoYield not found in " << SdefFinal << endl;
     return;
   }
   hDefaultYield->SetName("hDefaultYield");
-  TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity");
+  TH1F *hDefaultPurity = (TH1F *)fdef->Get("histoPurity" + SisPtIntegrated[isPtIntegrated]);
   if (!hDefaultPurity)
   {
     cout << "histoPurity not found in " << SdefFinal << endl;
     return;
   }
   hDefaultPurity->SetName("hDefaultPurity");
-  TH1F *hDefaultSignificance = (TH1F *)fdef->Get("histoSignificance");
+  TH1F *hDefaultSignificance = (TH1F *)fdef->Get("histoSignificance" + SisPtIntegrated[isPtIntegrated]);
   if (!hDefaultSignificance)
   {
     cout << "histoSignificance not found in " << SdefFinal << endl;
@@ -340,7 +359,7 @@ void MultiTrial(
     hRatio[i] = (TH1F *)hVariedCut->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
 
-    hRawYield[i] = (TH1F *)fvaried->Get("histoYield");
+    hRawYield[i] = (TH1F *)fvaried->Get("histoYield" + SisPtIntegrated[isPtIntegrated]);
     if (!hRawYield[i])
     {
       cout << "histoYield not found in " << Svaried << endl;
@@ -350,7 +369,7 @@ void MultiTrial(
     hRawYieldRatio[i] = (TH1F *)hRawYield[i]->Clone(Form("histoYieldRatio_%i", i));
     hRawYieldRatio[i]->Divide(hDefaultYield);
 
-    hPurity[i] = (TH1F *)fvaried->Get("histoPurity");
+    hPurity[i] = (TH1F *)fvaried->Get("histoPurity" + SisPtIntegrated[isPtIntegrated]);
     if (!hPurity[i])
     {
       cout << "histoPurity not found in " << Svaried << endl;
@@ -360,7 +379,7 @@ void MultiTrial(
     hPurityRatio[i] = (TH1F *)hPurity[i]->Clone(Form("histoPurity_%i", i));
     hPurityRatio[i]->Divide(hDefaultPurity);
 
-    hSignificance[i] = (TH1F *)fvaried->Get("histoSignificance");
+    hSignificance[i] = (TH1F *)fvaried->Get("histoSignificance" + SisPtIntegrated[isPtIntegrated]);
     if (!hSignificance[i])
     {
       cout << "histoSignificance not found in " << Svaried << endl;
@@ -452,7 +471,7 @@ void MultiTrial(
     hRatio[i]->GetYaxis()->SetRangeUser(0, 2);
     hRatio[i]->Draw("same");
   }
-  TF1 *lineat1 = new TF1("lineat1", "1", 0, 5);
+  TF1 *lineat1 = new TF1("lineat1", "1", 0, 8);
   lineat1->SetLineColor(kBlack);
   lineat1->SetLineStyle(7);
   legTrial->Draw();
@@ -618,6 +637,7 @@ void MultiTrial(
   cStat->cd();
   hDefaultError->SetLineColor(kBlack);
   hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
+  if (isPtIntegrated) hDefaultError->GetYaxis()->SetRangeUser(0, 0.001);
   hDefaultError->GetYaxis()->SetTitle("Statistical uncertainty");
   hDefaultError->Draw();
   for (int i = 0; i < trials; i++)
