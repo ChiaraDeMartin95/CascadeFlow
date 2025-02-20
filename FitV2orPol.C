@@ -1459,6 +1459,8 @@ void FitV2orPol(
       histoPurityPtInt->SetBinError(1, errSSB[pt]);
       histoYieldPtInt->SetBinContent(1, Yield[pt] / NEvents / histoYieldPtInt->GetBinWidth(1));
       histoYieldPtInt->SetBinError(1, ErrYield[pt] / NEvents / histoYieldPtInt->GetBinWidth(1));
+      histoSignificancePtInt->SetBinContent(1, Yield[pt] / ErrYield[pt]);
+      histoSignificancePtInt->SetBinError(1, 0);
     }
 
     hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]));
@@ -1986,14 +1988,20 @@ void FitV2orPol(
     // outputfile->WriteTObject(hCos2Theta[pt]);
   }
   outputfile->WriteTObject(histoYield);
+  outputfile->WriteTObject(histoYieldPtInt);
   outputfile->WriteTObject(histoYieldNN);
   outputfile->WriteTObject(histoTot);
   outputfile->WriteTObject(histoB);
   outputfile->WriteTObject(histoMean);
+  outputfile->WriteTObject(histoMeanPtInt);
   outputfile->WriteTObject(histoSigma);
+  outputfile->WriteTObject(histoSigmaPtInt);
   outputfile->WriteTObject(histoSigmaWeighted);
+  outputfile->WriteTObject(histoSigmaPtIntWeighted);
   outputfile->WriteTObject(histoPurity);
+  outputfile->WriteTObject(histoPurityPtInt);
   outputfile->WriteTObject(histoSignificance);
+  outputfile->WriteTObject(histoSignificancePtInt);
 
   outputfile->WriteTObject(histoV2);
   outputfile->WriteTObject(histoV2NoFit);
