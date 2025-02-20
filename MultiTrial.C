@@ -140,7 +140,7 @@ TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = ""
   return hNSigmaBarlow;
 }
 
-Int_t IndexNotDisplayed = 14;
+Int_t IndexNotDisplayed = 15;
 TString SisPtIntegrated[2] = {"", "PtInt"};
 
 void MultiTrial(
@@ -310,6 +310,7 @@ void MultiTrial(
     legTrial->AddEntry(hDefault, "PbPb 2023", "pl");
 
   TH1F *h[trials];
+  TH1F *hAbsoluteSyst[trials];
   TH1F *hNSigmaBarlow[trials];
   TH1F *hRatio[trials];
   TH1F *hError[trials];
@@ -412,6 +413,8 @@ void MultiTrial(
     hVariedCut->Draw("same");
 
     h[i] = makeSystPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
+    hAbsoluteSyst[i] = (TH1F *)h[i]->Clone(Form("hAbsoluteSyst_%i", i));
+    hAbsoluteSyst[i]->Multiply(hDefault);
     hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
   }
 
@@ -453,6 +456,22 @@ void MultiTrial(
     hNSigmaBarlow[i]->SetMarkerColor(ColorMult[i]);
     hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[i]);
     hNSigmaBarlow[i]->Draw("same");
+  }
+
+  TCanvas *cDev = new TCanvas("cDev", "cDev", 1000, 800);
+  StyleCanvas(cDev, 0.15, 0.05, 0.05, 0.15);
+  cDev->cd();
+  for (Int_t i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    hAbsoluteSyst[i]->SetLineColor(ColorMult[i]);
+    hAbsoluteSyst[i]->SetLineWidth(2);
+    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[i]);
+    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[i]);
+    hAbsoluteSyst[i]->GetYaxis()->SetTitle("Absolute deviation from default");
+    hAbsoluteSyst[i]->GetYaxis()->SetRangeUser(0, 0.5);
+    hAbsoluteSyst[i]->Draw("same");
   }
 
   // ratio of varied v2 to default one
@@ -631,56 +650,16 @@ void MultiTrial(
   cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".pdf");
   cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".png");
 
-  // Stat. uncertainties
-  TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
-  StyleCanvas(cStat, 0.15, 0.05, 0.05, 0.15);
-  cStat->cd();
-  hDefaultError->SetLineColor(kBlack);
-  hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
-  if (isPtIntegrated) hDefaultError->GetYaxis()->SetRangeUser(0, 0.001);
-  hDefaultError->GetYaxis()->SetTitle("Statistical uncertainty");
-  hDefaultError->Draw();
-  for (int i = 0; i < trials; i++)
-  {
-    if (i == IndexNotDisplayed)
-      continue;
-    hError[i]->SetLineColor(ColorMult[i]);
-    hError[i]->SetMarkerColor(ColorMult[i]);
-    hError[i]->SetMarkerStyle(MarkerMult[i]);
-    hError[i]->Draw("same");
-  }
-  legTrial->Draw();
-  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
-  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
-
-  // ratio of stat. uncertainties to default one
-  TCanvas *cStatRatio = new TCanvas("cStatRatio", "cStatRatio", 1000, 800);
-  StyleCanvas(cStatRatio, 0.15, 0.05, 0.05, 0.15);
-  cStatRatio->cd();
-  for (int i = 0; i < trials; i++)
-  {
-    if (i == IndexNotDisplayed)
-      continue;
-    hErrorRatio[i]->SetLineColor(ColorMult[i]);
-    hErrorRatio[i]->SetMarkerColor(ColorMult[i]);
-    hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
-    hErrorRatio[i]->SetTitle("");
-    hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
-    hErrorRatio[i]->GetYaxis()->SetRangeUser(0.6, 1.4);
-    hErrorRatio[i]->Draw("same");
-  }
-  lineat1->Draw("same");
-  legTrial->Draw();
-  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
-  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
-
-  // systematic computation taking 0.5 * (max - min) variation
+  // systematic computation taking max variation wrt to default
   const int bins = h[0]->GetNbinsX(); // pt bins
   TH1F *hMaxDev = (TH1F *)h[0]->Clone("hMaxDev");
   hMaxDev->Reset();
+  TH1F *hAbsoluteMaxDev = (TH1F *)hAbsoluteSyst[0]->Clone("hAbsoluteMaxDev");
+  hAbsoluteMaxDev->Reset();
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
-    for (int i = 1; i < trials; i++)
+    // cout << "check " << hMaxDev->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
+    for (int i = 0; i < trials; i++)
     {
       if (i == IndexNotDisplayed)
         continue;
@@ -689,6 +668,14 @@ void MultiTrial(
         hMaxDev->SetBinContent(pt + 1, h[i]->GetBinContent(pt + 1));
       }
       hMaxDev->SetBinError(pt + 1, 0.);
+      // cout << "trial number: " << i << endl;
+      // cout << "check " << hAbsoluteSyst[i]->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
+      if (TMath::Abs(hAbsoluteSyst[i]->GetBinContent(pt + 1)) > TMath::Abs(hAbsoluteMaxDev->GetBinContent(pt + 1)))
+      {
+        hAbsoluteMaxDev->SetBinContent(pt + 1, TMath::Abs(hAbsoluteSyst[i]->GetBinContent(pt + 1)));
+      }
+      // cout << "check " << hAbsoluteSyst[i]->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
+      hAbsoluteMaxDev->SetBinError(pt + 1, 0.);
     }
   }
 
@@ -753,18 +740,79 @@ void MultiTrial(
   hSystMultiTrial->GetYaxis()->SetRangeUser(0., 0.5);
   hSystMultiTrial->GetYaxis()->SetTitle("Rel. syst. error");
   hSystMultiTrial->SetLineColor(kBlack);
-  hSystMultiTrial->Smooth();
+  if (!isPtIntegrated)
+    hSystMultiTrial->Smooth();
   hSystMultiTrial->Draw();
 
   // relative syst. uncertainty Max Variation
   // TCanvas *cSystMax = new TCanvas("cSystMax", "cSystMax", 1000, 800);
   hMaxDev->SetLineColor(kRed);
-  hMaxDev->Smooth();
+  if (!isPtIntegrated)
+    hMaxDev->Smooth();
   hMaxDev->Draw("same");
 
+  // Absolute syst. uncertainty from maximum deviation
+  TCanvas *cSystAbsMaxDev = new TCanvas("cSystAbsMaxDev", "cSystAbsMaxDev", 1000, 800);
+  hAbsoluteMaxDev->SetLineColor(kGray + 1);
+  hAbsoluteMaxDev->SetMarkerColor(kGray + 1);
+  hAbsoluteMaxDev->SetLineWidth(1);
+  hAbsoluteMaxDev->SetMarkerStyle(33);
+  hAbsoluteMaxDev->GetYaxis()->SetTitle("Absolute syst. uncertainty from BDT score variation");
+  hAbsoluteMaxDev->GetYaxis()->SetRangeUser(0., 1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+  if (!isPtIntegrated)
+    hAbsoluteMaxDev->Smooth();
+  hAbsoluteMaxDev->Draw("same");
+
+  // Stat. uncertainties
+  TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
+  StyleCanvas(cStat, 0.15, 0.05, 0.05, 0.15);
+  cStat->cd();
+  hDefaultError->SetLineColor(kBlack);
+  hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
+  if (isPtIntegrated)
+    hDefaultError->GetYaxis()->SetRangeUser(0, 0.001);
+  hDefaultError->GetYaxis()->SetTitle("Statistical uncertainty");
+  hDefaultError->Draw();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    hError[i]->SetLineColor(ColorMult[i]);
+    hError[i]->SetMarkerColor(ColorMult[i]);
+    hError[i]->SetMarkerStyle(MarkerMult[i]);
+    hError[i]->Draw("same");
+  }
+  hAbsoluteMaxDev->Draw("same");
+  legTrial->Draw();
+  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
+  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
+
+  // ratio of stat. uncertainties to default one
+  TCanvas *cStatRatio = new TCanvas("cStatRatio", "cStatRatio", 1000, 800);
+  StyleCanvas(cStatRatio, 0.15, 0.05, 0.05, 0.15);
+  cStatRatio->cd();
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    hErrorRatio[i]->SetLineColor(ColorMult[i]);
+    hErrorRatio[i]->SetMarkerColor(ColorMult[i]);
+    hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hErrorRatio[i]->SetTitle("");
+    hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hErrorRatio[i]->GetYaxis()->SetRangeUser(0.6, 1.4);
+    hErrorRatio[i]->Draw("same");
+  }
+  lineat1->Draw("same");
+  legTrial->Draw();
+  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
+  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
+
   // save histos in output files
-  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + "_" + CentFT0C[mul] + "_" + ParticleName[ChosenPart] + "_";
+  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_";
   OutputFile += SisSyst;
+  if (isPtIntegrated)
+    OutputFile += "_PtInt";
   if (isApplyWeights)
     OutputFile += "_Weighted";
   if (!isPtAnalysis)
@@ -786,4 +834,7 @@ void MultiTrial(
   }
   hSystMultiTrial->Write();
   hMaxDev->Write();
+  hAbsoluteMaxDev->Write();
+
+  cout << "\n\nHo creato il file: " << OutputFile << endl;
 }
