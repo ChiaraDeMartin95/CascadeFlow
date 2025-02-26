@@ -208,6 +208,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (!isRapiditySel || ExtrisFromTHN)
     stringout += "_Eta08";
   stringout += STHN[ExtrisFromTHN];
+  if (useMixedBDTValueInFitMacro)
+    stringout += "_MixedBDT";
+  if (isTightMassCut)
+    stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -217,7 +221,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleCanvas(canvasPzs, 0.05, 0.15, 0.15, 0.05);
   TH1F *fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
   TH1F *fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
-
+  TH1F *fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCent, fCentFT0C);
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
@@ -259,6 +263,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   TH1F *fHistSpectrum[numCent + 1];
+  TH1F *fHistPurity[numCent + 1];
   TString Smolt[numCent + 1];
   TString SmoltBis[numCent + 1];
   TString sPolFromLambda[2] = {"", "LambdaFromC"};
@@ -295,23 +300,41 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     if (!isRapiditySel || ExtrisFromTHN)
       PathIn += "_Eta08";
     PathIn += STHN[ExtrisFromTHN];
+    if (useMixedBDTValueInFitMacro)
+      PathIn += "_MixedBDT";
+    if (isTightMassCut)
+      PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    if (ChosenPt == 100)
+    if (ChosenPt == 100){
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntMixed");
-    else
+      fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
+    }
+    else{
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Mixed");
+      fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
+    }
     if (!fHistSpectrum[m])
     {
       cout << " no hist " << endl;
       return;
     }
+    if (!fHistPurity[m])
+    {
+      cout << " no hist " << endl;
+      return;
+    }
     fHistSpectrum[m]->SetName("histoPzs2_" + Smolt[m]);
+    fHistPurity[m]->SetName("histoPurity_" + Smolt[m]);
     fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
     fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
     fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
     fHistPzsError->SetBinError(m + 1, 0);
+
+    fHistPuritySummary->SetBinContent(m + 1, fHistPurity[m]->GetBinContent(1));
+    fHistPuritySummary->SetBinError(m + 1, fHistPurity[m]->GetBinError(1));
+
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << endl;
   } // end loop on mult
 
@@ -368,6 +391,18 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendLambda->Draw("");
   canvasPzsError->SaveAs(stringoutpdf + "_Error.pdf");
   canvasPzsError->SaveAs(stringoutpdf + "_Error.png");
+
+  TCanvas *canvasPurity = new TCanvas("canvasPurity", "canvasPurity", 900, 700);
+  StyleCanvas(canvasPurity, 0.05, 0.15, 0.15, 0.05);
+  canvasPurity->cd();
+  TH1F *hDummyPurity = (TH1F*)hDummy->Clone("hDummyPurity");
+  hDummyPurity->GetYaxis()->SetRangeUser(0.9, 1);
+  hDummyPurity->GetYaxis()->SetTitle("S / (S+B)");
+  hDummyPurity->Draw("");
+  StyleHistoYield(fHistPuritySummary, 0.9, 1, ColorPart[part], MarkerPart[part], TitleXCent, "S / (S+B)", "", MarkerPartSize[part], 1.15, 1.6);
+  fHistPuritySummary->Draw("same");
+  canvasPurity->SaveAs(stringoutpdf + "_Purity.pdf");
+  canvasPurity->SaveAs(stringoutpdf + "_Purity.png");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistPzs->Write();
