@@ -222,6 +222,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
   TH1F *fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
   TH1F *fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCent, fCentFT0C);
+  TH1F *fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCent, fCentFT0C);
+  TH1F *fHistYieldSummary = new TH1F("fHistYieldSummary", "fHistYieldSummary", numCent, fCentFT0C);
+  TH1F *fHistMeanSummary = new TH1F("fHistMeanSummary", "fHistMeanSummary", numCent, fCentFT0C);
+  TH1F *fHistSigmaSummary = new TH1F("fHistSigmaSummary", "fHistSigmaSummary", numCent, fCentFT0C);
+  TH1F *fHistMeanMinus2Sigma = new TH1F("fHistMeanMinus2Sigma", "fHistMeanMinus2Sigma", numCent, fCentFT0C);
+  TH1F *fHistMeanPlus2Sigma = new TH1F("fHistMeanPlus2Sigma", "fHistMeanPlus2Sigma", numCent, fCentFT0C);
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
@@ -264,6 +270,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Int_t CentFT0CMin = 0;
   TH1F *fHistSpectrum[numCent + 1];
   TH1F *fHistPurity[numCent + 1];
+  TH1F *fHistSignificance[numCent + 1];
+  TH1F *fHistYield[numCent + 1];
+  TH1F *fHistMean[numCent + 1];
+  TH1F *fHistSigma[numCent + 1];
   TString Smolt[numCent + 1];
   TString SmoltBis[numCent + 1];
   TString sPolFromLambda[2] = {"", "LambdaFromC"};
@@ -307,33 +317,89 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    if (ChosenPt == 100){
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntMixed");
+    if (ChosenPt == 100)
+    {
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt");
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
+      fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
+      fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYieldPtInt");
+      fHistMean[m] = (TH1F *)fileIn[m]->Get("histoMeanPtInt");
+      //fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaPtIntWeighted");
+      fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaPtInt");
     }
-    else{
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Mixed");
+    else
+    {
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda]);
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
+      fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
+      fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYield");
+      fHistMean[m] = (TH1F *)fileIn[m]->Get("histoMean");
+      //fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaWeighted");
+      fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigma");
     }
     if (!fHistSpectrum[m])
     {
-      cout << " no hist " << endl;
+      cout << " no hist v2 / Pzs" << endl;
       return;
     }
     if (!fHistPurity[m])
     {
-      cout << " no hist " << endl;
+      cout << " no hist purity" << endl;
+      return;
+    }
+    if (!fHistSignificance[m])
+    {
+      cout << " no hist significance " << endl;
+      return;
+    }
+    if (!fHistYield[m])
+    {
+      cout << " no hist yield " << endl;
+      return;
+    }
+    if (!fHistMean[m])
+    {
+      cout << " no hist mean" << endl;
+      return;
+    }
+    if (!fHistSigma[m])
+    {
+      cout << " no hist sigma" << endl;
       return;
     }
     fHistSpectrum[m]->SetName("histoPzs2_" + Smolt[m]);
     fHistPurity[m]->SetName("histoPurity_" + Smolt[m]);
+    fHistSignificance[m]->SetName("histoSignificance_" + Smolt[m]);
+    fHistYield[m]->SetName("histoYield_" + Smolt[m]);
+    fHistMean[m]->SetName("histoMean_" + Smolt[m]);
+    fHistSigma[m]->SetName("histoSigma_" + Smolt[m]);
+
     fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
     fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+
     fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
     fHistPzsError->SetBinError(m + 1, 0);
 
     fHistPuritySummary->SetBinContent(m + 1, fHistPurity[m]->GetBinContent(1));
     fHistPuritySummary->SetBinError(m + 1, fHistPurity[m]->GetBinError(1));
+
+    fHistSignificanceSummary->SetBinContent(m + 1, fHistSignificance[m]->GetBinContent(1));
+    fHistSignificanceSummary->SetBinError(m + 1, fHistSignificance[m]->GetBinError(1));
+
+    fHistYieldSummary->SetBinContent(m + 1, fHistYield[m]->GetBinContent(1));
+    fHistYieldSummary->SetBinError(m + 1, fHistYield[m]->GetBinError(1));
+
+    fHistMeanSummary->SetBinContent(m + 1, fHistMean[m]->GetBinContent(1));
+    fHistMeanSummary->SetBinError(m + 1, fHistMean[m]->GetBinError(1));
+
+    fHistSigmaSummary->SetBinContent(m + 1, fHistSigma[m]->GetBinContent(1));
+    fHistSigmaSummary->SetBinError(m + 1, fHistSigma[m]->GetBinError(1));
+
+    fHistMeanMinus2Sigma->SetBinContent(m + 1, fHistMean[m]->GetBinContent(1) - 2 * fHistSigma[m]->GetBinContent(1));
+    fHistMeanMinus2Sigma->SetBinError(m + 1, 0);
+
+    fHistMeanPlus2Sigma->SetBinContent(m + 1, fHistMean[m]->GetBinContent(1) + 2 * fHistSigma[m]->GetBinContent(1));
+    fHistMeanPlus2Sigma->SetBinError(m + 1, 0);
 
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << endl;
   } // end loop on mult
@@ -395,7 +461,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TCanvas *canvasPurity = new TCanvas("canvasPurity", "canvasPurity", 900, 700);
   StyleCanvas(canvasPurity, 0.05, 0.15, 0.15, 0.05);
   canvasPurity->cd();
-  TH1F *hDummyPurity = (TH1F*)hDummy->Clone("hDummyPurity");
+  TH1F *hDummyPurity = (TH1F *)hDummy->Clone("hDummyPurity");
   hDummyPurity->GetYaxis()->SetRangeUser(0.9, 1);
   hDummyPurity->GetYaxis()->SetTitle("S / (S+B)");
   hDummyPurity->Draw("");
@@ -404,8 +470,48 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPurity->SaveAs(stringoutpdf + "_Purity.pdf");
   canvasPurity->SaveAs(stringoutpdf + "_Purity.png");
 
+  TCanvas *canvasSignificance = new TCanvas("canvasSignificance", "canvasSignificance", 900, 700);
+  StyleCanvas(canvasSignificance, 0.05, 0.15, 0.15, 0.05);
+  canvasSignificance->cd();
+  TH1F *hDummySignificance = (TH1F *)hDummy->Clone("hDummySignificance");
+  hDummySignificance->GetYaxis()->SetRangeUser(0, 5);
+  hDummySignificance->GetYaxis()->SetTitle("S / #sqrt{S+B}");
+  hDummySignificance->Draw("");
+  StyleHistoYield(fHistSignificanceSummary, 0, 5, ColorPart[part], MarkerPart[part], TitleXCent, "S / #sqrt{S+B}", "", MarkerPartSize[part], 1.15, 1.6);
+  fHistSignificanceSummary->Draw("same");
+  //canvasSignificance->SaveAs(stringoutpdf + "_Significance.pdf");
+  //canvasSignificance->SaveAs(stringoutpdf + "_Significance.png");
+
+  TCanvas *canvasYield = new TCanvas("canvasYield", "canvasYield", 900, 700);
+  StyleCanvas(canvasYield, 0.05, 0.15, 0.15, 0.05);
+  canvasYield->cd();
+  TH1F *hDummyYield = (TH1F *)hDummy->Clone("hDummyYield");
+  hDummyYield->GetYaxis()->SetRangeUser(0, 0.015);
+  hDummyYield->GetYaxis()->SetTitle("Yield");
+  hDummyYield->Draw("");
+  StyleHistoYield(fHistYieldSummary, 0, 0.015, ColorPart[part], MarkerPart[part], TitleXCent, "Yield", "", MarkerPartSize[part], 1.15, 1.6);
+  fHistYieldSummary->Draw("same");
+
+  TCanvas *canvasMeanSigma = new TCanvas("canvasMeanSigma", "canvasMeanSigma", 900, 700);
+  StyleCanvas(canvasMeanSigma, 0.05, 0.15, 0.15, 0.05);
+  canvasMeanSigma->cd();
+  TH1F *hDummySigma = (TH1F *)hDummy->Clone("hDummySigma");
+  hDummySigma->GetYaxis()->SetRangeUser(1.31, 1.33);
+  hDummySigma->GetYaxis()->SetTitle("#mu");
+  hDummySigma->Draw("");
+  StyleHistoYield(fHistMeanSummary, 1.31, 1.33, ColorPart[part], MarkerPart[part], TitleXCent, "#mu", "", MarkerPartSize[part], 1.15, 1.6);
+  fHistMeanSummary->Draw("same");
+  fHistMeanPlus2Sigma->SetLineColor(kBlack);
+  fHistMeanPlus2Sigma->Draw("same");
+  fHistMeanMinus2Sigma->SetLineColor(kBlack);
+  fHistMeanMinus2Sigma->Draw("same");
+  canvasMeanSigma->SaveAs(stringoutpdf + "_Mean.pdf");
+  canvasMeanSigma->SaveAs(stringoutpdf + "_Mean.png");
+
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistPzs->Write();
+  fHistPuritySummary->Write();
+
   fileout->Close();
 
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
