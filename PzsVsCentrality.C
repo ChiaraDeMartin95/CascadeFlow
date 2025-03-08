@@ -220,6 +220,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TCanvas *canvasPzs = new TCanvas("canvasPzs", "canvasPzs", 900, 700);
   StyleCanvas(canvasPzs, 0.05, 0.15, 0.15, 0.05);
   TH1F *fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
+  TH1F *fHistPzsSist = new TH1F("fHistPzsSist", "fHistPzsSist", numCent, fCentFT0C);
   TH1F *fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
   TH1F *fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCent, fCentFT0C);
   TH1F *fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCent, fCentFT0C);
@@ -324,7 +325,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYieldPtInt");
       fHistMean[m] = (TH1F *)fileIn[m]->Get("histoMeanPtInt");
-      //fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaPtIntWeighted");
+      // fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaPtIntWeighted");
       fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaPtInt");
     }
     else
@@ -334,7 +335,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYield");
       fHistMean[m] = (TH1F *)fileIn[m]->Get("histoMean");
-      //fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaWeighted");
+      // fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigmaWeighted");
       fHistSigma[m] = (TH1F *)fileIn[m]->Get("histoSigma");
     }
     if (!fHistSpectrum[m])
@@ -385,6 +386,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     fHistSignificanceSummary->SetBinContent(m + 1, fHistSignificance[m]->GetBinContent(1));
     fHistSignificanceSummary->SetBinError(m + 1, fHistSignificance[m]->GetBinError(1));
+    cout << fHistSignificance[m]->GetBinContent(1) << endl;
 
     fHistYieldSummary->SetBinContent(m + 1, fHistYield[m]->GetBinContent(1));
     fHistYieldSummary->SetBinError(m + 1, fHistYield[m]->GetBinError(1));
@@ -403,6 +405,56 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << endl;
   } // end loop on mult
+
+  // Get histogram with syst uncertainty
+  TString PathInSyst = "Systematics/SystVsCentrality_" + NameAnalysis[!isV2] + "_";
+  PathInSyst += SinputFileNameSyst;
+  PathInSyst += "_" + ParticleName[ChosenPart];
+  PathInSyst += IsOneOrTwoGauss[UseTwoGauss];
+  PathInSyst += SIsBkgParab[BkgType];
+  PathInSyst += "_Pzs2";
+  if (isApplyWeights)
+    PathInSyst += "_Weighted";
+  if (!useCommonBDTValue)
+    PathInSyst += "_BDTCentDep";
+  if (isRun2Binning)
+    PathInSyst += "_Run2Binning";
+  // if (isPolFromLambda)
+  PathInSyst += "_PolFromLambda";
+  if (!isRapiditySel || ExtrisFromTHN)
+    PathInSyst += "_Eta08";
+  PathInSyst += STHN[ExtrisFromTHN];
+  if (useMixedBDTValueInFitMacro)
+    PathInSyst += "_MixedBDT";
+  if (isTightMassCut)
+    PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+  PathInSyst += ".root";
+  TFile *fileInSyst = TFile::Open(PathInSyst);
+  if (!fileInSyst)
+  {
+    cout << "No file found" << endl;
+    return;
+  }
+  TH1F *fHistPzsSistError = (TH1F *)fileInSyst->Get("fHistTotalErrorVsCent");
+  if (!fHistPzsSistError)
+  {
+    cout << "No hist found" << endl;
+    return;
+  }
+  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  {
+    fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
+    fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
+  }
+  TH1F *fHistPzsSignif = (TH1F *)fHistPzs->Clone("fHistPzs");
+  TH1F *fHistPzsSignifStat = (TH1F *)fHistPzs->Clone("fHistPzs");
+  TH1F *fHistPzsSignifLambda = (TH1F *)fHistPzs->Clone("fHistPzs");
+  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  {
+    fHistPzsSignifStat->SetBinContent(b, abs(fHistPzs->GetBinContent(b)) / fHistPzs->GetBinError(b));
+    fHistPzsSignif->SetBinContent(b, abs(fHistPzs->GetBinContent(b)) / TMath::Sqrt(fHistPzs->GetBinError(b) * fHistPzs->GetBinError(b) + fHistPzsSistError->GetBinContent(b) * fHistPzsSistError->GetBinContent(b)));
+    fHistPzsSignifLambda->SetBinContent(b, abs(fHistPzsLambda->GetBinContent(b)) / TMath::Sqrt(fHistPzsLambda->GetBinError(b) * fHistPzsLambda->GetBinError(b) + fHistPzsLambda_SystErr->GetBinContent(b) * fHistPzsLambda_SystErr->GetBinContent(b)));
+  }
 
   Float_t xTitle = 30;
   Float_t xOffset = 1.5;
@@ -424,6 +476,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   SetFont(hDummy);
   StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.6);
   StyleHistoYield(fHistPzs, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXCent, TitleYPzs, "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXCent, TitleYPzs, "", 1.5, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(0, 80);
@@ -432,6 +485,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda->Draw("same e0x0");
   fHistPzsLambdaSist->SetFillStyle(0);
   fHistPzsLambdaSist->Draw("same e2");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->Draw("same e2");
   LegendTitle->Draw("");
   legendLambda->Draw("");
   canvasPzs->SaveAs(stringoutpdf + ".pdf");
@@ -447,16 +502,42 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   SetFont(hDummyError);
   StyleHistoYield(hDummyError, 0, 0.01, 1, 1, TitleXCent, "Absolute stat. uncertainty", "", 1, 1.15, 1.6);
   StyleHistoYield(fHistPzsError, 0, 0.01, ColorPart[part], MarkerPart[part], TitleXCent, "Absolute stat. uncertainty", "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(fHistPzsSistError, 0, 0.01, kGray + 2, 22, TitleXCent, "Absolute syst. uncertainty", "", MarkerPartSize[part], 1.15, 1.6);
   SetHistoTextSize(hDummyError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyError, tickX, tickY);
   hDummyError->GetXaxis()->SetRangeUser(0, 80);
   hDummyError->Draw("");
   fHistPzsError->Draw("same");
+  fHistPzsSistError->Draw("same e2");
   fHistPzsLambda_StatErr->Draw("same e0x0");
   LegendTitle->Draw("");
   legendLambda->Draw("");
   canvasPzsError->SaveAs(stringoutpdf + "_Error.pdf");
   canvasPzsError->SaveAs(stringoutpdf + "_Error.png");
+
+  //Significativity
+  TCanvas *canvasPzsSignif = new TCanvas("canvasPzsSignif", "canvasPzsSignif", 900, 700);
+  StyleCanvas(canvasPzsSignif, 0.05, 0.15, 0.15, 0.05);
+  TH1F *hDummySignif = new TH1F("hDummySignif", "hDummySignif", 8000, 0, 80);
+  for (Int_t i = 1; i <= hDummySignif->GetNbinsX(); i++)
+    hDummySignif->SetBinContent(i, 1e-12);
+  canvasPzsSignif->cd();
+  SetFont(hDummySignif);
+  StyleHistoYield(hDummySignif, 0, 1.2 * fHistPzsSignif->GetBinContent(fHistPzsSignif->GetMaximumBin()), 1, 1, TitleXCent, "S / #sigma_{S}", "", 1, 1.15, 1.6);
+  StyleHistoYield(fHistPzsSignif, 0, 1.2 * fHistPzsSignif->GetBinContent(fHistPzsSignif->GetMaximumBin()), ColorPart[part], MarkerPart[part], TitleXCent, "S / #sigma_{S}", "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(fHistPzsSignifStat, 0, 1.2 * fHistPzsSignif->GetBinContent(fHistPzsSignif->GetMaximumBin()), kGray + 2, 22, TitleXCent, "S / #sigma_{S}", "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(fHistPzsSignifLambda, 0, 1.2 * fHistPzsSignif->GetBinContent(fHistPzsSignif->GetMaximumBin()), kBlue, 20, TitleXCent, "S / #sigma_{S}", "", MarkerPartSize[part], 1.15, 1.6);
+  SetHistoTextSize(hDummySignif, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummySignif, tickX, tickY);
+  hDummySignif->GetXaxis()->SetRangeUser(0, 80);
+  hDummySignif->GetYaxis()->SetRangeUser(0, 7);
+  hDummySignif->Draw("");
+  fHistPzsSignif->Draw("same");
+  fHistPzsSignifStat->Draw("same");
+  fHistPzsSignifLambda->Draw("same e0x0");
+  LegendTitle->Draw("");
+  canvasPzsSignif->SaveAs(stringoutpdf + "_Signif.pdf");
+  canvasPzsSignif->SaveAs(stringoutpdf + "_Signif.png");
 
   TCanvas *canvasPurity = new TCanvas("canvasPurity", "canvasPurity", 900, 700);
   StyleCanvas(canvasPurity, 0.05, 0.15, 0.15, 0.05);
@@ -474,13 +555,16 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleCanvas(canvasSignificance, 0.05, 0.15, 0.15, 0.05);
   canvasSignificance->cd();
   TH1F *hDummySignificance = (TH1F *)hDummy->Clone("hDummySignificance");
-  hDummySignificance->GetYaxis()->SetRangeUser(0, 5);
   hDummySignificance->GetYaxis()->SetTitle("S / #sqrt{S+B}");
   hDummySignificance->Draw("");
-  StyleHistoYield(fHistSignificanceSummary, 0, 5, ColorPart[part], MarkerPart[part], TitleXCent, "S / #sqrt{S+B}", "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(fHistSignificanceSummary, 0, 1.2 * fHistSignificanceSummary->GetBinContent(fHistSignificanceSummary->GetMaximum()), ColorPart[part], MarkerPart[part], TitleXCent, "S / #sqrt{S+B}", "", MarkerPartSize[part], 1.15, 1.6);
+  for (Int_t b = 1; b <= fHistSignificanceSummary->GetNbinsX(); b++)
+  {
+    cout << fHistSignificanceSummary->GetBinContent(b) << endl;
+  }
   fHistSignificanceSummary->Draw("same");
-  //canvasSignificance->SaveAs(stringoutpdf + "_Significance.pdf");
-  //canvasSignificance->SaveAs(stringoutpdf + "_Significance.png");
+  canvasSignificance->SaveAs(stringoutpdf + "_Significance.pdf");
+  canvasSignificance->SaveAs(stringoutpdf + "_Significance.png");
 
   TCanvas *canvasYield = new TCanvas("canvasYield", "canvasYield", 900, 700);
   StyleCanvas(canvasYield, 0.05, 0.15, 0.15, 0.05);
@@ -510,7 +594,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistPzs->Write();
+  fHistPzsSist->Write();
   fHistPuritySummary->Write();
+  fHistSignificanceSummary->Write();
 
   fileout->Close();
 
