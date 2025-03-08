@@ -66,7 +66,7 @@ void DivideAndComputeRogerBarlow(TH1F *hVar, TH1F *hDef)
   }
 }
 
-double PassRogerBarlowCriterion(int nsigmas, Double_t dev, Double_t RBsigma)
+double PassRogerBarlowCriterion(float nsigmas, Double_t dev, Double_t RBsigma)
 {
 
   if (TMath::Abs(dev) > (nsigmas * RBsigma))
@@ -93,6 +93,8 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "", TStrin
   TH1F *hDev = (TH1F *)hDefault->Clone("hDev");
   hDev->Reset();
 
+  TH1F *hVariedCutCopy = (TH1F *)hVariedCut->Clone("hVarCutCopy");
+
   DivideAndComputeRogerBarlow(hVariedCut, hDefault);
   // assigns to hVariedCut: hR = hvar/hdef as bin content, sigmaBarlow (sB) as error
 
@@ -102,8 +104,14 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "", TStrin
     double err = hVariedCut->GetBinError(i);       // sB
 
     hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
-  }
 
+    cout << "default: " << hDefault->GetBinContent(i) << " +- " << hDefault->GetBinError(i) << endl;
+    cout << "varied: " << hVariedCutCopy->GetBinContent(i) << " +- " << hVariedCutCopy->GetBinError(i) << endl;
+    cout << "difference " << hVariedCutCopy->GetBinContent(i) - hDefault->GetBinContent(i) << endl;
+    cout << "SigmaBarlow: " << err * hDefault->GetBinContent(i) << endl;
+    cout << "Deviation: " << dev * hDefault->GetBinContent(i) << endl;
+    cout << "nsigma " << dev / err << endl;
+  }
   hDev->GetYaxis()->SetRangeUser(0., 0.5);
 
   // histo with rel. syst. error (if variation passes the Barlow cut)
@@ -140,7 +148,7 @@ TH1F *makeNSigmaBarlowPlots(int num = 1, TString Sdef = "", TString Svaried = ""
   return hNSigmaBarlow;
 }
 
-Int_t IndexNotDisplayed = 15;
+Int_t IndexNotDisplayed = 5;
 TString SisPtIntegrated[2] = {"", "PtInt"};
 
 void MultiTrial(
@@ -148,13 +156,14 @@ void MultiTrial(
     Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = "BDT",
+    TString SisSyst = "MassCut",
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
     TString inputFileName = SinputFileNameSyst,
     Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
+
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   if (mul == numCent)
@@ -171,6 +180,7 @@ void MultiTrial(
   // histoName
   Bool_t isPolFromLambda = 0;
   TString TypeHisto = "";
+  TString TypeCos2Theta = "";
   if (Choice == 0)
     TypeHisto = "V2";
   else if (Choice == 1)
@@ -178,6 +188,7 @@ void MultiTrial(
     TypeHisto = "Pzs";
     if (!isPtAnalysis)
       TypeHisto = "Pz";
+    TypeCos2Theta = "histoCos2Theta";
   }
   else if (Choice == 2)
   {
@@ -185,13 +196,29 @@ void MultiTrial(
     TypeHisto = "Pzs2LambdaFromC";
     if (!isPtAnalysis)
       TypeHisto = "PzLambdaFromC";
+    TypeCos2Theta = "histoCos2ThetaLambdaFromC";
   }
   TypeHisto += SisPtIntegrated[isPtIntegrated];
-  TypeHisto += "Mixed";
+  // TypeHisto += "Mixed";
+  TypeHisto += "NoFit";
+  TypeCos2Theta += SisPtIntegrated[isPtIntegrated];
+  TypeCos2Theta += "NoFit";
 
   TString histoName = "histo" + TypeHisto;
 
   TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + "_" + SisPtIntegrated[isPtIntegrated];
+
+  if (isPolFromLambda)
+  {
+    if (CentFT0CMin == 50)
+    {
+      IndexNotDisplayed = 18;
+    }
+    if (CentFT0CMin == 60)
+    {
+      IndexNotDisplayed = 5;
+    }
+  }
 
   Int_t trials = 0;
   if (SisSyst == "BDT")
@@ -200,6 +227,8 @@ void MultiTrial(
     trials = 2; // eta > 0 and eta < 0
   else if (SisSyst == "IR")
     trials = 5; // different interaction rates
+  else if (SisSyst == "MassCut")
+    trials = trialsMassCut; // different mass cuts
   TString Sdef = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
@@ -223,7 +252,12 @@ void MultiTrial(
   if (!isRapiditySel || ExtrisFromTHN)
     Sdef1 = "_Eta08";
   Sdef1 += STHN[ExtrisFromTHN];
+
   TString SdefFinal = Sdef + Sdef1;
+  if (useMixedBDTValueInFitMacro)
+    SdefFinal += "_MixedBDT";
+  if (isTightMassCut)
+    SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
 
   TString Svaried = "";
 
@@ -232,6 +266,16 @@ void MultiTrial(
   if (!fdef)
   {
     cout << "File not found: " << SdefFinal << endl;
+    return;
+  }
+
+  // get default BDT score
+  TH1F *hBDT = (TH1F *)fdef->Get("histoAppliedBDT");
+  if (isPtIntegrated)
+    hBDT = (TH1F *)fdef->Get("histoAppliedBDTPtInt");
+  if (!hBDT)
+  {
+    cout << "histoAppliedBDT not found in " << SdefFinal << endl;
     return;
   }
 
@@ -249,9 +293,6 @@ void MultiTrial(
     if (!isPtAnalysis)
       Titlecv2 = "PzLambdaFromC";
   }
-  TCanvas *cv2 = new TCanvas("cv2", Titlecv2, 1000, 800);
-  StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
-  cv2->cd();
   cout << "histoName: " << histoName << endl;
   TH1F *hDefault = (TH1F *)fdef->Get(histoName);
   if (!hDefault)
@@ -261,6 +302,7 @@ void MultiTrial(
   }
   hDefault->SetName("hDefault");
   hDefault->SetLineColor(kBlack);
+  hDefault->SetLineStyle(2);
   hDefault->GetYaxis()->SetTitle(Titlecv2);
   hDefault->Draw();
 
@@ -292,24 +334,51 @@ void MultiTrial(
     return;
   }
   hDefaultSignificance->SetName("hDefaultSignificance");
+  TH1F *hDefaultCos2Theta = (TH1F *)fdef->Get(TypeCos2Theta);
+  if (!hDefaultCos2Theta)
+  {
+    cout << "histoCos2Theta not found in " << SdefFinal << endl;
+    return;
+  }
+  hDefaultCos2Theta->SetName("hDefaultCos2Theta");
+
+  Float_t LegDefaultBDTscoreCut = hBDT->GetBinContent(1);
+  cout << "Default BDT score: " << LegDefaultBDTscoreCut << endl;
 
   TLegend *legTrial;
   if (SisSyst == "IR")
     legTrial = new TLegend(0.66, 0.7, 0.96, 0.9);
   else
-    legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
+    // legTrial = new TLegend(0.66, 0.2, 0.96, 0.5);
+    legTrial = new TLegend(0.66, 0.2, 0.96, 0.8);
   legTrial->SetBorderSize(0);
   legTrial->SetFillStyle(0);
   legTrial->SetTextSize(0.03);
   legTrial->SetTextFont(42);
   if (SisSyst == "BDT")
-    legTrial->AddEntry(hDefault, Form("BDT score > %.3f", DefaultBDTscoreCut), "pl");
+  {
+    if (useMixedBDTValueInFitMacro)
+    {
+      if (isPtIntegrated)
+        legTrial->AddEntry(hDefault, Form("BDT score > %.3f", LegDefaultBDTscoreCut), "pl");
+      else
+        legTrial->AddEntry(hDefault, "BDT selection p_{T} dependent", "pl");
+    }
+    else
+    {
+      legTrial->AddEntry(hDefault, Form("BDT score > %.3f", DefaultBDTscoreCut), "pl");
+    }
+  }
   else if (SisSyst == "eta")
     legTrial->AddEntry(hDefault, "|#eta| < 0.8", "pl");
   else if (SisSyst == "IR")
     legTrial->AddEntry(hDefault, "PbPb 2023", "pl");
+  else if (SisSyst == "MassCut")
+    legTrial->AddEntry(hDefault, Form("Mass cut: %.1f", Extrsigmacentral[1]), "pl");
+  TLegend *legTrialReduced = (TLegend *)legTrial->Clone("legTrialReduced");
 
   TH1F *h[trials];
+  TH1F *hVariedCut[trials];
   TH1F *hAbsoluteSyst[trials];
   TH1F *hNSigmaBarlow[trials];
   TH1F *hRatio[trials];
@@ -322,15 +391,26 @@ void MultiTrial(
   TH1F *hPurityRatio[trials];
   TH1F *hSignificance[trials];
   TH1F *hSignificanceRatio[trials];
-  Float_t BDTscoreCut = 0;
+  TH1F *hCos2Theta[trials];
+  TH1F *hCos2ThetaRatio[trials];
+  Float_t BDTscoreCut[trialsBDT] = {0};
+
+  TF1 *lineatnSigmaBarlow = new TF1("lineatnSigmaBarlow", "pol0", 0, 8);
+  lineatnSigmaBarlow->SetLineColor(kBlack);
+  lineatnSigmaBarlow->SetLineStyle(10);
+  lineatnSigmaBarlow->SetParameter(0, nsigmaBarlow);
 
   for (int i = 0; i < trials; i++)
   {
     cout << "Trial: " << i << endl;
-    BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
-    TString SBDT = Form("_BDT%.3f", BDTscoreCut);
+    BDTscoreCut[i] = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
+    TString SBDT = Form("_BDT%.3f", BDTscoreCut[i]);
     if (SisSyst == "BDT")
+    {
       Svaried = Sdef + SBDT + Sdef1;
+      if (isTightMassCut)
+        Svaried += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    }
     else if (SisSyst == "eta")
       Svaried = Sdef + SEtaSysChoice[i + 1];
     else if (SisSyst == "IR")
@@ -339,6 +419,13 @@ void MultiTrial(
       Svaried += IsOneOrTwoGauss[UseTwoGauss];
       Svaried += SIsBkgParab[BkgType];
       Svaried += Form("_Cent%i-%i", CentFT0C[mul], CentFT0C[mul + 1]);
+    }
+    else if (SisSyst == "MassCut")
+    {
+      Svaried = Sdef + Sdef1;
+      if (useMixedBDTValueInFitMacro)
+        Svaried += "_MixedBDT";
+      Svaried += Form("_TightMassCutSyst%i", i);
     }
 
     cout << "InputFile - variation: " << Svaried << endl;
@@ -349,15 +436,14 @@ void MultiTrial(
       cout << "File not found: " << Svaried << endl;
       return;
     }
-    TH1F *hVariedCut = (TH1F *)fvaried->Get(histoName);
-    if (!hVariedCut)
+    hVariedCut[i] = (TH1F *)fvaried->Get(histoName);
+    if (!hVariedCut[i])
     {
       cout << "histo not found in " << Svaried << endl;
       return;
     }
-
-    hVariedCut->SetName(histoName + Form("_%i", i));
-    hRatio[i] = (TH1F *)hVariedCut->Clone(histoName + Form("Ratio_%i", i));
+    hVariedCut[i]->SetName(histoName + Form("_%i", i));
+    hRatio[i] = (TH1F *)hVariedCut[i]->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
 
     hRawYield[i] = (TH1F *)fvaried->Get("histoYield" + SisPtIntegrated[isPtIntegrated]);
@@ -390,27 +476,24 @@ void MultiTrial(
     hSignificanceRatio[i] = (TH1F *)hSignificance[i]->Clone(Form("histoSignificanceRatio_%i", i));
     hSignificanceRatio[i]->Divide(hDefaultSignificance);
 
-    hError[i] = (TH1F *)hVariedCut->Clone(Form("hError_%i", i));
-    hError[i]->Reset();
-    for (int j = 1; j <= hVariedCut->GetNbinsX(); j++)
+    hCos2Theta[i] = (TH1F *)fvaried->Get(TypeCos2Theta);
+    if (!hCos2Theta[i])
     {
-      hError[i]->SetBinContent(j, hVariedCut->GetBinError(j));
+      cout << "histoCos2Theta not found in " << Svaried << endl;
+      return;
+    }
+    hCos2Theta[i]->SetName(Form("histoCos2Theta_%i", i));
+    hCos2ThetaRatio[i] = (TH1F *)hCos2Theta[i]->Clone(Form("histoCos2ThetaRatio_%i", i));
+    hCos2ThetaRatio[i]->Divide(hDefaultCos2Theta);
+
+    hError[i] = (TH1F *)hVariedCut[i]->Clone(Form("hError_%i", i));
+    hError[i]->Reset();
+    for (int j = 1; j <= hVariedCut[i]->GetNbinsX(); j++)
+    {
+      hError[i]->SetBinContent(j, hVariedCut[i]->GetBinError(j));
     }
     hErrorRatio[i] = (TH1F *)hError[i]->Clone(Form("hErrorRatio_%i", i));
     hErrorRatio[i]->Divide(hDefaultError);
-
-    // v2 plots
-    cv2->cd();
-    hVariedCut->SetLineColor(ColorMult[i]);
-    hVariedCut->SetMarkerColor(ColorMult[i]);
-    hVariedCut->SetMarkerStyle(MarkerMult[i]);
-    if (SisSyst == "BDT")
-      legTrial->AddEntry(hVariedCut, Form("BDT score > %.3f", BDTscoreCut), "pl");
-    else if (SisSyst == "eta")
-      legTrial->AddEntry(hVariedCut, SEtaSysChoice[i + 1], "pl");
-    else if (SisSyst == "IR")
-      legTrial->AddEntry(hVariedCut, SIRValue[i + 1], "pl");
-    hVariedCut->Draw("same");
 
     h[i] = makeSystPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
     hAbsoluteSyst[i] = (TH1F *)h[i]->Clone(Form("hAbsoluteSyst_%i", i));
@@ -427,7 +510,38 @@ void MultiTrial(
       hRawYieldRatioToTighter[i]->Divide(hRawYield[i + 1]);
   }
 
-  legTrial->Draw();
+  // v2 plots
+  TCanvas *cv2 = new TCanvas("cv2", Titlecv2, 1000, 800);
+  StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
+  cv2->cd();
+  Int_t ColorIndex = -1;
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hVariedCut[i]->SetLineColor(ColorMult[ColorIndex]);
+    hVariedCut[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hVariedCut[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
+    if (SisSyst == "BDT")
+    {
+      legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f", BDTscoreCut[i]), "pl");
+      legTrialReduced->AddEntry(hVariedCut[i], Form("BDT score > %.3f", BDTscoreCut[i]), "pl");
+    }
+    else if (SisSyst == "eta")
+      legTrial->AddEntry(hVariedCut[i], SEtaSysChoice[i + 1], "pl");
+    else if (SisSyst == "IR")
+      legTrial->AddEntry(hVariedCut[i], SIRValue[i + 1], "pl");
+    else if (SisSyst == "MassCut")
+      legTrial->AddEntry(hVariedCut[i], Form("Mass cut: %.3f - %.3f", ExtrLowLimitSysXi[i], ExtrUpLimitSysXi[i]), "pl");
+    hVariedCut[i]->Draw("same");
+  }
+  legTrialReduced->Draw();
   if (isV2)
   {
     cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
@@ -442,6 +556,7 @@ void MultiTrial(
   TCanvas *cNSigmaBarlow = new TCanvas("cNSigmaBarlow", "cNSigmaBarlow", 1000, 800);
   StyleCanvas(cNSigmaBarlow, 0.15, 0.05, 0.05, 0.15);
   cNSigmaBarlow->cd();
+  ColorIndex = -1;
   TH1F *hdummy = (TH1F *)hDefault->Clone("hdummy");
   hdummy->Reset();
   hdummy->GetYaxis()->SetRangeUser(0, 5.);
@@ -451,45 +566,54 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    hNSigmaBarlow[i]->SetLineColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      cout << "Selected BDT before: " << BDTscoreCut[i] << endl;
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+      cout << "Selected BDT: " << BDTscoreCut[i] << endl;
+    }
+    ColorIndex += 1;
+    if (isPtIntegrated)
+    {
+      if (useMixedBDTValueInFitMacro && BDTscoreCut[i] == LegDefaultBDTscoreCut)
+        continue;
+      if (!useMixedBDTValueInFitMacro && BDTscoreCut[i] == DefaultBDTscoreCut)
+        continue;
+    }
+    hNSigmaBarlow[i]->SetLineColor(ColorMult[ColorIndex]);
     hNSigmaBarlow[i]->SetLineWidth(2);
-    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[i]);
-    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[i]);
+    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
     hNSigmaBarlow[i]->Draw("same");
   }
-
-  TCanvas *cDev = new TCanvas("cDev", "cDev", 1000, 800);
-  StyleCanvas(cDev, 0.15, 0.05, 0.05, 0.15);
-  cDev->cd();
-  for (Int_t i = 0; i < trials; i++)
-  {
-    if (i == IndexNotDisplayed)
-      continue;
-    hAbsoluteSyst[i]->SetLineColor(ColorMult[i]);
-    hAbsoluteSyst[i]->SetLineWidth(2);
-    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[i]);
-    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[i]);
-    hAbsoluteSyst[i]->GetYaxis()->SetTitle("Absolute deviation from default");
-    hAbsoluteSyst[i]->GetYaxis()->SetRangeUser(0, 0.5);
-    hAbsoluteSyst[i]->Draw("same");
-  }
+  lineatnSigmaBarlow->Draw("same");
+  legTrialReduced->Draw();
 
   // ratio of varied v2 to default one
   TCanvas *cv2Ratio = new TCanvas("cv2Ratio", "cv2Ratio", 1000, 800);
   StyleCanvas(cv2Ratio, 0.15, 0.05, 0.05, 0.15);
   cv2Ratio->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hRatio[i]->SetLineColor(ColorMult[i]);
-    hRatio[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hRatio[i]->SetTitle("");
     hRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hRatio[i]->GetYaxis()->SetRangeUser(0, 2);
     hRatio[i]->Draw("same");
   }
+
   TF1 *lineat1 = new TF1("lineat1", "1", 0, 8);
   lineat1->SetLineColor(kBlack);
   lineat1->SetLineStyle(7);
@@ -502,24 +626,33 @@ void MultiTrial(
   }
   else
   {
-    cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".pdf");
-    cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".png");
+    // cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".pdf");
+    // cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".png");
+    cv2Ratio->Close();
   }
 
   // raw yields plots
   TCanvas *cYield = new TCanvas("cYield", "cYield", 1000, 800);
   StyleCanvas(cYield, 0.15, 0.05, 0.05, 0.15);
   cYield->cd();
+  ColorIndex = -1;
   hDefaultYield->SetTitle("");
   hDefaultYield->SetLineColor(kBlack);
+  hDefaultYield->SetLineStyle(2);
   hDefaultYield->GetYaxis()->SetRangeUser(0, 1.8 * hDefaultYield->GetMaximum());
   hDefaultYield->Draw();
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hRawYield[i]->SetLineColor(ColorMult[i]);
-    hRawYield[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hRawYield[i]->SetLineColor(ColorMult[ColorIndex]);
+    hRawYield[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hRawYield[i]->SetMarkerStyle(MarkerMult[i]);
     hRawYield[i]->Draw("same");
   }
@@ -531,12 +664,19 @@ void MultiTrial(
   TCanvas *cYieldRatio = new TCanvas("cYieldRatio", "cYieldRatio", 1000, 800);
   StyleCanvas(cYieldRatio, 0.15, 0.05, 0.05, 0.15);
   cYieldRatio->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hRawYieldRatio[i]->SetLineColor(ColorMult[i]);
-    hRawYieldRatio[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hRawYieldRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hRawYieldRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hRawYieldRatio[i]->SetTitle("");
     hRawYieldRatio[i]->GetYaxis()->SetTitle("Ratio to default");
@@ -552,12 +692,19 @@ void MultiTrial(
   TCanvas *cYieldRatioToTighter = new TCanvas("cYieldRatioToTighter", "cYieldRatioToTighter", 1000, 800);
   StyleCanvas(cYieldRatioToTighter, 0.15, 0.05, 0.05, 0.15);
   cYieldRatioToTighter->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[i]);
-    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[ColorIndex]);
+    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[i]);
     hRawYieldRatioToTighter[i]->SetTitle("");
     hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
@@ -573,16 +720,24 @@ void MultiTrial(
   TCanvas *cPurity = new TCanvas("cPurity", "cPurity", 1000, 800);
   StyleCanvas(cPurity, 0.15, 0.05, 0.05, 0.15);
   cPurity->cd();
+  ColorIndex = -1;
   hDefaultPurity->SetTitle("");
   hDefaultPurity->SetLineColor(kBlack);
+  hDefaultPurity->SetLineStyle(2);
   hDefaultPurity->GetYaxis()->SetRangeUser(0, 1);
   hDefaultPurity->Draw();
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hPurity[i]->SetLineColor(ColorMult[i]);
-    hPurity[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hPurity[i]->SetLineColor(ColorMult[ColorIndex]);
+    hPurity[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hPurity[i]->SetMarkerStyle(MarkerMult[i]);
     hPurity[i]->Draw("same");
   }
@@ -594,12 +749,19 @@ void MultiTrial(
   TCanvas *cPurityRatio = new TCanvas("cPurityRatio", "cPurityRatio", 1000, 800);
   StyleCanvas(cPurityRatio, 0.15, 0.05, 0.05, 0.15);
   cPurityRatio->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hPurityRatio[i]->SetLineColor(ColorMult[i]);
-    hPurityRatio[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hPurityRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hPurityRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hPurityRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hPurityRatio[i]->SetTitle("");
     hPurityRatio[i]->GetYaxis()->SetTitle("Ratio to default");
@@ -615,12 +777,19 @@ void MultiTrial(
   TCanvas *cSignificance = new TCanvas("cSignificance", "cSignificance", 1000, 800);
   StyleCanvas(cSignificance, 0.15, 0.05, 0.05, 0.15);
   cSignificance->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hSignificance[i]->SetLineColor(ColorMult[i]);
-    hSignificance[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hSignificance[i]->SetLineColor(ColorMult[ColorIndex]);
+    hSignificance[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hSignificance[i]->SetMarkerStyle(MarkerMult[i]);
     hSignificance[i]->SetTitle("");
     hSignificance[i]->Draw("same");
@@ -633,12 +802,19 @@ void MultiTrial(
   TCanvas *cSignificanceRatio = new TCanvas("cSignificanceRatio", "cSignificanceRatio", 1000, 800);
   StyleCanvas(cSignificanceRatio, 0.15, 0.05, 0.05, 0.15);
   cSignificanceRatio->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hSignificanceRatio[i]->SetLineColor(ColorMult[i]);
-    hSignificanceRatio[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hSignificanceRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hSignificanceRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hSignificanceRatio[i]->SetTitle("");
     hSignificanceRatio[i]->GetYaxis()->SetTitle("Ratio to default");
@@ -649,6 +825,60 @@ void MultiTrial(
   lineat1->Draw("same");
   cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".pdf");
   cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".png");
+
+  // acceptance plots
+  TCanvas *cAcceptance = new TCanvas("cAcceptance", "cAcceptance", 1000, 800);
+  StyleCanvas(cAcceptance, 0.15, 0.05, 0.05, 0.15);
+  cAcceptance->cd();
+  ColorIndex = -1;
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hCos2Theta[i]->SetLineColor(ColorMult[ColorIndex]);
+    hCos2Theta[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hCos2Theta[i]->SetMarkerStyle(MarkerMult[i]);
+    hCos2Theta[i]->GetYaxis()->SetRangeUser(0.31, 0.33);
+    hCos2Theta[i]->SetTitle("");
+    hCos2Theta[i]->Draw("same");
+  }
+  legTrialReduced->Draw();
+  cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".pdf");
+  cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".png");
+
+  // ratio of acceptances to default one
+  TCanvas *cAcceptanceRatio = new TCanvas("cAcceptanceRatio", "cAcceptanceRatio", 1000, 800);
+  StyleCanvas(cAcceptanceRatio, 0.15, 0.05, 0.05, 0.15);
+  cAcceptanceRatio->cd();
+  ColorIndex = -1;
+  for (int i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hCos2ThetaRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hCos2ThetaRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hCos2ThetaRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hCos2ThetaRatio[i]->SetTitle("");
+    hCos2ThetaRatio[i]->GetYaxis()->SetTitle("Ratio to default");
+    hCos2ThetaRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
+    hCos2ThetaRatio[i]->Draw("same");
+  }
+  legTrialReduced->Draw();
+  lineat1->Draw("same");
+  cAcceptanceRatio->SaveAs("Systematics/AcceptanceRatioMultTrial" + Suffix + ".pdf");
+  cAcceptanceRatio->SaveAs("Systematics/AcceptanceRatioMultTrial" + Suffix + ".png");
 
   // systematic computation taking max variation wrt to default
   const int bins = h[0]->GetNbinsX(); // pt bins
@@ -663,6 +893,12 @@ void MultiTrial(
     {
       if (i == IndexNotDisplayed)
         continue;
+      // skip those variations for which the fit is not good
+      if (SisSyst == "BDT")
+      {
+        if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+          continue;
+      }
       if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
       {
         hMaxDev->SetBinContent(pt + 1, h[i]->GetBinContent(pt + 1));
@@ -697,6 +933,11 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
     for (int pt = 0; pt < bins; pt++)
     {
       hPtDev[pt]->Fill(h[i]->GetBinContent(pt + 1));
@@ -727,9 +968,10 @@ void MultiTrial(
 
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".pdf");
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".png");
+  c2->Close();
 
-  // relative syst. uncertainty
-  TCanvas *cSyst = new TCanvas("cSyst", "cSyst", 1000, 800);
+  // relative syst. uncertainty from fit
+  TCanvas *cSystGaussFit = new TCanvas("cSystGaussFit", "cSystGaussFit", 1000, 800);
   TH1F *hSystMultiTrial = (TH1F *)h[0]->Clone("hSystMultiTrial");
   hSystMultiTrial->Reset();
   for (int pt = 0; pt < bins; pt++)
@@ -743,13 +985,40 @@ void MultiTrial(
   if (!isPtIntegrated)
     hSystMultiTrial->Smooth();
   hSystMultiTrial->Draw();
+  cSystGaussFit->Close();
 
-  // relative syst. uncertainty Max Variation
-  // TCanvas *cSystMax = new TCanvas("cSystMax", "cSystMax", 1000, 800);
+  // Relative syst. uncertainty from maximum deviation
+  TCanvas *cSystMaxDev = new TCanvas("cSystMaxDev", "cSystMaxDev", 1000, 800);
   hMaxDev->SetLineColor(kRed);
   if (!isPtIntegrated)
     hMaxDev->Smooth();
   hMaxDev->Draw("same");
+  if (!isV2)
+    cSystMaxDev->Close();
+
+  TCanvas *cSystAbsDev = new TCanvas("cSystAbsDev", "cSystAbsDev", 1000, 800);
+  StyleCanvas(cSystAbsDev, 0.15, 0.05, 0.05, 0.15);
+  cSystAbsDev->cd();
+  ColorIndex = -1;
+  for (Int_t i = 0; i < trials; i++)
+  {
+    if (i == IndexNotDisplayed)
+      continue;
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hAbsoluteSyst[i]->SetLineColor(ColorMult[ColorIndex]);
+    hAbsoluteSyst[i]->SetLineWidth(2);
+    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
+    hAbsoluteSyst[i]->GetYaxis()->SetTitle("Absolute deviation from default");
+    hAbsoluteSyst[i]->GetYaxis()->SetRangeUser(-1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    hAbsoluteSyst[i]->Draw("same");
+  }
+  legTrialReduced->Draw();
 
   // Absolute syst. uncertainty from maximum deviation
   TCanvas *cSystAbsMaxDev = new TCanvas("cSystAbsMaxDev", "cSystAbsMaxDev", 1000, 800);
@@ -768,22 +1037,30 @@ void MultiTrial(
   StyleCanvas(cStat, 0.15, 0.05, 0.05, 0.15);
   cStat->cd();
   hDefaultError->SetLineColor(kBlack);
+  hDefaultError->SetLineStyle(2);
   hDefaultError->GetYaxis()->SetRangeUser(0, 0.5);
   if (isPtIntegrated)
-    hDefaultError->GetYaxis()->SetRangeUser(0, 0.001);
+    hDefaultError->GetYaxis()->SetRangeUser(0, 0.003);
   hDefaultError->GetYaxis()->SetTitle("Statistical uncertainty");
   hDefaultError->Draw();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hError[i]->SetLineColor(ColorMult[i]);
-    hError[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hError[i]->SetLineColor(ColorMult[ColorIndex]);
+    hError[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hError[i]->SetMarkerStyle(MarkerMult[i]);
     hError[i]->Draw("same");
   }
   hAbsoluteMaxDev->Draw("same");
-  legTrial->Draw();
+  legTrialReduced->Draw();
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
 
@@ -791,20 +1068,27 @@ void MultiTrial(
   TCanvas *cStatRatio = new TCanvas("cStatRatio", "cStatRatio", 1000, 800);
   StyleCanvas(cStatRatio, 0.15, 0.05, 0.05, 0.15);
   cStatRatio->cd();
+  ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    hErrorRatio[i]->SetLineColor(ColorMult[i]);
-    hErrorRatio[i]->SetMarkerColor(ColorMult[i]);
+    if (SisSyst == "BDT")
+    {
+      if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+        continue;
+    }
+    ColorIndex += 1;
+    hErrorRatio[i]->SetLineColor(ColorMult[ColorIndex]);
+    hErrorRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
     hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hErrorRatio[i]->SetTitle("");
     hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
-    hErrorRatio[i]->GetYaxis()->SetRangeUser(0.6, 1.4);
+    hErrorRatio[i]->GetYaxis()->SetRangeUser(0.2, 1.8);
     hErrorRatio[i]->Draw("same");
   }
   lineat1->Draw("same");
-  legTrial->Draw();
+  legTrialReduced->Draw();
   cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
   cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
 
