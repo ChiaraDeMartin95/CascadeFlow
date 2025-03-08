@@ -283,6 +283,7 @@ void FitV2orPol(
     Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
+    Int_t indexMassCut = 0,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t ChosenPart = ChosenParticle,
     TString inputFileName = SinputFileName,
@@ -296,6 +297,13 @@ void FitV2orPol(
 {
 
   Float_t sigmacentral = Extrsigmacentral[isTightMassCut];
+  Float_t ExtrLowLimit = 0;
+  Float_t ExtrUpLimit = 0;
+  if (ExtrisSysMassCut)
+  {
+    ExtrLowLimit = ExtrLowLimitSysXi[indexMassCut];
+    ExtrUpLimit = ExtrUpLimitSysXi[indexMassCut];
+  }
 
   if (useMixedBDTValueInFitMacro && !useCommonBDTValue)
   {
@@ -1397,6 +1405,11 @@ void FitV2orPol(
 
     LowLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinLowEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] - sigmacentral * sigmaw[pt]));
     UpLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinUpEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] + sigmacentral * sigmaw[pt]));
+    if (ExtrisSysMassCut)
+    {
+      LowLimit[pt] = ExtrLowLimit;
+      UpLimit[pt] = ExtrUpLimit;
+    }
 
     lineP3Sigma[pt] = new TLine(UpLimit[pt], 0, UpLimit[pt], hInvMass[pt]->GetMaximum());
     lineM3Sigma[pt] = new TLine(LowLimit[pt], 0, LowLimit[pt], hInvMass[pt]->GetMaximum());
@@ -1434,7 +1447,7 @@ void FitV2orPol(
     errb[pt] = errb[pt] / hInvMass[pt]->GetBinWidth(1);
 
     entries_range[pt] = 0;
-    for (Int_t l = hInvMass[pt]->GetXaxis()->FindBin(mean[pt] - sigmacentral * sigmaw[pt]); l <= hInvMass[pt]->GetXaxis()->FindBin(mean[pt] + sigmacentral * sigmaw[pt]); l++)
+    for (Int_t l = hInvMass[pt]->GetXaxis()->FindBin(LowLimit[pt] + 0.00001); l <= hInvMass[pt]->GetXaxis()->FindBin(UpLimit[pt]-0.00001); l++)
     { // I inlcude bins where the limits lie
       entries_range[pt] += hInvMass[pt]->GetBinContent(l);
     }
@@ -1541,7 +1554,7 @@ void FitV2orPol(
       histoSignificancePtInt->SetBinError(1, 0);
     }
 
-    hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt]+0.00001), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt]-0.00001));
+    hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt] + 0.00001), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt] - 0.00001));
     StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     // hV2MassIntegrated[pt]->Rebin(2);
 
@@ -2084,10 +2097,15 @@ void FitV2orPol(
   if (isProducedAcceptancePlots)
     Soutputfile += "_AcceptancePlots";
   if (isTightMassCut)
-    Soutputfile += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+  {
+    if (ExtrisSysMassCut == 0)
+      Soutputfile += Form("_TightMassCut%.1f", sigmacentral);
+    else
+      Soutputfile += Form("_TightMassCutSyst%i", indexMassCut);
+  }
 
-  // save canvases
-  canvas[0]->SaveAs(Soutputfile + ".pdf(");
+    // save canvases
+    canvas[0]->SaveAs(Soutputfile + ".pdf(");
   canvas[1]->SaveAs(Soutputfile + ".pdf");
   canvas[2]->SaveAs(Soutputfile + ".pdf");
   canvas[3]->SaveAs(Soutputfile + ".pdf");
@@ -2554,7 +2572,7 @@ void FitV2orPol(
   cout << "Error of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
   cout << "Error of pt integrated measurement (fit): " << histoV2PtIntErr->GetBinContent(1) << endl;
 
-  cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
+  if (!ExtrisSysMassCut) cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
   cout << "This interval is: " << LowLimit[numPtBinsVar] << " - " << UpLimit[numPtBinsVar] << " GeV/c^2" << endl;
   cout << "In this interval, the integral of the signal function is:" << endl;
   cout << histoYieldFractionPtInt->GetBinContent(1) << " of the total integral" << endl;
