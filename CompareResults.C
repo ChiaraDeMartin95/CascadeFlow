@@ -202,6 +202,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 13 --> weighted vs unweighted v2 (eff weight)
   // TypeComp = 14 --> default v2 vs corrected v2
   // TypeComp = 15 --> weighted vs corrected v2
+  // TypeComp = 16 --> Pz from Xi - offline vs online acceptance
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -595,6 +596,26 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "Weighted";
     sleg[1] = "Corrected";
   }
+  else if (TypeComp == 16)
+  {
+    // TypeComp = 16 --> Pz from Xi - offline vs online acceptance
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    fileName[0] = "Train365784";
+    fileName[1] = "Train361757";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "Offline";
+    sleg[1] = "On the fly";
+  }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
@@ -648,7 +669,7 @@ void CompareResults(Int_t TypeComp = 0,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
-  if (TypeComp == 5)
+  if (TypeComp == 5 || TypeComp == 16)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
@@ -661,10 +682,10 @@ void CompareResults(Int_t TypeComp = 0,
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    h[i]->SetMarkerColor(ColorMult[i+1]);
-    h[i]->SetLineColor(ColorMult[i+1]);
-    h[i]->SetMarkerStyle(MarkerMult[i+1]);
-    h[i]->SetMarkerSize(0.6 * SizeMult[i+1]);
+    h[i]->SetMarkerColor(ColorMult[i + 1]);
+    h[i]->SetLineColor(ColorMult[i + 1]);
+    h[i]->SetMarkerStyle(MarkerMult[i + 1]);
+    h[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
     h[i]->Draw("same");
   }
 
