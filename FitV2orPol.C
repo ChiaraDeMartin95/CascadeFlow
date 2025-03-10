@@ -1447,7 +1447,7 @@ void FitV2orPol(
     errb[pt] = errb[pt] / hInvMass[pt]->GetBinWidth(1);
 
     entries_range[pt] = 0;
-    for (Int_t l = hInvMass[pt]->GetXaxis()->FindBin(LowLimit[pt] + 0.00001); l <= hInvMass[pt]->GetXaxis()->FindBin(UpLimit[pt]-0.00001); l++)
+    for (Int_t l = hInvMass[pt]->GetXaxis()->FindBin(LowLimit[pt] + 0.00001); l <= hInvMass[pt]->GetXaxis()->FindBin(UpLimit[pt] - 0.00001); l++)
     { // I inlcude bins where the limits lie
       entries_range[pt] += hInvMass[pt]->GetBinContent(l);
     }
@@ -1869,6 +1869,33 @@ void FitV2orPol(
   }
 
   // acceptance correction for polarization
+
+  TFile *fileAcceptance = new TFile(SAcceptanceFile, "READ");
+  if (!fileAcceptance)
+  {
+    cout << "Acceptance file not found" << endl;
+    return;
+  }
+  if (isAcceptanceFromExternalFile)
+  {
+    TList *dir = (TList *)fileAcceptance->Get("ccdb_object");
+    if (!dir)
+    {
+      cout << "directory not found" << endl;
+      return;
+    }
+    histoCos2Theta = (TH1F *)dir->FindObject("histoCos2ThetaNoFit");
+    if (!histoCos2Theta) 
+    {
+      cout << "histogram not found" << endl;
+      return;
+    } 
+    histoCos2ThetaPtInt = (TH1F *)dir->FindObject("histoCos2ThetaPtIntNoFit");
+    histoCos2ThetaNoFit = (TH1F *)dir->FindObject("histoCos2ThetaNoFit");
+    histoCos2ThetaPtIntNoFit = (TH1F *)dir->FindObject("histoCos2ThetaPtIntNoFit");
+    histoCos2ThetaMixed = (TH1F *)dir->FindObject("histoCos2ThetaNoFit");
+    histoCos2ThetaPtIntMixed = (TH1F *)dir->FindObject("histoCos2ThetaPtIntNoFit");
+  }
   if (!isV2 && isApplyAcceptanceCorrection)
   {
     histoV2->Divide(histoCos2Theta);
@@ -2104,8 +2131,8 @@ void FitV2orPol(
       Soutputfile += Form("_TightMassCutSyst%i", indexMassCut);
   }
 
-    // save canvases
-    canvas[0]->SaveAs(Soutputfile + ".pdf(");
+  // save canvases
+  canvas[0]->SaveAs(Soutputfile + ".pdf(");
   canvas[1]->SaveAs(Soutputfile + ".pdf");
   canvas[2]->SaveAs(Soutputfile + ".pdf");
   canvas[3]->SaveAs(Soutputfile + ".pdf");
@@ -2175,6 +2202,7 @@ void FitV2orPol(
     TList *listAcceptance = new TList();
     listAcceptance->Add(histoCos2ThetaNoFit);
     listAcceptance->Add(histoCos2ThetaNoFit2D);
+    listAcceptance->Add(histoCos2ThetaPtIntNoFit);
     listAcceptance->Write("ccdb_object", TObject::kSingleKey);
     outputfile2->Close();
     cout << "I stored the acceptance plots in the file: " << SoutputfileAcceptance << ".root" << endl;
@@ -2572,7 +2600,8 @@ void FitV2orPol(
   cout << "Error of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
   cout << "Error of pt integrated measurement (fit): " << histoV2PtIntErr->GetBinContent(1) << endl;
 
-  if (!ExtrisSysMassCut) cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
+  if (!ExtrisSysMassCut)
+    cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
   cout << "This interval is: " << LowLimit[numPtBinsVar] << " - " << UpLimit[numPtBinsVar] << " GeV/c^2" << endl;
   cout << "In this interval, the integral of the signal function is:" << endl;
   cout << histoYieldFractionPtInt->GetBinContent(1) << " of the total integral" << endl;
@@ -2580,5 +2609,10 @@ void FitV2orPol(
   if (isProducedAcceptancePlots)
   {
     cout << "I stored the acceptance plots in the file: " << SoutputfileAcceptance << ".root" << endl;
+  }
+  if (isAcceptanceFromExternalFile && isApplyAcceptanceCorrection){
+    cout << "I took the acceptance from an external file: " << SAcceptanceFile << endl;
+    cout << "The acceptance is computed without invariant mass fit " << endl;
+    cout  << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
 }
