@@ -77,35 +77,50 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   if (!hV2)
   {
     cout << "THn hV2 not found" << endl;
-    return;
+    //return;
   }
   THn *hXiPzs2 = (THnF *)dir1->Get("h" + ParticleName[Part] + "Pzs2");
   // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisPzs2Xi
   if (!hXiPzs2)
   {
     cout << "THn hXiPzs2 not found" << endl;
-    return;
+    //return;
   }
   THn *hXiPzs2FromLambda = (THnF *)dir1->Get("h" + ParticleName[Part] + "Pzs2FromLambda");
   // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisPzs2Lambda
   if (!hXiPzs2FromLambda)
   {
     cout << "THn hXiPzs2FromLambda not found" << endl;
-    return;
+    //return;
   }
   THn *hXiCos2Theta = (THnF *)dir1->Get("h" + ParticleName[Part] + "Cos2Theta");
   // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisCos2Theta
   if (!hXiCos2Theta)
   {
     cout << "THn hXiCos2Theta not found" << endl;
-    return;
+    //return;
   }
   THn *hXiCos2ThetaFromLambda = (THnF *)dir1->Get("h" + ParticleName[Part] + "Cos2ThetaFromLambda");
   // axes: thnAxisFT0C, thnAxisCharge, thnAxisPt, thnAxisMassCasc, thnAxisBDTScore, thnAxisCos2ThetaLambda
   if (!hXiCos2ThetaFromLambda)
   {
     cout << "THn hXiCos2ThetaFromLambda not found" << endl;
-    return;
+    //return;
+  }
+  if (!hV2){
+    hV2 = (THnF *)hXiPzs2->Clone("hV2");
+  }
+  if (!hXiPzs2){
+    hXiPzs2 = (THnF *)hV2->Clone("hXiPzs2");
+  }
+  if (!hXiPzs2FromLambda){
+    hXiPzs2FromLambda = (THnF *)hV2->Clone("hXiPzs2FromLambda");
+  }
+  if (!hXiCos2Theta){
+    hXiCos2Theta = (THnF *)hV2->Clone("hXiCos2Theta");
+  }
+  if (!hXiCos2ThetaFromLambda){
+    hXiCos2ThetaFromLambda = (THnF *)hV2->Clone("hXiCos2ThetaFromLambda");
   }
 
   // V2, Pzs2, Cos2Theta ***
@@ -215,6 +230,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     // Selection on BDT score -- be careful, in the 0-80% case, the BDT score is not defined and I apply the same cut as in the 0-10% case
     if (!useCommonBDTValue && !isSysMultTrial)
       BDTscoreCut = bdtCut[cent];
+    cout << "BDTscoreCut: " << BDTscoreCut << endl;
     hV2->GetAxis(4)->SetRange(hV2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hV2->GetAxis(4)->FindBin(1 - 0.001));
     hXiPzs2->GetAxis(4)->SetRange(hXiPzs2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiPzs2->GetAxis(4)->FindBin(1 - 0.001));
     hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiCos2Theta->GetAxis(4)->FindBin(1 - 0.001));
@@ -271,7 +287,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hBDT[cent]->Scale(1. / hBDT[cent]->Integral());
     hBDT[cent]->SetLineColor(ColorMult[cent]);
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
-    hBDT[cent]->GetXaxis()->SetRangeUser(0.4, 1);
+    hBDT[cent]->GetXaxis()->SetRangeUser(0, 1);
     hBDT[cent]->GetYaxis()->SetRangeUser(0, 0.4);
     if (cent == 0)
       hDummyBDT->Draw();
