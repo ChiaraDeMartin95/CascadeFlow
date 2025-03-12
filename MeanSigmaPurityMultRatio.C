@@ -123,18 +123,19 @@ Float_t YUpPzs2[numPart] = {0.5, 0.5};
 Float_t YLowCos2Theta[numPart] = {0, 0};
 Float_t YUpCos2Theta[numPart] = {0.4, 0.4};
 Float_t YLowCos2ThetaLambda[numPart] = {0, 0};
-Float_t YUpCos2ThetaLambda[numPart] = {0.3, 0.3};
+Float_t YUpCos2ThetaLambda[numPart] = {0.5, 0.5};
 
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.2};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.5};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
-                              Int_t ChosenMult = numCent /*- 3*/,
+                              Int_t ChosenMult = 7 /*numCent*/ /*- 3*/,
+                              Bool_t isRapiditySel = ExtrisRapiditySel,
                               TString OutputDir = "MeanSigmaPurityMultClasses/",
                               Int_t BkgType = ExtrBkgType,
                               Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -144,6 +145,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
   {
     part = 1;
+  }
+  if (isProducedAcceptancePlots && useMixedBDTValueInFitMacro)
+  {
+    cout << "Either you produce acceptance plots or you use mixed BDT values" << endl;
+    return;
   }
 
   gStyle->SetOptStat(0);
@@ -214,7 +220,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     YLow[part] = YLowCos2Theta[part];
     YUp[part] = YUpCos2Theta[part];
   }
-  else if (Choice == 8)
+  else if (Choice == 8 || Choice == 10)
   {
     YLow[part] = YLowCos2ThetaLambda[part];
     YUp[part] = YUpCos2ThetaLambda[part];
@@ -245,6 +251,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   stringoutShort = OutputDir + "PlotRatios" + "_" + TypeHisto[Choice] + "_";
   stringoutShort += SinputFileName;
   stringoutShort += "_" + ParticleName[ChosenPart];
+  if (!isPtAnalysis)
+    stringoutShort += "_vsPsi";
   if (isApplyWeights)
     stringout += "_Weighted";
   if (!useCommonBDTValue)
@@ -255,8 +263,18 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += "_vsPsi";
   if (ExtrisApplyEffWeights)
     stringout += "_EffW";
+  if (!isRapiditySel || ExtrisFromTHN)
+    stringout += "_Eta08";
+  stringout += STHN[ExtrisFromTHN];
+  if (useMixedBDTValueInFitMacro)
+    stringout += "_MixedBDT";
+  if (isProducedAcceptancePlots)
+    stringout += "_AcceptancePlots";
+  if (isTightMassCut)
+    stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+
   stringoutpdf = stringout;
-  stringout += "_5Cent.root";
+  stringout += ".root";
   TFile *fileout = new TFile(stringout, "RECREATE");
 
   // canvases
@@ -312,10 +330,22 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (Choice == 6)
     {
-      LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{y} | < 0.5", "");
+      if (isRapiditySel)
+        LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{y} | < 0.5", "");
+      else
+        LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{#eta} | < 0.8", "");
+    }
+    else if (Choice == 10)
+    {
+      LegendTitle->AddEntry("", "#Lambda, |#it{#eta} | < 0.8", "");
     }
     else
-      LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{y} | < 0.5", "");
+    {
+      if (isRapiditySel)
+        LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{y} | < 0.5", "");
+      else
+        LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + ", |#it{#eta} | < 0.8", "");
+    }
   }
 
   TLine *lineat1Mult = new TLine(MinPt[part], 1, MaxPt[part], 1);
@@ -362,13 +392,48 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_vsPsi";
     if (Choice == 6 || Choice == 8)
       PathIn += "_PolFromLambda";
+    if (Choice <= 3)
+      PathIn += "_PolFromLambda";
     if (ExtrisApplyEffWeights)
       PathIn += "_EffW";
+    if (!isRapiditySel || ExtrisFromTHN)
+      PathIn += "_Eta08";
+    PathIn += STHN[ExtrisFromTHN];
+    if (useMixedBDTValueInFitMacro)
+      PathIn += "_MixedBDT";
+    if (isProducedAcceptancePlots)
+      PathIn += "_AcceptancePlots";
+    if (isTightMassCut)
+      PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+
+    if (Choice == 10)
+    {
+      PathIn = "AcceptancePlots/Acceptance_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
+      if (isApplyWeights)
+        PathIn += "_Weighted";
+      if (v2type == 1)
+        PathIn += "_SP";
+      if (!useCommonBDTValue)
+        PathIn += "_BDTCentDep";
+      if (isRun2Binning)
+        PathIn += "_Run2Binning";
+      if (ExtrisApplyEffWeights)
+      {
+        PathIn += "_EffW";
+      }
+      PathIn += "_WithAlpha";
+      if (!isRapiditySel || ExtrisFromTHN)
+        PathIn += "_Eta08";
+      PathIn += STHN[ExtrisFromTHN];
+    }
+
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    if (Choice == 1)
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice] + "Weighted");
+    if (Choice == 10)
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get(TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax));
+    else if (Choice == 1)
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]); // + "Weighted");
     else
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]);
     if (!fHistSpectrum[m])
@@ -400,7 +465,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   if (!isPtAnalysis)
     titlex = "2(#varphi-#Psi_{EP})";
 
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 8);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 10);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, -100000);
   canvasPtSpectra->cd();
@@ -408,7 +473,10 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, titlex, TitleY[Choice], "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+  if (Choice == 10)
+    hDummy->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
+  else
+    hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
   if (!isPtAnalysis)
     hDummy->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   pad1->Draw();
@@ -424,13 +492,23 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
     ScaleFactorFinal[m] = ScaleFactor[m];
+    for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
+    {
+      if (fHistSpectrum[m]->GetBinError(b) != fHistSpectrum[m]->GetBinError(b))
+      {
+        if (b < fHistSpectrum[m]->GetNbinsX())
+        {
+          fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b + 1) / fHistSpectrum[m]->GetBinContent(b + 1) * fHistSpectrum[m]->GetBinContent(b));
+        }
+      } // fuffa
+    }
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
     if (Choice == 3)
       fHistSpectrumScaled[m]->Scale(ScaleFactorFinal[m]);
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
       // cout << "bin " << b << " " << fHistSpectrum[m]->GetBinContent(b) << "+-" << fHistSpectrum[m]->GetBinError(b) << endl;
-      // cout << "bin " << b << " " << fHistSpectrumScaled[m]->GetBinContent(b) << "+-" << fHistSpectrumScaled[m]->GetBinError(b) << endl;
+      //  cout << "bin " << b << " " << fHistSpectrumScaled[m]->GetBinContent(b) << "+-" << fHistSpectrumScaled[m]->GetBinError(b) << endl;
     }
     SetFont(fHistSpectrumScaled[m]);
     fHistSpectrumScaled[m]->SetMarkerColor(ColorMult[m]);
@@ -478,14 +556,17 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   Float_t yLabelOffsetR = 0.04;
 
   TString TitleYSpectraRatio = "Ratio to " + SmoltBis[ChosenMult] + "%";
-  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 8);
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 10);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
   SetFont(hDummyRatio);
   StyleHistoYield(hDummyRatio, YLowRatio[Choice], YUpRatio[Choice], 1, 1, titlex, TitleYSpectraRatio, "", 1, 1.15, YoffsetSpectraRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
-  hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+  if (Choice == 10)
+    hDummyRatio->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
+  else
+    hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
   if (!isPtAnalysis)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   canvasPtSpectra->cd();
@@ -543,6 +624,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   fileout->Close();
   canvasPtSpectra->SaveAs(stringoutShort + ".pdf");
   canvasPtSpectra->SaveAs(stringoutShort + ".png");
+  canvas->SaveAs(stringoutShort + "_Top.pdf");
   canvas->SaveAs(stringoutShort + "_Top.png");
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
 

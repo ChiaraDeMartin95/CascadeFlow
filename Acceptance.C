@@ -1,4 +1,5 @@
 #include <Riostream.h>
+#include "TProfile2D.h"
 #include <string>
 #include <TFile.h>
 #include <TH3.h>
@@ -105,158 +106,6 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
   histo->SetTitle(title);
 }
 
-const Float_t UpperLimitLSBOmega = 1.655; // upper limit of fit of left sidebands for omega
-const Float_t LowerLimitRSBOmega = 1.689; // lower limit of fit of right sidebands for omega
-const Float_t UpperLimitLSBXi = 1.302;    // upper limit of fit of left sidebands for Xi
-const Float_t LowerLimitRSBXi = 1.34;     // lower limit of fit of right sidebands for Xi
-const Int_t numBinsEta = 8;
-
-struct v2fit
-{
-  double operator()(double *x, double *par)
-  {
-    int bin = bkgfraction.FindBin(x[0]);
-    float BkgFraction = bkgfraction.GetBinContent(bin);
-    float SigFraction = 1.f - BkgFraction;
-    return par[0] * SigFraction + (par[1] + par[2] * x[0]) * BkgFraction;
-  }
-  void setBkgFraction(TF1 *bkg, TF1 *total, float min, float max)
-  {
-    bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 2000, min, max);
-    bkgfraction.Add(bkg);
-    bkgfraction.Divide(total);
-  }
-  TH1D bkgfraction;
-};
-
-Double_t v2bkgfit(Double_t *x, Double_t *par)
-{
-  return par[0] + par[1] * x[0];
-}
-
-Bool_t reject = 1;
-Double_t fparab(Double_t *x, Double_t *par)
-{
-  Float_t LimInf = 0;
-  Float_t LimSup = 0;
-  if (par[3] == 0)
-  {
-    LimInf = UpperLimitLSBXi;
-    LimSup = LowerLimitRSBXi;
-  }
-  else if (par[3] == 1)
-  {
-    LimInf = UpperLimitLSBOmega;
-    LimSup = LowerLimitRSBOmega;
-  }
-  if (reject && x[0] > LimInf && x[0] < LimSup)
-  {
-    TF1::RejectPoint();
-    return 0;
-  }
-  return par[0] + par[1] * x[0] + par[2] * x[0] * x[0];
-}
-
-Double_t fpol3(Double_t *x, Double_t *par)
-{
-  Float_t LimInf = 0;
-  Float_t LimSup = 0;
-  if (par[4] == 0)
-  {
-    LimInf = UpperLimitLSBXi;
-    LimSup = LowerLimitRSBXi;
-  }
-  else if (par[4] == 1)
-  {
-    LimInf = UpperLimitLSBOmega;
-    LimSup = LowerLimitRSBOmega;
-  }
-  if (reject && x[0] > LimInf && x[0] < LimSup)
-  {
-    TF1::RejectPoint();
-    return 0;
-  }
-  return par[0] + par[1] * x[0] + par[2] * x[0] * x[0] + par[3] * x[0] * x[0] * x[0];
-}
-
-Double_t fexpo(Double_t *x, Double_t *par)
-{
-  Float_t LimInf = 0;
-  Float_t LimSup = 0;
-  if (par[2] == 0)
-  {
-    LimInf = UpperLimitLSBXi;
-    LimSup = LowerLimitRSBXi;
-  }
-  else if (par[2] == 1)
-  {
-    LimInf = UpperLimitLSBOmega;
-    LimSup = LowerLimitRSBOmega;
-  }
-  if (reject && x[0] > LimInf && x[0] < LimSup)
-  {
-    TF1::RejectPoint();
-    return 0;
-  }
-  // return par[0] + par[1] * exp(par[2] * x[0]);
-  return exp(par[0] + par[1] * x[0]);
-}
-
-Double_t fretta(Double_t *x, Double_t *par)
-{
-  Float_t LimInf = 0;
-  Float_t LimSup = 0;
-  if (par[2] == 0)
-  {
-    LimInf = UpperLimitLSBXi;
-    LimSup = LowerLimitRSBXi;
-  }
-  else if (par[2] == 1)
-  {
-    LimInf = UpperLimitLSBOmega;
-    LimSup = LowerLimitRSBOmega;
-  }
-  if (reject && x[0] > LimInf && x[0] < LimSup)
-  {
-    TF1::RejectPoint();
-    return 0;
-  }
-  return par[0] + par[1] * x[0];
-}
-
-Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
-{
-  if (CentFT0C[mul] >= 40)
-  {
-    return 0.4;
-  }
-  else
-  {
-    if (PtBins[pt] < 1)
-    {
-      return 0.96;
-    }
-    else if (PtBins[pt] < 1.2)
-    {
-      return 0.8;
-    }
-    else if (PtBins[pt] < 2)
-    {
-      return 0.64;
-    }
-    else
-    {
-      return 0.4;
-    }
-  }
-}
-
-TString titleYield = "1/N_{evt} dN/dp_{T}";
-TString titleYieldNN = "dN/dp_{T}";
-TString titlePt = "p_{T} (GeV/c)";
-TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})"};
-TString SInvMass = "invariant mass (GeV/c^{2})";
-
 // fit ranges
 Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65}; // gauss fit range
 Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69};
@@ -320,14 +169,14 @@ void Acceptance(Int_t indexMultTrial = 0,
 
   TH3D *hEtaVsPtVsCos2ThetaLambdaFromC[numCent + 1];
   TString hNameCos2ThetaLambdaFromC_Eta3D[numCent + 1] = {""};
-  
-  TH2F *hEtaVsCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
-  TString hNameEtaCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TH1F *hCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBins + 1];
-  TString hNameCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBins + 1] = {""};
-  TH1F *hEta[numCent + 1][numPtBins + 1];
-  TString hNameEta[numCent + 1][numPtBins + 1] = {""};
-  
+
+  TH2F *hEtaVsCos2ThetaLambdaFromC[numCent + 1][numPtBinsLambda + 1];
+  TString hNameEtaCos2ThetaLambdaFromC[numCent + 1][numPtBinsLambda + 1] = {""};
+  TH1F *hCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBinsLambda + 1];
+  TString hNameCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBinsLambda + 1] = {""};
+  TH1F *hEta[numCent + 1][numPtBinsLambda + 1];
+  TString hNameEta[numCent + 1][numPtBinsLambda + 1] = {""};
+
   TH2F *hPtVsCos2ThetaLambdaFromC[numCent + 1][numEtaBins + 1];
   TString hNamePtVsCos2ThetaLambdaFromC[numCent + 1][numEtaBins + 1] = {""};
   TH1F *hCos2ThetaLambdaFromCVsPt[numCent + 1][numEtaBins + 1];
@@ -337,6 +186,10 @@ void Acceptance(Int_t indexMultTrial = 0,
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
+
+  TProfile2D *pCos2ThetaLambdaFromC[numCent + 1];
+  TString pNameCos2ThetaLambdaFromC[numCent + 1];
+  TH2F *hCos2ThetaLambdaFromC2D[numCent + 1];
 
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
@@ -352,29 +205,36 @@ void Acceptance(Int_t indexMultTrial = 0,
     }
     hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)inputFile->Get(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
+    pNameCos2ThetaLambdaFromC[cent] = Form("pCos2ThetaLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (!hEtaVsPtVsCos2ThetaLambdaFromC[cent])
     {
       cout << "Histogram hEtaVsPtVsCos2ThetaLambdaFromC not available" << endl;
     }
 
-    for (Int_t pt = 0; pt < numPtBins + 1; pt++)
+    pCos2ThetaLambdaFromC[cent] = (TProfile2D *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3DProfile("xy");
+    pCos2ThetaLambdaFromC[cent]->SetName(pNameCos2ThetaLambdaFromC[cent]);
+    hCos2ThetaLambdaFromC2D[cent] = new TH2F(Form("histoCos2ThetaLambdaFromCNoFit2D_cent%i-%i", CentFT0CMin, CentFT0CMax), Form("histoCos2ThetaLambdaFromCNoFit2D_cent%i-%i", CentFT0CMin, CentFT0CMax), numPtBinsLambda, PtBinsLambda, numEtaBins, EtaBins);
+
+    for (Int_t pt = 0; pt < numPtBinsLambda + 1; pt++)
     {
       hNameEtaCos2ThetaLambdaFromC[cent][pt] = Form("EtaVsCos2ThetaLambdaFromC_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
-      hNameCos2ThetaLambdaFromCVsEta[cent][pt] = Form("Cos2ThetaLambdaFromCVsEta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
       hNameEta[cent][pt] = Form("Eta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
-      if (pt == numPtBins)
+      if (pt == numPtBinsLambda)
       {
-        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
+        hNameCos2ThetaLambdaFromCVsEta[cent][pt] = Form("Cos2ThetaLambdaFromCVsEta_cent%i-%i", CentFT0CMin, CentFT0CMax);
+        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBinsLambda[0] + 0.0001, PtBinsLambda[numPtBinsLambda] - 0.0001);
       }
       else
       {
-        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
+        hNameCos2ThetaLambdaFromCVsEta[cent][pt] = Form("Cos2ThetaLambdaFromCVsEta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
+        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBinsLambda[pt] + 0.0001, PtBinsLambda[pt + 1] - 0.0001);
+        cout << "PtBinsLambda[pt] = " << PtBinsLambda[pt] << " PtBinsLambda[pt + 1] = " << PtBinsLambda[pt + 1] << endl;
       }
       hEtaVsCos2ThetaLambdaFromC[cent][pt] = (TH2F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xze"); // eta vs cos2thetaLambdaFromC
       hEtaVsCos2ThetaLambdaFromC[cent][pt]->SetName(hNameEtaCos2ThetaLambdaFromC[cent][pt]);
 
-      hEta[cent][pt] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xe");
-      hEta[cent][pt]->SetName(hNameEta[cent][pt]);
+      //hEta[cent][pt] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xe");
+      hEta[cent][pt] = new TH1F(hNameEta[cent][pt], hNameEta[cent][pt], numEtaBins, EtaBins);
 
       hCos2ThetaLambdaFromCVsEta[cent][pt] = (TH1F *)hEta[cent][pt]->Clone(hNameCos2ThetaLambdaFromCVsEta[cent][pt]);
       hCos2ThetaLambdaFromCVsEta[cent][pt]->Reset();
@@ -383,33 +243,37 @@ void Acceptance(Int_t indexMultTrial = 0,
         TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinContent(bin + 1, htemp->GetMean());
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinError(bin + 1, htemp->GetMeanError());
+        hCos2ThetaLambdaFromC2D[cent]->SetBinContent(pt + 1, bin + 1, htemp->GetMean());
+        hCos2ThetaLambdaFromC2D[cent]->SetBinError(pt + 1, bin + 1, htemp->GetMeanError());
       }
     }
+    hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBinsLambda[0] + 0.0001, PtBinsLambda[numPtBinsLambda] - 0.0001);
     for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
     {
-      
-      hNameCos2ThetaLambdaFromCVsPt[cent][eta] = Form("Cos2ThetaLambdaFromCVsPt_cent%i-%i_eta%i", CentFT0CMin, CentFT0CMax, eta);
+      hNamePtVsCos2ThetaLambdaFromC[cent][eta] = Form("PtVsCos2ThetaLambdaFromC_cent%i-%i_eta%i", CentFT0CMin, CentFT0CMax, eta);
       hNamePtLambda[cent][eta] = Form("PtLambda_cent%i-%i_eta%i", CentFT0CMin, CentFT0CMax, eta);
 
       if (eta == numEtaBins)
       {
         hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetXaxis()->SetRangeUser(EtaBins[0] + 0.0001, EtaBins[numEtaBins] - 0.0001);
+        hNameCos2ThetaLambdaFromCVsPt[cent][eta] = Form("Cos2ThetaLambdaFromCVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax);
       }
       else
       {
-        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(EtaBins[eta] + 0.0001, EtaBins[eta + 1] - 0.0001);
+        hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetXaxis()->SetRangeUser(EtaBins[eta] + 0.0001, EtaBins[eta + 1] - 0.0001);
+        hNameCos2ThetaLambdaFromCVsPt[cent][eta] = Form("Cos2ThetaLambdaFromCVsPt_cent%i-%i_eta%i", CentFT0CMin, CentFT0CMax, eta);
       }
 
       hPtVsCos2ThetaLambdaFromC[cent][eta] = (TH2F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("yze");
       hPtVsCos2ThetaLambdaFromC[cent][eta]->SetName(hNamePtVsCos2ThetaLambdaFromC[cent][eta]);
-      
-      hPtLambda[cent][eta] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("ye");
-      hPtLambda[cent][eta]->SetName(hNamePtLambda[cent][eta]);
+
+      // hPtLambda[cent][eta] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("ye");
+      hPtLambda[cent][eta] = new TH1F(hNamePtLambda[cent][eta], hNamePtLambda[cent][eta], numPtBinsLambda, PtBinsLambda);
 
       hCos2ThetaLambdaFromCVsPt[cent][eta] = (TH1F *)hPtLambda[cent][eta]->Clone(hNameCos2ThetaLambdaFromCVsPt[cent][eta]);
       hCos2ThetaLambdaFromCVsPt[cent][eta]->Reset();
 
-      for (Int_t bin = 0; bin < hPtLambda[cent][eta]->GetNbinsX(); bin++)
+      for (Int_t bin = 0; bin < numPtBinsLambda + 1; bin++)
       {
         TH1D *htemp = (TH1D *)hPtVsCos2ThetaLambdaFromC[cent][eta]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
         hCos2ThetaLambdaFromCVsPt[cent][eta]->SetBinContent(bin + 1, htemp->GetMean());
@@ -423,15 +287,54 @@ void Acceptance(Int_t indexMultTrial = 0,
   canvasAcceptance->Divide(2, 2);
   // cos2 vs eta for different pt bins
   canvasAcceptance->cd(1);
-  for (Int_t pt = 0; pt < numPtBins + 1; pt++)
+  for (Int_t pt = 0; pt < numPtBinsLambda + 1; pt++)
   {
     Int_t cent = 7;
+    StyleHisto(hCos2ThetaLambdaFromCVsEta[cent][pt], 0, 0.5, ColorMult[pt], 20, "#eta_{#Lambda}", "cos^{2}(#theta_{p})", "", 0, -0.8, 0.8, 1.2, 1., 0.7);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->GetYaxis()->SetRangeUser(0, 0.5);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerStyle(20);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerSize(0.5);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetLineColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->Draw("same");
+  }
+  canvasAcceptance->cd(2);
+  for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
+  {
+    Int_t cent = 7;
+    StyleHisto(hCos2ThetaLambdaFromCVsPt[cent][eta], 0, 0.5, ColorMult[eta], 20, "p_{T} (GeV/c)", "cos^{2}(#theta_{p})", "", 0, 0.5, 2.5, 1.2, 1., 0.7);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->GetXaxis()->SetRangeUser(hPtLambda[cent][eta]->GetXaxis()->GetBinLowEdge(1), hPtLambda[cent][eta]->GetXaxis()->GetBinUpEdge(hPtLambda[cent][eta]->GetNbinsX()));
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->GetYaxis()->SetRangeUser(0, 0.5);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerStyle(20);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerSize(0.5);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerColor(ColorMult[eta]);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->SetLineColor(ColorMult[eta]);
+    hCos2ThetaLambdaFromCVsPt[cent][eta]->Draw("same");
+  }
+  canvasAcceptance->cd(3);
+  for (Int_t pt = 0; pt < numPtBinsLambda + 1; pt++)
+  {
+    Int_t cent = 7;
+    StyleHisto(hEta[cent][pt], 0, 0.5, ColorMult[pt], 20, "#eta_{#Lambda}", "dN/d#eta", "", 0, -0.8, 0.8, 1.2, 1., 0.7);
+    hEta[cent][pt]->GetYaxis()->SetRangeUser(0, 0.5);
+    hEta[cent][pt]->SetMarkerStyle(20);
+    hEta[cent][pt]->SetMarkerSize(0.5);
+    hEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
+    hEta[cent][pt]->SetLineColor(ColorMult[pt]);
+    hEta[cent][pt]->Draw("same");
+  }
+  canvasAcceptance->cd(4);
+  for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
+  {
+    Int_t cent = 7;
+    StyleHisto(hPtLambda[cent][eta], 0, 0.5, ColorMult[eta], 20, "p_{T} (GeV/c)", "dN/dp_{T}", "", 0, 0, 20, 1.2, 1., 0.7);
+    hPtLambda[cent][eta]->GetXaxis()->SetRangeUser(hPtLambda[cent][eta]->GetXaxis()->GetBinLowEdge(1), hPtLambda[cent][eta]->GetXaxis()->GetBinUpEdge(hPtLambda[cent][eta]->GetNbinsX()));
+    hPtLambda[cent][eta]->GetYaxis()->SetRangeUser(0, 0.5);
+    hPtLambda[cent][eta]->SetMarkerStyle(20);
+    hPtLambda[cent][eta]->SetMarkerSize(0.5);
+    hPtLambda[cent][eta]->SetMarkerColor(ColorMult[eta]);
+    hPtLambda[cent][eta]->SetLineColor(ColorMult[eta]);
+    hPtLambda[cent][eta]->Draw("same");
   }
 
   TString SOutputFile = "AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
@@ -452,22 +355,16 @@ void Acceptance(Int_t indexMultTrial = 0,
     SOutputFile += "_Eta08";
   SOutputFile += STHN[ExtrisFromTHN] + ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
+  TList *listAcceptance = new TList();
   for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
-    hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Write();
-    for (Int_t pt = 0; pt < numPtBins + 1; pt++)
-    {
-      hEtaVsCos2ThetaLambdaFromC[cent][pt]->Write();
-      hEta[cent][pt]->Write();
-      hCos2ThetaLambdaFromCVsEta[cent][pt]->Write();
-    }
-    for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
-    {
-      hPtVsCos2ThetaLambdaFromC[cent][eta]->Write();
-      hPtLambda[cent][eta]->Write();
-      hCos2ThetaLambdaFromCVsPt[cent][eta]->Write();
-    }
+    listAcceptance->Add(hCos2ThetaLambdaFromC2D[cent]);
+    //pCos2ThetaLambdaFromC[cent]->Write();
+    //hCos2ThetaLambdaFromC2D[cent]->Write();
+    //hCos2ThetaLambdaFromCVsEta[cent][numPtBinsLambda]->Write();
+    //hCos2ThetaLambdaFromCVsPt[cent][numEtaBins]->Write();
   }
+  listAcceptance->Write("ccdb_object", TObject::kSingleKey);
   file->Close();
   cout << "I produced the file: " << SOutputFile << endl;
 }
