@@ -128,8 +128,8 @@ Float_t YUpCos2ThetaLambda[numPart] = {0.5, 0.5};
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.2};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.5};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.2, 0.8};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.5, 1.2};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
@@ -220,7 +220,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     YLow[part] = YLowCos2Theta[part];
     YUp[part] = YUpCos2Theta[part];
   }
-  else if (Choice == 8 || Choice == 10)
+  else if (Choice == 8 || Choice == 10 || Choice == 11)
   {
     YLow[part] = YLowCos2ThetaLambda[part];
     YUp[part] = YUpCos2ThetaLambda[part];
@@ -335,7 +335,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       else
         LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " via daughter #Lambda P_{H}, |#it{#eta} | < 0.8", "");
     }
-    else if (Choice == 10)
+    else if (Choice == 10 || Choice == 11)
     {
       LegendTitle->AddEntry("", "#Lambda, |#it{#eta} | < 0.8", "");
     }
@@ -406,7 +406,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if (isTightMassCut)
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
 
-    if (Choice == 10)
+    if (Choice == 10 || Choice == 11)
     {
       PathIn = "AcceptancePlots/Acceptance_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
       if (isApplyWeights)
@@ -430,7 +430,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    if (Choice == 10)
+    cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
+    if (Choice == 10 || Choice == 11)
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get(TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax));
     else if (Choice == 1)
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histo" + TypeHisto[Choice]); // + "Weighted");
@@ -465,7 +466,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   if (!isPtAnalysis)
     titlex = "2(#varphi-#Psi_{EP})";
 
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 10);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, -10, 10);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, -100000);
   canvasPtSpectra->cd();
@@ -475,6 +476,10 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetTickLength(hDummy, tickX, tickY);
   if (Choice == 10)
     hDummy->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
+  else if (Choice == 11){
+    hDummy->GetXaxis()->SetRangeUser(EtaBins[0], EtaBins[numEtaBins]);
+    hDummy->GetXaxis()->SetTitle("#it{#eta}");
+  }
   else
     hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
   if (!isPtAnalysis)
@@ -556,7 +561,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   Float_t yLabelOffsetR = 0.04;
 
   TString TitleYSpectraRatio = "Ratio to " + SmoltBis[ChosenMult] + "%";
-  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 10);
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, -10, 10);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
   SetFont(hDummyRatio);
@@ -565,6 +570,10 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetTickLength(hDummyRatio, tickX, tickY);
   if (Choice == 10)
     hDummyRatio->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
+  else if (Choice == 11){
+    hDummyRatio->GetXaxis()->SetRangeUser(EtaBins[0], EtaBins[numEtaBins]);
+    hDummyRatio->GetXaxis()->SetTitle("#it{#eta}");
+  }  
   else
     hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
   if (!isPtAnalysis)

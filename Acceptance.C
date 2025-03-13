@@ -228,7 +228,6 @@ void Acceptance(Int_t indexMultTrial = 0,
       {
         hNameCos2ThetaLambdaFromCVsEta[cent][pt] = Form("Cos2ThetaLambdaFromCVsEta_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt);
         hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBinsLambda[pt] + 0.0001, PtBinsLambda[pt + 1] - 0.0001);
-        cout << "PtBinsLambda[pt] = " << PtBinsLambda[pt] << " PtBinsLambda[pt + 1] = " << PtBinsLambda[pt + 1] << endl;
       }
       hEtaVsCos2ThetaLambdaFromC[cent][pt] = (TH2F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xze"); // eta vs cos2thetaLambdaFromC
       hEtaVsCos2ThetaLambdaFromC[cent][pt]->SetName(hNameEtaCos2ThetaLambdaFromC[cent][pt]);
@@ -284,12 +283,20 @@ void Acceptance(Int_t indexMultTrial = 0,
 
   TCanvas *canvasAcceptance = new TCanvas("canvasAcceptance", "canvasAcceptance", 1200, 800);
   StyleCanvas(canvasAcceptance, 0.15, 0.1, 0.1, 0.1);
+  TLegend *legendPt = new TLegend(0.6, 0.6, 0.9, 0.9);
+  legendPt->SetBorderSize(0);
+  legendPt->SetFillColor(0);
+  legendPt->SetTextSize(0.03);
+  TLegend *legendEta = new TLegend(0.6, 0.6, 0.9, 0.9);
+  legendEta->SetBorderSize(0);
+  legendEta->SetFillColor(0);
+  legendEta->SetTextSize(0.03);
   canvasAcceptance->Divide(2, 2);
   // cos2 vs eta for different pt bins
   canvasAcceptance->cd(1);
   for (Int_t pt = 0; pt < numPtBinsLambda + 1; pt++)
   {
-    Int_t cent = 7;
+    Int_t cent = 6;
     StyleHisto(hCos2ThetaLambdaFromCVsEta[cent][pt], 0, 0.5, ColorMult[pt], 20, "#eta_{#Lambda}", "cos^{2}(#theta_{p})", "", 0, -0.8, 0.8, 1.2, 1., 0.7);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->GetYaxis()->SetRangeUser(0, 0.5);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerStyle(20);
@@ -297,11 +304,13 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetLineColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->Draw("same");
+    legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt+1]), "pl");
   }
+  legendPt->Draw("same");
   canvasAcceptance->cd(2);
   for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
   {
-    Int_t cent = 7;
+    Int_t cent = 6;
     StyleHisto(hCos2ThetaLambdaFromCVsPt[cent][eta], 0, 0.5, ColorMult[eta], 20, "p_{T} (GeV/c)", "cos^{2}(#theta_{p})", "", 0, 0.5, 2.5, 1.2, 1., 0.7);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->GetXaxis()->SetRangeUser(hPtLambda[cent][eta]->GetXaxis()->GetBinLowEdge(1), hPtLambda[cent][eta]->GetXaxis()->GetBinUpEdge(hPtLambda[cent][eta]->GetNbinsX()));
     hCos2ThetaLambdaFromCVsPt[cent][eta]->GetYaxis()->SetRangeUser(0, 0.5);
@@ -310,11 +319,13 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetLineColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->Draw("same");
+    legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[eta], EtaBins[eta + 1]), "pl");
   }
+  legendEta->Draw("same");
   canvasAcceptance->cd(3);
   for (Int_t pt = 0; pt < numPtBinsLambda + 1; pt++)
   {
-    Int_t cent = 7;
+    Int_t cent = 6;
     StyleHisto(hEta[cent][pt], 0, 0.5, ColorMult[pt], 20, "#eta_{#Lambda}", "dN/d#eta", "", 0, -0.8, 0.8, 1.2, 1., 0.7);
     hEta[cent][pt]->GetYaxis()->SetRangeUser(0, 0.5);
     hEta[cent][pt]->SetMarkerStyle(20);
@@ -326,7 +337,7 @@ void Acceptance(Int_t indexMultTrial = 0,
   canvasAcceptance->cd(4);
   for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
   {
-    Int_t cent = 7;
+    Int_t cent = 6;
     StyleHisto(hPtLambda[cent][eta], 0, 0.5, ColorMult[eta], 20, "p_{T} (GeV/c)", "dN/dp_{T}", "", 0, 0, 20, 1.2, 1., 0.7);
     hPtLambda[cent][eta]->GetXaxis()->SetRangeUser(hPtLambda[cent][eta]->GetXaxis()->GetBinLowEdge(1), hPtLambda[cent][eta]->GetXaxis()->GetBinUpEdge(hPtLambda[cent][eta]->GetNbinsX()));
     hPtLambda[cent][eta]->GetYaxis()->SetRangeUser(0, 0.5);
