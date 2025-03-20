@@ -156,7 +156,7 @@ void MultiTrial(
     Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = "MassCut",
+    TString SisSyst = "MassAndBDTCut",
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
@@ -219,6 +219,7 @@ void MultiTrial(
       IndexNotDisplayed = 5;
     }
   }
+  IndexNotDisplayed = 1000000;
 
   Int_t trials = 0;
   if (SisSyst == "BDT")
@@ -229,6 +230,20 @@ void MultiTrial(
     trials = 5; // different interaction rates
   else if (SisSyst == "MassCut")
     trials = trialsMassCut; // different mass cuts
+  else if (SisSyst == "MassAndBDTCut")
+  {
+    if (mul < 3)
+      trials = trialsBDT * trialsMassCut; 
+    else if (mul < 4)
+      trials = trialsBDT * 5;
+    else if (mul < 5)
+      trials = trialsBDT * 4;
+    else
+      trials = trialsBDT * 3;
+  }
+
+  cout << "The number of trials to be investigated are: " << trials << endl;
+
   TString Sdef = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
@@ -254,8 +269,8 @@ void MultiTrial(
   Sdef1 += STHN[ExtrisFromTHN];
 
   TString SdefFinal = Sdef + Sdef1;
-  if (useMixedBDTValueInFitMacro)
-    SdefFinal += "_MixedBDT";
+  // if (useMixedBDTValueInFitMacro)
+  SdefFinal += "_MixedBDT";
   if (isTightMassCut)
     SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
 
@@ -355,12 +370,18 @@ void MultiTrial(
   legTrial->SetFillStyle(0);
   legTrial->SetTextSize(0.03);
   legTrial->SetTextFont(42);
-  if (SisSyst == "BDT")
+  if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
   {
-    if (useMixedBDTValueInFitMacro)
+    // if (useMixedBDTValueInFitMacro)
+    if (kTRUE)
     {
       if (isPtIntegrated)
-        legTrial->AddEntry(hDefault, Form("BDT score > %.3f", LegDefaultBDTscoreCut), "pl");
+      {
+        if (SisSyst == "MassAndBDTCut")
+          legTrial->AddEntry(hDefault, Form("BDT score > %.3f, Mass cut: %.1f", LegDefaultBDTscoreCut, Extrsigmacentral[1]), "pl");
+        else
+          legTrial->AddEntry(hDefault, Form("BDT score > %.3f", LegDefaultBDTscoreCut), "pl");
+      }
       else
         legTrial->AddEntry(hDefault, "BDT selection p_{T} dependent", "pl");
     }
@@ -393,7 +414,10 @@ void MultiTrial(
   TH1F *hSignificanceRatio[trials];
   TH1F *hCos2Theta[trials];
   TH1F *hCos2ThetaRatio[trials];
-  Float_t BDTscoreCut[trialsBDT] = {0};
+  Float_t BDTscoreCut[trials];
+  Float_t LowLimitSysXi[trials];
+  Float_t UpLimitSysXi[trials];
+  TFile *fvaried[trials];
 
   TF1 *lineatnSigmaBarlow = new TF1("lineatnSigmaBarlow", "pol0", 0, 8);
   lineatnSigmaBarlow->SetLineColor(kBlack);
@@ -402,8 +426,22 @@ void MultiTrial(
 
   for (int i = 0; i < trials; i++)
   {
-    cout << "Trial: " << i << endl;
-    BDTscoreCut[i] = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
+    BDTscoreCut[i] = 0;
+    LowLimitSysXi[i] = 0;
+    UpLimitSysXi[i] = 0;
+    cout << "\nTrial: " << i << endl;
+    if (SisSyst == "BDT")
+      BDTscoreCut[i] = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trials * i;
+    else if (SisSyst == "MassAndBDTCut")
+    {
+      BDTscoreCut[i] = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * (i % trialsBDT);
+      LowLimitSysXi[i] = ExtrLowLimitSysXi[i / trialsBDT];
+      UpLimitSysXi[i] = ExtrUpLimitSysXi[i / trialsBDT];
+      cout << "i % trialsBDT " << i % trialsBDT << endl;
+      cout << "i / trialsBDT " << i / trialsBDT << endl;
+      cout << "BDT score cut: " << BDTscoreCut[i] << endl;
+      cout << "Mass cut: " << LowLimitSysXi[i] << " - " << UpLimitSysXi[i] << endl;
+    }
     TString SBDT = Form("_BDT%.3f", BDTscoreCut[i]);
     if (SisSyst == "BDT")
     {
@@ -423,20 +461,25 @@ void MultiTrial(
     else if (SisSyst == "MassCut")
     {
       Svaried = Sdef + Sdef1;
-      if (useMixedBDTValueInFitMacro)
-        Svaried += "_MixedBDT";
+      // if (useMixedBDTValueInFitMacro)
+      Svaried += "_MixedBDT";
       Svaried += Form("_TightMassCutSyst%i", i);
     }
-
-    cout << "InputFile - variation: " << Svaried << endl;
-
-    TFile *fvaried = TFile::Open(Svaried + ".root");
-    if (!fvaried)
+    else if (SisSyst == "MassAndBDTCut")
     {
-      cout << "File not found: " << Svaried << endl;
+      Svaried = Sdef + SBDT + Sdef1;
+      Svaried += Form("_TightMassCutSyst%i", i / trialsBDT);
+    }
+
+    cout << "InputFile - variation: " << Svaried << ".root" << endl;
+
+    fvaried[i] = TFile::Open(Svaried + ".root");
+    if (!fvaried[i])
+    {
+      cout << "File not found: " << Svaried << ".root" << endl;
       return;
     }
-    hVariedCut[i] = (TH1F *)fvaried->Get(histoName);
+    hVariedCut[i] = (TH1F *)fvaried[i]->Get(histoName);
     if (!hVariedCut[i])
     {
       cout << "histo not found in " << Svaried << endl;
@@ -446,7 +489,7 @@ void MultiTrial(
     hRatio[i] = (TH1F *)hVariedCut[i]->Clone(histoName + Form("Ratio_%i", i));
     hRatio[i]->Divide(hDefault);
 
-    hRawYield[i] = (TH1F *)fvaried->Get("histoYield" + SisPtIntegrated[isPtIntegrated]);
+    hRawYield[i] = (TH1F *)fvaried[i]->Get("histoYield" + SisPtIntegrated[isPtIntegrated]);
     if (!hRawYield[i])
     {
       cout << "histoYield not found in " << Svaried << endl;
@@ -456,7 +499,7 @@ void MultiTrial(
     hRawYieldRatio[i] = (TH1F *)hRawYield[i]->Clone(Form("histoYieldRatio_%i", i));
     hRawYieldRatio[i]->Divide(hDefaultYield);
 
-    hPurity[i] = (TH1F *)fvaried->Get("histoPurity" + SisPtIntegrated[isPtIntegrated]);
+    hPurity[i] = (TH1F *)fvaried[i]->Get("histoPurity" + SisPtIntegrated[isPtIntegrated]);
     if (!hPurity[i])
     {
       cout << "histoPurity not found in " << Svaried << endl;
@@ -466,7 +509,7 @@ void MultiTrial(
     hPurityRatio[i] = (TH1F *)hPurity[i]->Clone(Form("histoPurity_%i", i));
     hPurityRatio[i]->Divide(hDefaultPurity);
 
-    hSignificance[i] = (TH1F *)fvaried->Get("histoSignificance" + SisPtIntegrated[isPtIntegrated]);
+    hSignificance[i] = (TH1F *)fvaried[i]->Get("histoSignificance" + SisPtIntegrated[isPtIntegrated]);
     if (!hSignificance[i])
     {
       cout << "histoSignificance not found in " << Svaried << endl;
@@ -476,7 +519,7 @@ void MultiTrial(
     hSignificanceRatio[i] = (TH1F *)hSignificance[i]->Clone(Form("histoSignificanceRatio_%i", i));
     hSignificanceRatio[i]->Divide(hDefaultSignificance);
 
-    hCos2Theta[i] = (TH1F *)fvaried->Get(TypeCos2Theta);
+    hCos2Theta[i] = (TH1F *)fvaried[i]->Get(TypeCos2Theta);
     if (!hCos2Theta[i])
     {
       cout << "histoCos2Theta not found in " << Svaried << endl;
@@ -515,19 +558,22 @@ void MultiTrial(
   StyleCanvas(cv2, 0.15, 0.05, 0.05, 0.15);
   cv2->cd();
   Int_t ColorIndex = -1;
+  Int_t NumberOfActualTrials = 0;
+
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
+    NumberOfActualTrials++;
     ColorIndex += 1;
-    hVariedCut[i]->SetLineColor(ColorMult[ColorIndex]);
-    hVariedCut[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hVariedCut[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
+    hVariedCut[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hVariedCut[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hVariedCut[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     if (SisSyst == "BDT")
     {
       legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f", BDTscoreCut[i]), "pl");
@@ -539,9 +585,11 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut[i], SIRValue[i + 1], "pl");
     else if (SisSyst == "MassCut")
       legTrial->AddEntry(hVariedCut[i], Form("Mass cut: %.3f - %.3f", ExtrLowLimitSysXi[i], ExtrUpLimitSysXi[i]), "pl");
+    else if (SisSyst == "MassAndBDTCut")
+      legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f, Mass cut: %.3f - %.3f", BDTscoreCut[i], LowLimitSysXi[i], UpLimitSysXi[i]), "pl");
     hVariedCut[i]->Draw("same");
   }
-  legTrialReduced->Draw();
+  legTrial->Draw();
   if (isV2)
   {
     cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
@@ -566,29 +614,30 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
-      cout << "Selected BDT before: " << BDTscoreCut[i] << endl;
+      // cout << "Selected BDT before: " << BDTscoreCut[i] << endl;
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
-      cout << "Selected BDT: " << BDTscoreCut[i] << endl;
+      // cout << "Selected BDT: " << BDTscoreCut[i] << endl;
     }
     ColorIndex += 1;
     if (isPtIntegrated)
     {
-      if (useMixedBDTValueInFitMacro && BDTscoreCut[i] == LegDefaultBDTscoreCut)
+      // if (useMixedBDTValueInFitMacro && BDTscoreCut[i] == LegDefaultBDTscoreCut)
+      if (kTRUE && BDTscoreCut[i] == LegDefaultBDTscoreCut)
         continue;
-      if (!useMixedBDTValueInFitMacro && BDTscoreCut[i] == DefaultBDTscoreCut)
+      // if (!useMixedBDTValueInFitMacro && BDTscoreCut[i] == DefaultBDTscoreCut)
+      if (!kTRUE && BDTscoreCut[i] == DefaultBDTscoreCut)
         continue;
     }
-    hNSigmaBarlow[i]->SetLineColor(ColorMult[ColorIndex]);
+    hNSigmaBarlow[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
     hNSigmaBarlow[i]->SetLineWidth(2);
-    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
+    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hNSigmaBarlow[i]->Draw("same");
   }
   lineatnSigmaBarlow->Draw("same");
-  legTrialReduced->Draw();
 
   // ratio of varied v2 to default one
   TCanvas *cv2Ratio = new TCanvas("cv2Ratio", "cv2Ratio", 1000, 800);
@@ -599,15 +648,15 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hRatio[i]->SetTitle("");
     hRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hRatio[i]->GetYaxis()->SetRangeUser(0, 2);
@@ -645,15 +694,15 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hRawYield[i]->SetLineColor(ColorMult[ColorIndex]);
-    hRawYield[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hRawYield[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYield[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hRawYield[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hRawYield[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hRawYield[i]->Draw("same");
   }
   legTrial->Draw();
@@ -669,15 +718,15 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hRawYieldRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hRawYieldRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYieldRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hRawYieldRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hRawYieldRatio[i]->SetTitle("");
     hRawYieldRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2.5);
@@ -697,21 +746,21 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[ColorIndex]);
-    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[i]);
+    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hRawYieldRatioToTighter[i]->SetTitle("");
     hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
     hRawYieldRatioToTighter[i]->GetYaxis()->SetRangeUser(0.9, 1.5);
     hRawYieldRatioToTighter[i]->Draw("same");
   }
-  legTrial->Draw();
+  // legTrial->Draw();
   lineat1->Draw("same");
   cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".pdf");
   cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".png");
@@ -730,18 +779,18 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hPurity[i]->SetLineColor(ColorMult[ColorIndex]);
-    hPurity[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hPurity[i]->SetMarkerStyle(MarkerMult[i]);
+    hPurity[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hPurity[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hPurity[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hPurity[i]->Draw("same");
   }
-  legTrial->Draw();
+  legTrialReduced->Draw();
   cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + Suffix + ".pdf");
   cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + Suffix + ".png");
 
@@ -750,26 +799,30 @@ void MultiTrial(
   StyleCanvas(cPurityRatio, 0.15, 0.05, 0.05, 0.15);
   cPurityRatio->cd();
   ColorIndex = -1;
+  TH1F *hDummyPurityRatio = (TH1F *)hDefaultPurity->Clone("hDummyPurityRatio");
+  hDummyPurityRatio->Reset();
+  hDummyPurityRatio->GetYaxis()->SetRangeUser(0.8, 1.2);
+  hDummyPurityRatio->Draw();
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hPurityRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hPurityRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hPurityRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hPurityRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hPurityRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hPurityRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hPurityRatio[i]->SetTitle("");
     hPurityRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hPurityRatio[i]->GetYaxis()->SetRangeUser(0, 1.1);
     hPurityRatio[i]->Draw("same");
   }
   lineat1->Draw("same");
-  legTrial->Draw();
+  legTrialReduced->Draw();
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".pdf");
   cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".png");
 
@@ -782,15 +835,15 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hSignificance[i]->SetLineColor(ColorMult[ColorIndex]);
-    hSignificance[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hSignificance[i]->SetMarkerStyle(MarkerMult[i]);
+    hSignificance[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hSignificance[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hSignificance[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hSignificance[i]->SetTitle("");
     hSignificance[i]->Draw("same");
   }
@@ -807,15 +860,15 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hSignificanceRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hSignificanceRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hSignificanceRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hSignificanceRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hSignificanceRatio[i]->SetTitle("");
     hSignificanceRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hSignificanceRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
@@ -835,20 +888,20 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hCos2Theta[i]->SetLineColor(ColorMult[ColorIndex]);
-    hCos2Theta[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hCos2Theta[i]->SetMarkerStyle(MarkerMult[i]);
+    hCos2Theta[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hCos2Theta[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hCos2Theta[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hCos2Theta[i]->GetYaxis()->SetRangeUser(0.31, 0.33);
     hCos2Theta[i]->SetTitle("");
     hCos2Theta[i]->Draw("same");
   }
-  legTrialReduced->Draw();
+  legTrial->Draw();
   cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".pdf");
   cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".png");
 
@@ -861,19 +914,19 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hCos2ThetaRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hCos2ThetaRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hCos2ThetaRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hCos2ThetaRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hCos2ThetaRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hCos2ThetaRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hCos2ThetaRatio[i]->SetTitle("");
     hCos2ThetaRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hCos2ThetaRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
-    hCos2ThetaRatio[i]->Draw("same");
+    // hCos2ThetaRatio[i]->Draw("same");
   }
   legTrialReduced->Draw();
   lineat1->Draw("same");
@@ -886,6 +939,10 @@ void MultiTrial(
   hMaxDev->Reset();
   TH1F *hAbsoluteMaxDev = (TH1F *)hAbsoluteSyst[0]->Clone("hAbsoluteMaxDev");
   hAbsoluteMaxDev->Reset();
+  TH1F *hRMS = (TH1F *)hAbsoluteSyst[0]->Clone("hRMS");
+  hRMS->Reset();
+  Float_t RMS = 0;
+  Int_t counter = 0;
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
     // cout << "check " << hMaxDev->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
@@ -894,7 +951,7 @@ void MultiTrial(
       if (i == IndexNotDisplayed)
         continue;
       // skip those variations for which the fit is not good
-      if (SisSyst == "BDT")
+      if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
       {
         if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
           continue;
@@ -904,15 +961,16 @@ void MultiTrial(
         hMaxDev->SetBinContent(pt + 1, h[i]->GetBinContent(pt + 1));
       }
       hMaxDev->SetBinError(pt + 1, 0.);
-      // cout << "trial number: " << i << endl;
-      // cout << "check " << hAbsoluteSyst[i]->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
       if (TMath::Abs(hAbsoluteSyst[i]->GetBinContent(pt + 1)) > TMath::Abs(hAbsoluteMaxDev->GetBinContent(pt + 1)))
       {
         hAbsoluteMaxDev->SetBinContent(pt + 1, TMath::Abs(hAbsoluteSyst[i]->GetBinContent(pt + 1)));
       }
-      // cout << "check " << hAbsoluteSyst[i]->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
       hAbsoluteMaxDev->SetBinError(pt + 1, 0.);
+      RMS += pow(hAbsoluteSyst[i]->GetBinContent(pt + 1), 2);
+      counter += 1;
     }
+    RMS = sqrt(RMS / counter);
+    hRMS->SetBinContent(pt + 1, RMS);
   }
 
   //  gaussian distributions + fits
@@ -933,7 +991,7 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
@@ -1004,16 +1062,16 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hAbsoluteSyst[i]->SetLineColor(ColorMult[ColorIndex]);
+    hAbsoluteSyst[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
     hAbsoluteSyst[i]->SetLineWidth(2);
-    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[ColorIndex]);
+    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hAbsoluteSyst[i]->GetYaxis()->SetTitle("Absolute deviation from default");
     hAbsoluteSyst[i]->GetYaxis()->SetRangeUser(-1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     hAbsoluteSyst[i]->Draw("same");
@@ -1031,6 +1089,11 @@ void MultiTrial(
   if (!isPtIntegrated)
     hAbsoluteMaxDev->Smooth();
   hAbsoluteMaxDev->Draw("same");
+  hRMS->SetLineColor(kRed);
+  hRMS->SetMarkerColor(kRed);
+  hRMS->SetLineWidth(1);
+  hRMS->SetMarkerStyle(33);
+  hRMS->Draw("same");
 
   // Stat. uncertainties
   TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
@@ -1048,18 +1111,19 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hError[i]->SetLineColor(ColorMult[ColorIndex]);
-    hError[i]->SetMarkerColor(ColorMult[ColorIndex]);
-    hError[i]->SetMarkerStyle(MarkerMult[i]);
+    hError[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hError[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
+    hError[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hError[i]->Draw("same");
   }
   hAbsoluteMaxDev->Draw("same");
+  hRMS->Draw("same");
   legTrialReduced->Draw();
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
@@ -1073,14 +1137,14 @@ void MultiTrial(
   {
     if (i == IndexNotDisplayed)
       continue;
-    if (SisSyst == "BDT")
+    if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
     ColorIndex += 1;
-    hErrorRatio[i]->SetLineColor(ColorMult[ColorIndex]);
-    hErrorRatio[i]->SetMarkerColor(ColorMult[ColorIndex]);
+    hErrorRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hErrorRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
     hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
     hErrorRatio[i]->SetTitle("");
     hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
@@ -1108,6 +1172,8 @@ void MultiTrial(
   if (!isRapiditySel || ExtrisFromTHN)
     OutputFile += "_Eta08";
   OutputFile += STHN[ExtrisFromTHN];
+  if (nsigmaBarlow != 0)
+    OutputFile += Form("_nsigmaBarlow%.1f", nsigmaBarlow);
   OutputFile += ".root";
 
   TFile *Write = new TFile(OutputFile, "RECREATE");
@@ -1119,6 +1185,10 @@ void MultiTrial(
   hSystMultiTrial->Write();
   hMaxDev->Write();
   hAbsoluteMaxDev->Write();
+  hRMS->Write();
 
   cout << "\n\nHo creato il file: " << OutputFile << endl;
+  cout << "The number of actual trials is: " << NumberOfActualTrials << endl;
+  cout << "Syst error: " << hRMS->GetBinContent(1) << endl;
+  cout << "Stat error: " << hDefaultError->GetBinContent(1) << endl;
 }
