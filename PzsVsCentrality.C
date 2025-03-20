@@ -113,6 +113,7 @@ Float_t YUp[numPart] = {0.015};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
+                     Bool_t isFromFit = 0,
                      Bool_t isRapiditySel = ExtrisRapiditySel,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -212,6 +213,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_MixedBDT";
   if (isTightMassCut)
     stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+  stringout += V2FromFit[isFromFit];
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -277,7 +279,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistSigma[numCent + 1];
   TString Smolt[numCent + 1];
   TString SmoltBis[numCent + 1];
-  TString sPolFromLambda[2] = {"", "LambdaFromC"};
   // get spectra in multiplicity classes
   for (Int_t m = 0; m < numCent; m++)
   {
@@ -320,7 +321,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fileIn[m] = TFile::Open(PathIn);
     if (ChosenPt == 100)
     {
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt");
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt" + V2FromFit[isFromFit]);
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYieldPtInt");
@@ -330,7 +331,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     }
     else
     {
-      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda]);
+      fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYield");
@@ -375,8 +376,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistMean[m]->SetName("histoMean_" + Smolt[m]);
     fHistSigma[m]->SetName("histoSigma_" + Smolt[m]);
 
-    fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
-    fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+    fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
+    fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
 
     fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
     fHistPzsError->SetBinError(m + 1, 0);
@@ -428,6 +429,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_MixedBDT";
   if (isTightMassCut)
     PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+  PathInSyst += V2FromFit[isFromFit];
   PathInSyst += ".root";
   TFile *fileInSyst = TFile::Open(PathInSyst);
   if (!fileInSyst)
@@ -515,7 +517,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsError->SaveAs(stringoutpdf + "_Error.pdf");
   canvasPzsError->SaveAs(stringoutpdf + "_Error.png");
 
-  //Significativity
+  // Significativity
   TCanvas *canvasPzsSignif = new TCanvas("canvasPzsSignif", "canvasPzsSignif", 900, 700);
   StyleCanvas(canvasPzsSignif, 0.05, 0.15, 0.15, 0.05);
   TH1F *hDummySignif = new TH1F("hDummySignif", "hDummySignif", 8000, 0, 80);
