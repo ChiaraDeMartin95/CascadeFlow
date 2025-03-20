@@ -1,9 +1,12 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
+TString sPolFromLambda[2] = {"", "LambdaFromC"};
 
 TString STHN[2] = {"", "_FromTHN"};
 Bool_t ExtrisFromTHN = 1; // 0: process the tree, 1: process the THnSparse
+
+TString V2FromFit[2] = {"NoFit", ""};
 
 const Int_t numPart = 6; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+
 bool isRun2Binning = 0;
@@ -12,7 +15,7 @@ const Int_t numPtBins = 15;
 const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
-const Int_t numChoice = 10; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr
+const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
 TString NameAnalysis[2] = {"V2", "Pzs2"};
 TString RapidityCoverage[2] = {"Eta08", "Y05"};
 
@@ -28,6 +31,14 @@ Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 // Double_t PtBins[numPtBins + 1] = {0.8, 1.4, 2, 2.5, 3, 4, 6}; // Run 2 binning
 Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
+
+// Acceptance correction
+const Int_t numEtaBins = 8;
+const Int_t numPtBinsLambda = 9;
+Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
+// Double_t EtaBins[numEtaBins + 1] = {-0.8, 0.8};
+Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
+
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
@@ -54,8 +65,8 @@ Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1.};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8};
 // Float_t MaxPt[numPart] = {10, 10, 10, 10, 10, 10};
 //  Float_t MaxPt[numPart] = {6, 6, 6, 6, 6, 6}; // Run 2 binning
-TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr"};
-TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta)#GT", "#LTcos^{2}(#theta)#GT", "v2, corr"};
+TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
+TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta)#GT", "#LTcos^{2}(#theta)#GT", "v2, corr", "#LTcos^{2}(#theta)#GT", "#LTcos^{2}(#theta)#GT"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "P_{z,s2}";
@@ -71,14 +82,24 @@ TString TitleYPzs = "P_{z,s2}";
 // TString SinputFileName = "TestTHN";
 // TString SinputFileName = "LHC23_PbPb_pass4_medium_Train346163"; //THN only
 // TString SinputFileName = "LHC23_PbPb_pass4_Train347929"; // THN only, BDT score > 0.4, Pzs2 from Lambda
-TString SinputFileName = "LHC23_PbPb_pass4_Train354079"; // THN only, BDT score > 0.2, Pzs2 from Lambda
-//TString SinputFileName = "LHC23_PbPb_pass4_Train361757"; // THN only, for Pz,s2 of Xi (direct measurement), acceptance applied on the fly
+//TString SinputFileName = "LHC23_PbPb_pass4_Train354079"; // THN only, BDT score > 0.2, Pzs2 from Lambda
+// TString SinputFileName = "LHC23_PbPb_pass4_Train361757"; // THN only, for Pz,s2 of Xi (direct measurement), acceptance applied on the fly
+// TString SinputFileName = "LHC23_PbPb_pass4_Train365784"; // THN only, for Pz,s2 of Xi (direct measurement), acceptance not applied
+//  TString SinputFileName = "LHC23_PbPb_pass4_Train366446"; // proton acceptance calculation (vs pt Lambda)
+//TString SinputFileName = "LHC23_PbPb_pass4_Train368064_ProtonAcc"; // proton acceptance calculation (vs pt and eta of Lambda)
+// TString SinputFileName = "LHC23_PbPb_pass4_Train369742"; // Pzs2 from Lambda, proton acceptance vs pt on the fly
+TString SinputFileName = "LHC23_PbPb_pass4_Train370610_ProtonAcc"; // Pzs2 from Lambda, proton acceptance vs pt on the fly, proton acceptance vs pt and eta of Lambda
 
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_medium_Train346163";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train347929";
-TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train354079";
+//TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train354079";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train361757";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train365784";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train366446";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train368064_ProtonAcc";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train369742";
+TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train370610_ProtonAcc";
 
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
 TString SinputFileNameEffSyst = "LHC24g3_pass4_Train331315";
@@ -95,17 +116,19 @@ const bool useCommonBDTValue = 1; // common BDT cut for all centralities, set to
 const float bdtCut[numCent + 1] = {0.95, 0.95, 0.95, 0.85, 0.85, 0.85, 0.85, 0.85, 0.95};
 
 // Variabls used in FitV2OrPol.C macro----------------------
-const bool isApplyAcceptanceCorrection = 0; // for recent files, acceptance correction is applied on the fly
-const bool useMixedBDTValueInFitMacro = 1;  // variable used in FitV2OrPol.C macro
+const bool isApplyAcceptanceCorrection = 0;                     // for recent files, acceptance correction is applied on the fly
+const bool isAcceptanceFromExternalFile = 0;                    // 1 for acceptance from external file, 0 for acceptance from the same file
+TString SAcceptanceFile = "AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
+const bool useMixedBDTValueInFitMacro = 1;                      // variable used in FitV2OrPol.C macro
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)
 //   - BDTscoreCutPtIntLoosest (for the integrated pt measurement) if isTightMassCut=1
 // if = 0: common BDT value defined by DefaultBDTscoreCut
 const double BDTscoreCutPtInt[numCent + 1] = {0.8, 0.8, 0.6, 0.52, 0.44, 0.2, 0.2, 0.2, 0.56}; // BDT cut for integrated pt measurement
-const float LimitForV2woFit = 0.97;                                                           // purity limit to decide whether to extract v2 from fit or not
-bool isTightMassCut = 1;                                                                      // 1 for tight mass cut, 0 for loose mass cut
-float Extrsigmacentral[2] = {4.2, 2.1};                                                       // 2.1
+const float LimitForV2woFit = 0.97;                                                            // purity limit to decide whether to extract v2 from fit or not
+bool isTightMassCut = 1;                                                                       // 1 for tight mass cut, 0 for loose mass cut
+float Extrsigmacentral[2] = {4.2, 2.1};                                                        // 2.1
 const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
@@ -113,20 +136,21 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // BDT scores applied to produce the acceptance correction (chosen in order to have large purity)
 bool isProducedAcceptancePlots = 0; // 1 for acceptance production, 0 for default analysis
 const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
+//---------------------------------------------------------
 
 // systematic studies
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 20;    // number of trials for the systematic studies related to BDTscore
-const float nsigmaBarlow = 1;
+const int trialsBDT = 22;    // number of trials for the systematic studies related to BDTscore
+const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
-const float LowerlimitBDTscoreCut = 0.2;
+const float LowerlimitBDTscoreCut = 0.12;
 // const float MinBDTscorePtInt[numCent + 1] = {0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.4}; // minimum BDT value for syst. evaluation
-//const float MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.8, 0.8, 0.8, 0.6, 0.48, 0.48, 0.96}; // maximum BDT value for syst. evaluation
-const double MinBDTscorePtInt[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
-const double MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96}; 
+// const float MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.8, 0.8, 0.8, 0.6, 0.48, 0.48, 0.96}; // maximum BDT value for syst. evaluation
+const double MinBDTscorePtInt[numCent + 1] = {0.959, 0.92, 0.879, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
+const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
 
-//systematic studies on mass cut
-const int trialsMassCut = 7; 
+// systematic studies on mass cut
+const int trialsMassCut = 7;
 bool ExtrisSysMassCut = 0; // 1 for systematic studies, 0 for default analysis
 float ExtrLowLimitSysXi[trialsMassCut] = {1.316, 1.317, 1.318, 1.316, 1.316, 1.317, 1.318};
 float ExtrUpLimitSysXi[trialsMassCut] = {1.327, 1.326, 1.325, 1.326, 1.325, 1.327, 1.327};
