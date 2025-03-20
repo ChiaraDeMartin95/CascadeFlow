@@ -203,6 +203,10 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 14 --> default v2 vs corrected v2
   // TypeComp = 15 --> weighted vs corrected v2
   // TypeComp = 16 --> Pz from Xi - offline vs online acceptance
+  // TypeComp = 17 --> Pz from Lambda - offline vs online acceptance
+  // TypeComp = 18 --> Pz from Lambda - online vs pt vs online vs eta and pt acceptance
+  // TypeComp = 19 --> Pz from Lambda vs from Xi
+  // TypeComp = 20 --> Pz from Lambda fit vs no fit
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -603,18 +607,99 @@ void CompareResults(Int_t TypeComp = 0,
     CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
     fileName[0] = "Train365784";
     fileName[1] = "Train361757";
-    fileName[0] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
-    fileName[1] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleY = "P_{z,s2}";
     hTitleX = "FT0C Centrality";
-    YLow = -0.2;
-    YUp = 0.5;
+    YLow = -0.02;
+    YUp = 0.02;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     sleg[0] = "Offline";
     sleg[1] = "On the fly";
+  }
+
+  else if (TypeComp == 17)
+  {
+    // TypeComp = 17 --> Pz from Lambda - offline vs online acceptance
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    fileName[0] = "Train354079";
+    fileName[1] = "Train370610_ProtonAcc";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.004;
+    YUp = 0.012;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "Offline";
+    sleg[1] = "On the fly";
+  }
+  else if (TypeComp == 18)
+  {
+    // TypeComp = 18 --> Pz from Lambda - online vs pt vs online vs eta and pt acceptance
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    fileName[0] = "Train369742";
+    fileName[1] = "Train370610_ProtonAcc";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.004;
+    YUp = 0.012;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "On the fly (vs pt)";
+    sleg[1] = "On the fly (vs pt and eta)";
+  }
+  else if (TypeComp == 19)
+  {
+    // TypeComp = 19 --> Pz from Lambda vs from Xi
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    fileName[0] = "Train370610_ProtonAcc";
+    fileName[1] = "Train361757";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "From Lambda";
+    sleg[1] = "From Xi";
+  }
+  else if (TypeComp == 20)
+  {
+    // TypeComp = 20 --> Pz from Lambda fit vs no fit
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    fileName[0] = "Train370610_ProtonAcc";
+    fileName[1] = "Train370610_ProtonAcc";
+    fileName[0] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    fileName[1] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "P_{z,s2}";
+    hTitleX = "FT0C Centrality";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "From fit";
+    sleg[1] = "From Not from fit";
   }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
@@ -669,7 +754,7 @@ void CompareResults(Int_t TypeComp = 0,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
-  if (TypeComp == 5 || TypeComp == 16)
+  if (TypeComp == 5 || TypeComp == 16 || TypeComp == 17 || TypeComp == 18 || TypeComp == 19 || TypeComp == 20)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
