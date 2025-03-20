@@ -36,7 +36,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
-  if (BDTscoreCut != DefaultBDTscoreCut)
+  if (BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
   TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
