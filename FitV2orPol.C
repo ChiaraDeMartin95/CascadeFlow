@@ -611,7 +611,7 @@ void FitV2orPol(
     {
       BDTscoreCut = BDTscoreCutAcceptance[mul];
     }
-    if (BDTscoreCut != DefaultBDTscoreCut)
+    if (BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial)
       SBDT = Form("_BDT%.3f", BDTscoreCut);
     else
       SBDT = "";
@@ -1555,8 +1555,10 @@ void FitV2orPol(
     }
 
     hV2MassIntegrated[pt] = (TH1F *)hmassVsV2C[pt]->ProjectionX(Form("V2CvsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsV2C[pt]->GetYaxis()->FindBin(LowLimit[pt] + 0.00001), hmassVsV2C[pt]->GetYaxis()->FindBin(UpLimit[pt] - 0.00001));
-    StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
-    // hV2MassIntegrated[pt]->Rebin(2);
+    if (isV2)
+      StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
+    // else StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -100, 100, 1.4, 1.6, 0.7);
+    //  hV2MassIntegrated[pt]->Rebin(2);
 
     hCos2ThetaMassIntegrated[pt] = (TH1F *)hmassVsCos2Theta[pt]->ProjectionX(Form("Cos2ThetavsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(UpLimit[pt]));
     StyleHisto(hCos2ThetaMassIntegrated[pt], 0, 1.2 * hCos2ThetaMassIntegrated[pt]->GetBinContent(hCos2ThetaMassIntegrated[pt]->GetMaximumBin()), 1, 20, "cos(2#theta)", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
@@ -1615,9 +1617,7 @@ void FitV2orPol(
     Cos2ThetaFitFunction[pt]->Draw("same");
     Float_t BinMax = hInvMass[pt]->GetMaximumBin();
     // Float_t BinMax = hCos2Theta[pt]->FindBin(mean[pt]);
-    cout << "pt " << pt << endl;
-    cout << hCos2Theta[pt]->GetBinContent(BinMax - 1) << " " << hCos2Theta[pt]->GetBinContent(BinMax) << " " << hCos2Theta[pt]->GetBinContent(BinMax + 1) << endl;
-
+  
     if (pt < numPtBinsVar)
     {
       histoCos2Theta->SetBinContent(pt + 1, Cos2ThetaFitFunction[pt]->GetParameter(0));
@@ -1885,11 +1885,11 @@ void FitV2orPol(
       return;
     }
     histoCos2Theta = (TH1F *)dir->FindObject("histoCos2ThetaNoFit");
-    if (!histoCos2Theta) 
+    if (!histoCos2Theta)
     {
       cout << "histogram not found" << endl;
       return;
-    } 
+    }
     histoCos2ThetaPtInt = (TH1F *)dir->FindObject("histoCos2ThetaPtIntNoFit");
     histoCos2ThetaNoFit = (TH1F *)dir->FindObject("histoCos2ThetaNoFit");
     histoCos2ThetaPtIntNoFit = (TH1F *)dir->FindObject("histoCos2ThetaPtIntNoFit");
@@ -2409,13 +2409,21 @@ void FitV2orPol(
   canvasCos2P->SaveAs("PerformancePlots/Cos2Theta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   TCanvas *canvasCosSinP = new TCanvas("canvasCosSinP", "canvasCosSinP", 800, 800);
-  StyleCanvas(canvasCosSinP, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
+  StyleCanvas(canvasCosSinP, 0.2, 0.03, 0.02, 0.14); // L, R, T, B
   TH1F *histoCosSin = hV2MassIntegrated[ChosenPt];
   histoCosSin->Scale(1. / histoCosSin->Integral(""));
   TString titleyNormCosSin = "Normalized counts";
   TString TitleCosSin = "1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+  if (isPolFromLambda)
+  {
+    TitleCosSin = "1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+    if (!isApplyAcceptanceCorrection)
+    {
+      TitleCosSin = "1/#LTcos^{2}(#theta_{p}*)#GT 1/#alpha_{#Xi} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+    }
+  }
   StyleHisto(histoCosSin, 0.0001, 1.2 * histoCosSin->GetBinContent(histoCosSin->GetMaximumBin()), 1, 20,
-             TitleCosSin, titleyNormCosSin, "", 1, -15, 15, 1.2, 1.4, 1.2);
+             TitleCosSin, titleyNormCosSin, "", 1, -15, 15, 1.2, 1.8, 1.2);
   histoCosSin->Draw("pe");
   TLegend *legendCosSin = new TLegend(0.3, 0.85, 0.5, 0.95);
   legendCosSin->SetTextSize(0.035);
@@ -2596,8 +2604,13 @@ void FitV2orPol(
   cout << "BDT score > " << BDTscoreCutPtInt_checkValue << endl;
   cout << "Input file: " << SPathInPtInt << endl;
   cout << "Is the final V2 from fit? " << isV2FromFit[numPtBinsVar] << endl;
+  cout << "The resolution is: " << ftcReso[mul] << endl;
+  cout << "The acceptance correction was applied? " << isApplyAcceptanceCorrection << endl;
   cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
-  cout << "Error of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
+  cout << "\nResult (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << endl;
+  cout << "Result (pt integrated measurement, fit): " << histoV2PtInt->GetBinContent(1) << endl;
+  cout << "Result before application of the resolution: " << hV2MassIntegrated[numPtBins]->GetMean() << " +- " << hV2MassIntegrated[numPtBins]->GetMeanError() << endl;
+  cout << "\nError of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
   cout << "Error of pt integrated measurement (fit): " << histoV2PtIntErr->GetBinContent(1) << endl;
 
   if (!ExtrisSysMassCut)
@@ -2610,9 +2623,10 @@ void FitV2orPol(
   {
     cout << "I stored the acceptance plots in the file: " << SoutputfileAcceptance << ".root" << endl;
   }
-  if (isAcceptanceFromExternalFile && isApplyAcceptanceCorrection){
+  if (isAcceptanceFromExternalFile && isApplyAcceptanceCorrection)
+  {
     cout << "I took the acceptance from an external file: " << SAcceptanceFile << endl;
     cout << "The acceptance is computed without invariant mass fit " << endl;
-    cout  << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
+    cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
 }
