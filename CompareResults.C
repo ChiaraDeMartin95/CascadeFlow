@@ -503,7 +503,7 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 80;
     hTitleY = "P_{z,s2}";
-    hTitleX = "FT0C Centrality";
+    hTitleX = "FT0C Centrality (%)";
     YLow = -0.01;
     YUp = 0.03;
     YLowRatio = 0.5;
@@ -783,6 +783,8 @@ void CompareResults(Int_t TypeComp = 0,
   else if (TypeComp == 11)
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 12)
+    leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
+  else if (TypeComp == 19)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
