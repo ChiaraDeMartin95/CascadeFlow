@@ -21,6 +21,7 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
+#include "TGraphErrors.h"
 #include "CommonVar.h"
 #include "ErrRatioCorr.C"
 
@@ -108,8 +109,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-Float_t YLow[numPart] = {-0.004}; // 0.002
-Float_t YUp[numPart] = {0.015};
+Float_t YLow[numPart] = {-0.001};
+Float_t YUp[numPart] = {0.011};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
@@ -379,7 +380,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
     fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
 
-    fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
+    fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
     fHistPzsError->SetBinError(m + 1, 0);
 
     fHistPuritySummary->SetBinContent(m + 1, fHistPurity[m]->GetBinContent(1));
@@ -445,6 +446,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
+    fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
     fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
     fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
   }
@@ -459,21 +461,21 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
 
   Float_t xTitle = 30;
-  Float_t xOffset = 1.5;
+  Float_t xOffset = 1.3;
   Float_t yTitle = 30;
-  Float_t yOffset = 2;
+  Float_t yOffset = 1.4; //2.2 if setmaxdigits not set
 
   Float_t xLabel = 30;
   Float_t yLabel = 30;
-  Float_t xLabelOffset = 0.03;
+  Float_t xLabelOffset = 0.015;
   Float_t yLabelOffset = 0.01;
 
   Float_t tickX = 0.03;
-  Float_t tickY = 0.042;
+  Float_t tickY = 0.025;
 
   TH1F *hDummy = new TH1F("hDummy", "hDummy", 8000, 0, 80);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
-    hDummy->SetBinContent(i, 1e-12);
+    hDummy->SetBinContent(i, -1000);
   canvasPzs->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.6);
@@ -593,6 +595,128 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistMeanMinus2Sigma->Draw("same");
   canvasMeanSigma->SaveAs(stringoutpdf + "_Mean.pdf");
   canvasMeanSigma->SaveAs(stringoutpdf + "_Mean.png");
+
+  TCanvas *canvasfitPol0 = new TCanvas("canvasfitPol0", "canvasfitPol0", 900, 700);
+  StyleCanvas(canvasfitPol0, 0.05, 0.15, 0.15, 0.05);
+  TH1F *fHistPzsTotError = (TH1F *)fHistPzs->Clone("fHistPzsTotError");
+  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  {
+    fHistPzsTotError->SetBinError(b, TMath::Sqrt(fHistPzs->GetBinError(b) * fHistPzs->GetBinError(b) +
+                                                 fHistPzsSistError->GetBinContent(b) * fHistPzsSistError->GetBinContent(b)));
+  }
+  canvasfitPol0->cd();
+  hDummy->GetYaxis()->SetMaxDigits(1);
+  hDummy->Draw("");
+  fHistPzsTotError->Draw("same");
+  TF1 *fpol1 = new TF1("fpol1", "pol1", 0, 80);
+  TF1 *fpol0 = new TF1("fpol0", "pol0", 0, 80);
+  fpol1->SetLineColor(kBlue + 2);
+  fpol0->SetLineColor(kAzure + 1);
+  fHistPzsTotError->Fit("fpol1", "R+");
+  fHistPzsTotError->Fit("fpol0", "R+");
+  LegendTitle->Draw("");
+  TLegend *legendfit = new TLegend(0.2, 0.58, 0.5, 0.73);
+  legendfit->SetFillStyle(0);
+  legendfit->SetTextSize(0.04);
+  legendfit->AddEntry(fpol0, Form("pol0, Chi2/NDF = %.2f/%i", fpol0->GetChisquare(), fpol0->GetNDF()), "l");
+  legendfit->AddEntry(fpol1, Form("pol1, Chi2/NDF = %.2f/%i", fpol1->GetChisquare(), fpol1->GetNDF()), "l");
+  legendfit->Draw("");
+  canvasfitPol0->SaveAs(stringoutpdf + "_fitPol0.pdf");
+  canvasfitPol0->SaveAs(stringoutpdf + "_fitPol0.png");
+
+  TLegend *LegendPreliminary;
+  LegendPreliminary = new TLegend(0.12, 0.70, 0.51, 0.94);
+  LegendPreliminary->SetFillStyle(0);
+  LegendPreliminary->SetTextAlign(11);
+  LegendPreliminary->SetTextSize(0.04);
+  LegendPreliminary->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendPreliminary->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  LegendPreliminary->AddEntry("", "#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.5", "");
+  LegendPreliminary->AddEntry("", Form("%1.1f < #it{p}_{T} < %1.1f GeV/#it{c}", MinPt[ChosenPart], 8.), "");
+
+  TLegend *LegendPreliminary2;
+  LegendPreliminary2 = new TLegend(0.06, 0.777, 0.45, 0.917);
+  LegendPreliminary2->SetFillStyle(0);
+  LegendPreliminary2->SetTextAlign(11);
+  LegendPreliminary2->SetTextSize(0.04);
+  LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+
+  TLegend *legendXi = new TLegend(0.06, 0.643, 0.45, 0.784);
+  legendXi->SetFillStyle(0);
+  legendXi->SetTextAlign(12);
+  legendXi->SetTextSize(0.04);
+  legendXi->AddEntry("", Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
+
+  TF1 *lineatZero = new TF1("lineatZero", "0", 0, 80);
+  lineatZero->SetLineColor(kBlack);
+  lineatZero->SetLineStyle(2);
+  TCanvas *canvasPzsXi = new TCanvas("canvasPzsXi", "canvasPzsXi", 900, 700);
+  StyleCanvas(canvasPzsXi, 0.06, 0.12, 0.1, 0.03); //first 0.03
+  canvasPzsXi->cd();
+  SetFont(hDummy);
+  StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.8);
+  StyleHistoYield(fHistPzs, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
+  StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], kOrange +10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
+  SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummy, tickX, tickY);
+  hDummy->GetXaxis()->SetRangeUser(0, 80);
+  hDummy->Draw("");
+  lineatZero->Draw("same");
+  fHistPzs->DrawClone("same ex0");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->DrawClone("same e2");
+  //LegendPreliminary->Draw("");
+  LegendPreliminary2->Draw("");
+  legendXi->Draw("");
+  canvasPzsXi->SaveAs("XiPolVsCent.pdf");
+  canvasPzsXi->SaveAs("XiPolVsCent.png");
+
+  TString SfileLambdaJunlee = "LambdaJunlee/fout_psi2_mult.root";
+  TFile *fileLambdaJunlee = new TFile(SfileLambdaJunlee);
+  TGraphErrors *gPzsLambdaJunlee = (TGraphErrors *)fileLambdaJunlee->Get("gMultStat");
+  TGraphErrors *gPzsLambdaJunleeSist = (TGraphErrors *)fileLambdaJunlee->Get("gMultSyst");
+  TH1F *fHistPzsLambdaJunlee = (TH1F *)fHistPzs->Clone("fHistPzsLambdaJunlee");
+  TH1F *fHistPzsLambdaJunleeSist = (TH1F *)fHistPzsSist->Clone("fHistPzsLambdaJunleeSist");
+  fHistPzsLambdaJunlee->Reset();
+  fHistPzsLambdaJunleeSist->Reset();
+  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  {
+    fHistPzsLambdaJunlee->SetBinContent(b, gPzsLambdaJunlee->GetY()[b - 1]);
+    fHistPzsLambdaJunlee->SetBinError(b, gPzsLambdaJunlee->GetEY()[b - 1]);
+    fHistPzsLambdaJunleeSist->SetBinContent(b, gPzsLambdaJunleeSist->GetY()[b - 1]);
+    fHistPzsLambdaJunleeSist->SetBinError(b, gPzsLambdaJunleeSist->GetEY()[b - 1]);
+  }
+
+  //Int_t colorJunlee = kGreen + 2;
+  Int_t colorJunlee = kAzure -3;
+  StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
+  StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
+
+  //TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
+  TLegend *legendParticles = new TLegend(0.136, 0.61, 0.526, 0.75);
+  legendParticles->SetFillStyle(0);
+  legendParticles->SetTextAlign(12);
+  legendParticles->SetTextSize(0.04);
+  legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+  legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
+  TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
+  StyleCanvas(canvasPzsXiLambda, 0.06, 0.12, 0.1, 0.03);
+  canvasPzsXiLambda->cd();
+  hDummy->Draw("");
+  lineatZero->Draw("same");
+  fHistPzsLambdaJunlee->Draw("same ex0");
+  fHistPzsLambdaJunleeSist->SetFillStyle(0);
+  fHistPzsLambdaJunleeSist->Draw("same e2");
+  fHistPzs->Draw("same ex0");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->Draw("same e2");
+  //gPzsLambdaJunlee->Draw("same p");
+  //gPzsLambdaJunleeSist->Draw("same e2");
+  LegendPreliminary2->Draw("");
+  legendParticles->Draw("");
+  canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.pdf");
+  canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.png");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistPzs->Write();
