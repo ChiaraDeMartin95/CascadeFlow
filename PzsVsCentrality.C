@@ -462,8 +462,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   Float_t xTitle = 30;
   Float_t xOffset = 1.3;
-  Float_t yTitle = 30;
-  Float_t yOffset = 1.4; //2.2 if setmaxdigits not set
+  Float_t yTitle = 38; //30
+  Float_t yOffset = 1.1; //2.2 if setmaxdigits not set
 
   Float_t xLabel = 30;
   Float_t yLabel = 30;
@@ -495,6 +495,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendLambda->Draw("");
   canvasPzs->SaveAs(stringoutpdf + ".pdf");
   canvasPzs->SaveAs(stringoutpdf + ".png");
+  canvasPzs->SaveAs(stringoutpdf + ".eps");
 
   // Relative stat. uncertainty
   TCanvas *canvasPzsError = new TCanvas("canvasPzsError", "canvasPzsError", 900, 700);
@@ -638,14 +639,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary2 = new TLegend(0.06, 0.777, 0.45, 0.917);
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
-  LegendPreliminary2->SetTextSize(0.04);
+  LegendPreliminary2->SetTextSize(0.048);
   LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
   LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
   TLegend *legendXi = new TLegend(0.06, 0.643, 0.45, 0.784);
   legendXi->SetFillStyle(0);
   legendXi->SetTextAlign(12);
-  legendXi->SetTextSize(0.04);
+  legendXi->SetTextSize(0.048);
   legendXi->AddEntry("", Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
 
   TF1 *lineatZero = new TF1("lineatZero", "0", 0, 80);
@@ -671,6 +672,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendXi->Draw("");
   canvasPzsXi->SaveAs("XiPolVsCent.pdf");
   canvasPzsXi->SaveAs("XiPolVsCent.png");
+  canvasPzsXi->SaveAs("XiPolVsCent.eps");
 
   TString SfileLambdaJunlee = "LambdaJunlee/fout_psi2_mult.root";
   TFile *fileLambdaJunlee = new TFile(SfileLambdaJunlee);
@@ -697,7 +699,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TLegend *legendParticles = new TLegend(0.136, 0.61, 0.526, 0.75);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
-  legendParticles->SetTextSize(0.04);
+  legendParticles->SetTextSize(0.048);
   legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
   TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
@@ -717,12 +719,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendParticles->Draw("");
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.pdf");
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.png");
+  canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.eps");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
+  fHistMeanSummary->Write();
+  fHistSigmaSummary->Write();
   fHistPzs->Write();
   fHistPzsSist->Write();
   fHistPuritySummary->Write();
+  fHistYieldSummary->Write();
   fHistSignificanceSummary->Write();
+  fHistPzsError->Write();
 
   fileout->Close();
 
