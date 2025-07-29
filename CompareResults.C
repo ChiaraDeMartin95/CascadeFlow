@@ -207,6 +207,8 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 18 --> Pz from Lambda - online vs pt vs online vs eta and pt acceptance
   // TypeComp = 19 --> Pz from Lambda vs from Xi
   // TypeComp = 20 --> Pz from Lambda fit vs no fit
+  // TypeComp = 21 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs eta
+  // TypeComp = 22 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs pt
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -701,6 +703,141 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "From fit";
     sleg[1] = "From Not from fit";
   }
+  else if (TypeComp == 21)
+  {
+    // TypeComp = 21 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs eta
+    numOptions = 2;
+    CommonFileName = "AcceptancePlots/Acceptance_LHC23_PbPb_pass";
+    fileName[0] = "4_Train368064_ProtonAcc_Xi_WithAlpha_Eta08_FromTHN";
+    fileName[1] = "5_Train456578_ProtonAcc_Xi_WithAlpha_Eta08_FromTHN";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "#eta";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
+    sleg[0] = "pass4";
+    sleg[1] = "pass5";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    yOffset = 6;
+  }
+  else if (TypeComp == 22)
+  {
+    // TypeComp = 22 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs pt
+    numOptions = 2;
+    CommonFileName = "AcceptancePlots/Acceptance_LHC23_PbPb_pass";
+    fileName[0] = "4_Train368064_ProtonAcc_Xi_WithAlpha_Eta08_FromTHN";
+    fileName[1] = "5_Train456578_ProtonAcc_Xi_WithAlpha_Eta08_FromTHN";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "p_T (GeV/c)";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
+    sleg[0] = "pass4";
+    sleg[1] = "pass5";
+    yOffset = 6;
+  }
+  else if (TypeComp == 23)
+  {
+    // TypeComp = 23 --> 2023 pass4 vs 2023 pass5 (mean, sigma, purity, yield vs pT)
+    numOptions = 2;
+    CommonFileName = "OutputAnalysis/FitPzs2_LHC23_PbPb_pass";
+    fileName[0] = "4_Train370610_ProtonAcc_Xi_BkgParab";
+    fileName[1] = "5_Train456579_ProtAccFromPass4_Xi_BkgParab";
+    fileName[0] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[1] += Form("_Cent%i-%i", CentFT0C[mult], CentFT0C[mult + 1]);
+    fileName[0] += "_PolFromLambda_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    fileName[1] += "_PolFromLambda_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    namehisto[0] = "histoPurity";
+    namehisto[1] = "histoPurity";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "p_T (GeV/c)";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
+    sleg[0] = "pass4";
+    sleg[1] = "pass5";
+    yOffset = 6;
+  }
+  else if (TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
+  {
+    // TypeComp = 24, 25, 26 --> 2023 pass4 vs 2023 pass5 (purity, sigma, yield integrated in pT vs centrality)
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass";
+    fileName[0] = "4_Train370610_ProtonAcc_Xi_BkgParab_Pzs2";
+    fileName[1] = "5_Train456579_ProtAccFromPass4_Xi_BkgParab_Pzs2";
+    fileName[0] += "_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    hTitleY = "";
+    hTitleX = "FT0C centrality (%)";
+    // purity
+    if (TypeComp == 24)
+    {
+      YLow = 0.8;
+      YUp = 1.2;
+      YLowRatio = 0.95;
+      YUpRatio = 1.05;
+      hTitleY = "Purity";
+      namehisto[0] = "fHistPuritySummary";
+      namehisto[1] = "fHistPuritySummary";
+    }
+    else if (TypeComp == 25)
+    {
+      // sigma
+      YLow = 0.001;
+      YUp = 0.004;
+      YLowRatio = 0.8;
+      YUpRatio = 1.2;
+      hTitleY = "Sigma";
+      namehisto[0] = "fHistSigmaSummary";
+      namehisto[1] = "fHistSigmaSummary";
+    }
+    else if (TypeComp == 26)
+    {
+      // yield
+      YLow = 0;
+      YUp = 0.1;
+      YLowRatio = 0.8;
+      YUpRatio = 10;
+      hTitleY = "Yield";
+      namehisto[0] = "fHistYieldSummary";
+      namehisto[1] = "fHistYieldSummary";
+    }
+    else if (TypeComp == 27)
+    {
+      // Pzs2
+      YLow = -0.002;
+      YUp = 0.015;
+      YLowRatio = 0.8;
+      YUpRatio = 1.2;
+      hTitleY = "P_{z, s2}";
+      namehisto[0] = "fHistPzs";
+      namehisto[1] = "fHistPzs";
+    }
+    else if (TypeComp == 28)
+    {
+      // Pzs2 stat error
+      YLow = 0.;
+      YUp = 0.004;
+      YLowRatio = 0.8;
+      YUpRatio = 1.2;
+      hTitleY = "Stat. error P_{z, s2}";
+      namehisto[0] = "fHistPzsError";
+      namehisto[1] = "fHistPzsError";
+    }
+    sleg[0] = "pass4";
+    sleg[1] = "pass5";
+    yOffset = 6;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
@@ -758,12 +895,15 @@ void CompareResults(Int_t TypeComp = 0,
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
-  hDummy->DrawClone("");
+  // hDummy->Draw("same");
+  hDummy->DrawClone("same");
 
   hDef->SetMarkerColor(ColorMult[5]);
   hDef->SetLineColor(ColorMult[5]);
   hDef->SetMarkerStyle(MarkerMult[0]);
   hDef->SetMarkerSize(0.6 * SizeMult[0]);
+  hDef->SetTitle("");
+  hDef->GetYaxis()->SetRangeUser(YLow, YUp);
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
@@ -771,10 +911,13 @@ void CompareResults(Int_t TypeComp = 0,
     h[i]->SetLineColor(ColorMult[i + 1]);
     h[i]->SetMarkerStyle(MarkerMult[i + 1]);
     h[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
+    h[i]->SetTitle("");
     h[i]->Draw("same");
   }
 
   TLegend *leg = new TLegend(0.3, 0.7, 0.9, 0.9);
+  if (TypeComp == 23 || TypeComp == 24 || TypeComp == 25)
+    leg = new TLegend(0.3, 0.3, 0.9, 0.5);
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->SetTextSize(0.04);
@@ -784,7 +927,7 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 12)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 19)
+  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
@@ -795,12 +938,12 @@ void CompareResults(Int_t TypeComp = 0,
   }
   leg->Draw("same");
 
-  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, 0, 100);
+  TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, -100, 100);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
   SetFont(hDummyRatio);
-  // StyleHistoYield(hDummyRatio, YLowRatio, YUpRatio, 1, 1, hTitleX, hTitleYRatio, "", 1, 1.15, YoffsetSpectraRatio);
-  StyleHistoYield(hDummyRatio, 0, 0.4, 1, 1, hTitleX, hTitleYRatio, "", 1, 1.15, YoffsetSpectraRatio);
+  StyleHistoYield(hDummyRatio, YLowRatio, YUpRatio, 1, 1, hTitleX, hTitleYRatio, "", 1, 1.15, YoffsetSpectraRatio);
+  //  StyleHistoYield(hDummyRatio, 0, 0.4, 1, 1, hTitleX, hTitleYRatio, "", 1, 1.15, YoffsetSpectraRatio);
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
