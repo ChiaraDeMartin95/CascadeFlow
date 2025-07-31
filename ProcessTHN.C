@@ -129,7 +129,12 @@ void ProcessTHN(Int_t indexMultTrial = 0,
         hV2 = (THnF *)hXiCos2ThetaFromLambdaL->Clone("hV2");
     }
     else
-      hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
+    {
+      if (ChosenPart == 6)
+        hV2 = (THnF *)hXiPzs2->Clone("hV2");
+      else
+        hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
+    }
   }
   if (!hXiPzs2)
   {
@@ -416,17 +421,18 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
     hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(3, 2, AxisNumber); // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
-
+    
     if (isProducedAcceptancePlots)
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber + 1); // eta, pt, cos2ThetaProton
     else
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber); // WRONG!
     hEtaVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
-
     // BE CAREFUL: AXES TO BE UPDATED
-    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaLambda
+    //hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaLambda
+    hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber); // mass, psi, cos2ThetaLambda
     hmassVsPsiVsCos2Theta[cent]->SetName(hNameCos2ThetaVsPsi_3D[cent]);
-    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaProton
+    //hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaProton
+    hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber); // mass, psi, cos2ThetaProton
     hmassVsPsiVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaVsPsiLambdaFromC_3D[cent]);
   }
 
