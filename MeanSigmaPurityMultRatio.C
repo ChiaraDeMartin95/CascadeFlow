@@ -118,8 +118,8 @@ Float_t YUpSigma[numPart] = {0.006, 0.006};
 Float_t YLowPurity[numPart] = {0.8, 0};
 Float_t YLowV2[numPart] = {-0.3, -0.4};
 Float_t YUpV2[numPart] = {0.5, 0.5};
-Float_t YLowPzs2[numPart] = {-0.5, -0.5};
-Float_t YUpPzs2[numPart] = {0.5, 0.5};
+Float_t YLowPzs2[numPart] = {-0.01, -0.01};
+Float_t YUpPzs2[numPart] = {0.01, 0.01};
 Float_t YLowCos2Theta[numPart] = {0, 0};
 Float_t YUpCos2Theta[numPart] = {0.4, 0.4};
 Float_t YLowCos2ThetaLambda[numPart] = {0, 0};
@@ -173,8 +173,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     {
       TypeHisto[Choice] = "PzLambdaFromCMixed";
       TitleY[Choice] = "P_{z}";
-      YLowPzs2[part] = -0.2;
-      YUpPzs2[part] = 0.2;
+      YLowPzs2[part] = -0.01;
+      YUpPzs2[part] = 0.01;
       YLowRatio[Choice] = 0;
       YUpRatio[Choice] = 2;
     }
@@ -272,7 +272,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += "_AcceptancePlots";
   if (isTightMassCut)
     stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
-
+  if (isReducedPtBins)
+    stringout += "_ReducedPtBins";
   stringoutpdf = stringout;
   stringout += ".root";
   TFile *fileout = new TFile(stringout, "RECREATE");
@@ -363,6 +364,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
+    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
+      continue;
     if (m == numCent)
     { // 0-80%
       CentFT0CMin = 0;
@@ -426,7 +429,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         PathIn += "_Eta08";
       PathIn += STHN[ExtrisFromTHN];
     }
-
+    if (isReducedPtBins)
+      PathIn += "_ReducedPtBins";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -476,12 +480,14 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetTickLength(hDummy, tickX, tickY);
   if (Choice == 10)
     hDummy->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
-  else if (Choice == 11){
+  else if (Choice == 11)
+  {
     hDummy->GetXaxis()->SetRangeUser(EtaBins[0], EtaBins[numEtaBins]);
     hDummy->GetXaxis()->SetTitle("#it{#eta}");
   }
   else
-    hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    // hDummy->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    hDummy->GetXaxis()->SetRangeUser(1, MaxPt[part]);
   if (!isPtAnalysis)
     hDummy->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   pad1->Draw();
@@ -496,6 +502,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
+    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
+      continue;
+
     ScaleFactorFinal[m] = ScaleFactor[m];
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
@@ -570,12 +579,14 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   SetTickLength(hDummyRatio, tickX, tickY);
   if (Choice == 10)
     hDummyRatio->GetXaxis()->SetRangeUser(PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]);
-  else if (Choice == 11){
+  else if (Choice == 11)
+  {
     hDummyRatio->GetXaxis()->SetRangeUser(EtaBins[0], EtaBins[numEtaBins]);
     hDummyRatio->GetXaxis()->SetTitle("#it{#eta}");
-  }  
+  }
   else
-    hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    // hDummyRatio->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    hDummyRatio->GetXaxis()->SetRangeUser(1, MaxPt[part]);
   if (!isPtAnalysis)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 2 * TMath::Pi());
   canvasPtSpectra->cd();
@@ -589,6 +600,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
+    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
+      continue;
+
     fHistSpectrumMultRatio[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumMultRatio_" + Smolt[m]);
     fHistSpectrumMultRatio[m]->Divide(fHistSpectrum[ChosenMult]);
     ErrRatioCorr(fHistSpectrum[m], fHistSpectrum[ChosenMult], fHistSpectrumMultRatio[m], 0);
@@ -625,6 +639,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
+    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
+      continue;
+
     fHistSpectrumScaled[m]->Draw("same e0x0");
   }
   LegendTitle->Draw("");

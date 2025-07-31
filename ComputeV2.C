@@ -534,6 +534,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   SOutputFile += "_WithAlpha";
   if (!isRapiditySel || ExtrisFromTHN)
     SOutputFile += "_Eta08";
+  if (isReducedPtBins)
+    SOutputFile += "_ReducedPtBins";
   SOutputFile += STHN[ExtrisFromTHN] + ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t cent = 0; cent < numCent + 1; cent++)

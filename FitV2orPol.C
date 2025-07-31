@@ -226,28 +226,84 @@ Double_t fretta(Double_t *x, Double_t *par)
 
 Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
 {
-  if (CentFT0C[mul] >= 40)
+  if (mul == numCent)
   {
-    return 0.4;
-  }
-  else
-  {
-    if (PtBins[pt] < 1)
-    {
-      return 0.96;
-    }
-    else if (PtBins[pt] < 1.2)
+    if (PtBins[pt] < 1.5)
     {
       return 0.8;
     }
     else if (PtBins[pt] < 2)
     {
-      return 0.64;
+      return 0.8;
     }
     else
+      return 0.6;
+  }
+  if (CentFT0C[mul] >= 60)
+  {
+    if (PtBins[pt] < 1.5)
     {
       return 0.4;
     }
+    else if (PtBins[pt] < 2)
+    {
+      return 0.28;
+    }
+    else
+      return 0.2;
+  }
+  else if (CentFT0C[mul] >= 50)
+  {
+    if (PtBins[pt] < 2)
+    {
+      return 0.48;
+    }
+    else
+      return 0.2;
+  }
+  else if (CentFT0C[mul] >= 40)
+  {
+    if (PtBins[pt] < 1.5)
+    {
+      return 0.56;
+    }
+    else if (PtBins[pt] < 2)
+    {
+      return 0.52;
+    }
+    else
+      return 0.28;
+  }
+  else if (CentFT0C[mul] >= 20)
+  {
+    if (PtBins[pt] < 1.5)
+    {
+      return 0.8;
+    }
+    else if (PtBins[pt] < 2)
+    {
+      return 0.72;
+    }
+    else
+      return 0.4;
+  }
+  else if (CentFT0C[mul] >= 0)
+  {
+    if (PtBins[pt] < 1.5)
+    {
+      return 0.96;
+    }
+    else if (PtBins[pt] < 2)
+    {
+      return 0.88;
+    }
+    else
+      return 0.8;
+  }
+  else
+  {
+    cout << "Error: multiplicity out of range" << endl;
+    return -1; // Error case
   }
 }
 
@@ -296,6 +352,11 @@ void FitV2orPol(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isReducedPtBins && numPtBins != numPtBinsReduced)
+  {
+    cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
+    return;
+  }
   Float_t sigmacentral = Extrsigmacentral[isTightMassCut];
   Float_t ExtrLowLimit = 0;
   Float_t ExtrUpLimit = 0;
@@ -407,6 +468,7 @@ void FitV2orPol(
     else
       fileResoName = ResoFileName_EPLF;
   }
+  fileResoName = ResoFileName_SPCFW;
   fileResoName += ".root";
   TFile *fileResoEP = new TFile(fileResoName, "");
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
@@ -460,7 +522,7 @@ void FitV2orPol(
   TH2F *hmassVsCos2Theta[numPtBins + 1];
   TH1F *hCos2ThetaMassIntegrated[numPtBins + 1];
 
-  Int_t numCanvas = 4;
+  const Int_t numCanvas = 4;
   TCanvas *canvas[numCanvas];
   TCanvas *canvasCos2Theta[numCanvas];
   for (Int_t c = 0; c < numCanvas; c++)
@@ -640,6 +702,8 @@ void FitV2orPol(
     SPathIn += "_WithAlpha";
     if (!isRapiditySel || ExtrisFromTHN)
       SPathIn += "_Eta08";
+    if (isReducedPtBins)
+      SPathIn += "_ReducedPtBins";
     SPathIn += STHN[ExtrisFromTHN] + ".root";
 
     if (pt == numPtBinsVar)
@@ -1617,7 +1681,7 @@ void FitV2orPol(
     Cos2ThetaFitFunction[pt]->Draw("same");
     Float_t BinMax = hInvMass[pt]->GetMaximumBin();
     // Float_t BinMax = hCos2Theta[pt]->FindBin(mean[pt]);
-  
+
     if (pt < numPtBinsVar)
     {
       histoCos2Theta->SetBinContent(pt + 1, Cos2ThetaFitFunction[pt]->GetParameter(0));
@@ -2130,6 +2194,8 @@ void FitV2orPol(
     else
       Soutputfile += Form("_TightMassCutSyst%i", indexMassCut);
   }
+  if (isReducedPtBins)
+    Soutputfile += "_ReducedPtBins";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -2279,6 +2345,8 @@ void FitV2orPol(
   }
   canvasAcc->SaveAs(Soutputfile + "_AccPlot.pdf");
   canvasAcc->SaveAs(Soutputfile + "_AccPlot.png");
+  canvasAcc->SaveAs(Form("AcceptanceComparison_%i-%i.pdf", CentFT0C[mul], CentFT0C[mul + 1]));
+  canvasAcc->SaveAs(Form("AcceptanceComparison_%i-%i.png", CentFT0C[mul], CentFT0C[mul + 1]));
 
   // Performance plot
   Int_t ChosenPt = 8;
@@ -2313,7 +2381,8 @@ void FitV2orPol(
   else
     legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   // legend->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
-  legend->AddEntry("", Form("BDT, S/(S+B)(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
+  legend->AddEntry("", Form("BDT selected, S/(S+B)(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
+  // legend->AddEntry("", Form("BDT selected, Purity(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
 
   TLegend *legendfit = new TLegend(0.2, 0.57, 0.71, 0.65);
   legendfit->SetFillStyle(0);
@@ -2336,6 +2405,7 @@ void FitV2orPol(
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
              TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+  histo->GetYaxis()->SetRangeUser(0.0001, 299);
   histo->GetXaxis()->SetLabelSize(0.043);
   histo->GetXaxis()->SetTitleSize(0.045);
   histo->GetYaxis()->SetLabelSize(0.043);
@@ -2347,8 +2417,8 @@ void FitV2orPol(
   lineM3SigmaNorm[ChosenPt] = new TLine(LowLimit[ChosenPt], 0, LowLimit[ChosenPt], histo->GetMaximum());
   lineP3SigmaNorm[ChosenPt]->SetLineStyle(2);
   lineM3SigmaNorm[ChosenPt]->SetLineStyle(2);
-  lineP3SigmaNorm[ChosenPt]->Draw("same");
-  lineM3SigmaNorm[ChosenPt]->Draw("same");
+  // lineP3SigmaNorm[ChosenPt]->Draw("same");
+  // lineM3SigmaNorm[ChosenPt]->Draw("same");
 
   TF1 *totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
@@ -2380,6 +2450,7 @@ void FitV2orPol(
   bkg->Draw("same");
   legendfit->AddEntry(bkg, "bkg.", "l");
   legendfit2->AddEntry(bkg, "bkg.", "l");
+  legendfit2->AddEntry("", Form("Pz = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
   totalPNorm->SetRange(LowLimitMass[ChosenPart], UpLimitMass[ChosenPart]);
   totalPNorm->SetLineColor(kRed + 1);
   totalPNorm->Draw("same");
@@ -2414,12 +2485,16 @@ void FitV2orPol(
   histoCosSin->Scale(1. / histoCosSin->Integral(""));
   TString titleyNormCosSin = "Normalized counts";
   TString TitleCosSin = "1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+  if (!isApplyAcceptanceCorrection)
+  {
+    TitleCosSin = "1/#LTcos^{2}(#theta_{#Lambda}*)#GT 1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+  }
   if (isPolFromLambda)
   {
     TitleCosSin = "1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
     if (!isApplyAcceptanceCorrection)
     {
-      TitleCosSin = "1/#LTcos^{2}(#theta_{p}*)#GT 1/#alpha_{#Xi} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
+      TitleCosSin = "1/#LTcos^{2}(#theta_{p}*)#GT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
     }
   }
   StyleHisto(histoCosSin, 0.0001, 1.2 * histoCosSin->GetBinContent(histoCosSin->GetMaximumBin()), 1, 20,
@@ -2564,7 +2639,7 @@ void FitV2orPol(
   padL1->Draw();
   padL1->cd();
   if (!isV2)
-    hDummyRatio->GetYaxis()->SetRangeUser(-0.004, 0.004);
+    hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);

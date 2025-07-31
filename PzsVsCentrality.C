@@ -120,6 +120,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
 
+  if (isReducedPtBins && numPtBins != numPtBinsReduced)
+  {
+    cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
+    return;
+  }
   Int_t ChosenPt = -999;
   cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
   cin >> ChosenPt;
@@ -215,6 +220,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (isTightMassCut)
     stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   stringout += V2FromFit[isFromFit];
+  if (isReducedPtBins)
+    stringout += "_ReducedPtBins";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -317,6 +324,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_MixedBDT";
     if (isTightMassCut)
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    if (isReducedPtBins)
+      PathIn += "_ReducedPtBins";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -462,8 +471,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   Float_t xTitle = 30;
   Float_t xOffset = 1.3;
-  Float_t yTitle = 38; //30
-  Float_t yOffset = 1.1; //2.2 if setmaxdigits not set
+  Float_t yTitle = 38;   // 30
+  Float_t yOffset = 1.1; // 2.2 if setmaxdigits not set
 
   Float_t xLabel = 30;
   Float_t yLabel = 30;
@@ -653,12 +662,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   lineatZero->SetLineColor(kBlack);
   lineatZero->SetLineStyle(2);
   TCanvas *canvasPzsXi = new TCanvas("canvasPzsXi", "canvasPzsXi", 900, 700);
-  StyleCanvas(canvasPzsXi, 0.06, 0.12, 0.1, 0.03); //first 0.03
+  StyleCanvas(canvasPzsXi, 0.06, 0.12, 0.1, 0.03); // first 0.03
   canvasPzsXi->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.8);
   StyleHistoYield(fHistPzs, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
-  StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], kOrange +10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
+  StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(0, 80);
@@ -667,7 +676,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzs->DrawClone("same ex0");
   fHistPzsSist->SetFillStyle(0);
   fHistPzsSist->DrawClone("same e2");
-  //LegendPreliminary->Draw("");
+  // LegendPreliminary->Draw("");
   LegendPreliminary2->Draw("");
   legendXi->Draw("");
   canvasPzsXi->SaveAs("XiPolVsCent.pdf");
@@ -690,12 +699,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistPzsLambdaJunleeSist->SetBinError(b, gPzsLambdaJunleeSist->GetEY()[b - 1]);
   }
 
-  //Int_t colorJunlee = kGreen + 2;
-  Int_t colorJunlee = kAzure -3;
+  // Int_t colorJunlee = kGreen + 2;
+  Int_t colorJunlee = kAzure - 3;
   StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
-  //TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
+  // TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
   TLegend *legendParticles = new TLegend(0.136, 0.61, 0.526, 0.75);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
@@ -713,8 +722,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzs->Draw("same ex0");
   fHistPzsSist->SetFillStyle(0);
   fHistPzsSist->Draw("same e2");
-  //gPzsLambdaJunlee->Draw("same p");
-  //gPzsLambdaJunleeSist->Draw("same e2");
+  // gPzsLambdaJunlee->Draw("same p");
+  // gPzsLambdaJunleeSist->Draw("same e2");
   LegendPreliminary2->Draw("");
   legendParticles->Draw("");
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.pdf");
