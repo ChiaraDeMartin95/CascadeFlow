@@ -27,7 +27,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
                Int_t EtaSysChoice = ExtrEtaSysChoice,
                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
-
+  if (isReducedPtBins && numPtBins != numPtBinsReduced)
+  {
+    cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
+    return;
+  }
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -532,7 +536,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_EffW";
   }
   SOutputFile += "_WithAlpha";
-  if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     SOutputFile += "_Eta08";
   if (isReducedPtBins)
     SOutputFile += "_ReducedPtBins";

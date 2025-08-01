@@ -105,10 +105,12 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
   histo->SetTitle(title);
 }
 
-const Float_t UpperLimitLSBOmega = 1.655; // upper limit of fit of left sidebands for omega
-const Float_t LowerLimitRSBOmega = 1.689; // lower limit of fit of right sidebands for omega
-const Float_t UpperLimitLSBXi = 1.302;    // upper limit of fit of left sidebands for Xi
-const Float_t LowerLimitRSBXi = 1.34;     // lower limit of fit of right sidebands for Xi
+const Float_t UpperLimitLSBOmega = 1.655;  // upper limit of fit of left sidebands for omega
+const Float_t LowerLimitRSBOmega = 1.689;  // lower limit of fit of right sidebands for omega
+const Float_t UpperLimitLSBXi = 1.302;     // upper limit of fit of left sidebands for Xi
+const Float_t LowerLimitRSBXi = 1.34;      // lower limit of fit of right sidebands for Xi
+const Float_t UpperLimitLSBLambda = 1.105; // upper limit of fit of left sidebands for Lambda
+const Float_t LowerLimitRSBLambda = 1.125; // lower limit of fit of right sidebands for Lambda
 const Int_t numBinsEta = 8;
 
 struct v2fit
@@ -149,6 +151,11 @@ Double_t fparab(Double_t *x, Double_t *par)
     LimInf = UpperLimitLSBOmega;
     LimSup = LowerLimitRSBOmega;
   }
+  else if (par[3] == 2)
+  {
+    LimInf = UpperLimitLSBLambda;
+    LimSup = LowerLimitRSBLambda;
+  }
   if (reject && x[0] > LimInf && x[0] < LimSup)
   {
     TF1::RejectPoint();
@@ -170,6 +177,11 @@ Double_t fpol3(Double_t *x, Double_t *par)
   {
     LimInf = UpperLimitLSBOmega;
     LimSup = LowerLimitRSBOmega;
+  }
+  else if (par[4] == 2)
+  {
+    LimInf = UpperLimitLSBLambda;
+    LimSup = LowerLimitRSBLambda;
   }
   if (reject && x[0] > LimInf && x[0] < LimSup)
   {
@@ -193,6 +205,11 @@ Double_t fexpo(Double_t *x, Double_t *par)
     LimInf = UpperLimitLSBOmega;
     LimSup = LowerLimitRSBOmega;
   }
+  else if (par[2] == 2)
+  {
+    LimInf = UpperLimitLSBLambda;
+    LimSup = LowerLimitRSBLambda;
+  }
   if (reject && x[0] > LimInf && x[0] < LimSup)
   {
     TF1::RejectPoint();
@@ -215,6 +232,11 @@ Double_t fretta(Double_t *x, Double_t *par)
   {
     LimInf = UpperLimitLSBOmega;
     LimSup = LowerLimitRSBOmega;
+  }
+  else if (par[2] == 2)
+  {
+    LimInf = UpperLimitLSBLambda;
+    LimSup = LowerLimitRSBLambda;
   }
   if (reject && x[0] > LimInf && x[0] < LimSup)
   {
@@ -310,26 +332,26 @@ Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
 TString titleYield = "1/N_{evt} dN/dp_{T}";
 TString titleYieldNN = "dN/dp_{T}";
 TString titlePt = "p_{T} (GeV/c)";
-TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})"};
+TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})", "(p, #pi)"};
 TString SInvMass = "invariant mass (GeV/c^{2})";
 
 // fit ranges
-Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69};
-Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // bkg and total fit range
-Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71};
-Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656};
-Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688};
+Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.1}; // gauss fit range
+Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.13};
+Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // bkg and total fit range
+Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
+Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1};
+Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13};
 
 // visualisation ranges
-Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.655}; // range to compute approximate yield (signal + bkg)
-Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685};
-Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // display range of gauss functions (from total fit)
-Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71};
-Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
-Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72};
+Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.6551, 1.1}; // range to compute approximate yield (signal + bkg)
+Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685, 1.13};
+Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // display range of gauss functions (from total fit)
+Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71, 1.13};
+Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626, 1.1}; // display range of bkg function (from total fit)
+Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72, 1.13};
+Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626, 1.1}; // display range of mass histograms
+Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72, 1.13};
 
 // Event plane resolution
 Float_t ftcReso[numCent + 1] = {0};
@@ -351,7 +373,11 @@ void FitV2orPol(
     Bool_t isMeanFixedPDG = 0,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
-
+  if (ChosenPart == 6 && isPolFromLambda)
+  {
+    cout << "Polarization of lambda cannot be computed from polarization of lambdas :) Set isPolFromLambda = 0" << endl;
+    return;
+  }
   if (isReducedPtBins && numPtBins != numPtBinsReduced)
   {
     cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
@@ -387,14 +413,16 @@ void FitV2orPol(
     return;
   }
 
-  Bool_t isXi = 0;
+  Int_t ParticleType = 0; // 1 for Xi, 0 for Omega, 2 for Lambda
   if (ChosenPart == 0 || ChosenPart == 2 || ChosenPart == 3)
-    isXi = 1;
-  Int_t part = 0;
-  if (!isXi)
-  {
+    ParticleType = 1;
+  else if (ChosenPart == 6)
+    ParticleType = 2;
+  Int_t part = 0;        // Xi
+  if (ParticleType == 1) // Omega
     part = 1;
-  }
+  else if (ParticleType == 2) // Lambda
+    part = 2;
 
   if (isV2 && !isPtAnalysis)
   {
@@ -483,15 +511,20 @@ void FitV2orPol(
 
   Float_t UpperLimitLSB = 0;
   Float_t LowerLimitRSB = 0;
-  if (isXi)
+  if (ParticleType == 1)
   {
     UpperLimitLSB = UpperLimitLSBXi;
     LowerLimitRSB = LowerLimitRSBXi;
   }
-  else
+  else if (ParticleType == 0)
   {
     UpperLimitLSB = UpperLimitLSBOmega;
     LowerLimitRSB = LowerLimitRSBOmega;
+  }
+  else if (ParticleType == 2)
+  {
+    UpperLimitLSB = UpperLimitLSBLambda;
+    LowerLimitRSB = LowerLimitRSBLambda;
   }
 
   if (mul > numCent + 1)
@@ -686,7 +719,8 @@ void FitV2orPol(
       histoAppliedBDTPtInt->SetBinContent(1, BDTscoreCut);
 
     SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
-    SPathIn += SBDT;
+    if (ChosenPart != 6)
+      SPathIn += SBDT;
     if (isApplyWeights)
       SPathIn += "_Weighted";
     if (v2type == 1)
@@ -700,7 +734,7 @@ void FitV2orPol(
       SPathIn += "_EffW";
     }
     SPathIn += "_WithAlpha";
-    if (!isRapiditySel || ExtrisFromTHN)
+    if (!isRapiditySel)
       SPathIn += "_Eta08";
     if (isReducedPtBins)
       SPathIn += "_ReducedPtBins";
@@ -722,7 +756,7 @@ void FitV2orPol(
         continue; // skip the integrated
     }
     PhiBins[pt] = pt * 2 * TMath::Pi() / numPsiBins;
-    if (!isXi && pt == 0)
+    if (ParticleType == 0 && pt == 0)
       continue;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     if (pt == numPtBinsVar)
@@ -732,7 +766,8 @@ void FitV2orPol(
     if (!isPtAnalysis) // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
 
-    cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
+    if (ChosenPart != 6)
+      cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
     cout << "FileIn: " << SPathIn << endl;
 
     if (isPtAnalysis)
@@ -824,10 +859,12 @@ void FitV2orPol(
 
     if (isYAxisMassZoomed)
     {
-      if (isXi)
+      if (ParticleType == 1)
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.65)));
-      else
+      else if (ParticleType == 0)
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.29)));
+      else if (ParticleType == 2)
+        hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.55)));
     }
     if (isLogy)
     {
@@ -960,7 +997,7 @@ void FitV2orPol(
         continue; // skip the integrated
     }
 
-    if (!isXi && pt == 0)
+    if (ParticleType == 0 && pt == 0)
       continue;
     if (pt < 4)
       canvas[0]->cd(pt + 1);
@@ -1116,7 +1153,7 @@ void FitV2orPol(
       }
 
       cout << "\n\n fit total " << endl;
-      if (isXi)
+      if (ParticleType == 1) // Xi
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.31, 1.335);
@@ -1130,13 +1167,27 @@ void FitV2orPol(
           total[pt]->FixParameter(4, ParticleMassPDG[ChosenPart]);
         }
       }
-      else
+      else if (ParticleType == 0) // Omega
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.66, 1.68);
         total[pt]->SetParLimits(2, 0.002, 0.01);
         total[pt]->SetParLimits(3, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
         total[pt]->SetParLimits(4, 1.66, 1.68);
+        total[pt]->SetParLimits(5, 0.001, 0.01);
+        if (isMeanFixedPDG)
+        {
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
+          total[pt]->FixParameter(4, ParticleMassPDG[ChosenPart]);
+        }
+      }
+      else if (ParticleType == 2) // Lambda
+      {
+        total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+        total[pt]->SetParLimits(1, 1.1, 1.13);
+        total[pt]->SetParLimits(2, 0.002, 0.01);
+        total[pt]->SetParLimits(3, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
+        total[pt]->SetParLimits(4, 1.1, 1.13);
         total[pt]->SetParLimits(5, 0.001, 0.01);
         if (isMeanFixedPDG)
         {
@@ -1329,7 +1380,7 @@ void FitV2orPol(
       }
 
       cout << "\n\n fit total " << endl;
-      if (isXi)
+      if (ParticleType == 1) // Xi
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.31, 1.335);
@@ -1339,10 +1390,20 @@ void FitV2orPol(
           total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
         }
       }
-      else
+      else if (ParticleType == 0) // Omega
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.66, 1.68);
+        total[pt]->SetParLimits(2, 0.001, 0.02);
+        if (isMeanFixedPDG)
+        {
+          total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
+        }
+      }
+      else if (ParticleType == 2) // Lambda
+      {
+        total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+        total[pt]->SetParLimits(1, 1.1, 1.13);
         total[pt]->SetParLimits(2, 0.001, 0.02);
         if (isMeanFixedPDG)
         {
@@ -1784,7 +1845,7 @@ void FitV2orPol(
       if (pt == numPtBinsVar)
         continue; // skip the integrated
     }
-    if (!isXi && pt == 0)
+    if (ParticleType == 0 && pt == 0)
       continue;
     if (pt == 2)
       index = 1;
@@ -2176,11 +2237,11 @@ void FitV2orPol(
   {
     Soutputfile += "_EffW";
   }
-  if (isSysMultTrial)
+  if (isSysMultTrial && ChosenPart != 6)
     Soutputfile += SBDT;
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   SoutputfileAcceptance += SEtaSysChoice[EtaSysChoice];
-  if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     Soutputfile += "_Eta08";
   Soutputfile += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
@@ -2350,17 +2411,21 @@ void FitV2orPol(
 
   // Performance plot
   Int_t ChosenPt = 8;
-  if (isXi)
+  if (ParticleType == 1 || ParticleType == 2)
     ChosenPt = numPtBinsVar;
-  Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65};
-  Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7};
+  Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1};
+  Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13};
   Float_t UpperCutHisto = 1.7;
-  if (isXi)
+  if (ParticleType == 1)
+    UpperCutHisto = 1.8;
+  else if (ParticleType == 2)
     UpperCutHisto = 1.8;
 
   TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
-  if (!isXi)
+  if (ParticleType == 0)
     TitleXMass = "#it{m}_{#LambdaK} (GeV/#it{c}^{2})";
+  else if (ParticleType == 2)
+    TitleXMass = "#it{m}_{p#pi} (GeV/#it{c}^{2})";
 
   TCanvas *canvasMassP = new TCanvas("canvasMassP", "canvasMassP", 800, 800);
   StyleCanvas(canvasMassP, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
@@ -2372,10 +2437,12 @@ void FitV2orPol(
   legend->SetTextAlign(12);
   legend->AddEntry("", "#bf{ALICE Performance}", "");
   legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
-  if (isXi)
+  if (ParticleType == 1)
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
-  else
+  else if (ParticleType == 0)
     legend->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
+  else if (ParticleType == 2)
+    legend->AddEntry("", "#Lambda #rightarrow p #pi^{#minus} + c.c.", "");
   if (ChosenPt == numPtBinsVar)
     legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
   else
@@ -2400,7 +2467,7 @@ void FitV2orPol(
   Float_t histoIntegral = histo->Integral("width");
   histo->Scale(1. / histoIntegral);
   TString titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", histo->GetBinWidth(1) * 1000);
-  if (isXi)
+  if (ParticleType == 1)
     titleyNorm = Form("Normalized counts/(%.1f MeV/#it{c}^{2})", (float)(histo->GetBinWidth(1) * 1000));
   StyleHisto(histo, 0.0001, UpperCutHisto * histo->GetBinContent(histo->GetMaximumBin()), 1, 20,
              TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
@@ -2411,7 +2478,6 @@ void FitV2orPol(
   histo->GetYaxis()->SetLabelSize(0.043);
   histo->GetYaxis()->SetTitleSize(0.045);
   histo->GetYaxis()->SetTitleOffset(1.6);
-
   histo->DrawClone("pe");
   lineP3SigmaNorm[ChosenPt] = new TLine(UpLimit[ChosenPt], 0, UpLimit[ChosenPt], histo->GetMaximum());
   lineM3SigmaNorm[ChosenPt] = new TLine(LowLimit[ChosenPt], 0, LowLimit[ChosenPt], histo->GetMaximum());
@@ -2526,10 +2592,13 @@ void FitV2orPol(
   LegendTitle->SetTextAlign(12);
   LegendTitle->AddEntry("", "#bf{ALICE Performance}", "");
   LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
-  if (isXi)
+  if (ParticleType == 1)
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
-  else
+  else if (ParticleType == 0)
     LegendTitle->AddEntry("", "#Omega^{#minus} #rightarrow #Lambda K^{#minus} #rightarrow p #pi^{#minus} K^{#minus} + c.c.", "");
+  else if (ParticleType == 2)
+    LegendTitle->AddEntry("", "#Lambda #rightarrow p #pi^{#minus} + c.c.", "");
+
   if (ChosenPt == numPtBinsVar)
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
   else
@@ -2624,6 +2693,8 @@ void FitV2orPol(
   {
     // TitleDummyRatio = "P_{z,s2}";
     TitleDummyRatio = "#LT 1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
+    if (ChosenPart == 6)
+      TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Lambda}-#Psi_{2})) #GT";
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
   }

@@ -421,17 +421,17 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
     hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(3, 2, AxisNumber); // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
-    
+
     if (isProducedAcceptancePlots)
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber + 1); // eta, pt, cos2ThetaProton
     else
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber); // WRONG!
     hEtaVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
     // BE CAREFUL: AXES TO BE UPDATED
-    //hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaLambda
+    // hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaLambda
     hmassVsPsiVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber); // mass, psi, cos2ThetaLambda
     hmassVsPsiVsCos2Theta[cent]->SetName(hNameCos2ThetaVsPsi_3D[cent]);
-    //hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaProton
+    // hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber + 1); // mass, psi, cos2ThetaProton
     hmassVsPsiVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber); // mass, psi, cos2ThetaProton
     hmassVsPsiVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaVsPsiLambdaFromC_3D[cent]);
   }
@@ -454,7 +454,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_BDTCentDep";
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
-  OutputFileName += "_Eta08";
+  if (!ExtrisRapiditySel)
+    OutputFileName += "_Eta08";
   if (ChosenPart != 6)
     OutputFileName += SBDT;
   // if (isRedCentrality) OutputFileName += "_isRedCent";
