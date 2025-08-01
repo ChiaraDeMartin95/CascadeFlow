@@ -111,19 +111,19 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 // take spectra in input
 // produces ratio of spectra wrt 0-100% multiplciity class
 
-Float_t YLowMean[numPart] = {1.31, 1.66};
-Float_t YUpMean[numPart] = {1.327, 1.68};
-Float_t YLowSigma[numPart] = {0.0, 0.0};
-Float_t YUpSigma[numPart] = {0.006, 0.006};
-Float_t YLowPurity[numPart] = {0.8, 0};
-Float_t YLowV2[numPart] = {-0.3, -0.4};
-Float_t YUpV2[numPart] = {0.5, 0.5};
-Float_t YLowPzs2[numPart] = {-0.01, -0.01};
-Float_t YUpPzs2[numPart] = {0.01, 0.01};
-Float_t YLowCos2Theta[numPart] = {0, 0};
-Float_t YUpCos2Theta[numPart] = {0.4, 0.4};
-Float_t YLowCos2ThetaLambda[numPart] = {0, 0};
-Float_t YUpCos2ThetaLambda[numPart] = {0.5, 0.5};
+Float_t YLowMean[numPart] = {1.31, 1.66, 1.1};
+Float_t YUpMean[numPart] = {1.327, 1.68, 1.13};
+Float_t YLowSigma[numPart] = {0.0, 0.0, 0.0};
+Float_t YUpSigma[numPart] = {0.006, 0.006, 0.004};
+Float_t YLowPurity[numPart] = {0.8, 0.8, 0.6};
+Float_t YLowV2[numPart] = {-0.3, -0.4, -0.3};
+Float_t YUpV2[numPart] = {0.5, 0.5, 0.5};
+Float_t YLowPzs2[numPart] = {-0.01, -0.01, -0.01};
+Float_t YUpPzs2[numPart] = {0.01, 0.01, 0.01};
+Float_t YLowCos2Theta[numPart] = {0, 0, 0};
+Float_t YUpCos2Theta[numPart] = {0.4, 0.4, 0.4};
+Float_t YLowCos2ThetaLambda[numPart] = {0, 0, 0};
+Float_t YUpCos2ThetaLambda[numPart] = {0.5, 0.5, 0.5};
 
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
@@ -146,6 +146,10 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     part = 1;
   }
+  else if (ChosenPart == 6)
+  {
+    part = 2;
+  }
   if (isProducedAcceptancePlots && useMixedBDTValueInFitMacro)
   {
     cout << "Either you produce acceptance plots or you use mixed BDT values" << endl;
@@ -157,6 +161,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     cout << "Chosen Mult outside of available range" << endl;
     return;
+  }
+  if (ChosenPart == 6)
+  {
+    if (Choice == 5)
+      TypeHisto[Choice] = "Pzs2";
   }
   if (!isPtAnalysis)
   {
@@ -263,7 +272,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += "_vsPsi";
   if (ExtrisApplyEffWeights)
     stringout += "_EffW";
-  if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     stringout += "_Eta08";
   stringout += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
@@ -364,8 +373,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
-    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
-      continue;
     if (m == numCent)
     { // 0-80%
       CentFT0CMin = 0;
@@ -393,13 +400,13 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_Run2Binning";
     if (!isPtAnalysis)
       PathIn += "_vsPsi";
-    if (Choice == 6 || Choice == 8)
+    if ((Choice == 6 || Choice == 8) && ChosenPart != 6)
       PathIn += "_PolFromLambda";
-    if (Choice <= 3)
+    if (Choice <= 3 && ChosenPart != 6)
       PathIn += "_PolFromLambda";
     if (ExtrisApplyEffWeights)
       PathIn += "_EffW";
-    if (!isRapiditySel || ExtrisFromTHN)
+    if (!isRapiditySel)
       PathIn += "_Eta08";
     PathIn += STHN[ExtrisFromTHN];
     if (useMixedBDTValueInFitMacro)
@@ -425,7 +432,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         PathIn += "_EffW";
       }
       PathIn += "_WithAlpha";
-      if (!isRapiditySel || ExtrisFromTHN)
+      if (!isRapiditySel)
         PathIn += "_Eta08";
       PathIn += STHN[ExtrisFromTHN];
     }
@@ -502,8 +509,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
-    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
-      continue;
 
     ScaleFactorFinal[m] = ScaleFactor[m];
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
@@ -541,7 +546,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   legendAllMult->Draw("");
 
   // PDG mass
-  TF1 *fMassPDG = new TF1("fMassPDG", Form("%f", ParticleMassPDG[part]), MinPt[part], MaxPt[part]);
+  TF1 *fMassPDG = new TF1("fMassPDG", Form("%f", ParticleMassPDG[ChosenPart]), MinPt[part], MaxPt[part]);
   fMassPDG->SetLineColor(kBlack);
   fMassPDG->SetLineStyle(8);
   TLegend *legendMassPDG = new TLegend(0.25, 0.76, 0.5, 0.85);
@@ -600,8 +605,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
       continue;
-    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
-      continue;
 
     fHistSpectrumMultRatio[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumMultRatio_" + Smolt[m]);
     fHistSpectrumMultRatio[m]->Divide(fHistSpectrum[ChosenMult]);
@@ -638,8 +641,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
-      continue;
-    if (m == 0 || m == 1 || m == 2 || m == 6 || m == 7)
       continue;
 
     fHistSpectrumScaled[m]->Draw("same e0x0");

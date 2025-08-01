@@ -129,6 +129,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
   cin >> ChosenPt;
 
+  if (ChosenPart == 6 && !isFromFit)
+  {
+    cout << "You have chosen the #Lambda particle and are not using the fit. Please select a different option." << endl;
+    return;
+  }
+
   Int_t part = 0;
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
   {
@@ -212,7 +218,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_PtInt";
   else
     stringout += Form("_Pt%.1f-%.1f", PtBins[ChosenPt], PtBins[ChosenPt + 1]);
-  if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     stringout += "_Eta08";
   stringout += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
@@ -317,7 +323,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_Run2Binning";
     if (isPolFromLambda)
       PathIn += "_PolFromLambda";
-    if (!isRapiditySel || ExtrisFromTHN)
+    if (!isRapiditySel)
       PathIn += "_Eta08";
     PathIn += STHN[ExtrisFromTHN];
     if (useMixedBDTValueInFitMacro)
@@ -432,7 +438,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_Run2Binning";
   // if (isPolFromLambda)
   PathInSyst += "_PolFromLambda";
-  if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     PathInSyst += "_Eta08";
   PathInSyst += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
@@ -441,6 +447,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   PathInSyst += V2FromFit[isFromFit];
   PathInSyst += ".root";
+  if (ChosenPart == 6)
+    PathInSyst = "Systematics/SystVsCentrality_Pzs2_LHC23_PbPb_pass4_Train370610_ProtonAcc_Xi_BkgParab_Pzs2_PolFromLambda_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit.root";
   TFile *fileInSyst = TFile::Open(PathInSyst);
   if (!fileInSyst)
   {
@@ -656,7 +664,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendXi->SetFillStyle(0);
   legendXi->SetTextAlign(12);
   legendXi->SetTextSize(0.048);
-  legendXi->AddEntry("", Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
+  if (ChosenPart == 6)
+    legendXi->AddEntry("", Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
+  else
+    legendXi->AddEntry("", Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "");
 
   TF1 *lineatZero = new TF1("lineatZero", "0", 0, 80);
   lineatZero->SetLineColor(kBlack);
@@ -709,7 +720,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
   legendParticles->SetTextSize(0.048);
-  legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+  if (ChosenParticle == 6)
+    legendParticles->AddEntry(fHistPzs, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+  else
+    legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
   TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
   StyleCanvas(canvasPzsXiLambda, 0.06, 0.12, 0.1, 0.03);
@@ -745,4 +759,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
 
   cout << "\nI have created the file:\n " << stringout << endl;
+
+  if (ChosenPart == 6)
+    cout << "\n\nWARNING: Syst path for Lambda might be dummy!! " << endl;
 }
