@@ -209,6 +209,8 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 20 --> Pz from Lambda fit vs no fit
   // TypeComp = 21 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs eta
   // TypeComp = 22 --> Proton acceptance 2023 pass5 vs 2023 pass4 vs pt
+  // TypeComp = 24, 25, 26, 27, 28 --> 2023 pass4 vs 2023 pass5 (purity, sigma, yield, Pzs2, Pzs2Error  integrated in pT vs centrality)
+  // TypeComp = 29 --> Lambda Pzs2 from my code vs Preliminary one from Junlee
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -768,7 +770,7 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
   {
-    // TypeComp = 24, 25, 26 --> 2023 pass4 vs 2023 pass5 (purity, sigma, yield integrated in pT vs centrality)
+    // TypeComp = 24, 25, 26, 27, 28 --> 2023 pass4 vs 2023 pass5 (purity, sigma, yield, Pzs2, Pzs2Error  integrated in pT vs centrality)
     numOptions = 2;
     CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass";
     fileName[0] = "4_Train370610_ProtonAcc_Xi_BkgParab_Pzs2";
@@ -838,6 +840,34 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 80;
   }
+  else if (TypeComp == 29 || TypeComp == 30)
+  {
+    // TypeComp = 29 --> Lambda Pzs2 from my code vs Preliminary one from Junlee
+    numOptions = 2;
+    CommonFileName = "";
+    fileName[0] = "LambdaJunlee/fout_psi2_mult_WHisto";
+    fileName[1] = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas_Lambda_BkgParab_Pzs2_PtInt_FromTHN_MixedBDT_TightMassCut2.1_ReducedPtBins";
+    namehisto[0] = "fHistPzsLambdaJunlee";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "Preliminary";
+    sleg[1] = "My result";
+    YLow = -0.001;
+    YUp = 0.009;
+    YLowRatio = 0.5;
+    YUpRatio = 2;
+    // YLowRatio = -3;
+    // YUpRatio = 3;
+    if (TypeComp == 30)
+    {
+      namehisto[0] = "fHistPzsLambdaJunleeStatError";
+      namehisto[1] = "fHistPzsError";
+      YLow = -0.001;
+      YUp = 0.004;
+      YLowRatio = 0.8;
+      YUpRatio = 1.5;
+    }
+  }
 
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
@@ -867,10 +897,25 @@ void CompareResults(Int_t TypeComp = 0,
       hRatio[i] = (TH1F *)h[i]->Clone(Form("hRatio_%i", i));
       hRatio[i]->Divide(hDef);
       // hRatio[i]->Add(hDef, -1);
+      if (TypeComp == 29)
+      {
+        for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
+        {
+          // hRatio[i]->SetBinContent(j, (hRatio[i]->GetBinContent(j) - hDef->GetBinContent(j)) / hDef->GetBinError(j));
+        }
+      }
       if (TypeComp == 11)
         ErrRatioCorr(h[i], hDef, hRatio[i], 1);
       else
         ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+      if (TypeComp == 30)
+      {
+        for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
+        {
+          hRatio[i]->SetBinContent(j, h[i]->GetBinContent(j) / hDef->GetBinContent(j));
+          hRatio[i]->SetBinError(j, 0);
+        }
+      }
     }
   }
 
@@ -891,7 +936,7 @@ void CompareResults(Int_t TypeComp = 0,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
-  if (TypeComp == 5 || TypeComp == 16 || TypeComp == 17 || TypeComp == 18 || TypeComp == 19 || TypeComp == 20)
+  if (TypeComp == 5 || TypeComp == 16 || TypeComp == 17 || TypeComp == 18 || TypeComp == 19 || TypeComp == 20 || TypeComp == 29)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
@@ -947,7 +992,7 @@ void CompareResults(Int_t TypeComp = 0,
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
-  if (TypeComp == 5)
+  if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
   canvas->cd();
   padL1->Draw();
@@ -962,7 +1007,7 @@ void CompareResults(Int_t TypeComp = 0,
     hRatio[i]->Draw("same");
   }
   TF1 *line = new TF1("line", "1", MinHistoX, MaxHistoX);
-  if (TypeComp == 5)
+  if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
     line = new TF1("line", "1", 0, 80);
   line->SetLineColor(kBlack);
   line->SetLineStyle(9);
@@ -976,11 +1021,11 @@ void CompareResults(Int_t TypeComp = 0,
   hDummy->GetXaxis()->SetLabelOffset(0.02);
   hDummy->GetXaxis()->SetTitleSize(30);
   hDummy->GetXaxis()->SetTitleOffset(1.5);
-  hDummy->Draw();
-  hDef->DrawCopy("same");
+  hDummy->Draw("same");
+  hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    h[i]->DrawCopy("same");
+    h[i]->Draw("same");
   }
   leg->Draw("same");
   canvas2->SaveAs(Form("CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
