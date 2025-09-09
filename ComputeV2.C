@@ -251,7 +251,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
         if (cent == numCentLambdaOO)
         {
           CentFT0CMin = 0;
-          CentFT0CMax = 90;
+          CentFT0CMax = 80;
         }
         else
         {
@@ -314,7 +314,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 90;
+        CentFT0CMax = 80;
       }
       else
       {
