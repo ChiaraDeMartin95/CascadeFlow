@@ -386,9 +386,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     }
     if (isOOCentrality)
     {
-      if (m > 3)
+      if (m > numCentLambdaOO)
         continue;
-      if (m == 3)
+      if (m == numCentLambdaOO)
       {
         CentFT0CMin = 0;
         CentFT0CMax = 90;
@@ -523,7 +523,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (isOOCentrality)
     {
-      if (m > 3)
+      if (m > numCentLambdaOO)
         continue;
     }
     if ((m == numCent || m == (numCent - 1)) && isV2)
@@ -624,7 +624,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (isOOCentrality)
     {
-      if (m > 3)
+      if (m > numCentLambdaOO)
         continue;
     }
     if ((m == numCent || m == (numCent - 1)) && isV2)
@@ -666,7 +666,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     if (isOOCentrality)
     {
-      if (m > 3)
+      if (m > numCentLambdaOO)
         continue;
     }
     if ((m == numCent || m == (numCent - 1)) && isV2)

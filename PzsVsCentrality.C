@@ -129,11 +129,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
   cin >> ChosenPt;
 
-  if (ChosenPart == 6 && !isFromFit)
-  {
-    cout << "You have chosen the #Lambda particle and are not using the fit. Please select a different option." << endl;
-    return;
-  }
+  // if (ChosenPart == 6 && !isFromFit)
+  //{
+  //   cout << "You have chosen the #Lambda particle and are not using the fit. Please select a different option." << endl;
+  //   return;
+  // }
 
   Int_t part = 0;
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
@@ -141,6 +141,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     part = 1;
   }
   TString SErrorSpectrum[3] = {"stat.", "syst. uncorr.", "syst. corr."};
+
+  if (ChosenPart == 6)
+  { // for Lambda in OO
+    YLow[6] = {-0.2};
+    YUp[6] = {0.2};
+  }
 
   // filein
   TString PathIn;
@@ -235,16 +241,57 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gStyle->SetOptStat(0);
   TCanvas *canvasPzs = new TCanvas("canvasPzs", "canvasPzs", 900, 700);
   StyleCanvas(canvasPzs, 0.05, 0.15, 0.15, 0.05);
-  TH1F *fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
-  TH1F *fHistPzsSist = new TH1F("fHistPzsSist", "fHistPzsSist", numCent, fCentFT0C);
-  TH1F *fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
-  TH1F *fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCent, fCentFT0C);
-  TH1F *fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCent, fCentFT0C);
-  TH1F *fHistYieldSummary = new TH1F("fHistYieldSummary", "fHistYieldSummary", numCent, fCentFT0C);
-  TH1F *fHistMeanSummary = new TH1F("fHistMeanSummary", "fHistMeanSummary", numCent, fCentFT0C);
-  TH1F *fHistSigmaSummary = new TH1F("fHistSigmaSummary", "fHistSigmaSummary", numCent, fCentFT0C);
-  TH1F *fHistMeanMinus2Sigma = new TH1F("fHistMeanMinus2Sigma", "fHistMeanMinus2Sigma", numCent, fCentFT0C);
-  TH1F *fHistMeanPlus2Sigma = new TH1F("fHistMeanPlus2Sigma", "fHistMeanPlus2Sigma", numCent, fCentFT0C);
+  TH1F *fHistPzs;
+  if (isOOCentrality)
+    fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistPzs = new TH1F("fHistPzs", "fHistPzs", numCent, fCentFT0C);
+  TH1F *fHistPzsSist;
+  if (isOOCentrality)
+    fHistPzsSist = new TH1F("fHistPzsSist", "fHistPzsSist", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistPzsSist = new TH1F("fHistPzsSist", "fHistPzsSist", numCent, fCentFT0C);
+  TH1F *fHistPzsError;
+  if (isOOCentrality)
+    fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistPzsError = new TH1F("fHistPzsError", "fHistPzsError", numCent, fCentFT0C);
+  TH1F *fHistPuritySummary;
+  if (isOOCentrality)
+    fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCent, fCentFT0C);
+  TH1F *fHistSignificanceSummary;
+  if (isOOCentrality)
+    fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCent, fCentFT0C);
+
+  TH1F *fHistYieldSummary;
+  if (isOOCentrality)
+    fHistYieldSummary = new TH1F("fHistYieldSummary", "fHistYieldSummary", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistYieldSummary = new TH1F("fHistYieldSummary", "fHistYieldSummary", numCent, fCentFT0C);
+  TH1F *fHistMeanSummary;
+  if (isOOCentrality)
+    fHistMeanSummary = new TH1F("fHistMeanSummary", "fHistMeanSummary", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistMeanSummary = new TH1F("fHistMeanSummary", "fHistMeanSummary", numCent, fCentFT0C);
+  TH1F *fHistSigmaSummary;
+  if (isOOCentrality)
+    fHistSigmaSummary = new TH1F("fHistSigmaSummary", "fHistSigmaSummary", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistSigmaSummary = new TH1F("fHistSigmaSummary", "fHistSigmaSummary", numCent, fCentFT0C);
+  TH1F *fHistMeanMinus2Sigma;
+  if (isOOCentrality)
+    fHistMeanMinus2Sigma = new TH1F("fHistMeanMinus2Sigma", "fHistMeanMinus2Sigma", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistMeanMinus2Sigma = new TH1F("fHistMeanMinus2Sigma", "fHistMeanMinus2Sigma", numCent, fCentFT0C);
+  TH1F *fHistMeanPlus2Sigma;
+  if (isOOCentrality)
+    fHistMeanPlus2Sigma = new TH1F("fHistMeanPlus2Sigma", "fHistMeanPlus2Sigma", numCentLambdaOO, fCentFT0CLambdaOO);
+  else
+    fHistMeanPlus2Sigma = new TH1F("fHistMeanPlus2Sigma", "fHistMeanPlus2Sigma", numCent, fCentFT0C);
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
@@ -306,7 +353,21 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       CentFT0CMin = CentFT0C[m];
       CentFT0CMax = CentFT0C[m + 1];
     }
-
+    if (isOOCentrality)
+    {
+      if (m > (numCentLambdaOO -1))
+        continue;
+      if (m == (numCentLambdaOO -1))
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = 90;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CLambdaOO[m];
+        CentFT0CMax = CentFT0CLambdaOO[m + 1];
+      }
+    }
     PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
     PathIn += "_" + ParticleName[ChosenPart];
@@ -490,7 +551,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Float_t tickX = 0.03;
   Float_t tickY = 0.025;
 
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 8000, 0, 80);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 9000, 0, 90);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, -1000);
   canvasPzs->cd();
@@ -500,7 +561,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXCent, TitleYPzs, "", 1.5, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(0, 80);
+  hDummy->GetXaxis()->SetRangeUser(0, 90);
   hDummy->Draw("");
   fHistPzs->Draw("same");
   fHistPzsLambda->Draw("same e0x0");
@@ -517,7 +578,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // Relative stat. uncertainty
   TCanvas *canvasPzsError = new TCanvas("canvasPzsError", "canvasPzsError", 900, 700);
   StyleCanvas(canvasPzsError, 0.05, 0.15, 0.15, 0.05);
-  TH1F *hDummyError = new TH1F("hDummyError", "hDummyError", 8000, 0, 80);
+  TH1F *hDummyError = new TH1F("hDummyError", "hDummyError", 9000, 0, 90);
   for (Int_t i = 1; i <= hDummyError->GetNbinsX(); i++)
     hDummyError->SetBinContent(i, 1e-12);
   canvasPzsError->cd();
@@ -527,7 +588,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsSistError, 0, 0.01, kGray + 2, 22, TitleXCent, "Absolute syst. uncertainty", "", MarkerPartSize[part], 1.15, 1.6);
   SetHistoTextSize(hDummyError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyError, tickX, tickY);
-  hDummyError->GetXaxis()->SetRangeUser(0, 80);
+  hDummyError->GetXaxis()->SetRangeUser(0, 90);
   hDummyError->Draw("");
   fHistPzsError->Draw("same");
   fHistPzsSistError->Draw("same e2");
@@ -551,7 +612,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsSignifLambda, 0, 1.2 * fHistPzsSignif->GetBinContent(fHistPzsSignif->GetMaximumBin()), kBlue, 20, TitleXCent, "S / #sigma_{S}", "", MarkerPartSize[part], 1.15, 1.6);
   SetHistoTextSize(hDummySignif, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummySignif, tickX, tickY);
-  hDummySignif->GetXaxis()->SetRangeUser(0, 80);
+  hDummySignif->GetXaxis()->SetRangeUser(0, 90);
   hDummySignif->GetYaxis()->SetRangeUser(0, 7);
   hDummySignif->Draw("");
   fHistPzsSignif->Draw("same");
@@ -681,7 +742,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
-  hDummy->GetXaxis()->SetRangeUser(0, 80);
+  hDummy->GetXaxis()->SetRangeUser(0, 90);
   hDummy->Draw("");
   lineatZero->Draw("same");
   fHistPzs->DrawClone("same ex0");
@@ -698,17 +759,26 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TFile *fileLambdaJunlee = new TFile(SfileLambdaJunlee);
   TGraphErrors *gPzsLambdaJunlee = (TGraphErrors *)fileLambdaJunlee->Get("gMultStat");
   TGraphErrors *gPzsLambdaJunleeSist = (TGraphErrors *)fileLambdaJunlee->Get("gMultSyst");
-  TH1F *fHistPzsLambdaJunlee = (TH1F *)fHistPzs->Clone("fHistPzsLambdaJunlee");
-  TH1F *fHistPzsLambdaJunleeSist = (TH1F *)fHistPzsSist->Clone("fHistPzsLambdaJunleeSist");
+  TH1F *hDummy10 = new TH1F("hDummy10", "hDummy10", 9, 0, 90);
+  TH1F *fHistPzsLambdaJunlee = (TH1F *)hDummy10->Clone("fHistPzsLambdaJunlee");
+  TH1F *fHistPzsLambdaJunleeStatError = (TH1F *)hDummy10->Clone("fHistPzsLambdaJunleeStatError");
+  TH1F *fHistPzsLambdaJunleeSist = (TH1F *)hDummy10->Clone("fHistPzsLambdaJunleeSist");
   fHistPzsLambdaJunlee->Reset();
   fHistPzsLambdaJunleeSist->Reset();
-  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  for (Int_t b = 1; b < gPzsLambdaJunlee->GetN(); b++)
   {
     fHistPzsLambdaJunlee->SetBinContent(b, gPzsLambdaJunlee->GetY()[b - 1]);
     fHistPzsLambdaJunlee->SetBinError(b, gPzsLambdaJunlee->GetEY()[b - 1]);
     fHistPzsLambdaJunleeSist->SetBinContent(b, gPzsLambdaJunleeSist->GetY()[b - 1]);
     fHistPzsLambdaJunleeSist->SetBinError(b, gPzsLambdaJunleeSist->GetEY()[b - 1]);
+    fHistPzsLambdaJunleeStatError->SetBinContent(b, gPzsLambdaJunlee->GetEY()[b - 1]);
+    fHistPzsLambdaJunleeStatError->SetBinError(b, 0);
   }
+  TFile *fileoutLambdaJunlee = new TFile("LambdaJunlee/fout_psi2_mult_WHisto.root", "RECREATE");
+  fHistPzsLambdaJunlee->Write();
+  fHistPzsLambdaJunleeSist->Write();
+  fHistPzsLambdaJunleeStatError->Write();
+  fileoutLambdaJunlee->Close();
 
   // Int_t colorJunlee = kGreen + 2;
   Int_t colorJunlee = kAzure - 3;
@@ -720,7 +790,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
   legendParticles->SetTextSize(0.048);
-  if (ChosenParticle == 6)
+  if (ChosenPart == 6)
     legendParticles->AddEntry(fHistPzs, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   else
     legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");

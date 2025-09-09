@@ -441,6 +441,19 @@ void FitV2orPol(
     CentFT0CMin = CentFT0C[mul];
     CentFT0CMax = CentFT0C[mul + 1];
   }
+  if (isOOCentrality)
+  {
+    if (mul == numCentLambdaOO)
+    {
+      CentFT0CMin = 0;
+      CentFT0CMax = 80;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0CLambdaOO[mul];
+      CentFT0CMax = CentFT0CLambdaOO[mul + 1];
+    }
+  }
 
   cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   TString histoNameMassvsV2 = "";
@@ -2775,4 +2788,8 @@ void FitV2orPol(
     cout << "The acceptance is computed without invariant mass fit " << endl;
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
+
+  cout << "Yield " << endl;
+  cout << "pt interval: " << PtBins[numPtBins] << " - " << PtBins[numPtBins+1] << endl;
+  cout << Yield[numPtBinsVar] << endl;
 }
