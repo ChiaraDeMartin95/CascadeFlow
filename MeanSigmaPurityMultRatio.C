@@ -369,6 +369,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   // get spectra in multiplicity classes
   for (Int_t m = numCent; m >= 0; m--)
   {
+    cout << "m " << m << endl;
     if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
@@ -382,6 +383,21 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     {
       CentFT0CMin = CentFT0C[m];
       CentFT0CMax = CentFT0C[m + 1];
+    }
+    if (isOOCentrality)
+    {
+      if (m > 3)
+        continue;
+      if (m == 3)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = 90;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CLambdaOO[m];
+        CentFT0CMax = CentFT0CLambdaOO[m + 1];
+      }
     }
 
     PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
@@ -505,6 +521,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   for (Int_t m = numCent; m >= 0; m--)
   {
+    if (isOOCentrality)
+    {
+      if (m > 3)
+        continue;
+    }
     if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
@@ -601,6 +622,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   for (Int_t m = numCent; m >= 0; m--)
   {
+    if (isOOCentrality)
+    {
+      if (m > 3)
+        continue;
+    }
     if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
@@ -638,6 +664,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   hDummy->Draw("same");
   for (Int_t m = numCent; m >= 0; m--)
   {
+    if (isOOCentrality)
+    {
+      if (m > 3)
+        continue;
+    }
     if ((m == numCent || m == (numCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (numCent - 2) && m != numCent)))
