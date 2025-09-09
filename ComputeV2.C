@@ -177,7 +177,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
           continue;
         }
         // QCPlot
-        if (ChosenPart == 6)
+        if (isOOCentrality)
         {
           hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CLambdaOO[cent], CentFT0CLambdaOO[cent + 1]));
           cout << "Using Lambda centrality bins: " << CentFT0CLambdaOO[cent] << " - " << CentFT0CLambdaOO[cent + 1] << endl;
@@ -190,7 +190,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
           return;
         }
         hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
-        if (ChosenPart == 6)
+        if (isOOCentrality)
           hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0CLambdaOO[cent], CentFT0CLambdaOO[cent + 1]));
         if (!weights)
         {
