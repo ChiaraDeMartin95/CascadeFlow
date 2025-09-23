@@ -1,13 +1,14 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
-Bool_t ExtrisRapiditySel = 1; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
+Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
+Bool_t isApplyCentWeight = 1;
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0;         // 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 0;
+Bool_t isReducedPtBins = 1;
 Bool_t isOOCentrality = 1;
 
 const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
@@ -19,7 +20,8 @@ const Int_t numPtBinsReduced = 7;
 const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
-const Int_t numCentLambdaOO = 8; //3
+const Int_t numCentLambdaOO = 9;
+const Int_t commonNumCent = 9; // the maximum of the two above
 // const Int_t numCent_PtDiff = 3; // for pt differential measurement
 const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
 
@@ -42,10 +44,8 @@ TString TitleYPzs = "#it{P}_{z,s2}";
 // Centrality
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80}; //{0, 30, 50, 80}; // for pt differential measurement
 Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
-Int_t CentFT0CLambdaOO[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80}; //{0, 30, 50, 80}; // for pt differential measurement
-Double_t fCentFT0CLambdaOO[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
-//Int_t CentFT0CLambdaOO[numCent + 1]= {0, 20, 50, 90};
-//Double_t fCentFT0CLambdaOO[numCent + 1] = {0, 20, 50, 90};
+Int_t CentFT0CLambdaOO[numCentLambdaOO + 1]= {0, 10, 20, 30, 40, 50, 60, 70, 80, 90};
+Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
 Double_t dNdEtaAbhiErr[numCent] = {63, 40, 27, 19, 13, 8, 5, 3};
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
@@ -99,7 +99,6 @@ Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay
 // TString SinputFileName = "LHC23_PbPb_pass4_Train369742"; // Pzs2 from Lambda, proton acceptance vs pt on the fly
 // TString SinputFileName = "LHC23_PbPb_pass4_Train370610_ProtonAcc"; // PRELIMINARIES: Pzs2 from Lambda, proton acceptance vs pt on the fly, proton acceptance vs pt and eta of Lambda
 //TString SinputFileName = "LHC23_PbPb_pass5_Train456578_ProtonAcc"; // Xi polarization, proton acceptance vs pt and eta of Lambda
-
 //TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
 //TString SinputFileName = "LHC23_PbPb_pass5_Train463978_PrimaryProtonAcceptance"; //proton acceptance for primary lambdas
 //TString SinputFileName = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; //Lambda polarization, proton acceptance for secondary lambdas
@@ -108,9 +107,10 @@ Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay
 //TString SinputFileName = "LHC23_PbPb_pass5_small_testEP"; // test with LF EP
 //TString SinputFileName = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
 // TString SinputFileName = "LHC25_OO_Train487953"; // test with Lambdas
+//TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // Pzs2 of Lambda
+TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
+//TString SinputFileName = "AO2D_LambdaPol_564374_11"; 
 //TString SinputFileName = "LambdaTest";
-
-TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // OO Lambda polarization analysis
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -127,9 +127,10 @@ TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // OO Lambda polariza
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
 // TString SinputFileNameSyst = "LHC25_OO_Train487953";
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; 
+//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
+//TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805"; 
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; 
-TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711"; // OO Lambda polarization analysis
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
@@ -174,23 +175,25 @@ const float LowerlimitBDTscoreCut = 0.2;
 // const float MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.8, 0.8, 0.8, 0.6, 0.48, 0.48, 0.96}; // maximum BDT value for syst. evaluation
 const double MinBDTscorePtInt[numCent + 1] = {0.959, 0.92, 0.879, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
+const bool isLoosest = 0;
+const bool isTightest = 0;
 
 // systematics for Lambda
-const float DefaultV0RadiusCut = 1.2;
-const float UpperlimitV0RadiusCut = 1.5;
-const float LowerlimitV0RadiusCut = 0.9;
-const float DefaultDcaV0DauCut = 1;
-const float UpperlimitDcaV0DauCut = 1.2;
-const float LowerlimitDcaV0DauCut = 0.8;
-const float DefaultV0CosPA = 0.995;
-const float UpperlimitV0CosPA = 0.999;
-const float LowerlimitV0CosPA = 0.99;
-const float DefaultDcaNegToPV = 0.005;
+const float DefaultV0RadiusCut = 1.0;
+const float UpperlimitV0RadiusCut = 1.2;
+const float LowerlimitV0RadiusCut = 0.9; //derived data limit
+const float DefaultDcaV0DauCut = 1.2;
+const float UpperlimitDcaV0DauCut = 1.5; //derived data limit
+const float LowerlimitDcaV0DauCut = 1.0; 
+const double DefaultV0CosPA = 0.995;
+const double UpperlimitV0CosPA = 0.999;
+const double LowerlimitV0CosPA = 0.99; //0.97 is the derived data limit
+const float DefaultDcaNegToPV = 0.06;
 const float UpperlimitDcaNegToPV = 0.1;
-const float LowerlimitDcaNegToPV = 0.03;
-const float DefaultDcaPosToPV = 0.005;
+const float LowerlimitDcaNegToPV = 0.05; //derived data limit
+const float DefaultDcaPosToPV = 0.06;
 const float UpperlimitDcaPosToPV = 0.1;
-const float LowerlimitDcaPosToPV = 0.03;
+const float LowerlimitDcaPosToPV = 0.05; //derived data limit
 
 // Systematic studies on mass cut
 const int trialsMassCut = 7;
