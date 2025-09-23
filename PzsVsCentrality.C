@@ -110,7 +110,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 }
 
 Float_t YLow[numPart] = {-0.001};
-Float_t YUp[numPart] = {0.011};
+Float_t YUp[numPart] = {0.05};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
@@ -150,7 +150,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   // filein
   TString PathIn;
-  TFile *fileIn[numCent + 1];
+  TFile *fileIn[commonNumCent + 1];
 
   // fileinLambda
   TString PathInLambda = "Run2Results/HEPData-ins1891389-v1-P_z_vsCent.root";
@@ -214,6 +214,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   stringout += "_Pzs2";
   if (isApplyWeights)
     stringout += "_Weighted";
+  if (isApplyCentWeight)
+    stringout += "_CentWeighted";
   if (!useCommonBDTValue)
     stringout += "_BDTCentDep";
   if (isRun2Binning)
@@ -266,7 +268,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCentLambdaOO, fCentFT0CLambdaOO);
   else
     fHistSignificanceSummary = new TH1F("fHistSignificanceSummary", "fHistSignificanceSummary", numCent, fCentFT0C);
-
   TH1F *fHistYieldSummary;
   if (isOOCentrality)
     fHistYieldSummary = new TH1F("fHistYieldSummary", "fHistYieldSummary", numCentLambdaOO, fCentFT0CLambdaOO);
@@ -332,16 +333,16 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
-  TH1F *fHistSpectrum[numCent + 1];
-  TH1F *fHistPurity[numCent + 1];
-  TH1F *fHistSignificance[numCent + 1];
-  TH1F *fHistYield[numCent + 1];
-  TH1F *fHistMean[numCent + 1];
-  TH1F *fHistSigma[numCent + 1];
-  TString Smolt[numCent + 1];
-  TString SmoltBis[numCent + 1];
+  TH1F *fHistSpectrum[commonNumCent + 1];
+  TH1F *fHistPurity[commonNumCent + 1];
+  TH1F *fHistSignificance[commonNumCent + 1];
+  TH1F *fHistYield[commonNumCent + 1];
+  TH1F *fHistMean[commonNumCent + 1];
+  TH1F *fHistSigma[commonNumCent + 1];
+  TString Smolt[commonNumCent + 1];
+  TString SmoltBis[commonNumCent + 1];
   // get spectra in multiplicity classes
-  for (Int_t m = 0; m < numCent; m++)
+  for (Int_t m = 0; m < commonNumCent; m++)
   {
     if (m == numCent)
     { // 0-80%
@@ -355,9 +356,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     }
     if (isOOCentrality)
     {
-      if (m > (numCentLambdaOO -1))
-        continue;
-      if (m == (numCentLambdaOO -1))
+      if (m == (numCentLambdaOO))
       {
         CentFT0CMin = 0;
         CentFT0CMax = 90;
@@ -378,6 +377,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathIn += Smolt[m];
     if (isApplyWeights)
       PathIn += "_Weighted";
+    if (isApplyCentWeight)
+      PathIn += "_CentWeighted";
     if (!useCommonBDTValue)
       PathIn += "_BDTCentDep";
     if (isRun2Binning)
@@ -453,11 +454,23 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistMean[m]->SetName("histoMean_" + Smolt[m]);
     fHistSigma[m]->SetName("histoSigma_" + Smolt[m]);
 
-    fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
-    fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
-
-    fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
-    fHistPzsError->SetBinError(m + 1, 0);
+    if (!isFromFit)
+    {
+      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzsError->SetBinError(m + 1, 0);
+    }
+    else
+    {
+      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
+      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
+      fHistPzsError->SetBinError(m + 1, 0);
+    }
+    cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " ";
+    cout << "Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << " +- " << fHistSpectrum[m]->GetBinError(1) << endl;
+    cout << fHistPzs->GetBinContent(m + 1) << " +- " << fHistPzs->GetBinError(m + 1) << endl;
 
     fHistPuritySummary->SetBinContent(m + 1, fHistPurity[m]->GetBinContent(1));
     fHistPuritySummary->SetBinError(m + 1, fHistPurity[m]->GetBinError(1));

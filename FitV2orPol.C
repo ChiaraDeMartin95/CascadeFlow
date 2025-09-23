@@ -354,7 +354,7 @@ Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626, 
 Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72, 1.13};
 
 // Event plane resolution
-Float_t ftcReso[numCent + 1] = {0};
+Float_t ftcReso[commonNumCent + 1] = {0};
 
 void FitV2orPol(
     Bool_t isPtAnalysis = 1,    // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
@@ -373,6 +373,25 @@ void FitV2orPol(
     Bool_t isMeanFixedPDG = 0,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+  if (isOOCentrality && commonNumCent != numCentLambdaOO)
+  {
+    cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
+    return;
+  }
+  if (!isOOCentrality && commonNumCent != numCent)
+  {
+    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent. Please check the settings." << endl;
+    return;
+  }
+  Int_t numCentMax = 0;
+  if (isOOCentrality)
+  {
+    numCentMax = numCentLambdaOO;
+  }
+  else
+  {
+    numCentMax = numCent;
+  }
   if (ChosenPart == 6 && isPolFromLambda)
   {
     cout << "Polarization of lambda cannot be computed from polarization of lambdas :) Set isPolFromLambda = 0" << endl;
@@ -446,7 +465,7 @@ void FitV2orPol(
     if (mul == numCentLambdaOO)
     {
       CentFT0CMin = 0;
-      CentFT0CMax = 80;
+      CentFT0CMax = 90;
     }
     else
     {
@@ -515,10 +534,20 @@ void FitV2orPol(
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
   TH1F *hReso080 = (TH1F *)fileResoEP->Get("hReso080");
   cout << "Reso name: " << fileResoName << endl;
-  if (mul == numCent)
-    ftcReso[mul] = hReso080->GetBinContent(1);
+  if (isOOCentrality)
+  {
+    if (mul == numCentLambdaOO)
+      ftcReso[mul] = hReso080->GetBinContent(1);
+    else
+      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+  }
   else
-    ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+  {
+    if (mul == numCent)
+      ftcReso[mul] = hReso080->GetBinContent(1);
+    else
+      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+  }
   cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   cout << "Resolution: " << ftcReso[mul] << endl;
 
@@ -540,7 +569,7 @@ void FitV2orPol(
     LowerLimitRSB = LowerLimitRSBLambda;
   }
 
-  if (mul > numCent + 1)
+  if (mul > numCentMax + 1)
   {
     cout << "Multiplicity out of range" << endl;
     return;
@@ -736,6 +765,8 @@ void FitV2orPol(
       SPathIn += SBDT;
     if (isApplyWeights)
       SPathIn += "_Weighted";
+    if (isApplyCentWeight)
+      SPathIn += "_CentWeighted";
     if (v2type == 1)
       SPathIn += "_SP";
     if (!useCommonBDTValue)
@@ -751,6 +782,16 @@ void FitV2orPol(
       SPathIn += "_Eta08";
     if (isReducedPtBins)
       SPathIn += "_ReducedPtBins";
+
+    if (ChosenPart == 6 && isSysMultTrial)
+    {
+      if (isLoosest)
+        SPathIn += "_isLoosest";
+      else if (isTightest)
+        SPathIn += "_isTightest";
+      else
+        SPathIn += Form("_SysMultTrial_%i", indexMultTrial);
+    }
     SPathIn += STHN[ExtrisFromTHN] + ".root";
 
     if (pt == numPtBinsVar)
@@ -2143,12 +2184,12 @@ void FitV2orPol(
   TFile *fileV2Correction = new TFile("V2Corr.root", "READ");
   TH1F *histoV2Corr = (TH1F *)fileV2Correction->Get(Form("v2CorrCent%i", mul));
   // this histogram is already corrected by resolution
-  if (!histoV2Corr && (mul != numCent))
+  if (!histoV2Corr && (mul != numCentMax))
   {
     cout << "Error: histoV2Corr not found" << endl;
-    return;
+    // return;
   }
-  if (ExtrisApplyEffWeights && (mul != numCent))
+  if (ExtrisApplyEffWeights && (mul != numCentMax))
     histoV2MixedCorr->Add(histoV2Corr, 1);
   for (Int_t pt = 0; pt < numPtBinsVar; pt++)
   {
@@ -2230,6 +2271,8 @@ void FitV2orPol(
   SoutputfileAcceptance += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   if (isApplyWeights)
     Soutputfile += "_Weighted";
+  if (isApplyCentWeight)
+    Soutputfile += "_CentWeighted";
   if (v2type == 1)
     Soutputfile += "_SP";
   if (!useCommonBDTValue)
@@ -2252,6 +2295,7 @@ void FitV2orPol(
   }
   if (isSysMultTrial && ChosenPart != 6)
     Soutputfile += SBDT;
+
   Soutputfile += SEtaSysChoice[EtaSysChoice];
   SoutputfileAcceptance += SEtaSysChoice[EtaSysChoice];
   if (!isRapiditySel)
@@ -2270,6 +2314,17 @@ void FitV2orPol(
   }
   if (isReducedPtBins)
     Soutputfile += "_ReducedPtBins";
+  if (ChosenPart == 6 && isSysMultTrial)
+  {
+    if (isLoosest)
+      Soutputfile += "_isLoosest";
+    else if (isTightest)
+      Soutputfile += "_isTightest";
+    else
+      Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
+  }
+  if (ChosenPart == 6 && isSysMultTrial)
+    Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -2790,6 +2845,6 @@ void FitV2orPol(
   }
 
   cout << "Yield " << endl;
-  cout << "pt interval: " << PtBins[numPtBins] << " - " << PtBins[numPtBins+1] << endl;
+  cout << "pt interval: " << PtBins[numPtBins] << " - " << PtBins[numPtBins + 1] << endl;
   cout << Yield[numPtBinsVar] << endl;
 }

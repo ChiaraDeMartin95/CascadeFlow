@@ -27,6 +27,17 @@ void ComputeV2(Int_t indexMultTrial = 0,
                Int_t EtaSysChoice = ExtrEtaSysChoice,
                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
+  if (isOOCentrality && commonNumCent != numCentLambdaOO)
+  {
+    cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
+    return;
+  }
+  if (!isOOCentrality && commonNumCent != numCent)
+  {
+    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent. Please check the settings." << endl;
+    return;
+  }
   if (isReducedPtBins && numPtBins != numPtBinsReduced)
   {
     cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
@@ -40,12 +51,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
-  if (BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial)
+  if ((BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial) && ChosenPart != 6)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
   TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
+  if (isApplyCentWeight)
+    SinputFile += "_CentWeighted";
   if (v2type == 1)
     SinputFile += "_SP";
   if (!useCommonBDTValue)
@@ -56,95 +69,104 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_Eta08";
   SinputFile += SBDT;
   if (ChosenPart == 6 && isSysMultTrial)
-    SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+  {
+    if (isLoosest)
+      SinputFile += "_isLoosest";
+    else if (isTightest)
+      SinputFile += "_isTightest";
+    else
+      SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+  }
+  if (isOOCentrality)
+    SinputFile += "_isOOCentrality";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
-  TH3D *hmassVsPtVsV2C[numCent + 1];
+  TH3D *hmassVsPtVsV2C[commonNumCent + 1];
 
-  TH3D *hmassVsPtVsPzs2[numCent + 1];
-  TH3D *hmassVsPtVsPzs2LambdaFromC[numCent + 1];
-  TH3D *hmassVsPsiVsPz[numCent + 1];
-  TH3D *hmassVsPsiVsPzLambdaFromC[numCent + 1];
+  TH3D *hmassVsPtVsPzs2[commonNumCent + 1];
+  TH3D *hmassVsPtVsPzs2LambdaFromC[commonNumCent + 1];
+  TH3D *hmassVsPsiVsPz[commonNumCent + 1];
+  TH3D *hmassVsPsiVsPzLambdaFromC[commonNumCent + 1];
 
-  TProfile2D *profmassVsPt[numCent + 1];
-  TH2F *hmassVsPt[numCent + 1];
-  TH2F *hmassVsV2C[numCent + 1][numPtBins + 1];
+  TProfile2D *profmassVsPt[commonNumCent + 1];
+  TH2F *hmassVsPt[commonNumCent + 1];
+  TH2F *hmassVsV2C[commonNumCent + 1][numPtBins + 1];
 
-  TH2F *hmassVsPzs2[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsPzs2LambdaFromC[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsPz[numCent + 1][numPsiBins + 1];
-  TH2F *hmassVsPzLambdaFromC[numCent + 1][numPsiBins + 1];
+  TH2F *hmassVsPzs2[commonNumCent + 1][numPtBins + 1];
+  TH2F *hmassVsPzs2LambdaFromC[commonNumCent + 1][numPtBins + 1];
+  TH2F *hmassVsPz[commonNumCent + 1][numPsiBins + 1];
+  TH2F *hmassVsPzLambdaFromC[commonNumCent + 1][numPsiBins + 1];
 
-  TH1F *hmass[numCent + 1][numPtBins + 1];
-  TH1F *hmassPsi[numCent + 1][numPsiBins + 1];
-  TH1F *hV2C[numCent + 1][numPtBins + 1];
+  TH1F *hmass[commonNumCent + 1][numPtBins + 1];
+  TH1F *hmassPsi[commonNumCent + 1][numPsiBins + 1];
+  TH1F *hV2C[commonNumCent + 1][numPtBins + 1];
 
-  TH1F *hPzs2[numCent + 1][numPtBins + 1];
-  TH1F *hPzs2LambdaFromC[numCent + 1][numPtBins + 1];
-  TH1F *hPz[numCent + 1][numPsiBins + 1];
-  TH1F *hPzLambdaFromC[numCent + 1][numPsiBins + 1];
+  TH1F *hPzs2[commonNumCent + 1][numPtBins + 1];
+  TH1F *hPzs2LambdaFromC[commonNumCent + 1][numPtBins + 1];
+  TH1F *hPz[commonNumCent + 1][numPsiBins + 1];
+  TH1F *hPzLambdaFromC[commonNumCent + 1][numPsiBins + 1];
 
-  TH1F *hmassVsV2Cx[numCent + 1][numPtBins + 1];
-  TH1F *hV2CFromProfile[numCent + 1][numPtBins + 1];
-  TProfile *pV2C[numCent + 1][numPtBins + 1];
-  TProfile *pPzs2[numCent + 1][numPtBins + 1];
-  TProfile *pPzs2LambdaFromC[numCent + 1][numPtBins + 1];
-  TProfile *pPz[numCent + 1][numPsiBins + 1];
-  TProfile *pPzLambdaFromC[numCent + 1][numPsiBins + 1];
-  TH2F *hPhiCentHisto[numCent];
-  TH1F *hPhiCentHisto1D[numCent][numPtBins + 1];
+  TH1F *hmassVsV2Cx[commonNumCent + 1][numPtBins + 1];
+  TH1F *hV2CFromProfile[commonNumCent + 1][numPtBins + 1];
+  TProfile *pV2C[commonNumCent + 1][numPtBins + 1];
+  TProfile *pPzs2[commonNumCent + 1][numPtBins + 1];
+  TProfile *pPzs2LambdaFromC[commonNumCent + 1][numPtBins + 1];
+  TProfile *pPz[commonNumCent + 1][numPsiBins + 1];
+  TProfile *pPzLambdaFromC[commonNumCent + 1][numPsiBins + 1];
+  TH2F *hPhiCentHisto[commonNumCent];
+  TH1F *hPhiCentHisto1D[commonNumCent][numPtBins + 1];
 
-  TString hName[numCent + 1] = {""};
-  TString hNamePzs2_3D[numCent + 1] = {""};
-  TString hNamePzs2LambdaFromC_3D[numCent + 1] = {""};
-  TString hNamePzVsPsi_3D[numCent + 1] = {""};
-  TString hNamePzVsPsiLambdaFromC_3D[numCent + 1] = {""};
-  TString profName[numCent + 1] = {""};
+  TString hName[commonNumCent + 1] = {""};
+  TString hNamePzs2_3D[commonNumCent + 1] = {""};
+  TString hNamePzs2LambdaFromC_3D[commonNumCent + 1] = {""};
+  TString hNamePzVsPsi_3D[commonNumCent + 1] = {""};
+  TString hNamePzVsPsiLambdaFromC_3D[commonNumCent + 1] = {""};
+  TString profName[commonNumCent + 1] = {""};
 
-  TString hNameMass[numCent + 1][numPtBins + 1] = {""};
-  TString hNameV2C[numCent + 1][numPtBins + 1] = {""};
-  TString hNamePzs2[numCent + 1][numPtBins + 1] = {""};
-  TString hNamePzs2LambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TString hNamePz[numCent + 1][numPsiBins + 1] = {""};
-  TString hNamePzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameMass[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameV2C[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNamePzs2[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNamePzs2LambdaFromC[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNamePz[commonNumCent + 1][numPsiBins + 1] = {""};
+  TString hNamePzLambdaFromC[commonNumCent + 1][numPsiBins + 1] = {""};
 
-  TString hNameMassV2C[numCent + 1][numPtBins + 1] = {""};
-  TString hNameMassPzs2[numCent + 1][numPtBins + 1] = {""};
-  TString hNameMassPzs2LambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TString hNameMassPz[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameMassPzLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassV2C[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPzs2[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPzs2LambdaFromC[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPz[commonNumCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassPzLambdaFromC[commonNumCent + 1][numPsiBins + 1] = {""};
 
-  TString hNameMassPsi[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameV2CFromProfile2D[numCent + 1][numPtBins + 1] = {""};
+  TString hNameMassPsi[commonNumCent + 1][numPsiBins + 1] = {""};
+  TString hNameV2CFromProfile2D[commonNumCent + 1][numPtBins + 1] = {""};
 
   // acceptance correction ***
-  TH3D *hmassVsPtVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[numCent + 1];
-  TH3D *hmassVsPsiVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[numCent + 1];
-  TString hNameCos2Theta_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsi_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsiLambdaFromC_3D[numCent + 1] = {""};
+  TH3D *hmassVsPtVsCos2Theta[commonNumCent + 1];
+  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TH3D *hmassVsPsiVsCos2Theta[commonNumCent + 1];
+  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TString hNameCos2Theta_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaVsPsi_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaVsPsiLambdaFromC_3D[commonNumCent + 1] = {""};
 
-  TH2F *hmassVsCos2Theta[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
-  TH2F *hmassVsCos2ThetaPsi[numCent + 1][numPsiBins + 1];
-  TH2F *hmassVsCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
-  TString hNameMassCos2Theta[numCent + 1][numPtBins + 1] = {""};
-  TString hNameMassCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TString hNameMassCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameMassCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+  TH2F *hmassVsCos2Theta[commonNumCent + 1][numPtBins + 1];
+  TH2F *hmassVsCos2ThetaLambdaFromC[commonNumCent + 1][numPtBins + 1];
+  TH2F *hmassVsCos2ThetaPsi[commonNumCent + 1][numPsiBins + 1];
+  TH2F *hmassVsCos2ThetaPsiLambdaFromC[commonNumCent + 1][numPsiBins + 1];
+  TString hNameMassCos2Theta[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameMassCos2ThetaLambdaFromC[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameMassCos2ThetaPsi[commonNumCent + 1][numPsiBins + 1] = {""};
+  TString hNameMassCos2ThetaPsiLambdaFromC[commonNumCent + 1][numPsiBins + 1] = {""};
 
-  TH1F *hCos2Theta[numCent + 1][numPtBins + 1];
-  TH1F *hCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1];
-  TH1F *hCos2ThetaPsi[numCent + 1][numPsiBins + 1];
-  TH1F *hCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1];
-  TString hNameCos2Theta[numCent + 1][numPtBins + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC[numCent + 1][numPtBins + 1] = {""};
-  TString hNameCos2ThetaPsi[numCent + 1][numPsiBins + 1] = {""};
-  TString hNameCos2ThetaPsiLambdaFromC[numCent + 1][numPsiBins + 1] = {""};
+  TH1F *hCos2Theta[commonNumCent + 1][numPtBins + 1];
+  TH1F *hCos2ThetaLambdaFromC[commonNumCent + 1][numPtBins + 1];
+  TH1F *hCos2ThetaPsi[commonNumCent + 1][numPsiBins + 1];
+  TH1F *hCos2ThetaPsiLambdaFromC[commonNumCent + 1][numPsiBins + 1];
+  TString hNameCos2Theta[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC[commonNumCent + 1][numPtBins + 1] = {""};
+  TString hNameCos2ThetaPsi[commonNumCent + 1][numPsiBins + 1] = {""};
+  TString hNameCos2ThetaPsiLambdaFromC[commonNumCent + 1][numPsiBins + 1] = {""};
   // end of acceptance correction ***
 
   Int_t CentFT0CMax = 0;
@@ -155,27 +177,20 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TCanvas *QCPhi = new TCanvas("QCPhi", "QCPhi", 1400, 1200);
   QCPhi->Divide(4, 4);
   std::vector<double> centBins;
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
-    if (isOOCentrality && cent > numCentLambdaOO)
-    {
-      continue;
-    }
     centBins.push_back(static_cast<double>(CentFT0C[cent]));
   }
 
+  TH2F *hMassVsPt = (TH2F *)inputFile->Get("mass_LambdavPt");
   TH3D *weights{nullptr};
   if (!ExtrisFromTHN)
   {
     for (Int_t pt = 0; pt < numPtBins; pt++)
     {
       QCPhi->cd(pt + 1);
-      for (Int_t cent = 0; cent < numCent; cent++)
+      for (Int_t cent = 0; cent < commonNumCent; cent++)
       {
-        if (isOOCentrality && cent > (numCentLambdaOO - 1))
-        {
-          continue;
-        }
         // QCPlot
         if (isOOCentrality)
         {
@@ -200,7 +215,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
             phiBins[bin] = bin * 2 * TMath::Pi() / (phiBins.size() - 1);
           }
           phiBins.back() = 2 * TMath::Pi();
-          weights = new TH3D("weights", "weights", numCent, centBins.data(), numPtBins, PtBins, hPhiCentHisto[cent]->GetYaxis()->GetNbins(), phiBins.data());
+          weights = new TH3D("weights", "weights", commonNumCent, centBins.data(), numPtBins, PtBins, hPhiCentHisto[cent]->GetYaxis()->GetNbins(), phiBins.data());
         }
 
         hPhiCentHisto[cent]->GetXaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
@@ -227,12 +242,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
   // average pt for each pt interval: an estimate based on all selected candidates
   TCanvas *cAvgPt = new TCanvas("cAvgPt", "cAvgPt", 1400, 1200);
   TCanvas *cPtDeviation = new TCanvas("cPtDeviation", "cPtDeviation", 1400, 1200);
-  TH1F *hHistoPt[numCent + 1];
-  TH1F *hAvgPt[numCent + 1];
-  TH1F *hPtDeviation[numCent + 1];
+  TH1F *hHistoPt[commonNumCent + 1];
+  TH1F *hAvgPt[commonNumCent + 1];
+  TH1F *hPtDeviation[commonNumCent + 1];
   if (!ExtrisFromTHN)
   {
-    for (Int_t cent = 0; cent < numCent + 1; cent++)
+    for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
     {
       if (cent == numCent)
       { // 0-80%
@@ -246,12 +261,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
       }
       if (isOOCentrality)
       {
-        if (cent > numCentLambdaOO)
-          continue;
         if (cent == numCentLambdaOO)
         {
           CentFT0CMin = 0;
-          CentFT0CMax = 80;
+          CentFT0CMax = 90;
         }
         else
         {
@@ -295,7 +308,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
 
   // v2 and polarization computation
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     if (cent == numCent)
     { // 0-80%
@@ -309,12 +322,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     }
     if (isOOCentrality)
     {
-      if (cent > numCentLambdaOO)
-        continue;
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 80;
+        CentFT0CMax = 90;
       }
       else
       {
@@ -328,18 +339,17 @@ void ComputeV2(Int_t indexMultTrial = 0,
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
 
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
-
     hNameCos2Theta_3D[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaLambdaFromC_3D[cent] = Form("massVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart == 6)
@@ -361,6 +371,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hmassVsPtVsPzs2[cent] = (TH3D *)inputFile->Get(hNamePzs2_3D[cent]);
     if (!hmassVsPtVsPzs2[cent])
     {
+      cout << "Centrality: " << cent << endl;
       cout << "Histogram hmassVsPtVsPzs2 not available" << endl;
       return;
     }
@@ -585,6 +596,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
+  if (isApplyCentWeight)  
+    SOutputFile += "_CentWeighted";
   if (v2type == 1)
     SOutputFile += "_SP";
   if (!useCommonBDTValue)
@@ -602,17 +615,20 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_ReducedPtBins";
   SOutputFile += STHN[ExtrisFromTHN];
   if (ChosenPart == 6 && isSysMultTrial)
-    SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
-  SOutputFile += ".root";
-  TFile *file = new TFile(SOutputFile, "RECREATE");
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
   {
-    cout << "hello" << cent << endl;
-    if (isOOCentrality)
-    {
-      if (cent > numCentLambdaOO)
-        continue;
-    }
+    if (isLoosest)
+      SOutputFile += "_isLoosest";
+    else if (isTightest)
+      SOutputFile += "_isTightest";
+    else
+      SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
+  }
+  SOutputFile += ".root";
+  cout << "Output file: " << SOutputFile << endl;
+  TFile *file = new TFile(SOutputFile, "RECREATE");
+  hMassVsPt->Write();
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
+  {
     hmassVsPtVsV2C[cent]->Write();
     hmassVsPtVsPzs2[cent]->Write();
     hmassVsPtVsPzs2LambdaFromC[cent]->Write();
