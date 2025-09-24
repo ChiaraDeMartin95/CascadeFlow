@@ -827,6 +827,76 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.png");
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.eps");
 
+  TCanvas *canvasPzsVsMultiplicity = new TCanvas("canvasPzsVsMultiplicity", "canvasPzsVsMultiplicity", 900, 700);
+  StyleCanvas(canvasPzsVsMultiplicity, 0.06, 0.12, 0.1, 0.03);
+  canvasPzsVsMultiplicity->cd();
+  gPad->SetLogx();
+  TH1F *hDummyVsMultiplicity = new TH1F("hDummyVsMultiplicity", "hDummyVsMultiplicity", 1500, 0, 1500);
+  for (Int_t i = 1; i <= hDummyVsMultiplicity->GetNbinsX(); i++)
+    hDummyVsMultiplicity->SetBinContent(i, -1000);
+  canvasPzsVsMultiplicity->cd();
+  SetFont(hDummyVsMultiplicity);
+  StyleHistoYield(hDummyVsMultiplicity, YLow[part], YUp[part], 1, 1, "dNdeta", TitleYPzs, "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyVsMultiplicity, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyVsMultiplicity, tickX, tickY);
+  hDummyVsMultiplicity->GetXaxis()->SetRangeUser(7, 1500);
+  hDummyVsMultiplicity->Draw("");
+  TGraphErrors *gPzsVsMultiplicity = new TGraphErrors();
+  TString SfilePzspPb = "HEPData-ins2879229-v1-Table_1.root";
+  TFile *filePzspPb = new TFile(SfilePzspPb);
+  TDirectoryFile *dir = (TDirectoryFile *)filePzspPb->Get("Table 1");
+  TGraphAsymmErrors *gPzspPb = (TGraphAsymmErrors *)dir->Get("Graph1D_y3");
+  TGraphErrors *gPzsVsMult;
+  TGraphErrors *gPzsVsMultJunlee = new TGraphErrors(8);
+  for (Int_t i = 1; i < gPzsLambdaJunlee->GetN(); i++)
+  {
+    // cout << "i " << i << " " << dNdEtaAbhi[gPzsLambdaJunlee->GetN() - i] << " " << gPzsLambdaJunlee->GetY()[gPzsLambdaJunlee->GetN() - i] << endl;
+    gPzsVsMultJunlee->SetPoint(i, dNdEtaAbhi[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunlee->GetY()[gPzsLambdaJunlee->GetN() - i]);
+    gPzsVsMultJunlee->SetPointError(i, dNdEtaAbhiErr[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunlee->GetEY()[gPzsLambdaJunlee->GetN() - i]);
+  }
+  if (isOOCentrality)
+    gPzsVsMult = new TGraphErrors(numCentLambdaOO);
+  else
+    gPzsVsMult = new TGraphErrors(numCent);
+  Int_t CommonNumCent = numCent;
+  if (isOOCentrality)
+    CommonNumCent = numCentLambdaOO;
+  for (Int_t b = 1; b <= CommonNumCent; b++)
+  {
+    // cout << "b " << b << " " << dNdEtaOO[CommonNumCent - b] << endl;
+    if (isOOCentrality)
+    {
+      gPzsVsMult->SetPoint(b - 1, dNdEtaOO[CommonNumCent - b], fHistPzs->GetBinContent(CommonNumCent - b + 1));
+      gPzsVsMult->SetPointError(b - 1, dNdEtaOOErr[CommonNumCent - b], fHistPzs->GetBinError(CommonNumCent - b + 1));
+    }
+    else
+    {
+      gPzsVsMult->SetPoint(b - 1, dNdEtaAbhi[CommonNumCent - b], fHistPzs->GetBinContent(CommonNumCent - b + 1));
+      gPzsVsMult->SetPointError(b - 1, dNdEtaAbhiErr[CommonNumCent - b], fHistPzs->GetBinError(CommonNumCent - b + 1));
+    }
+  }
+  for (Int_t i = 0; i < gPzspPb->GetN(); i++)
+  {
+    cout << "i " << i << " " << gPzspPb->GetX()[i] << " " << gPzspPb->GetY()[i] << endl;
+    cout << gPzspPb->GetErrorYhigh(i) << endl;
+    gPzspPb->SetPoint(i, gPzspPb->GetX()[i] / 4.8, gPzspPb->GetY()[i] / 100);
+    gPzspPb->SetPointError(i, 0, 0, gPzspPb->GetErrorYlow(i) / 100, gPzspPb->GetErrorYhigh(i) / 100);
+  }
+  gPzspPb->SetLineColor(kBlack);
+  gPzspPb->SetMarkerColor(kBlack);
+  gPzspPb->SetMarkerStyle(20);
+  gPzspPb->Draw("same p");
+  gPzsVsMult->SetMarkerStyle(20);
+  gPzsVsMult->SetMarkerColor(kRed + 1);
+  gPzsVsMult->SetLineColor(kRed + 1);
+  gPzsVsMult->Draw("same p");
+  gPzsVsMultJunlee->SetMarkerStyle(20);
+  gPzsVsMultJunlee->SetMarkerColor(colorJunlee);
+  gPzsVsMultJunlee->SetLineColor(colorJunlee);
+  gPzsVsMultJunlee->Draw("same p");
+  // gPzsVsMultJunleeSist->SetFillStyle(0);
+  // gPzsVsMultJunleeSist->Draw("same e2");
+
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistMeanSummary->Write();
   fHistSigmaSummary->Write();
