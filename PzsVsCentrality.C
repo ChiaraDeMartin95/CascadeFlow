@@ -110,7 +110,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 }
 
 Float_t YLow[numPart] = {-0.001};
-Float_t YUp[numPart] = {0.05};
+Float_t YUp[numPart] = {0.04};
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
@@ -828,7 +828,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsXiLambda->SaveAs("XiLambdaPolVsCent.eps");
 
   TCanvas *canvasPzsVsMultiplicity = new TCanvas("canvasPzsVsMultiplicity", "canvasPzsVsMultiplicity", 900, 700);
-  StyleCanvas(canvasPzsVsMultiplicity, 0.06, 0.12, 0.1, 0.03);
+  StyleCanvas(canvasPzsVsMultiplicity, 0.06, 0.15, 0.15, 0.03);
   canvasPzsVsMultiplicity->cd();
   gPad->SetLogx();
   TH1F *hDummyVsMultiplicity = new TH1F("hDummyVsMultiplicity", "hDummyVsMultiplicity", 1500, 0, 1500);
@@ -836,10 +836,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     hDummyVsMultiplicity->SetBinContent(i, -1000);
   canvasPzsVsMultiplicity->cd();
   SetFont(hDummyVsMultiplicity);
-  StyleHistoYield(hDummyVsMultiplicity, YLow[part], YUp[part], 1, 1, "dNdeta", TitleYPzs, "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummyVsMultiplicity, YLow[part], YUp[part], 1, 1, "<dN/d#it{#eta}> (|y| < 0.5)", TitleYPzs, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummyVsMultiplicity, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyVsMultiplicity, tickX, tickY);
   hDummyVsMultiplicity->GetXaxis()->SetRangeUser(7, 1500);
+  hDummyVsMultiplicity->GetYaxis()->SetTitleOffset(1.7);
   hDummyVsMultiplicity->Draw("");
   TGraphErrors *gPzsVsMultiplicity = new TGraphErrors();
   TString SfilePzspPb = "HEPData-ins2879229-v1-Table_1.root";
@@ -877,7 +878,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   for (Int_t i = 0; i < gPzspPb->GetN(); i++)
   {
-    cout << "i " << i << " " << gPzspPb->GetX()[i] << " " << gPzspPb->GetY()[i] << endl;
+    //cout << "i " << i << " " << gPzspPb->GetX()[i] << " " << gPzspPb->GetY()[i] << endl;
     cout << gPzspPb->GetErrorYhigh(i) << endl;
     gPzspPb->SetPoint(i, gPzspPb->GetX()[i] / 4.8, gPzspPb->GetY()[i] / 100);
     gPzspPb->SetPointError(i, 0, 0, gPzspPb->GetErrorYlow(i) / 100, gPzspPb->GetErrorYhigh(i) / 100);
@@ -894,8 +895,22 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsVsMultJunlee->SetMarkerColor(colorJunlee);
   gPzsVsMultJunlee->SetLineColor(colorJunlee);
   gPzsVsMultJunlee->Draw("same p");
+  TLegend *legendSystem = new TLegend(0.2, 0.78, 0.60, 0.9);
+  legendSystem->SetFillStyle(0);
+  legendSystem->SetTextAlign(12);
+  legendSystem->SetTextSize(0.035);
+  if (ChosenPart == 6)
+    legendSystem->AddEntry(gPzsVsMult, Form("#Lambda + #bar{#Lambda}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", MinPt[ChosenPart]), "pl");
+  else
+    legendSystem->AddEntry(gPzsVsMult, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", MinPt[ChosenPart]), "pl");
+  legendSystem->AddEntry(gPzspPb, "#Lambda + #bar{#Lambda}, |#it{#eta} | < 2.4, #it{p}_{T} > 0.8 GeV/#it{c}, p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "pl");
+  legendSystem->AddEntry(gPzsVsMultJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
+  legendSystem->Draw("");
   // gPzsVsMultJunleeSist->SetFillStyle(0);
   // gPzsVsMultJunleeSist->Draw("same e2");
+  canvasPzsVsMultiplicity->SaveAs("PzsVsMultiplicity.pdf");
+  canvasPzsVsMultiplicity->SaveAs("PzsVsMultiplicity.png");
+  canvasPzsVsMultiplicity->SaveAs("PzsVsMultiplicity.eps");
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistMeanSummary->Write();
