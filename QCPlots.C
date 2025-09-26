@@ -123,7 +123,8 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     SAfterEventsel = "AfterEP";
 
   TString SinputFile = "TreeForAnalysis";
-  if (isEff) SinputFile = "FileForEfficiency";
+  if (isEff)
+    SinputFile = "FileForEfficiency";
   SinputFile += "/AnalysisResults_" + inputFileName + ".root";
   // TString SinputFile = "TreeForTrainingSignal/AnalysisResults_" + SinputFileName + ".root";
   // TString SinputFile = "TreeForAnalysis/AnalysisResults_3004.root";
@@ -175,6 +176,10 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hPVContribvsFT0CBefSel->GetYaxis()->SetTitle("PV contributors");
   hPVContribvsFT0CBefSel->SetTitle("");
   hPVContribvsFT0CBefSel->Rebin2D(nrebinx, nrebiny);
+  if (isOOCentrality)
+  {
+    hPVContribvsFT0CBefSel->GetYaxis()->SetRangeUser(0, 700);
+  }
   hPVContribvsFT0CBefSel->Draw("colz");
   c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".pdf");
   c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".png");
@@ -185,6 +190,10 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hPVContribvsFT0C->GetYaxis()->SetTitle("PV contributors");
   hPVContribvsFT0C->SetTitle("");
   hPVContribvsFT0C->Rebin2D(nrebinx, nrebiny);
+  if (isOOCentrality)
+  {
+    hPVContribvsFT0C->GetYaxis()->SetRangeUser(0, 700);
+  }
   hPVContribvsFT0C->Draw("colz");
   c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + inputFileName + ".pdf");
   c[2]->SaveAs("QCPlots/hPVContribvsFT0C" + SAfterEventsel + inputFileName + ".png");
@@ -195,6 +204,10 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsFT0CBefSel->GetYaxis()->SetTitle("Global tracks");
   hGlobalTrkvsFT0CBefSel->SetTitle("");
   hGlobalTrkvsFT0CBefSel->Rebin2D(nrebinx, nrebiny);
+  if (isOOCentrality)
+  {
+    hGlobalTrkvsFT0CBefSel->GetYaxis()->SetRangeUser(0, 500);
+  }
   hGlobalTrkvsFT0CBefSel->Draw("colz");
   c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + inputFileName + ".pdf");
   c[3]->SaveAs("QCPlots/hGlobalTrkvsFT0C_BefSel" + inputFileName + ".png");
@@ -205,6 +218,10 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsFT0C->GetYaxis()->SetTitle("Global tracks");
   hGlobalTrkvsFT0C->SetTitle("");
   hGlobalTrkvsFT0C->Rebin2D(nrebinx, nrebiny);
+  if (isOOCentrality)
+  {
+    hGlobalTrkvsFT0C->GetYaxis()->SetRangeUser(0, 500);
+  }
   hGlobalTrkvsFT0C->Draw("colz");
   c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + inputFileName + ".pdf");
   c[4]->SaveAs("QCPlots/hGlobalTrkvsFT0C" + SAfterEventsel + inputFileName + ".png");
@@ -215,6 +232,11 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsPVContribBefSel->GetYaxis()->SetTitle("Global tracks");
   hGlobalTrkvsPVContribBefSel->SetTitle("");
   hGlobalTrkvsPVContribBefSel->Rebin2D(4 * nrebinx, 4 * nrebiny);
+  if (isOOCentrality)
+  {
+    hGlobalTrkvsPVContribBefSel->GetYaxis()->SetRangeUser(0, 500);
+    hGlobalTrkvsPVContribBefSel->GetXaxis()->SetRangeUser(0, 700);
+  }
   hGlobalTrkvsPVContribBefSel->Draw("colz");
   c[5]->SaveAs("QCPlots/hGlobalTrkvsPVContrib_BefSel" + SinputFileName + ".pdf");
   c[5]->SaveAs("QCPlots/hGlobalTrkvsPVContrib_BefSel" + SinputFileName + ".png");
@@ -225,6 +247,11 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hGlobalTrkvsPVContrib->GetYaxis()->SetTitle("Global tracks");
   hGlobalTrkvsPVContrib->SetTitle("");
   hGlobalTrkvsPVContrib->Rebin2D(4 * nrebinx, 4 * nrebiny);
+  if (isOOCentrality)
+  {
+    hGlobalTrkvsPVContrib->GetYaxis()->SetRangeUser(0, 500);
+    hGlobalTrkvsPVContrib->GetXaxis()->SetRangeUser(0, 700);
+  }
   hGlobalTrkvsPVContrib->Draw("colz");
   c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + inputFileName + ".pdf");
   c[6]->SaveAs("QCPlots/hGlobalTrkvsPVContrib" + SAfterEventsel + inputFileName + ".png");
@@ -237,31 +264,38 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".pdf");
   c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".png");
 
-  TH1D *hPsiT0C[numCent];
+  TH1D *hPsiT0C[commonNumCent];
   c[8]->cd();
-  for (Int_t mult = 0; mult < numCent; mult++)
+  for (Int_t mult = 0; mult < commonNumCent; mult++)
   {
-    if (mult == 0 || mult > (numCent - 3))
-      continue;
-    hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    if (isOOCentrality)
+    {
+      hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
+    }
+    else
+      hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
     hPsiT0C[mult]->Scale(1. / hPsiT0C[mult]->Integral());
     hPsiT0C[mult]->SetLineColor(ColorMult[mult]);
     hPsiT0C[mult]->SetMarkerColor(ColorMult[mult]);
     hPsiT0C[mult]->SetMarkerStyle(MarkerMult[mult]);
     hPsiT0C[mult]->SetMarkerSize(SizeMult[mult]);
     hPsiT0C[mult]->GetXaxis()->SetTitle("#Psi_{T0C}");
-    hPsiT0C[mult]->Draw("same hist");
+    if (mult < (commonNumCent - 2))
+      hPsiT0C[mult]->Draw("same hist");
   }
 
   TLegend *leg = new TLegend(0.35, 0.2, 0.65, 0.5);
   leg->SetBorderSize(0);
   leg->SetFillColor(0);
   leg->SetTextSize(0.03);
-  for (Int_t mult = 0; mult < numCent; mult++)
+  for (Int_t mult = 0; mult < commonNumCent; mult++)
   {
-    if (mult == 0 || mult > (numCent - 3))
-      continue;
-    leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
+    // if (mult == 0 || mult > (commonNumCent - 1))
+    //   continue;
+    if (isOOCentrality)
+      leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0CLambdaOO[mult], CentFT0CLambdaOO[mult + 1]), "lp");
+    else
+      leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
   }
   leg->Draw();
   c[8]->SaveAs("QCPlots/hPsiT0C" + inputFileName + ".pdf");
@@ -275,11 +309,11 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + inputFileName + ".pdf");
   c[9]->SaveAs("QCPlots/hv2CEPvsFT0C" + inputFileName + ".pdg");
 
-  TH1D *hv2CEP[numCent];
+  TH1D *hv2CEP[commonNumCent];
   c[10]->cd();
-  for (Int_t mult = 0; mult < numCent; mult++)
+  for (Int_t mult = 0; mult < commonNumCent; mult++)
   {
-    if (mult == 0 || mult > (numCent - 3))
+    if (mult == 0 || mult > (commonNumCent - 3))
       continue;
     hv2CEP[mult] = hv2CEPvsFT0C->ProjectionY(Form("hv2CEP%d", mult), hv2CEPvsFT0C->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hv2CEPvsFT0C->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
     hv2CEP[mult]->Scale(1. / hv2CEP[mult]->Integral());
@@ -294,15 +328,17 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   leg2->SetBorderSize(0);
   leg2->SetFillColor(0);
   leg2->SetTextSize(0.03);
-  for (Int_t mult = 0; mult < numCent; mult++)
+  for (Int_t mult = 0; mult < commonNumCent; mult++)
   {
-    if (mult == 0 || mult > (numCent - 3))
+    if (mult == 0 || mult > (commonNumCent - 3))
       continue;
     leg2->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
   }
   leg2->Draw();
 
   c[11]->cd();
+  TF1 *pol0 = new TF1("pol0", "pol0", 0, 60);
+  hCentrality->Fit("pol0", "R");
   hCentrality->GetXaxis()->SetTitle("FT0C(%)");
   hCentrality->SetTitle("");
   hCentrality->Draw("");
@@ -326,6 +362,27 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     else
       c[i]->SaveAs(OutputFile + ".pdf");
   }
+
+  TH1F *hCentWeight = new TH1F("hCentWeight", "hCentWeight", 100, 0, 100);
+  for (Int_t b = 1; b <= hCentrality->GetNbinsX(); b++)
+  {
+    if (hCentrality->GetBinContent(b) > 0)
+      hCentWeight->SetBinContent(b, 1. / (hCentrality->GetBinContent(b) / pol0->GetParameter(0)));
+  }
+
+  TFile *fout = new TFile("CentralityWeight_" + inputFileName + ".root", "RECREATE");
+  hCentWeight->Write();
+  fout->Close();
+
+  TCanvas *cCentWeight = new TCanvas("cCentWeight", "cCentWeight", 800, 600);
+  StyleCanvas(cCentWeight, 0.05, 0.1, 0.15, 0.05);
+  cCentWeight->cd();
+  hCentWeight->GetXaxis()->SetTitle("FT0C(%)");
+  hCentWeight->GetYaxis()->SetTitle("Weight");
+  hCentWeight->SetTitle("");
+  hCentWeight->Draw("");
+  cCentWeight->SaveAs("QCPlots/hCentWeight_" + inputFileName + ".png");
+  cCentWeight->SaveAs("QCPlots/hCentWeight_" + inputFileName + ".pdf");
 
   cout << "\nStarting from the files (for the different mult): " << SinputFile << endl;
 }
