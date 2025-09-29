@@ -79,6 +79,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
+  if (ExtrisApplyResoOnTheFly)
+    SinputFile += "_ResoOnTheFly";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -264,7 +266,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
         if (cent == numCentLambdaOO)
         {
           CentFT0CMin = 0;
-          CentFT0CMax = 90;
+          CentFT0CMax = 100;
         }
         else
         {
@@ -325,7 +327,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 90;
+        CentFT0CMax = 100;
       }
       else
       {
@@ -334,6 +336,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       }
     }
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (isProducedAcceptancePlots && ChosenPart == 6)
+      hName[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ExtrisApplyEffWeights)
       hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -358,7 +362,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart == 6)
       hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
+
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName[cent]);
+    hmassVsPtVsV2C[cent]->SetName(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
     hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
     hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
     if (!ExtrisFromTHN && ChosenPart != 6)
@@ -596,7 +602,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
-  if (isApplyCentWeight)  
+  if (isApplyCentWeight)
     SOutputFile += "_CentWeighted";
   if (v2type == 1)
     SOutputFile += "_SP";
@@ -623,10 +629,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
     else
       SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
   }
+  if (ExtrisApplyResoOnTheFly)
+    SOutputFile += "_ResoOnTheFly";
   SOutputFile += ".root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
-  hMassVsPt->Write();
+  // hMassVsPt->Write();
+
+  cout << "Hello " << endl;
   for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     hmassVsPtVsV2C[cent]->Write();

@@ -465,7 +465,7 @@ void FitV2orPol(
     if (mul == numCentLambdaOO)
     {
       CentFT0CMin = 0;
-      CentFT0CMax = 90;
+      CentFT0CMax = 100;
     }
     else
     {
@@ -792,7 +792,10 @@ void FitV2orPol(
       else
         SPathIn += Form("_SysMultTrial_%i", indexMultTrial);
     }
-    SPathIn += STHN[ExtrisFromTHN] + ".root";
+    SPathIn += STHN[ExtrisFromTHN];
+    if (ExtrisApplyResoOnTheFly)
+      SPathIn += "_ResoOnTheFly";
+    SPathIn += ".root";
 
     if (pt == numPtBinsVar)
       SPathInPtInt = SPathIn;
@@ -2116,12 +2119,15 @@ void FitV2orPol(
   }
 
   // scaling by resolution
-  histoV2->Scale(1. / ftcReso[mul]);
-  histoV2NoFit->Scale(1. / ftcReso[mul]);
-  histoV2Mixed->Scale(1. / ftcReso[mul]);
-  histoV2PtInt->Scale(1. / ftcReso[mul]);
-  histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
-  histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
+  if (!ExtrisApplyResoOnTheFly && isV2 == 0) // reso applied on the fly only for polarization
+  {
+    histoV2->Scale(1. / ftcReso[mul]);
+    histoV2NoFit->Scale(1. / ftcReso[mul]);
+    histoV2Mixed->Scale(1. / ftcReso[mul]);
+    histoV2PtInt->Scale(1. / ftcReso[mul]);
+    histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
+    histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
+  }
 
   // Histograms with errors
   for (Int_t pt = 0; pt < histoV2->GetNbinsX(); pt++)
@@ -2325,6 +2331,8 @@ void FitV2orPol(
   }
   if (ChosenPart == 6 && isSysMultTrial)
     Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
+  if (ExtrisApplyResoOnTheFly)
+    Soutputfile += "_ResoOnTheFly";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -2818,7 +2826,10 @@ void FitV2orPol(
   cout << "BDT score > " << BDTscoreCutPtInt_checkValue << endl;
   cout << "Input file: " << SPathInPtInt << endl;
   cout << "Is the final V2 from fit? " << isV2FromFit[numPtBinsVar] << endl;
-  cout << "The resolution is: " << ftcReso[mul] << endl;
+  if (ExtrisApplyResoOnTheFly)
+    cout << "The resolution was applied on the fly" << endl;
+  else
+    cout << "The resolution is: " << ftcReso[mul] << endl;
   cout << "The acceptance correction was applied? " << isApplyAcceptanceCorrection << endl;
   cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
   cout << "\nResult (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << endl;

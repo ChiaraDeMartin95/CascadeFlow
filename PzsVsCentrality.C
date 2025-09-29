@@ -236,6 +236,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   stringout += V2FromFit[isFromFit];
   if (isReducedPtBins)
     stringout += "_ReducedPtBins";
+  if (ExtrisApplyResoOnTheFly)
+    stringout += "_ResoOnTheFly";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -394,6 +396,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     if (isReducedPtBins)
       PathIn += "_ReducedPtBins";
+    if (ExtrisApplyResoOnTheFly)
+      PathIn += "_ResoOnTheFly";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -878,7 +882,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   for (Int_t i = 0; i < gPzspPb->GetN(); i++)
   {
-    //cout << "i " << i << " " << gPzspPb->GetX()[i] << " " << gPzspPb->GetY()[i] << endl;
+    // cout << "i " << i << " " << gPzspPb->GetX()[i] << " " << gPzspPb->GetY()[i] << endl;
     cout << gPzspPb->GetErrorYhigh(i) << endl;
     gPzspPb->SetPoint(i, gPzspPb->GetX()[i] / 4.8, gPzspPb->GetY()[i] / 100);
     gPzspPb->SetPointError(i, 0, 0, gPzspPb->GetErrorYlow(i) / 100, gPzspPb->GetErrorYhigh(i) / 100);
