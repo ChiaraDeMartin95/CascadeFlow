@@ -24,6 +24,10 @@
 #include "TKey.h"
 #include "TChain.h"
 #include <ROOT/RDataFrame.hxx>
+//#include "ROOT/RDF/Variations.hxx"
+#include "ROOT/RResultPtr.hxx"
+#include "ROOT/RDFHelpers.hxx"
+#include <random>
 
 using namespace ROOT;
 using namespace std;
@@ -51,9 +55,11 @@ Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
+Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -65, -80, -120, -160, -240};
 Float_t MinPzs2WithAlphaXi = -2.8;
 Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
+Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 65, 80, 120, 160, 240};
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
 Int_t NPzs2 = 200;
@@ -68,6 +74,8 @@ Int_t NPz = 200;
 
 void ProcessTreeLambda(Int_t indexMultTrial = 0,
                        Bool_t isRapiditySel = ExtrisRapiditySel,
+		       Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
+		       //		       Bool_t isPartialEta = ExtrisPartialEta,
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -75,12 +83,6 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 {
 
   ROOT::EnableImplicitMT();
-
-  if (ChosenPart == 6)
-  {
-    MinPzs2 = -7;
-    MaxPzs2 = 7;
-  }
 
   string v2Chosen = "fV2CEP";
 
@@ -93,6 +95,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 
   cout << "ChosenPart: " << ParticleName[ChosenPart] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
+  //  cout << "IsPartialEta: only eta > 0 selected (opposite to FT0C)" << endl;
 
   std::vector<std::string> name;
   TString filename = "input_" +  SinputFileName + ".txt";
@@ -119,7 +122,8 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 
   TFile *inputFile[nfiles];
   TChain chainDataMB("O2lambdaanalysis");
-  for (Int_t i = 0; i < nfiles; i++){
+  //for (Int_t i = 0; i < nfiles; i++){
+    for (Int_t i = 0; i < 1; i++){
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
     createChain(chainDataMB, name[i].c_str(), "O2lambdaanalysis");
@@ -129,9 +133,13 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 
   auto d1 = originalDF;
 
-  TString weightCentFileName = "CentralityWeight_" + SinputFileName + ".root";
+  TString weightCentFileName = "CentralityWeight_" + SinputFileNameCentWeight + ".root";
   TFile *weightCentFile = new TFile(weightCentFileName, "READ");
   TH3D *weights{weightCentFileName ? (TH3D *)weightCentFile->Get("hCentWeight") : nullptr};
+
+  TString resoCentFileName = SinputFileNameResoWeight;
+  TFile *resoFile = new TFile(resoCentFileName, "READ");
+  TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get("hResoPerCentBins") : nullptr};
   
   auto h = d1.Histo1D("fPt");
 
@@ -142,6 +150,9 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   string chargecut = "fSign >= 0";
   auto d2 = d1.Filter(chargecut);
 
+  //apply eta selection
+  //  if (isPartialEta)  d2 = d2.Filter("fEta > 0");
+
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
 
@@ -150,6 +161,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto histoBefV0CosPA = d2.Histo1D({"histoBefV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
   auto histoBefDcaNegToPV = d2.Histo1D({"histoBefDcaNegToPV", "DCA Neg to PV Distribution", 100, -2, 2}, "fDcaNegToPV");
   auto histoBefDcaPosToPV = d2.Histo1D({"histoBefDcaPosToPV", "DCA Pos to PV Distribution", 100, -2, 2}, "fDcaPosToPV");
+
   // topological selections
   gRandom->SetSeed(0);
   //float RadiusCut = LowerlimitV0RadiusCut + (UpperlimitV0RadiusCut - LowerlimitV0RadiusCut) * gRandom->Rndm();
@@ -195,18 +207,112 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto d2c = d2b.Filter(V0CosPAString);
   auto d2d = d2c.Filter(DcaNegToPVString);
   auto d2e = d2d.Filter(DcaPosToPVString);
+
   /*
-  auto nominal_hx =
+  auto d2e =
     d2.Vary({"fV0Radius", "fDcaV0Daughters", "fV0CosPA", "fDcaPosToPV", "fDcaNegToPV"}, // the columns that will vary simultaneously
 	    [](float v0Radius, float dcaV0Dau, float v0CosPA, double dcaPosToPV, double dcaNegToPV) { return RVec<RVecF>{{LowerlimitV0RadiusCut, UpperlimitV0RadiusCut}, {LowerlimitDcaV0DaughtersCut, UpperlimitDcaV0DaughtersCut}, {LowerlimitV0CosPACut, UpperlimitV0CosPACut}, {LowerlimitDcaPosToPVCut, UpperlimitDcaPosToPVCut}, {LowerlimitDcaNegToPVCut, UpperlimitDcaNegToPVCut} }; },
         {"fV0Radius", "fDcaV0Daughters", "fV0CosPA", "fDcaPosToPV", "fDcaNegToPV"},  // inputs to the Vary expression, independent of what columns are varied
         100, // auto-generated variation tags
-	    "TopoSel");    // variation name
+	    "TopoSel").Histo1D("pt", "eta");    // variation name
 
-  auto hx = ROOT::RDF::Experimental::VariationsFor(nominal_hx);
+  auto hx = ROOT::RDF::Experimental::VariationsFor(d2e);
+  hx["nominal"]
   */
+  /*
+  auto d2Test =  d2.Vary({"fV0Radius", "fDcaV0Daughters"}, // the columns that will vary simultaneously
+	    [](float v0Radius, float dcaV0Dau) { return RVec<RVecF>{{LowerlimitV0RadiusCut, UpperlimitV0RadiusCut}, {LowerlimitDcaV0DaughtersCut, UpperlimitDcaV0DaughtersCut}}; },
+	    {"fV0Radius", "fDcaV0Daughters"},  // inputs to the Vary expression, independent of what columns are varied
+	    2, // auto-generated variation tags
+	    "TopoSel").Histo1D("fV0Radius", "fDcaV0Daughters");    // variation name
+  //  auto hx = ROOT::RDF::Experimental::VariationsFor(d2Test);
+ 
+  auto d2_varied =
+    d2.Vary({"fV0Radius", "fDcaV0Daughters"}, // the columns that will vary simultaneously
+	    [](float dV0Radius, float dDcaV0Daughters) { return RVec<RVecF>{{dV0Radius*0.9f, dV0Radius*1.1f}, {dDcaV0Daughters*0.9f, dDcaV0Daughters*1.1f}}; },
+	    {"fV0Radius", "fDcaV0Daughters"},  // inputs to the Vary expression, independent of what columns are varied
+	    2, // auto-generated variation tags
+	    "fV0RadiusAndFDcaV0Daughters");    // variation name
+  auto hMassVsPt =  d2_varied.Histo2D({"hMassVsPtTest", "hMassVsPtTest", 100, 1.09, 1.14, 100, 0, 10}, "fMassLambda", "fPt");
+  auto variationsMassVsPt = ROOT::RDF::Experimental::VariationsFor(hMassVsPt);
+  */
+
+  //default cuts
+  auto df_withCuts = d2.Define("cutV0Radius", [=]() { return DefaultV0RadiusCut; })
+    .Define("cutDcaV0Daughters", [=]() { return DefaultDcaV0DauCut; });
+
+  // now vary those thresholds
+  /*
+  auto df_varied = df_withCuts.Vary(
+				    {"cutV0Radius", "cutDcaV0Daughters"},
+				    [](float r, float d){
+				      return RVec<RVecF>{
+					{r*0.9f, r*1.1f},      // lower/upper for cutV0Radius
+					{d*0.9f, d*1.1f}       // lower/upper for cutDcaV0Daughters
+				      };
+				    },
+				    {"cutV0Radius", "cutDcaV0Daughters"},
+				    2,
+				        "V0Cuts"
+				    );
+  */
+  auto df_varied = df_withCuts.Vary(
+				    {"cutV0Radius", "cutDcaV0Daughters"},  // columns that will vary together
+
+				    // Lambda generating 100 random variations within limits
+				    [](float r, float d) {
+				      const int NVAR = 100;
+
+				      // Define the allowed limits for each variable
+				      const float V0Radius_min = LowerlimitV0RadiusCut;
+				      const float V0Radius_max = UpperlimitV0RadiusCut;
+				      const float DcaV0Daughters_min = LowerlimitDcaV0DauCut;
+				      const float DcaV0Daughters_max = UpperlimitDcaV0DauCut;
+
+				      // Prepare the output: one RVec per column
+				      RVec<RVecF> variations(2);
+				      variations[0].reserve(NVAR);  // cutV0Radius
+				      variations[1].reserve(NVAR);  // cutDcaV0Daughters
+
+				      // Initialize random generator (fixed seed for reproducibility)
+				      std::mt19937 gen(42);
+				      std::uniform_real_distribution<float> distR(V0Radius_min, V0Radius_max);
+				      std::uniform_real_distribution<float> distD(DcaV0Daughters_min, DcaV0Daughters_max);
+
+				      // Generate random values for each variation
+				      for (int i = 0; i < NVAR; ++i) {
+					variations[0].push_back(distR(gen));
+					variations[1].push_back(distD(gen));
+				      }
+
+				      return variations;
+				    },
+
+				    // Inputs to the Vary function (they can be the same as the varied columns)
+				    {"cutV0Radius", "cutDcaV0Daughters"},
+
+				    100,  // number of variations
+
+				    "RandomV0Cuts"  // name of this variation set
+				    );
   
-  //cout << Form("fV0Radius > %.2f", LowerlimitV0RadiusCut + (UpperlimitV0RadiusCut - LowerlimitV0RadiusCut) * gRandom->Rndm()) << endl;
+  // apply the cuts using the **varied** thresholds
+  auto df_selected = df_varied.Filter(
+				      [](float V0Radius, float DcaV0Daughters, float cutR, float cutD){
+					return V0Radius > cutR && DcaV0Daughters > cutD;
+				      },
+				      {"fV0Radius", "fDcaV0Daughters", "cutV0Radius", "cutDcaV0Daughters"}
+				      );
+
+  // histogram your invariant mass and pT
+  auto hMassVsPt = df_selected.Histo2D(
+				       {"hMassVsPt", "Mass vs pT;M_{Λ} (GeV/c^{2});p_{T} (GeV/c)", 100, 1.09, 1.14, 100, 0, 10},
+				       "fMassLambda", "fPt"
+				       );
+
+  // extract all variations
+  auto variationsMassVsPt = ROOT::RDF::Experimental::VariationsFor(hMassVsPt);
+
   auto histoV0Radius = d2e.Histo1D({"histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
   auto histoDcaV0Daughters = d2e.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
   auto histoV0CosPA = d2e.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
@@ -223,7 +329,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto hmassvsPt = d2e.Histo2D({"mass_LambdavPt", "Invariant mass of p#pi vs pT", 100, 1.09, 1.14, 100, 0, 10}, "fMassLambda", "fPt");
 
   // eta distributions
-  // auto heta = d2e.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
+  //  auto heta = d2e.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
 
   // phi distributions
   auto hphi = d2e.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
@@ -243,14 +349,18 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     OutputFileName += "_SP";
   if (isRun2Binning)
     OutputFileName += "_Run2Binning";
-  if (!isRapiditySel)
+  if (!isRapiditySel){
+    //    if (isPartialEta) OutputFileName += "_PositiveEta08";
+    //else  OutputFileName += "_Eta08";
     OutputFileName += "_Eta08";
+  }
   if (isSysMultTrial) {
     if (isLoosest)  OutputFileName += "_isLoosest";
     else if (isTightest)  OutputFileName += "_isTightest";
     else OutputFileName += Form("_SysMultTrial_%i", indexMultTrial);
   }
   if (isOOCentrality) OutputFileName += "_isOOCentrality";
+  if (isApplyResoOnTheFly) OutputFileName += "_ResoOnTheFly";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
@@ -280,19 +390,39 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsCos2Vector;
 
-  d2e = d2e.Define("fPsiDiff", "if ((fPhi-fPsiT0C) < 0) return (fPhi-fPsiT0C+(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > 2* TMath::Pi()) return (fPhi-fPsiT0C-2*(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > TMath::Pi()) return (fPhi-fPsiT0C-(float)TMath::Pi()); else return (fPhi-fPsiT0C);");
-  d2e = d2e.Define("f2PsiDiffCorr", "2*fPsiDiff");
-  d2e = d2e.Define("f2PsiDiff", "2*fPhi-2*fPsiT0C");
+  // Containers to store histos and variations
+  std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
+							      std::declval<ROOT::RDF::RResultPtr<TH3D>>()))> h_variationsmassVsPtVsPzs2;
+  
+  df_selected = df_selected.Define("fPsiDiff", "if ((fPhi-fPsiT0C) < 0) return (fPhi-fPsiT0C+(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > 2* TMath::Pi()) return (fPhi-fPsiT0C-2*(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > TMath::Pi()) return (fPhi-fPsiT0C-(float)TMath::Pi()); else return (fPhi-fPsiT0C);");
+  df_selected = df_selected.Define("f2PsiDiffCorr", "2*fPsiDiff");
+  df_selected = df_selected.Define("f2PsiDiff", "2*fPhi-2*fPsiT0C");
 
-  int centWeight[100];
+  double centWeight[100];
+  double resoWeight[100];
   for (Int_t cent = 0; cent < 100; cent++){
-    centWeight[cent]= 1./weights->GetBinContent(weights->FindBin(cent+1));
+    centWeight[cent]= 1./weights->GetBinContent(cent+1);
+    resoWeight[cent]= reso->GetBinContent(cent+1);
   }
   
-  d2e = d2e.DefineSlot("fCentWeight", [&centWeight](unsigned int, double cent) {
-    if (cent < 0. || cent >= 100.) return 0;
+  df_selected = df_selected.DefineSlot("fCentWeight", [&centWeight](unsigned int, float cent) {
+    if (cent < 0. || cent > 100.) return 0.;
     else return centWeight[static_cast<int>(cent)];
   }, {"fCentFT0C"});
+  //  df_selected.Display({"fCentFT0C", "fCentWeight"}, 128)->Print();
+  //  return;
+
+  df_selected = df_selected.DefineSlot("fResoWeight", [&resoWeight](unsigned int, float cent) {
+    if (cent < 0. || cent > 100.) return 0.;
+    else return resoWeight[static_cast<int>(cent)];
+  }, {"fCentFT0C"});
+  //  df_selected.Display({"fCentFT0C", "fResoWeight"}, 128)->Print();
+
+  string SPzs2LambdaFinal = "fPzs2Lambda";
+  if (isApplyResoOnTheFly) SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight";
+  //  df_selected = df_selected.Define("fCentResoWeight", Sweight);
+  df_selected = df_selected.Define("fPzs2LambdaFinal", SPzs2LambdaFinal);
+  //  df_selected.Display({"fCentFT0C", "fCentResoWeight"}, 512)->Print();
 
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
@@ -300,15 +430,33 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     if (cent == numCentLambdaOO)
     { // 0-100%
       CentFT0CMin = 0;
-      CentFT0CMax = 90;
+      CentFT0CMax = 100;
     }
     else
     {
       CentFT0CMin = CentFT0CLambdaOO[cent];
       CentFT0CMax = CentFT0CLambdaOO[cent + 1];
     }
-    auto dcent = d2e.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
+
+    if (ChosenPart == 6) {
+      MinPzs2 = -7;
+      MaxPzs2 = 7;
+      if (isApplyResoOnTheFly){
+	MinPzs2 = MinPzs2Reso[cent];
+	MaxPzs2 = MaxPzs2Reso[cent];
+      }
+    }
+
+    //    cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
+    auto dcent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
+    auto df_selected_cent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
+
+    // histogram your invariant mass and pT
+    auto massVsPtVsPzs2 = df_selected_cent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
+    auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
+    massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
+    h_variationsmassVsPtVsPzs2.push_back(variationsmassVsPtVsPzs2);
 
     auto massvspt2D = dcent.Histo2D({Form("MassVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax), "massvspt", 80, 1.09, 1.14, 100, 0, 10,}, "fMassLambda", "fPt");
     massvsptVector.push_back(massvspt2D);
@@ -326,16 +474,18 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     PsiDiff2Vector.push_back(PsiDiff2);
     // auto hrapidity = dcent.Histo1D({Form("rapidity_cent%i-%i", CentFT0CMin, CentFT0CMax), "Rapidity distribution of selected candidates", 200, -2, 2}, "fRapidity");
     // hrapidityVector.push_back(hrapidity);
-    // auto hEta = dcent.Histo1D({Form("Eta_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
-    // hEtaVector.push_back(hEta);
+    //auto hEta = dcent.Histo1D({Form("Eta_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
+    //hEtaVector.push_back(hEta);
 
     auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassLambda");
     hMassCutVector.push_back(hMassCut);
 
     auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.09, 1.14, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassLambda", "fPt", v2Chosen);
     massVsPtVsV2CVector.push_back(massVsPtVsV2C);
-    auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2Lambda", "fCentWeight");
-    massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
+    //    auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2Lambda", "fCentResoWeight");
+
+    //auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
+    //massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
     auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fCosThetaLambda");
     massVsPsiVsPzVector.push_back(massVsPsiVsPz);
 
@@ -355,11 +505,16 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   hmass->Draw("E SAME");
 
   /*
-  hx["nominal"].Draw();
-  for (Int_t i=0; i < nVar; i++){
-    hx[Form("TopoSel:%i", i)].Draw("SAME");
+  for (auto &&[tag, histo] : variationsMassVsPt) {
+    std::cout << "Variation tag: " << tag << std::endl;
+    histo->Write();
   }
   */
+
+  for (auto &&[tag, histo] : variationsMassVsPt) {
+    std::cout << "Variation tag: " << tag << std::endl;
+    histo->Write(); // or histo->Write() if you’re saving to a ROOT file
+  }
 
   h->Write();
   hPtvsCent_BefSel->Write();
@@ -368,7 +523,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   hmass_Bef->Write();
   hmass->Write();
   hmassvsPt->Write();
-  // heta->Write();
+  //heta->Write();
   hphi->Write();
   // hEtaPhi->Write();
   histoV0Radius->Write();
@@ -384,6 +539,20 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
+    auto &variationMap = h_variationsmassVsPtVsPzs2[cent];
+
+    // Retrieve the variation tags
+    auto tags = variationMap.GetKeys();
+
+    for (auto &tag : tags) {
+      std::cout << "Centrality bin " << cent
+		<< " | Variation tag Pzs2: " << tag << std::endl;
+
+      auto histo = variationMap[tag];
+      TString histName = Form("massVsPtVsPzs2_cent%i_%s", cent, tag.c_str());
+      histo.Write(histName);  // or histo->Draw()
+    }
+    
     massvsptVector[cent]->Write();
     massVsPtVsV2CVector[cent]->Write();
     massVsPtVsPzs2Vector[cent]->Write();
@@ -400,7 +569,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     hPsiCentVector[cent]->Write();
 
     hPhiCentVector[cent]->Write();
-    // hEtaVector[cent]->Write();
+    //    hEtaVector[cent]->Write();
     // hEtaPzs2Vector[cent]->Write();
   }
 
