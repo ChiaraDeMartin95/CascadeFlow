@@ -68,14 +68,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SinputFile += "_Eta08";
   SinputFile += SBDT;
-  if (ChosenPart == 6 && isSysMultTrial)
+  if (ChosenPart == 6 && isSysLambdaMultTrial)
   {
     if (isLoosest)
       SinputFile += "_isLoosest";
     else if (isTightest)
       SinputFile += "_isTightest";
-    else
-      SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+    // else
+    // SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
   }
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
@@ -83,6 +83,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_ResoOnTheFly";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
+
+  if (ChosenParticle == 6)
+    PtBins[0] = 0.5; // for Lambda
+
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[commonNumCent + 1];
 
@@ -197,7 +201,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
         if (isOOCentrality)
         {
           hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CLambdaOO[cent], CentFT0CLambdaOO[cent + 1]));
-          cout << "Using Lambda centrality bins: " << CentFT0CLambdaOO[cent] << " - " << CentFT0CLambdaOO[cent + 1] << endl;
+          // cout << "Using Lambda centrality bins: " << CentFT0CLambdaOO[cent] << " - " << CentFT0CLambdaOO[cent + 1] << endl;
         }
         else
           hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
@@ -275,7 +279,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
         }
       }
       hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax));
-      cout << "CentMin " << CentFT0CMin << " CentMax " << CentFT0CMax << endl;
+      // cout << "CentMin " << CentFT0CMin << " CentMax " << CentFT0CMax << endl;
       if (!hPhiCentHisto[cent])
       {
         cout << "Histogram hPhiCentHisto not available" << endl;
@@ -335,6 +339,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
         CentFT0CMax = CentFT0CLambdaOO[cent + 1];
       }
     }
+    cout << "CentMin " << CentFT0CMin << " CentMax " << CentFT0CMax << endl;
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (isProducedAcceptancePlots && ChosenPart == 6)
       hName[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -345,6 +350,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (isSysLambdaMultTrial && ChosenPart == 6)
+    {
+      hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial-1);
+      if (indexMultTrial == 0)
+        hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_nominal", cent);
+    }
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -379,7 +390,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
     {
       cout << "Centrality: " << cent << endl;
       cout << "Histogram hmassVsPtVsPzs2 not available" << endl;
+      cout << "hNamePzs2_3D[cent]: " << hNamePzs2_3D[cent] << endl;
       return;
+    }
+    else 
+    {
+      cout << "Taking the histogram: " << hNamePzs2_3D[cent] << endl;
     }
     hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)inputFile->Get(hNamePzs2LambdaFromC_3D[cent]);
     if (!hmassVsPtVsPzs2LambdaFromC[cent])
@@ -620,7 +636,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isReducedPtBins)
     SOutputFile += "_ReducedPtBins";
   SOutputFile += STHN[ExtrisFromTHN];
-  if (ChosenPart == 6 && isSysMultTrial)
+  if (ChosenPart == 6 && isSysLambdaMultTrial)
   {
     if (isLoosest)
       SOutputFile += "_isLoosest";
@@ -628,6 +644,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       SOutputFile += "_isTightest";
     else
       SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
+    SOutputFile += "_isSysLambdaMultTrial";
   }
   if (ExtrisApplyResoOnTheFly)
     SOutputFile += "_ResoOnTheFly";
@@ -636,7 +653,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TFile *file = new TFile(SOutputFile, "RECREATE");
   // hMassVsPt->Write();
 
-  cout << "Hello " << endl;
   for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     hmassVsPtVsV2C[cent]->Write();
