@@ -27,6 +27,7 @@
 #include "ROOT/RResultPtr.hxx"
 #include "ROOT/RDFHelpers.hxx"
 #include <random>
+#include <chrono>
 #include "ROOT/RDF/RInterface.hxx"
 
 using namespace ROOT;
@@ -82,7 +83,8 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
                        Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
-  ROOT::EnableImplicitMT();
+  auto start = std::chrono::high_resolution_clock::now();
+  ROOT::EnableImplicitMT(50);
 
   string v2Chosen = "fV2CEP";
 
@@ -208,44 +210,66 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto d2e = d2d.Filter(DcaPosToPVString);
 
   //default cuts
-  auto df_withCuts = d2.Define("cutV0Radius", [=]() { return DefaultV0RadiusCut; })
-    .Define("cutDcaV0Daughters", [=]() { return DefaultDcaV0DauCut; });
+  auto df_withCuts = d2.Define("cutV0Radius", [=]() { return static_cast<double>(DefaultV0RadiusCut); })
+    .Define("cutDcaV0Daughters", [=]() { return static_cast<double>(DefaultDcaV0DauCut); })
+    .Define("cutV0CosPA", [=]() { return static_cast<double>(DefaultV0CosPA); })
+    .Define("cutDcaPosToPV", [=]() { return static_cast<double>(DefaultDcaPosToPV); })
+    .Define("cutDcaNegToPV", [=]() { return static_cast<double>(DefaultDcaNegToPV); })
+    .Define("radiusV0", "fV0Radius * 1.")
+  .Define("dcaV0Dau", "fDcaV0Daughters * 1.")
+  .Define("dcaNegToPV", "fDcaNegToPV * 1.")
+  .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
   auto df_varied = df_withCuts.Vary(
-				    {"cutV0Radius", "cutDcaV0Daughters"},  // columns that will vary together
+				    {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"},  // columns that will vary together
 
 				    // Lambda generating 100 random variations within limits
-				    [](float r, float d) {
+				    [](double r, double d, double c, double dp, double dn) {
 				      const int NVAR = 2;
 
 				      // Define the allowed limits for each variable
-				      const float V0Radius_min = LowerlimitV0RadiusCut;
-				      const float V0Radius_max = UpperlimitV0RadiusCut;
-				      const float DcaV0Daughters_min = LowerlimitDcaV0DauCut;
-				      const float DcaV0Daughters_max = UpperlimitDcaV0DauCut;
+				      const double V0Radius_min = LowerlimitV0RadiusCut;
+				      const double V0Radius_max = UpperlimitV0RadiusCut;
+				      const double DcaV0Daughters_min = LowerlimitDcaV0DauCut;
+				      const double DcaV0Daughters_max = UpperlimitDcaV0DauCut;
+				      const double CosPA_min = LowerlimitV0CosPA;
+				      const double CosPA_max = UpperlimitV0CosPA;
+				      const double DcaPosToPV_min = LowerlimitDcaPosToPV;
+				      const double DcaPosToPV_max = UpperlimitDcaPosToPV;
+				      const double DcaNegToPV_min = LowerlimitDcaNegToPV;
+				      const double DcaNegToPV_max = UpperlimitDcaNegToPV;  
 
 				      // Prepare the output: one RVec per column
-				      RVec<RVecF> variations(2);
+				      RVec<RVecD> variations(NVAR);
 				      variations[0].reserve(NVAR);  // cutV0Radius
 				      variations[1].reserve(NVAR);  // cutDcaV0Daughters
+				      variations[2].reserve(NVAR);  // cutV0CosPA
+				      variations[3].reserve(NVAR);  // cutDcaPosToPV
+				      variations[4].reserve(NVAR);  // cutDcaNegToPV
 
 				      // Initialize random generator (fixed seed for reproducibility)
 				      std::mt19937 gen(42);
-				      std::uniform_real_distribution<float> distR(V0Radius_min, V0Radius_max);
-				      std::uniform_real_distribution<float> distD(DcaV0Daughters_min, DcaV0Daughters_max);
+				      std::uniform_real_distribution<double> distR(V0Radius_min, V0Radius_max);
+				      std::uniform_real_distribution<double> distD(DcaV0Daughters_min, DcaV0Daughters_max);
+				      std::uniform_real_distribution<double> distC(CosPA_min, CosPA_max);
+				      std::uniform_real_distribution<double> distDP(DcaPosToPV_min, DcaPosToPV_max);
+				      std::uniform_real_distribution<double> distDN(DcaNegToPV_min, DcaNegToPV_max);
 
 				      // Generate random values for each variation
 				      for (int i = 0; i < NVAR; ++i) {
 					variations[0].push_back(distR(gen));
 					variations[1].push_back(distD(gen));
+					variations[2].push_back(distC(gen));
+					variations[3].push_back(distDP(gen));
+					variations[4].push_back(distDN(gen));
 				      }
 
 				      return variations;
 				    },
 
 				    // Inputs to the Vary function (they can be the same as the varied columns)
-				    {"cutV0Radius", "cutDcaV0Daughters"},
+				    {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"},
 
 				    2,  // number of variations
 
@@ -254,10 +278,10 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   
   // apply the cuts using the **varied** thresholds
   auto df_selected = df_varied.Filter(
-				      [](float V0Radius, float DcaV0Daughters, float cutR, float cutD){
-					return V0Radius > cutR && DcaV0Daughters > cutD;
+				      [](double V0Radius, double DcaV0Daughters, double cosPA, double DcaPosToPV, double DcaNegToPV, double cutR, double cutD, double cutC, double cutDP, double cutDN){
+					return V0Radius > cutR && DcaV0Daughters < cutD && cosPA > cutC && DcaPosToPV > cutDP && DcaNegToPV > cutDN;
 				      },
-				      {"fV0Radius", "fDcaV0Daughters", "cutV0Radius", "cutDcaV0Daughters"}
+				      {"radiusV0", "dcaV0Dau", "fV0CosPA", "dcaPosToPV", "dcaNegToPV", "cutV0Radius", "cutDcaV0Daughters",  "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}
 				      );
 
   // histogram your invariant mass and pT
@@ -318,8 +342,6 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   if (isOOCentrality) OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly) OutputFileName += "_ResoOnTheFly";
   OutputFileName += ".root";
-  TFile *file = new TFile(OutputFileName, "RECREATE");
-  cout << file->GetName() << endl;
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
@@ -403,7 +425,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
       }
     }
 
-    //    cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
+    cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
     auto dcent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
     auto df_selected_cent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
@@ -444,6 +466,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
   }
 
+  cout << "Drawing histo " << endl;
   // draw histograms
   TCanvas *cMass = new TCanvas("cMass", "cMass", 900, 600);
   TString TitleX = "M_{#Lambda#pi}";
@@ -452,6 +475,11 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   StyleHisto(*hmass, 0, 1.2 * hmass_Bef->GetMaximum(), kBlue, 20, "M_{#Lambda#pi}", "Counts", "", kTRUE, 1.2, 1.4, 1.2, 1.2, 0.7);
   hmass_Bef->Draw("E");
   hmass->Draw("E SAME");
+
+  TFile *file = new TFile(OutputFileName, "RECREATE");
+  cout << file->GetName() << endl;
+
+ 
   h->Write();
   hPtvsCent_BefSel->Write();
   hPtvsCent_AftSel->Write();
@@ -487,6 +515,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
       TString histName = Form("massVsPtVsPzs2_cent%i_%s", cent, tag.c_str());
       histo.Write(histName);  // or histo->Draw()
     }
+    
 
     massvsptVector[cent]->Write();
     massVsPtVsV2CVector[cent]->Write();
@@ -503,4 +532,10 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   file->Close();
 
   cout << "I created the file " << file->GetName() << endl;
+
+  auto end = std::chrono::high_resolution_clock::now();
+  
+  // Compute the elapsed time
+  std::chrono::duration<double> elapsed = end - start;
+  std::cout << "Elapsed time: " << elapsed.count() << " seconds\n";
 }
