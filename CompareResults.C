@@ -963,7 +963,8 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 90;
   }
-  else if (TypeComp == 35){
+  else if (TypeComp == 35)
+  {
     numOptions = 3;
     fileName[0] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train510916";
     fileName[1] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515731_T0MResolution";
@@ -980,6 +981,20 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "T0C";
     sleg[1] = "T0M";
     sleg[2] = "V0A";
+  }
+  else if (TypeComp == 36)
+  {
+    // TypeComp = 36 --> 2023 pass5 with pass5 acceptance vs w/ pass4 acceptance (Pzs2, Pzs2Error  integrated in pT vs centrality)
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass";
+    fileName[0] = "5_Train456579_ProtAccFromPass4_Xi_BkgParab_Pzs2";
+    fileName[1] = "5_Train534683_Xi_BkgParab_Pzs2";
+    fileName[0] += "_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] += "_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    hTitleY = "";
+    hTitleX = "FT0C centrality (%)";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
   }
   else
   {
@@ -1056,8 +1071,10 @@ void CompareResults(Int_t TypeComp = 0,
   hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 16 || TypeComp == 17 || TypeComp == 18 || TypeComp == 19 || TypeComp == 20 || TypeComp == 29)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
-  if (TypeComp == 34) hDummy->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35) hDummy->GetXaxis()->SetRangeUser(0, 100);
+  if (TypeComp == 34)
+    hDummy->GetXaxis()->SetRangeUser(0, 90);
+  if (TypeComp == 35)
+    hDummy->GetXaxis()->SetRangeUser(0, 100);
   pad1->Draw();
   pad1->cd();
   // hDummy->Draw("same");
@@ -1116,8 +1133,10 @@ void CompareResults(Int_t TypeComp = 0,
   hDummyRatio->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
-  if (TypeComp == 34) hDummyRatio->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35) hDummyRatio->GetXaxis()->SetRangeUser(0, 100);
+  if (TypeComp == 34)
+    hDummyRatio->GetXaxis()->SetRangeUser(0, 90);
+  if (TypeComp == 35)
+    hDummyRatio->GetXaxis()->SetRangeUser(0, 100);
   canvas->cd();
   padL1->Draw();
   padL1->cd();

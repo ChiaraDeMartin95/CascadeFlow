@@ -156,7 +156,7 @@ void MultiTrial(
     Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = "MassAndBDTCut",
+    TString SisSyst = /*"LambdaTopo"*/ "MassAndBDTCut",
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
@@ -198,6 +198,11 @@ void MultiTrial(
       TypeHisto = "PzLambdaFromC";
     TypeCos2Theta = "histoCos2ThetaLambdaFromC";
   }
+  else if (Choice == 3)
+  {
+    TypeHisto = "Pzs2";
+    TypeCos2Theta = "histoCos2Theta";
+  }
   TypeHisto += SisPtIntegrated[isPtIntegrated];
   // TypeHisto += "Mixed";
   TypeHisto += "NoFit";
@@ -224,6 +229,8 @@ void MultiTrial(
   Int_t trials = 0;
   if (SisSyst == "BDT")
     trials = trialsBDT;
+  else if (SisSyst == "LambdaTopo")
+    trials = trialsLambdaTopo; // different lambda topologies
   else if (SisSyst == "eta")
     trials = 2; // eta > 0 and eta < 0
   else if (SisSyst == "IR")
@@ -233,7 +240,7 @@ void MultiTrial(
   else if (SisSyst == "MassAndBDTCut")
   {
     if (mul < 3)
-      trials = trialsBDT * trialsMassCut; 
+      trials = trialsBDT * trialsMassCut;
     else if (mul < 4)
       trials = trialsBDT * 5;
     else if (mul < 5)
@@ -250,6 +257,8 @@ void MultiTrial(
   Sdef += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   if (isApplyWeights)
     Sdef += "_Weighted";
+  if (isApplyCentWeight)
+    Sdef += "_CentWeighted";
   if (v2type == 1)
     Sdef += "_SP";
   if (!useCommonBDTValue)
@@ -270,9 +279,12 @@ void MultiTrial(
 
   TString SdefFinal = Sdef + Sdef1;
   // if (useMixedBDTValueInFitMacro)
-  SdefFinal += "_MixedBDT";
+  if (ChosenPart != 6)
+    SdefFinal += "_MixedBDT";
   if (isTightMassCut)
     SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+  if (isReducedPtBins)
+    SdefFinal += "_ReducedPtBins";
 
   TString Svaried = "";
 
@@ -358,7 +370,8 @@ void MultiTrial(
   hDefaultCos2Theta->SetName("hDefaultCos2Theta");
 
   Float_t LegDefaultBDTscoreCut = hBDT->GetBinContent(1);
-  cout << "Default BDT score: " << LegDefaultBDTscoreCut << endl;
+  if (ChosenPart != 6)
+    cout << "Default BDT score: " << LegDefaultBDTscoreCut << endl;
 
   TLegend *legTrial;
   if (SisSyst == "IR")
@@ -470,6 +483,19 @@ void MultiTrial(
       Svaried = Sdef + SBDT + Sdef1;
       Svaried += Form("_TightMassCutSyst%i", i / trialsBDT);
     }
+    else if (SisSyst == "LambdaTopo")
+    {
+      Svaried = Sdef;
+      if (!isRapiditySel || ExtrisFromTHN)
+        Svaried += "_Eta08";
+      if (isTightMassCut)
+        Svaried += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+      if (isReducedPtBins)
+        Svaried += "_ReducedPtBins";
+      Svaried += Form("_SysMultTrial_%i", i);
+      Svaried += "_isSysLambdaMultTrial_ResoOnTheFly";
+      cout << "Svaried " << Svaried << endl;
+    }
 
     cout << "InputFile - variation: " << Svaried << ".root" << endl;
 
@@ -562,6 +588,7 @@ void MultiTrial(
 
   for (int i = 0; i < trials; i++)
   {
+    cout << "\nTrial: " << i << endl;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -569,6 +596,7 @@ void MultiTrial(
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
+    cout << "here I am " << endl;
     NumberOfActualTrials++;
     ColorIndex += 1;
     hVariedCut[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
@@ -943,6 +971,7 @@ void MultiTrial(
   hRMS->Reset();
   Float_t RMS = 0;
   Int_t counter = 0;
+
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
     // cout << "check " << hMaxDev->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
@@ -975,16 +1004,22 @@ void MultiTrial(
 
   //  gaussian distributions + fits
   TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
-  c2->Divide(4, 4);
+  // c2->Divide(4,4);
 
   TH1F *hPtDev[bins];
   TF1 *fgaus[bins];
 
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
-    hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 15, -0.5, +0.5);
+    hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2., +2.);
+    if (mul == 1)
+      hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -0.5, +0.5);
+    else if (mul == 2)
+      hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -10.0, +10.0);
+    else if (mul == 3)
+      hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2.0, +2.0);
     hPtDev[pt]->SetStats(0);
-    fgaus[pt] = new TF1(Form("fgaus%i", pt), "gaus", -0.5, +0.5);
+    fgaus[pt] = new TF1(Form("fgaus%i", pt), "gaus", -2.5, +2.5);
   }
 
   for (int i = 1; i < trials; i++)
@@ -1018,7 +1053,7 @@ void MultiTrial(
     hPtDev[pt]->Draw("EP SAME");
 
     fgaus[pt]->SetParameter(0, hPtDev[pt]->GetMaximum());
-    hPtDev[pt]->Fit(fgaus[pt], "R+");
+    hPtDev[pt]->Fit(fgaus[pt], "LLR+");
     ltx->DrawLatexNDC(0.6, 0.8, Form("#mu = %.3f", fgaus[pt]->GetParameter(1)));
     ltx->DrawLatexNDC(0.6, 0.7, Form("#sigma = %.3f", fgaus[pt]->GetParameter(2)));
     ltx->DrawLatexNDC(0.6, 0.6, Form("#chi^{2}/ndf = %.1f", fgaus[pt]->GetChisquare() / fgaus[pt]->GetNDF()));
@@ -1026,16 +1061,20 @@ void MultiTrial(
 
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".pdf");
   c2->SaveAs("Systematics/MultTrial" + Suffix + ".png");
-  c2->Close();
+  // c2->Close();
 
   // relative syst. uncertainty from fit
   TCanvas *cSystGaussFit = new TCanvas("cSystGaussFit", "cSystGaussFit", 1000, 800);
   TH1F *hSystMultiTrial = (TH1F *)h[0]->Clone("hSystMultiTrial");
+  TH1F *hSystMultiTrialRMS = (TH1F *)h[0]->Clone("hSystMultiTrialRMS");
   hSystMultiTrial->Reset();
+  hSystMultiTrialRMS->Reset();
   for (int pt = 0; pt < bins; pt++)
   {
     hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2));
     hSystMultiTrial->SetBinError(pt + 1, 0);
+    hSystMultiTrialRMS->SetBinContent(pt + 1, hPtDev[pt]->GetRMS());
+    hSystMultiTrialRMS->SetBinError(pt + 1, 0);
   }
   hSystMultiTrial->GetYaxis()->SetRangeUser(0., 0.5);
   hSystMultiTrial->GetYaxis()->SetTitle("Rel. syst. error");
@@ -1078,6 +1117,47 @@ void MultiTrial(
   }
   legTrialReduced->Draw();
 
+  // Gaussian distribution of maximum deviations
+  TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1000, 800);
+  StyleCanvas(cgaus, 0.15, 0.05, 0.05, 0.15);
+  TH1F *hCollectionAbsoluteSyst[bins];
+  TF1 *fgaus2[bins];
+  for (int pt = 0; pt < bins; pt++) // loop over pT bins
+  {
+    cgaus->cd(pt + 1);
+    fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    for (int i = 0; i < trials; i++)
+    {
+      if (i == IndexNotDisplayed)
+        continue;
+      // skip those variations for which the fit is not good
+      if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
+      {
+        if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
+          continue;
+      }
+      hCollectionAbsoluteSyst[pt]->Fill(hAbsoluteSyst[i]->GetBinContent(pt + 1));
+    }
+    cout << "Fitting with gaus2 " << endl;
+    hCollectionAbsoluteSyst[pt]->Draw("EP SAME");
+    fgaus2[pt]->SetParameter(0, hCollectionAbsoluteSyst[pt]->GetMaximum());
+    fgaus2[pt]->SetLineColor(kBlue);
+    hCollectionAbsoluteSyst[pt]->Fit(fgaus2[pt], "LLR+");
+    fgaus2[pt]->Draw("same");
+  }
+  cgaus->SaveAs("Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".pdf");
+  cgaus->SaveAs("Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".png");
+  // cgaus->Close();
+  
+  TH1F *hSystMultiTrial2 = (TH1F *)h[0]->Clone("hSystMultiTrial2");
+  hSystMultiTrial2->Reset();
+  for (int pt = 0; pt < bins; pt++)
+  {
+    hSystMultiTrial2->SetBinContent(pt + 1, fgaus2[pt]->GetParameter(2));
+    hSystMultiTrial2->SetBinError(pt + 1, 0);
+  }
+
   // Absolute syst. uncertainty from maximum deviation
   TCanvas *cSystAbsMaxDev = new TCanvas("cSystAbsMaxDev", "cSystAbsMaxDev", 1000, 800);
   hAbsoluteMaxDev->SetLineColor(kGray + 1);
@@ -1094,6 +1174,14 @@ void MultiTrial(
   hRMS->SetLineWidth(1);
   hRMS->SetMarkerStyle(33);
   hRMS->Draw("same");
+  TH1F *hSystFromGauss = (TH1F *)hSystMultiTrial->Clone("hSystFromGauss");
+  hSystFromGauss->Reset();
+  hSystFromGauss->SetBinContent(1, abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)));
+  hSystFromGauss->SetBinError(1, 0);
+  hSystFromGauss->SetLineColor(kBlue);
+  hSystFromGauss->SetMarkerColor(kBlue);
+  hSystFromGauss->SetMarkerStyle(33);
+  hSystFromGauss->Draw("same");
 
   // Stat. uncertainties
   TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
@@ -1124,6 +1212,7 @@ void MultiTrial(
   }
   hAbsoluteMaxDev->Draw("same");
   hRMS->Draw("same");
+  hSystFromGauss->Draw("same");
   legTrialReduced->Draw();
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
   cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
@@ -1163,6 +1252,8 @@ void MultiTrial(
     OutputFile += "_PtInt";
   if (isApplyWeights)
     OutputFile += "_Weighted";
+  if (isApplyCentWeight)
+    OutputFile += "_CentWeighted";
   if (!isPtAnalysis)
     OutputFile += "_vsPsi";
   if (!isV2 && isPolFromLambda)
@@ -1181,14 +1272,23 @@ void MultiTrial(
   {
     hPtDev[pt]->Write();
     fgaus[pt]->Write();
+    fgaus2[pt]->Write();
   }
   hSystMultiTrial->Write();
+  hSystMultiTrialRMS->Write();
+  hSystMultiTrial2->Write();
   hMaxDev->Write();
   hAbsoluteMaxDev->Write();
   hRMS->Write();
+  hSystFromGauss->Write();
+  Write->Close();
 
   cout << "\n\nHo creato il file: " << OutputFile << endl;
   cout << "The number of actual trials is: " << NumberOfActualTrials << endl;
-  cout << "Syst error: " << hRMS->GetBinContent(1) << endl;
+  cout << "The default value is: " << hDefault->GetBinContent(1) << endl;
+  cout << "Syst error (RMS of results): " << hRMS->GetBinContent(1) << endl;
+  cout << "Syst. error (gauss fit to results distribution): " << hSystMultiTrial2->GetBinContent(1) << endl;
+  cout << "Syst. error from gaus fit (from rel. deviation): " << abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
+  cout << "Syst. error from RMS (of rel. deviations): " << abs(hSystMultiTrialRMS->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
   cout << "Stat error: " << hDefaultError->GetBinContent(1) << endl;
 }

@@ -58,6 +58,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   // inputFileName = "TestTHN";
   TString SinputFile = "TreeForAnalysis";
   SinputFile += "/AnalysisResults_" + inputFileName + ".root";
+  cout << "Input file: " << SinputFile << endl;
 
   cout << "BDT score cut: " << BDTscoreCut << endl;
   cout << "ChosenPart: " << ParticleName[ChosenPart] << endl;
@@ -171,30 +172,30 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   }
 
   // V2, Pzs2, Cos2Theta ***
-  TH3D *hmassVsPtVsV2C[numCent + 1];
-  TH3D *hmassVsPtVsPzs2[numCent + 1];
-  TH3D *hmassVsPtVsPzs2LambdaFromC[numCent + 1];
-  TH3D *hmassVsPsiVsPz[numCent + 1];
-  TH3D *hmassVsPsiVsPzLambdaFromC[numCent + 1];
-  TString hName[numCent + 1] = {""};
-  TString hNamePzs2_3D[numCent + 1] = {""};
-  TString hNamePzs2LambdaFromC_3D[numCent + 1] = {""};
-  TString hNamePzVsPsi_3D[numCent + 1] = {""};
-  TString hNamePzVsPsiLambdaFromC_3D[numCent + 1] = {""};
+  TH3D *hmassVsPtVsV2C[commonNumCent + 1];
+  TH3D *hmassVsPtVsPzs2[commonNumCent + 1];
+  TH3D *hmassVsPtVsPzs2LambdaFromC[commonNumCent + 1];
+  TH3D *hmassVsPsiVsPz[commonNumCent + 1];
+  TH3D *hmassVsPsiVsPzLambdaFromC[commonNumCent + 1];
+  TString hName[commonNumCent + 1] = {""};
+  TString hNamePzs2_3D[commonNumCent + 1] = {""};
+  TString hNamePzs2LambdaFromC_3D[commonNumCent + 1] = {""};
+  TString hNamePzVsPsi_3D[commonNumCent + 1] = {""};
+  TString hNamePzVsPsiLambdaFromC_3D[commonNumCent + 1] = {""};
 
   // acceptance correction ***
-  TH3D *hmassVsPtVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[numCent + 1];
-  TH3D *hmassVsPsiVsCos2Theta[numCent + 1];
-  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[numCent + 1];
-  TH3D *hEtaVsPtVsCos2ThetaLambdaFromC[numCent + 1];
-  TString hNameCos2Theta_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaLambdaFromC_Eta3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsi_3D[numCent + 1] = {""};
-  TString hNameCos2ThetaVsPsiLambdaFromC_3D[numCent + 1] = {""};
+  TH3D *hmassVsPtVsCos2Theta[commonNumCent + 1];
+  TH3D *hmassVsPtVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TH3D *hmassVsPsiVsCos2Theta[commonNumCent + 1];
+  TH3D *hmassVsPsiVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TH3D *hEtaVsPtVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TString hNameCos2Theta_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaLambdaFromC_Eta3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaVsPsi_3D[commonNumCent + 1] = {""};
+  TString hNameCos2ThetaVsPsiLambdaFromC_3D[commonNumCent + 1] = {""};
 
-  TH2F *hPhiCentHisto[numCent];
+  TH2F *hPhiCentHisto[commonNumCent];
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
@@ -203,12 +204,12 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TCanvas *canvasQC = new TCanvas("canvasQC", "canvasQC", 1400, 800);
   canvasQC->Divide(3, 2);
 
-  TH1F *hCentrality[numCent + 1];
-  TH1F *hCharge[numCent + 1];
-  TH1F *hPt[numCent + 1];
-  TH1F *hMass[numCent + 1];
-  TH1F *hBDT[numCent + 1];
-  TH1F *hMassLambda[numCent + 1];
+  TH1F *hCentrality[commonNumCent + 1];
+  TH1F *hCharge[commonNumCent + 1];
+  TH1F *hPt[commonNumCent + 1];
+  TH1F *hMass[commonNumCent + 1];
+  TH1F *hBDT[commonNumCent + 1];
+  TH1F *hMassLambda[commonNumCent + 1];
 
   TH1F *hDummyCentrality = (TH1F *)hV2->Projection(0);
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
@@ -235,7 +236,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
   TH1F *hBDTSelection = new TH1F("hBDTSelection", "BDT selection", 8, 0, 80);
 
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     if (cent == numCent)
     { // 0-80%
@@ -246,6 +247,19 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     {
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
+    }
+    if (isOOCentrality)
+    {
+      if (cent == numCentLambdaOO)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = 90;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CLambdaOO[cent];
+        CentFT0CMax = CentFT0CLambdaOO[cent + 1];
+      }
     }
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
     // Selection of centrality range
@@ -312,7 +326,6 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2Theta->GetAxis(4)->FindBin(1.119 - 0.00001));
       hXiCos2Theta->GetAxis(2)->SetRange(hXiCos2Theta->GetAxis(2)->FindBin(-0.8 + 0.00001), hXiCos2Theta->GetAxis(2)->FindBin(0.8 - 0.00001));
     }
-
     // QCPlots
     hBDTSelection->SetBinContent(cent + 1, BDTscoreCut);
     hBDTSelection->SetBinError(cent + 1, 0);
@@ -340,8 +353,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hCharge[cent]->Draw("same");
 
     canvasQC->cd(3);
-    // hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
-    hPt[cent] = (TH1F *)hXiCos2Theta->Projection(3); // pt
+    hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
+    // hPt[cent] = (TH1F *)hXiCos2Theta->Projection(3); // pt
     hPt[cent]->Scale(1. / hPt[cent]->Integral());
     hPt[cent]->SetLineColor(ColorMult[cent]);
     hPt[cent]->SetMarkerColor(ColorMult[cent]);
@@ -351,8 +364,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hPt[cent]->Draw("same");
 
     canvasQC->cd(4);
-    // hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
-    hMass[cent] = (TH1F *)hXiCos2Theta->Projection(2);
+    hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
+    // hMass[cent] = (TH1F *)hXiCos2Theta->Projection(2);
     hMass[cent]->Scale(1. / hMass[cent]->Integral());
     hMass[cent]->SetLineColor(ColorMult[cent]);
     hMass[cent]->SetMarkerColor(ColorMult[cent]);
@@ -387,7 +400,6 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ExtrisApplyEffWeights)
       hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
-
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -398,7 +410,6 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaVsPsi_3D[cent] = Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
-
     // Projections
     Int_t AxisNumber = 5;
     if (ChosenPart == 6) // Lambda
@@ -410,18 +421,21 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hmassVsPtVsPzs2[cent]->SetName(hNamePzs2_3D[cent]);
     hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)hXiPzs2FromLambda->Projection(3, 2, AxisNumber); // mass, pt, pzs2LambdaFromC
     hmassVsPtVsPzs2LambdaFromC[cent]->SetName(hNamePzs2LambdaFromC_3D[cent]);
-
     // BE CAREFUL: AXES TO BE UPDATED
     hmassVsPsiVsPz[cent] = (TH3D *)hXiPzs2->Projection(3, 2, AxisNumber); // mass, psi, cosThetaLambda
     hmassVsPsiVsPz[cent]->SetName(hNamePzVsPsi_3D[cent]);
     hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)hXiPzs2->Projection(3, 2, AxisNumber); // mass, psi, cosThetaProton
     hmassVsPsiVsPzLambdaFromC[cent]->SetName(hNamePzVsPsiLambdaFromC_3D[cent]);
-
-    hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(3, 2, AxisNumber); // mass, pt, cos2ThetaLambda
+    if (isProducedAcceptancePlots)
+      hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(4, 3, AxisNumber + 1); // mass, pt, cos2ThetaLambda
+    else //DUMMY
+      hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(4, 3, 5); // mass, pt, cos2ThetaLambda
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
-    hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(3, 2, AxisNumber); // mass, pt, cos2ThetaProton
+    if (isProducedAcceptancePlots)
+      hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(4, 3, AxisNumber + 1); // mass, pt, cos2ThetaProton
+    else                                                                                                        // DUMMY
+      hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(4, 3, 5);              // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
-
     if (isProducedAcceptancePlots)
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber + 1); // eta, pt, cos2ThetaProton
     else
@@ -458,12 +472,13 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_Eta08";
   if (ChosenPart != 6)
     OutputFileName += SBDT;
-  // if (isRedCentrality) OutputFileName += "_isRedCent";
+  if (isOOCentrality)
+    OutputFileName += "_isOOCentrality";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   hBDTSelection->Write();
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     hmassVsPtVsV2C[cent]->Write();
     hmassVsPtVsPzs2[cent]->Write();
