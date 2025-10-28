@@ -106,27 +106,6 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
   histo->SetTitle(title);
 }
 
-// fit ranges
-Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69};
-Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // bkg and total fit range
-Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71};
-Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656};
-Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688};
-
-// visualisation ranges
-Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.655}; // range to compute approximate yield (signal + bkg)
-Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685};
-Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63}; // display range of gauss functions (from total fit)
-Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71};
-Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72};
-Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72};
-
-// Event plane resolution
-Float_t ftcReso[numCent + 1] = {0};
-
 void Acceptance(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
                 Bool_t isRapiditySel = ExtrisRapiditySel,
@@ -158,6 +137,8 @@ void Acceptance(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SinputFile += "_Eta08";
   SinputFile += SBDT;
+  if (isOOCentrality)
+    SinputFile += "_isOOCentrality";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -167,31 +148,31 @@ void Acceptance(Int_t indexMultTrial = 0,
     return;
   }
 
-  TH3D *hEtaVsPtVsCos2ThetaLambdaFromC[numCent + 1];
-  TString hNameCos2ThetaLambdaFromC_Eta3D[numCent + 1] = {""};
+  TH3D *hEtaVsPtVsCos2ThetaLambdaFromC[commonNumCent + 1];
+  TString hNameCos2ThetaLambdaFromC_Eta3D[commonNumCent + 1] = {""};
 
-  TH2F *hEtaVsCos2ThetaLambdaFromC[numCent + 1][numPtBinsLambda + 1];
-  TString hNameEtaCos2ThetaLambdaFromC[numCent + 1][numPtBinsLambda + 1] = {""};
-  TH1F *hCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBinsLambda + 1];
-  TString hNameCos2ThetaLambdaFromCVsEta[numCent + 1][numPtBinsLambda + 1] = {""};
-  TH1F *hEta[numCent + 1][numPtBinsLambda + 1];
-  TString hNameEta[numCent + 1][numPtBinsLambda + 1] = {""};
+  TH2F *hEtaVsCos2ThetaLambdaFromC[commonNumCent + 1][numPtBinsLambda + 1];
+  TString hNameEtaCos2ThetaLambdaFromC[commonNumCent + 1][numPtBinsLambda + 1] = {""};
+  TH1F *hCos2ThetaLambdaFromCVsEta[commonNumCent + 1][numPtBinsLambda + 1];
+  TString hNameCos2ThetaLambdaFromCVsEta[commonNumCent + 1][numPtBinsLambda + 1] = {""};
+  TH1F *hEta[commonNumCent + 1][numPtBinsLambda + 1];
+  TString hNameEta[commonNumCent + 1][numPtBinsLambda + 1] = {""};
 
-  TH2F *hPtVsCos2ThetaLambdaFromC[numCent + 1][numEtaBins + 1];
-  TString hNamePtVsCos2ThetaLambdaFromC[numCent + 1][numEtaBins + 1] = {""};
-  TH1F *hCos2ThetaLambdaFromCVsPt[numCent + 1][numEtaBins + 1];
-  TString hNameCos2ThetaLambdaFromCVsPt[numCent + 1][numEtaBins + 1] = {""};
-  TH1F *hPtLambda[numCent + 1][numEtaBins + 1];
-  TString hNamePtLambda[numCent + 1][numEtaBins + 1] = {""};
+  TH2F *hPtVsCos2ThetaLambdaFromC[commonNumCent + 1][numEtaBins + 1];
+  TString hNamePtVsCos2ThetaLambdaFromC[commonNumCent + 1][numEtaBins + 1] = {""};
+  TH1F *hCos2ThetaLambdaFromCVsPt[commonNumCent + 1][numEtaBins + 1];
+  TString hNameCos2ThetaLambdaFromCVsPt[commonNumCent + 1][numEtaBins + 1] = {""};
+  TH1F *hPtLambda[commonNumCent + 1][numEtaBins + 1];
+  TString hNamePtLambda[commonNumCent + 1][numEtaBins + 1] = {""};
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
 
-  TProfile2D *pCos2ThetaLambdaFromC[numCent + 1];
-  TString pNameCos2ThetaLambdaFromC[numCent + 1];
-  TH2F *hCos2ThetaLambdaFromC2D[numCent + 1];
+  TProfile2D *pCos2ThetaLambdaFromC[commonNumCent + 1];
+  TString pNameCos2ThetaLambdaFromC[commonNumCent + 1];
+  TH2F *hCos2ThetaLambdaFromC2D[commonNumCent + 1];
 
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     if (cent == numCent)
     { // 0-80%
@@ -202,6 +183,19 @@ void Acceptance(Int_t indexMultTrial = 0,
     {
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
+    }
+    if (isOOCentrality)
+    {
+      if (cent == numCentLambdaOO)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = 90;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CLambdaOO[cent];
+        CentFT0CMax = CentFT0CLambdaOO[cent + 1];
+      }
     }
     hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)inputFile->Get(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
@@ -232,7 +226,7 @@ void Acceptance(Int_t indexMultTrial = 0,
       hEtaVsCos2ThetaLambdaFromC[cent][pt] = (TH2F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xze"); // eta vs cos2thetaLambdaFromC
       hEtaVsCos2ThetaLambdaFromC[cent][pt]->SetName(hNameEtaCos2ThetaLambdaFromC[cent][pt]);
 
-      //hEta[cent][pt] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xe");
+      // hEta[cent][pt] = (TH1F *)hEtaVsPtVsCos2ThetaLambdaFromC[cent]->Project3D("xe");
       hEta[cent][pt] = new TH1F(hNameEta[cent][pt], hNameEta[cent][pt], numEtaBins, EtaBins);
 
       hCos2ThetaLambdaFromCVsEta[cent][pt] = (TH1F *)hEta[cent][pt]->Clone(hNameCos2ThetaLambdaFromCVsEta[cent][pt]);
@@ -304,7 +298,7 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetLineColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->Draw("same");
-    legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt+1]), "pl");
+    legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt + 1]), "pl");
   }
   legendPt->Draw("same");
   canvasAcceptance->cd(2);
@@ -362,18 +356,22 @@ void Acceptance(Int_t indexMultTrial = 0,
     SOutputFile += "_EffW";
   }
   SOutputFile += "_WithAlpha";
-  if (!isRapiditySel || ExtrisFromTHN)
+  // if (!isRapiditySel || ExtrisFromTHN)
+  if (!isRapiditySel)
     SOutputFile += "_Eta08";
-  SOutputFile += STHN[ExtrisFromTHN] + ".root";
+  SOutputFile += STHN[ExtrisFromTHN];
+  if (isOOCentrality)
+    SOutputFile += "_isOOCentrality";
+  SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   TList *listAcceptance = new TList();
-  for (Int_t cent = 0; cent < numCent + 1; cent++)
+  for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     listAcceptance->Add(hCos2ThetaLambdaFromC2D[cent]);
-    //pCos2ThetaLambdaFromC[cent]->Write();
-    //hCos2ThetaLambdaFromC2D[cent]->Write();
-    //hCos2ThetaLambdaFromCVsEta[cent][numPtBinsLambda]->Write();
-    //hCos2ThetaLambdaFromCVsPt[cent][numEtaBins]->Write();
+    // pCos2ThetaLambdaFromC[cent]->Write();
+    hCos2ThetaLambdaFromC2D[cent]->Write();
+    hCos2ThetaLambdaFromCVsEta[cent][numPtBinsLambda]->Write();
+    hCos2ThetaLambdaFromCVsPt[cent][numEtaBins]->Write();
   }
   listAcceptance->Write("ccdb_object", TObject::kSingleKey);
   file->Close();
