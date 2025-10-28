@@ -336,8 +336,8 @@ TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #p
 TString SInvMass = "invariant mass (GeV/c^{2})";
 
 // fit ranges
-Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.1}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.13};
+Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11}; // gauss fit range
+Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12};
 Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // bkg and total fit range
 Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1};
@@ -539,7 +539,7 @@ void FitV2orPol(
     if (mul == numCentLambdaOO)
       ftcReso[mul] = hReso080->GetBinContent(1);
     else
-      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0CLambdaOO[mul] + 0.001));
   }
   else
   {
@@ -584,6 +584,9 @@ void FitV2orPol(
     cout << "Number of bins too large" << endl;
     return;
   }
+
+  if (ChosenParticle == 6)
+    PtBins[0] = 0.5; // for Lambda
 
   TString SPt[numPtBins + 1] = {""};
   TH1F *hInvMass[numPtBins + 1];
@@ -783,7 +786,7 @@ void FitV2orPol(
     if (isReducedPtBins)
       SPathIn += "_ReducedPtBins";
 
-    if (ChosenPart == 6 && isSysMultTrial)
+    if (ChosenPart == 6 && isSysLambdaMultTrial)
     {
       if (isLoosest)
         SPathIn += "_isLoosest";
@@ -791,6 +794,7 @@ void FitV2orPol(
         SPathIn += "_isTightest";
       else
         SPathIn += Form("_SysMultTrial_%i", indexMultTrial);
+      SPathIn += "_isSysLambdaMultTrial";
     }
     SPathIn += STHN[ExtrisFromTHN];
     if (ExtrisApplyResoOnTheFly)
@@ -902,7 +906,14 @@ void FitV2orPol(
       return;
     }
 
-    StyleHisto(hV2[pt], -0.02, 0.02, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
+    Float_t MaxV2 = 0.02;
+    Float_t MinV2 = -0.02;
+    if (mul > 4)
+    {
+      MaxV2 = 0.05;
+      MinV2 = -0.05;
+    }
+    StyleHisto(hV2[pt], -MinV2, MaxV2, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
     hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
 
     hCos2Theta[pt] = (TH1F *)filein->Get(AcceptanceHisto);
@@ -1904,17 +1915,34 @@ void FitV2orPol(
     }
     if (ParticleType == 0 && pt == 0)
       continue;
-    if (pt == 2)
+    /*
+  if (pt == 2)
+    index = 1;
+  else if (pt == 3)
+    index = 2;
+  else if (pt == 5)
+    index = 3;
+  else if (pt == 7)
+    index = 4;
+  else if (pt == 9)
+    index = 5;
+  else if (pt == 11)
+    index = 6;
+  else
+    continue;
+    */
+
+    if (pt == 0)
       index = 1;
-    else if (pt == 3)
+    else if (pt == 1)
       index = 2;
-    else if (pt == 5)
+    else if (pt == 2)
       index = 3;
-    else if (pt == 7)
+    else if (pt == 3)
       index = 4;
-    else if (pt == 9)
+    else if (pt == 4)
       index = 5;
-    else if (pt == 11)
+    else if (pt == 7)
       index = 6;
     else
       continue;
@@ -2128,7 +2156,6 @@ void FitV2orPol(
     histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
     histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
   }
-
   // Histograms with errors
   for (Int_t pt = 0; pt < histoV2->GetNbinsX(); pt++)
   {
@@ -2320,7 +2347,7 @@ void FitV2orPol(
   }
   if (isReducedPtBins)
     Soutputfile += "_ReducedPtBins";
-  if (ChosenPart == 6 && isSysMultTrial)
+  if (ChosenPart == 6 && isSysLambdaMultTrial)
   {
     if (isLoosest)
       Soutputfile += "_isLoosest";
@@ -2328,9 +2355,8 @@ void FitV2orPol(
       Soutputfile += "_isTightest";
     else
       Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
+    Soutputfile += "_isSysLambdaMultTrial";
   }
-  if (ChosenPart == 6 && isSysMultTrial)
-    Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
 
@@ -2411,7 +2437,6 @@ void FitV2orPol(
     cout << "I stored the acceptance plots in the file: " << SoutputfileAcceptance << ".root" << endl;
   }
   // Acceptance plots - comparison
-
   TCanvas *canvasAcc = new TCanvas("canvasAcc", "canvasAcc", 800, 1200);
   Float_t LLUpperPad = 0.44;
   Float_t ULLowerPad = 0.44;
@@ -2592,7 +2617,10 @@ void FitV2orPol(
   bkg->Draw("same");
   legendfit->AddEntry(bkg, "bkg.", "l");
   legendfit2->AddEntry(bkg, "bkg.", "l");
-  legendfit2->AddEntry("", Form("Pz = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
+  if (ExtrisApplyResoOnTheFly)
+    legendfit2->AddEntry("", Form("Pz = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
+  else
+    legendfit2->AddEntry("", Form("Pz (no reso) = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
   totalPNorm->SetRange(LowLimitMass[ChosenPart], UpLimitMass[ChosenPart]);
   totalPNorm->SetLineColor(kRed + 1);
   totalPNorm->Draw("same");
@@ -2623,7 +2651,7 @@ void FitV2orPol(
 
   TCanvas *canvasCosSinP = new TCanvas("canvasCosSinP", "canvasCosSinP", 800, 800);
   StyleCanvas(canvasCosSinP, 0.2, 0.03, 0.02, 0.14); // L, R, T, B
-  TH1F *histoCosSin = hV2MassIntegrated[ChosenPt];
+  TH1F *histoCosSin = (TH1F *)hV2MassIntegrated[ChosenPt]->Clone("histoCosSin");
   histoCosSin->Scale(1. / histoCosSin->Integral(""));
   TString titleyNormCosSin = "Normalized counts";
   TString TitleCosSin = "1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2}))";
@@ -2786,7 +2814,13 @@ void FitV2orPol(
   padL1->Draw();
   padL1->cd();
   if (!isV2)
+  {
     hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
+    if (mul > 3)
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
+    if (mul > 5)
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.2, 0.2);
+  }
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
