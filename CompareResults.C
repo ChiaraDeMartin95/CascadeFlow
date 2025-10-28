@@ -215,6 +215,9 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 32 --> Compare purity with loosest and tightest topo sel
   // TypeComp == 33 --> Compare Pzs2 with loosest and tightest topo sel
   // TypeComp == 34 --> Compare Pzs2 of Lambda with resolution applied offline or on the fly
+  // TypeComp == 35 --> Resolution comparison (T0C vs T0M vs V0A)
+  // TypeComp = 36 --> 2023 pass5 with pass5 acceptance vs w/ pass4 acceptance (Pzs2, Pzs2Error  integrated in pT vs centrality)
+  // TypeComp == 37 --> Compare Pzs2 of Xi with flat and non-flat event plane
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -995,6 +998,46 @@ void CompareResults(Int_t TypeComp = 0,
     hTitleX = "FT0C centrality (%)";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
+  }
+  else if (TypeComp == 37)
+  {
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5";
+    fileName[0] = "_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] = "_Train534683_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "flat EP";
+    sleg[1] = "non-flat EP";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 90;
+  }
+  else if (TypeComp == 38)
+  {
+    numOptions = 2;
+    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5";
+    fileName[0] = "_Train541065_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] = "_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "|z| < 8 cm";
+    sleg[1] = "|z| < 10 cm";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 90;
   }
   else
   {
