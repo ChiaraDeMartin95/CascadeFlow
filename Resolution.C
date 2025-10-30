@@ -115,7 +115,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
 {
 
-  TString ComputeResoFileName = "TreeForAnalysis/AnalysisResults_";
+  TString ComputeResoFileName = "../TreeForAnalysis/AnalysisResults_";
   if (isLFReso == 1)
     ComputeResoFileName += inputFileResoLF + ".root";
   else
@@ -259,7 +259,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     {
       hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
       hReso->SetBinError(cent + 1, ErrReso);
-      hResoV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanTPCAC));
+      hResoV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
       hResoV0A->SetBinError(cent + 1, ErrResoV0A);
     }
   }
@@ -270,25 +270,32 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     hQT0CTPCC->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     hQTPCAC->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     hQT0CV0A->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
+    hQV0ATPCA->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
+    hQV0ATPCC->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     TH1F *h1QT0CTPCA = (TH1F *)hQT0CTPCA->ProjectionX("h1QT0CTPCA");
     TH1F *h1QT0CTPCC = (TH1F *)hQT0CTPCC->ProjectionX("h1QT0CTPCC");
     TH1F *h1QTPCAC = (TH1F *)hQTPCAC->ProjectionX("h1QTPCAC");
     TH1F *h1QT0CV0A = (TH1F *)hQT0CV0A->ProjectionX("h1QT0CV0A");
+    TH1F *h1QV0ATPCA = (TH1F *)hQV0ATPCA->ProjectionX("h1QV0ATPCA");
+    TH1F *h1QV0ATPCC = (TH1F *)hQV0ATPCC->ProjectionX("h1QV0ATPCC");
     Float_t MeanT0CTPCA = h1QT0CTPCA->GetMean();
     Float_t MeanT0CTPCC = h1QT0CTPCC->GetMean();
     Float_t MeanTPCAC = h1QTPCAC->GetMean();
     Float_t MeanT0CV0A = h1QT0CV0A->GetMean();
-    Float_t MeanV0ATPC = h1QT0CV0A->GetMean();
+    Float_t MeanV0ATPCA = h1QV0ATPCA->GetMean();
+    Float_t MeanV0ATPCC = h1QV0ATPCC->GetMean();
     Float_t ErrMeanT0CTPCA = h1QT0CTPCA->GetMeanError();
     Float_t ErrMeanT0CTPCC = h1QT0CTPCC->GetMeanError();
     Float_t ErrMeanTPCAC = h1QTPCAC->GetMeanError();
     Float_t ErrMeanT0CV0A = h1QT0CV0A->GetMeanError();
-    Float_t ErrMeanV0ATPC = h1QT0CV0A->GetMeanError();
+    Float_t ErrMeanV0ATPCA = h1QV0ATPCA->GetMeanError();
+    Float_t ErrMeanV0ATPCC = h1QV0ATPCC->GetMeanError();
     Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t ErrResoV0A = sqrt(RelErr2 * (MeanT0CV0A * MeanT0CTPCC / MeanTPCAC));
+    Float_t RelErr2V0A = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
+    Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     hResoPerCentBins->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanV0ATPC * MeanT0CTPCC / MeanTPCAC));
+    hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     cout << "Cent: " << cent << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << MeanT0CTPCA << " " << MeanT0CTPCC << " " << MeanTPCAC << " " << ErrMeanT0CTPCA << " " << ErrMeanT0CTPCC << " " << ErrMeanTPCAC << endl;
     hResoPerCentBins->SetBinError(cent + 1, ErrReso);
@@ -324,7 +331,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hResoPerCentBins->SetMarkerColor(kBlue);
   hResoPerCentBins->SetMarkerStyle(21);
   hResoPerCentBins->SetMarkerSize(0.8);
-  //hResoPerCentBins->Draw("same");
+  hResoPerCentBins->Draw("same");
   hResoPerCentBinsV0A->SetLineColor(kRed);
   hResoPerCentBinsV0A->SetMarkerColor(kRed);
   hResoPerCentBinsV0A->SetMarkerStyle(22);
