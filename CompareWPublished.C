@@ -82,7 +82,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   if (isRun2Comparison && numPtBins != 6)
   {
     cout << "The pt binning you chose is not the one used in Run 2, please change in CommonVar.h file" << endl;
-    return;
+    //return;
   }
   TString SinputFile = "";
   TFile *inputFile;

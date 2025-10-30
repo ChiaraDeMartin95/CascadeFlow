@@ -310,7 +310,8 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   TString Name[3] = {"Minus", "Plus", ""};
   for (Int_t charge = 0; charge <= 2; charge++)
   {
-    if (Choice >= 5 && charge == 2)
+    //if (Choice >= 5 && charge == 2)
+    if (charge == 2)
       continue; // Pzs is studied for separate charged only
     // charge = 0: NegCharge, charge = 1: PosCharge, charge = 2: AllCharge
 
@@ -387,7 +388,8 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
 
   for (Int_t charge = 0; charge <= 2; charge++)
   {
-    if (Choice >= 5 && charge == 2)
+    //if (Choice >= 5 && charge == 2)
+    if (charge == 2)
       continue; // Pzs is studied for separate charged only
     ScaleFactorFinal[ChosenMult] = ScaleFactor[ChosenMult];
     fHistSpectrum[ChosenMult][charge] = (TH1F *)fHistSpectrum[ChosenMult][charge]->Clone("fHistSpectrumScaled_" + Smolt[ChosenMult]);
@@ -533,7 +535,8 @@ void CompareXiPlusMinus(Bool_t isPtAnalysis = 1,
   hDummy->Draw("same");
   for (Int_t charge = 0; charge <= 2; charge++)
   {
-    if (Choice >= 5 && charge == 2)
+    //if (Choice >= 5 && charge == 2)
+    if (charge == 2)
       continue; // Pzs is studied for separate charged only
     fHistSpectrum[ChosenMult][charge]->Draw("same e0x0");
   }
