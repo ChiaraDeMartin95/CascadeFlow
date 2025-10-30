@@ -21,10 +21,12 @@ print("isIntegratedPt: ", args.isIntegratedPt)
 DirName = 'TrainingPlots'
 AdditionalName = '/Pass4'
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train268801.root"
+FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train299250.root"
+#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train268801.root"
 #FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099_New_RedFactor10.root"
 #FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"
-FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24g3_pass4_Train270268.root"
+FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24j2_pass4_Train304890.root"
+#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24g3_pass4_Train270268.root"
 #FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
 #FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC23k6e_Train190322.root"
 bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*') 
@@ -36,6 +38,7 @@ preselection_string_common = 'abs(fBachBaryonDCAxyToPV) < 10 and fCascRadius < 3
 preselection_string_sig = 'abs(fMcPdgCode) == 3312'
 preselection_string_mass = 'fMassXi > 1.28 and fMassXi < 1.36'
 preselection_sidebands = 'fMassXi > 1.304 and fMassXi < 1.31 or fMassXi > 1.332 and fMassXi < 1.338'
+#preselection_sidebands = 'fMassXi > 1.298 and fMassXi < 1.306 or fMassXi > 1.336 and fMassXi < 1.344' #pt > 5 GeV/c
 if not isXi:
     preselection_string_sig = 'abs(fMcPdgCode) == 3334'
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
@@ -120,6 +123,7 @@ else:
 
 for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     if ptbin == 10: break
+    #if (ptbin < 5): continue
     if (args.isIntegratedPt and ptbin != minpt): break
     print('pt bin: ', ptbin)
     print('pt+1 bin: ', ptbinMax)
