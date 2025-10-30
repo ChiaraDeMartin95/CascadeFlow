@@ -111,6 +111,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0.0015};
 
+Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
+
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
                            Float_t nsigmaBarlowMassCut = 1.0,
@@ -227,6 +229,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       PathIn += "_PolFromLambda";
     if (!isRapiditySel || ExtrisFromTHN)
       PathIn += "_Eta08";
+    if (isReducedPtBins)
+      PathIn += "_ReducedPtBins";
     PathIn += STHN[ExtrisFromTHN];
     if (useMixedBDTValueInFitMacro)
       PathIn += "_MixedBDT";
@@ -268,7 +272,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     cout << "Path in MassCutAndBDT: " << PathInMassCutAndBDT << endl;
     fileInMassCutAndBDT[m] = TFile::Open(PathInMassCutAndBDT);
 
-    //fHistBDTError[m] = (TH1F *)fileInBDT[m]->Get("hAbsoluteMaxDev");
+    // fHistBDTError[m] = (TH1F *)fileInBDT[m]->Get("hAbsoluteMaxDev");
     fHistBDTError[m] = (TH1F *)fileInMassCutAndBDT[m]->Get("hAbsoluteMaxDev");
     if (!fHistBDTError[m])
     {
@@ -288,7 +292,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistMassCutError[m]->SetName("hAbsoluteSystErrorMassCut_" + Smolt[m]);
     fHistMassCutError[m]->Reset();
 
-    fHistMassCutAndBDTError[m] = (TH1F *)fileInMassCutAndBDT[m]->Get("hRMS");
+    //fHistMassCutAndBDTError[m] = (TH1F *)fileInMassCutAndBDT[m]->Get("hRMS");
+    fHistMassCutAndBDTError[m] = (TH1F *)fileInMassCutAndBDT[m]->Get("hSystMultiTrial2");
     if (!fHistMassCutAndBDTError[m])
     {
       cout << "Error: histogram not found" << endl;
@@ -296,7 +301,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     }
     fHistMassCutAndBDTError[m]->SetName("hAbsoluteSystErrorMassCutAndBDT_" + Smolt[m]);
 
-    fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, 0.05 * fHistPzs2[m]->GetBinContent(1));
+    fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, 0.03 * fHistPzs2[m]->GetBinContent(1));
     fHistPrimaryLambdaErrorVsCent->SetBinError(m + 1, 0);
     fHistBDTErrorVsCent->SetBinContent(m + 1, fHistBDTError[m]->GetBinContent(1));
     fHistBDTErrorVsCent->SetBinError(m + 1, 0);
@@ -304,7 +309,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistMassCutErrorVsCent->SetBinError(m + 1, 0);
     fHistMassCutAndBDTErrorVsCent->SetBinContent(m + 1, fHistMassCutAndBDTError[m]->GetBinContent(1));
     fHistMassCutAndBDTErrorVsCent->SetBinError(m + 1, 0);
-    fHistAccErrorVsCent->SetBinContent(m + 1, 0.02 * fHistPzs2[m]->GetBinContent(1));
+    fHistAccErrorVsCent->SetBinContent(m + 1, AccRelError[m] * fHistPzs2[m]->GetBinContent(1));
     fHistAccErrorVsCent->SetBinError(m + 1, 0);
   } // end loop on mult
   fHistBDTErrorVsCent->Smooth();
@@ -353,8 +358,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistAccErrorVsCent->SetLineColor(kBlue);
   fHistTotalErrorVsCent->SetLineColor(kBlack);
   fHistTotalErrorVsCent->SetLineWidth(2);
-  //fHistBDTErrorVsCent->Draw("same");
-  //fHistMassCutErrorVsCent->Draw("same");
+  // fHistBDTErrorVsCent->Draw("same");
+  // fHistMassCutErrorVsCent->Draw("same");
   fHistAccErrorVsCent->Draw("same");
   fHistMassCutAndBDTErrorVsCent->Draw("same");
   fHistPrimaryLambdaErrorVsCent->Draw("same");
