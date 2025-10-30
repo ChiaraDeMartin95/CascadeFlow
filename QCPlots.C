@@ -126,14 +126,31 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   if (isEff)
     SinputFile = "FileForEfficiency";
   SinputFile += "/AnalysisResults_" + inputFileName + ".root";
+  cout << "Input file: " << SinputFile << endl;
   // TString SinputFile = "TreeForTrainingSignal/AnalysisResults_" + SinputFileName + ".root";
   // TString SinputFile = "TreeForAnalysis/AnalysisResults_3004.root";
   //  TString SinputFile = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_DerivedStrangeness_Train205658_Test.root";
   TFile *file = new TFile(SinputFile, "READ");
+  if (!file)
+  {
+    std::cout << "Error opening file: " << SinputFile << std::endl;
+    return;
+  }
   TDirectoryFile *dir = (TDirectoryFile *)file->Get("lf-cascade-flow");
+  if (!dir)
+  {
+    std::cout << "Directory lf-cascade-flow not found!" << std::endl;
+    return;
+  }
 
+  cout << "Hello " << endl;
   // event selection
-  TDirectoryFile *dirHistos = (TDirectoryFile *)dir->Get("histos");
+  // TDirectoryFile *dirHistos = (TDirectoryFile *)dir->Get("histos");
+  TDirectoryFile *dirHistos;
+  if (ChosenParticle == 6)
+    dirHistos = (TDirectoryFile *)dir;
+  else
+    dirHistos = (TDirectoryFile *)dir->Get("histos");
   TH1F *hNEvents = (TH1F *)dirHistos->Get("hNEvents");
   TH2F *hPVContribvsFT0CBefSel = (TH2F *)dirHistos->Get("hEventPVcontributorsVsCentralityBefCuts");
   TH2F *hPVContribvsFT0C = (TH2F *)dirHistos->Get("hEventPVcontributorsVsCentrality" + SAfterEventsel);
@@ -143,6 +160,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   TH2F *hGlobalTrkvsPVContrib = (TH2F *)dirHistos->Get("hEventNchCorrelation" + SAfterEventsel);
   TH1F *hCentrality = (TH1F *)dirHistos->Get("hEventCentrality");
   TH1F *hVertexZ = (TH1F *)dirHistos->Get("hEventVertexZ");
+  cout << "Hello " << endl;
 
   // event plane vs FT0C
   TH2F *hPsiT0CvsFT0C = (TH2F *)dirHistos->Get("hPsiT0CvsCentFT0C");
@@ -159,6 +177,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     else
       StyleCanvas(c[i], 0.05, 0.1, 0.10, 0.1);
   }
+  cout << "Hello 3" << endl;
   c[0]->cd();
   for (Int_t b = 1; b <= hNEvents->GetNbinsX(); b++)
   {
@@ -170,6 +189,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[0]->SaveAs("QCPlots/hNEvents" + inputFileName + ".pdf");
   c[0]->SaveAs("QCPlots/hNEvents" + inputFileName + ".png");
 
+  cout << "Hello 4" << endl;
   c[1]->cd();
   gPad->SetLogz();
   hPVContribvsFT0CBefSel->GetXaxis()->SetTitle("FT0C(%)");
@@ -184,6 +204,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".pdf");
   c[1]->SaveAs("QCPlots/hPVContribvsFT0C_BefSel" + inputFileName + ".png");
 
+  cout << "Hello " << endl;
   c[2]->cd();
   gPad->SetLogz();
   hPVContribvsFT0C->GetXaxis()->SetTitle("FT0C(%)");
@@ -263,6 +284,8 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hPsiT0CvsFT0C->Draw("colz");
   c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".pdf");
   c[7]->SaveAs("QCPlots/hPsiT0CvsFT0C" + inputFileName + ".png");
+
+  cout << "Hello " << endl;
 
   TH1D *hPsiT0C[commonNumCent];
   c[8]->cd();
