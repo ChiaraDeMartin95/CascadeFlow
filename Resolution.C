@@ -135,12 +135,27 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   TString nameQV0ATPCC = "QVectorsV0ATPCC";
   if (!isSPReso)
   {
-    nameQT0CTPCA = "QVectorsNormT0CTPCA";
-    nameQT0CTPCC = "QVectorsNormT0CTPCC";
-    nameQTPCAC = "QVectorsNormTPCAC";
-    nameQT0CV0A = "QVectorsNormT0CV0A";
-    nameQV0ATPCA = "QVectorsNormV0ATPCA";
-    nameQV0ATPCC = "QVectorsNormV0ATPCC";
+    //these are probably normalised in the wrong way if CFW vectors are used!
+    //nameQT0CTPCA = "QVectorsNormT0CTPCA";
+    //nameQT0CTPCC = "QVectorsNormT0CTPCC";
+    //nameQTPCAC = "QVectorsNormTPCAC";
+    //nameQT0CV0A = "QVectorsNormT0CV0A";
+    //nameQV0ATPCA = "QVectorsNormV0ATPCA";
+    //nameQV0ATPCC = "QVectorsNormV0ATPCC";
+    //the following names are to compute resolution AFTER shift correction (the right thing to do!)
+    nameQT0CTPCA = "QVectorsT0CTPCA_Shifted";
+    nameQT0CTPCC = "QVectorsT0CTPCC_Shifted";
+    nameQTPCAC = "QVectorsTPCAC_Shifted";
+    nameQT0CV0A = "QVectorsT0CV0A_Shifted";
+    nameQV0ATPCA = "QVectorsV0ATPCA_Shifted";
+    nameQV0ATPCC = "QVectorsV0ATPCC_Shifted";
+    //the following names are to compute resolution BEFORE shift correction (not ideal)
+    //nameQT0CTPCA = "EP_T0CTPCA";
+    //nameQT0CTPCC = "EP_T0CTPCC";
+    //nameQTPCAC = "EP_TPCAC";
+    //nameQT0CV0A = "EP_T0CV0A";
+    //nameQV0ATPCA = "EP_V0ATPCA";
+    //nameQV0ATPCC = "EP_V0ATPCC";
   }
 
   cout << "InputFile: " << ComputeResoFileName << endl;
@@ -186,7 +201,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   TH1D *hReso = new TH1D("hReso", "hReso", numCent, fCentFT0C);
   if (isOOCentrality)
     hReso = new TH1D("hReso", "hReso", numCentLambdaOO, fCentFT0CLambdaOO);
-  TH1D *hResoV0A = (TH1D*)hReso->Clone("hResoV0A");  
+  TH1D *hResoV0ATPCA = (TH1D*)hReso->Clone("hResoV0ATPCA");  
+  TH1D *hResoV0ATPCC = (TH1D*)hReso->Clone("hResoV0ATPCC");
   TH1D *hResoPerCentBins = new TH1D("hResoPerCentBins", "hResoPerCentBins", 100, 0, 100);
   TH1D *hResoPerCentBinsV0A = new TH1D("hResoPerCentBinsV0A", "hResoPerCentBinsV0A", 100, 0, 100);
   TH1D *hReso080 = new TH1D("hReso080", "hReso080", 1, 0, 1);
@@ -248,8 +264,10 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
     Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t RelErr2V0A = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
-    Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+    Float_t RelErr2V0ATPCA = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
+    Float_t RelErr2V0ATPCC = pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
+    Float_t ErrResoV0ATPCA = sqrt(RelErr2V0ATPCA * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+    Float_t ErrResoV0ATPCC = sqrt(RelErr2V0ATPCC * (MeanT0CV0A * MeanT0CTPCC / MeanV0ATPCC));
     if (cent == commonnumCent)
     {
       hReso080->SetBinContent(1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
@@ -259,8 +277,10 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     {
       hReso->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
       hReso->SetBinError(cent + 1, ErrReso);
-      hResoV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
-      hResoV0A->SetBinError(cent + 1, ErrResoV0A);
+      hResoV0ATPCA->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+      hResoV0ATPCA->SetBinError(cent + 1, ErrResoV0ATPCA);
+      hResoV0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCC / MeanV0ATPCC));
+      hResoV0ATPCC->SetBinError(cent + 1, ErrResoV0ATPCC);
     }
   }
   // per cent bins
@@ -298,6 +318,13 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     cout << "Cent: " << cent << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << MeanT0CTPCA << " " << MeanT0CTPCC << " " << MeanTPCAC << " " << ErrMeanT0CTPCA << " " << ErrMeanT0CTPCC << " " << ErrMeanTPCAC << endl;
+    cout <<"hResoPerCentBinsV0A: " << hResoPerCentBinsV0A->GetBinContent(cent + 1) << endl;
+    cout << MeanV0ATPCA << " " << MeanT0CV0A << " " << MeanT0CTPCA << " " << ErrMeanV0ATPCA << " " << ErrMeanT0CV0A << " " << ErrMeanT0CTPCA << endl;
+    cout << "hResoPerCentBins: " << hResoPerCentBins->GetBinContent(cent + 1) << endl;
+    if (MeanT0CV0A < 0) {
+      hResoPerCentBinsV0A->SetBinContent(cent + 1, 0);
+      ErrResoV0A = 0;
+    }
     hResoPerCentBins->SetBinError(cent + 1, ErrReso);
     hResoPerCentBinsV0A->SetBinError(cent + 1, ErrResoV0A);
   }
@@ -322,21 +349,26 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hReso->GetYaxis()->SetTitleOffset(1.);
   hReso->SetTitle("");
   hReso->Draw("");
-  hResoV0A->SetLineColor(kGreen + 2);
-  hResoV0A->SetMarkerColor(kGreen + 2);
-  hResoV0A->SetMarkerStyle(23);
-  hResoV0A->SetMarkerSize(1.5);
-  hResoV0A->Draw("same");
+  hResoV0ATPCA->SetLineColor(kGreen + 2);
+  hResoV0ATPCA->SetMarkerColor(kGreen + 2);
+  hResoV0ATPCA->SetMarkerStyle(23);
+  hResoV0ATPCA->SetMarkerSize(1.5);
+  hResoV0ATPCA->Draw("same");
+  hResoV0ATPCC->SetLineColor(kGreen + 3);
+  hResoV0ATPCC->SetMarkerColor(kGreen + 3);
+  hResoV0ATPCC->SetMarkerStyle(24);
+  hResoV0ATPCC->SetMarkerSize(1.5);
+  hResoV0ATPCC->Draw("same");
   hResoPerCentBins->SetLineColor(kBlue);
   hResoPerCentBins->SetMarkerColor(kBlue);
   hResoPerCentBins->SetMarkerStyle(21);
   hResoPerCentBins->SetMarkerSize(0.8);
-  hResoPerCentBins->Draw("same");
+  //hResoPerCentBins->Draw("same");
   hResoPerCentBinsV0A->SetLineColor(kRed);
   hResoPerCentBinsV0A->SetMarkerColor(kRed);
   hResoPerCentBinsV0A->SetMarkerStyle(22);
   hResoPerCentBinsV0A->SetMarkerSize(0.8);
-  hResoPerCentBinsV0A->Draw("same");
+  //hResoPerCentBinsV0A->Draw("same");
 
   TH1F *hResoSourav = (TH1F *)hReso->Clone("hResoSourav");
   hResoSourav->SetLineColor(kRed);
@@ -381,6 +413,9 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hReso->Write();
   hReso080->Write();
   hResoPerCentBins->Write();
+  hResoV0ATPCA->Write();
+  hResoV0ATPCC->Write();
+  hResoPerCentBinsV0A->Write();
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
 }
