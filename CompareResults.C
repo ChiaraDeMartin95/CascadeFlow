@@ -215,9 +215,11 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 32 --> Compare purity with loosest and tightest topo sel
   // TypeComp == 33 --> Compare Pzs2 with loosest and tightest topo sel
   // TypeComp == 34 --> Compare Pzs2 of Lambda with resolution applied offline or on the fly
-  // TypeComp == 35 --> Resolution comparison (T0C vs T0M vs V0A)
-  // TypeComp = 36 --> 2023 pass5 with pass5 acceptance vs w/ pass4 acceptance (Pzs2, Pzs2Error  integrated in pT vs centrality)
+  // TypeComp == 35 --> Resolution comparison (T0C vs T0M vs V0A vs T0A)
+  // TypeComp == 36 --> 2023 pass5 with pass5 acceptance vs w/ pass4 acceptance (Pzs2, Pzs2Error  integrated in pT vs centrality)
   // TypeComp == 37 --> Compare Pzs2 of Xi with flat and non-flat event plane
+  // TypeComp == 38 --> Compare Pzs2 of Lambda with different PV Z vertex selection
+  // TypeComp == 39 --> Resolution comparison (T0C reso with different reference detectors)
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -968,22 +970,29 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 35)
   {
-    numOptions = 3;
-    fileName[0] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train510916";
-    fileName[1] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515731_T0MResolution";
-    fileName[2] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515730_V0AResolution";
+    numOptions = 4;
+    //fileName[0] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train510916";
+    //fileName[1] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515731_T0MResolution";
+    //fileName[2] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515730_V0AResolution";
+    fileName[0] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549964_T0CShiftCorr";
+    fileName[1] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549965_T0MShiftCorr";
+    fileName[2] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train547804_V0AShiftCorr";
+    fileName[3] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train548457_T0AShiftCorr";
     namehisto[0] = "hReso";
     namehisto[1] = "hReso";
     namehisto[2] = "hReso";
+    namehisto[3] = "hReso";
     hTitleY = "Resolution";
     hTitleX = "Centrality (%)";
     YLow = 0;
-    YUp = 1.;
-    YLowRatio = 0;
-    YUpRatio = 2;
+    YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.2;
     sleg[0] = "T0C";
     sleg[1] = "T0M";
     sleg[2] = "V0A";
+    sleg[3] = "T0A";
+    yOffset = 2;
   }
   else if (TypeComp == 36)
   {
@@ -1038,6 +1047,26 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.02;
     MinHistoX = 0;
     MaxHistoX = 90;
+  }
+  else if (TypeComp == 39)
+  {
+    numOptions = 3;
+    fileName[0] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549964_T0CShiftCorr";
+    fileName[1] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549964_T0CShiftCorr";
+    fileName[2] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549964_T0CShiftCorr";
+    namehisto[0] = "hReso";
+    namehisto[1] = "hResoV0ATPCA";
+    namehisto[2] = "hResoV0ATPCC";
+    hTitleY = "Resolution";
+    hTitleX = "Centrality (%)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.9;
+    YUpRatio = 1.6;
+    sleg[0] = "T0C with TPCA & TPCC";
+    sleg[1] = "T0C with V0A & TPCA";
+    sleg[2] = "T0C with V0A & TPCC";
+    yOffset = 2;
   }
   else
   {
@@ -1111,12 +1140,13 @@ void CompareResults(Int_t TypeComp = 0,
   StyleHistoYield(hDummy, YLow, YUp, 1, 1, hTitleX, hTitleY, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
+  hDummy->GetYaxis()->SetTitleOffset(yOffset);
   hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 16 || TypeComp == 17 || TypeComp == 18 || TypeComp == 19 || TypeComp == 20 || TypeComp == 29)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   if (TypeComp == 34)
     hDummy->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35)
+  if (TypeComp == 35 || TypeComp == 39)
     hDummy->GetXaxis()->SetRangeUser(0, 100);
   pad1->Draw();
   pad1->cd();
@@ -1154,7 +1184,7 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35)
+  else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39)
     leg->AddEntry("", "OO 5.36 TeV", "");
   else
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
@@ -1178,7 +1208,7 @@ void CompareResults(Int_t TypeComp = 0,
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
   if (TypeComp == 34)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35)
+  if (TypeComp == 35 || TypeComp == 39)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 100);
   canvas->cd();
   padL1->Draw();
@@ -1195,12 +1225,14 @@ void CompareResults(Int_t TypeComp = 0,
   TF1 *line = new TF1("line", "1", MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
     line = new TF1("line", "1", 0, 80);
+  else if (TypeComp == 35 || TypeComp == 39)
+    line = new TF1("line", "1", 0, 100);  
   line->SetLineColor(kBlack);
   line->SetLineStyle(9);
   line->Draw("same");
 
-  canvas->SaveAs(Form("CompareResults/Canvas_CompareResults%i.png", TypeComp));
-  canvas->SaveAs(Form("CompareResults/Canvas_CompareResults%i.pdf", TypeComp));
+  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.png", TypeComp));
+  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.pdf", TypeComp));
 
   TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); // without ratio
   StyleCanvas(canvas2, 0.05, 0.15, 0.15, 0.05);
@@ -1214,6 +1246,6 @@ void CompareResults(Int_t TypeComp = 0,
     h[i]->Draw("same");
   }
   leg->Draw("same");
-  canvas2->SaveAs(Form("CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
-  canvas2->SaveAs(Form("CompareResults/Canvas_CompareResults%i_NoRatio.pdf", TypeComp));
+  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
+  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.pdf", TypeComp));
 }
