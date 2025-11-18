@@ -174,9 +174,6 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
 
   // topological selections
   gRandom->SetSeed(0);
-  // float RadiusCut = LowerlimitV0RadiusCut + (UpperlimitV0RadiusCut - LowerlimitV0RadiusCut) * gRandom->Rndm();
-  //   cout << "RadiusCut " << RadiusCut << endl;
-
   string V0FilterString = Form("fV0Radius > %.2f", DefaultV0RadiusCut);
   if (isSysMultTrial)
   {
@@ -262,7 +259,6 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
       // Lambda generating 100 random variations within limits
       [](double r, double d, double c, double dp, double dn)
       {
-
         // Define the allowed limits for each variable
         const double V0Radius_min = LowerlimitV0RadiusCut;
         const double V0Radius_max = UpperlimitV0RadiusCut;
@@ -276,7 +272,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
         const double DcaNegToPV_max = UpperlimitDcaNegToPV;
 
         // Prepare the output: one RVec per column
-        RVec<RVecD> variations(NVAR);
+        RVec<RVecD> variations(5);
         variations[0].reserve(NVAR); // cutV0Radius
         variations[1].reserve(NVAR); // cutDcaV0Daughters
         variations[2].reserve(NVAR); // cutV0CosPA
@@ -324,12 +320,12 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto hMassVsPt = df_selected.Histo2D(
       {"hMassVsPt", "Mass vs pT;M_{Λ} (GeV/c^{2});p_{T} (GeV/c)", 100, 1.09, 1.14, 100, 0, 10},
       "fMassLambda", "fPt");
-  
+
   auto histoV0Radius = d2e.Histo1D({"histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
   auto histoDcaV0Daughters = d2e.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
   auto histoV0CosPA = d2e.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
-  auto histoDcaNegToPV = d2e.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 100, -2, 2}, "fDcaNegToPV");
-  auto histoDcaPosToPV = d2e.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 100, -2, 2}, "fDcaPosToPV");
+  auto histoDcaNegToPV = d2e.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
+  auto histoDcaPosToPV = d2e.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
 
   // pt vs centrality after selections
   auto hPtvsCent_AftSel = d2e.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -545,6 +541,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   hmass_Bef->Write();
   hmass->Write();
   hmassvsPt->Write();
+  hMassVsPt->Write();
   hphi->Write();
   histoV0Radius->Write();
   histoDcaV0Daughters->Write();
