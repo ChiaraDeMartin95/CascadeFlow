@@ -252,7 +252,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 10;
+  const int NVAR = 2;
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -312,7 +312,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto df_selected = df_varied.Filter(
       [](double V0Radius, double DcaV0Daughters, double cosPA, double DcaPosToPV, double DcaNegToPV, double cutR, double cutD, double cutC, double cutDP, double cutDN)
       {
-        return V0Radius > cutR && DcaV0Daughters < cutD && cosPA > cutC && DcaPosToPV > cutDP && DcaNegToPV > cutDN;
+        return V0Radius > cutR && std::abs(DcaV0Daughters) < cutD && cosPA > cutC && std::abs(DcaPosToPV) > cutDP && std::abs(DcaNegToPV) > cutDN;
       },
       {"radiusV0", "dcaV0Dau", "fV0CosPA", "dcaPosToPV", "dcaNegToPV", "cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"});
 
@@ -326,6 +326,23 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto histoV0CosPA = d2e.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
   auto histoDcaNegToPV = d2e.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
   auto histoDcaPosToPV = d2e.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
+
+  TH1F *hg_V0Radius = new TH1F("hg_V0Radius", "V0 Radius Distribution", 30, 0.8, 1.3);
+  TH1F *hg_DcaV0Daughters = new TH1F("hg_DcaV0Daughters", "DCA V0 Daughters Distribution", 30, 0.9, 1.6);
+  TH1F *hg_V0CosPA = new TH1F("hg_V0CosPA", "V0 CosPA Distribution", 30, 0.98, 1.0);
+  TH1F *hg_DcaNegToPV = new TH1F("hg_DcaNegToPV", "DCA Neg to PV Distribution", 30, 0.04, 0.11);
+  TH1F *hg_DcaPosToPV = new TH1F("hg_DcaPosToPV", "DCA Pos to PV Distribution", 30, 0.04, 0.11);
+  // histogram topo distribution
+  auto test_histoV0Radius = df_selected.Histo1D({"test_histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
+  auto variations_V0Radius = ROOT::RDF::Experimental::VariationsFor(test_histoV0Radius);
+  auto test_histoDcaV0Daughters = df_selected.Histo1D({"test_histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
+  auto variations_DcaV0Daughters = ROOT::RDF::Experimental::VariationsFor(test_histoDcaV0Daughters);
+  auto test_histoV0CosPA = df_selected.Histo1D({"test_histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
+  auto variations_V0CosPA = ROOT::RDF::Experimental::VariationsFor(test_histoV0CosPA);
+  auto test_histoDcaNegToPV = df_selected.Histo1D({"test_histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
+  auto variations_DcaNegToPV = ROOT::RDF::Experimental::VariationsFor(test_histoDcaNegToPV);
+  auto test_histoDcaPosToPV = df_selected.Histo1D({"test_histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
+  auto variations_DcaPosToPV = ROOT::RDF::Experimental::VariationsFor(test_histoDcaPosToPV);
 
   // pt vs centrality after selections
   auto hPtvsCent_AftSel = d2e.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -553,6 +570,73 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   histoBefV0CosPA->Write();
   histoBefDcaNegToPV->Write();
   histoBefDcaPosToPV->Write();
+
+  auto tags = variations_V0Radius.GetKeys();
+  for (auto &tag : tags)
+  {
+    std::cout << " | Variation tag V0 Radius: " << tag << std::endl;
+
+    auto histo = variations_V0Radius[tag];
+    TString histName = Form("test_V0Radius_%s", tag.c_str());
+    Float_t binEdge = 0;
+    for (Int_t i = 1; i <= histo.GetNbinsX(); i++)
+    {
+      binEdge = histo.GetBinLowEdge(i);
+      if (histo.GetBinContent(i) != 0) break;
+    }
+    hg_V0Radius->Fill(binEdge);
+
+    auto histo1 = variations_DcaV0Daughters[tag];
+    histName = Form("test_DcaV0Daughters_%s", tag.c_str());
+    binEdge = 0;
+    for (Int_t i = histo1.GetNbinsX()-1; i >= 1; i--)
+    {
+      binEdge = histo1.GetBinLowEdge(i+1);
+      if (histo1.GetBinContent(i) != 0) break;
+    }
+    hg_DcaV0Daughters->Fill(binEdge);
+
+    auto histo2 = variations_V0CosPA[tag];
+    histName = Form("test_V0CosPA_%s", tag.c_str());
+    binEdge = 0;
+    for (Int_t i = 1; i <= histo2.GetNbinsX(); i++)
+    {
+      binEdge = histo2.GetBinLowEdge(i);
+      if (histo2.GetBinContent(i) != 0) break;
+    }
+    hg_V0CosPA->Fill(binEdge);
+
+    auto histo3 = variations_DcaNegToPV[tag];
+    histName = Form("test_DcaNegToPV_%s", tag.c_str());
+    binEdge = 0;
+    for (Int_t i = 1; i <= histo3.GetNbinsX(); i++)
+    {
+      if (histo3.GetBinCenter(i) < 0)
+        continue;
+      binEdge = histo3.GetBinLowEdge(i);
+      if (histo3.GetBinContent(i) != 0) break;
+    }
+    hg_DcaNegToPV->Fill(binEdge);
+
+    auto histo4 = variations_DcaPosToPV[tag];
+    histName = Form("test_DcaPosToPV_%s", tag.c_str());
+    binEdge = 0;
+    for (Int_t i = 1; i <= histo4.GetNbinsX(); i++)
+    {
+      if (histo4.GetBinCenter(i) < 0)
+        continue;
+      binEdge = histo4.GetBinLowEdge(i);
+      if (histo4.GetBinContent(i) != 0)
+        break;
+    }
+    hg_DcaPosToPV->Fill(binEdge);
+    //histo.Write(histName);
+  }
+  hg_V0Radius->Write();
+  hg_DcaV0Daughters->Write();
+  hg_V0CosPA->Write();
+  hg_DcaNegToPV->Write();
+  hg_DcaPosToPV->Write();
 
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
