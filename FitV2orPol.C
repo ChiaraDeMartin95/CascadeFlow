@@ -15,7 +15,8 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
-#include "CommonVar.h"
+//#include "CommonVar.h"
+#include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
 {
@@ -490,7 +491,7 @@ void FitV2orPol(
   TString SBDT = "";
 
   Int_t NEvents = 0;
-  TString PathInEvents = "TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
+  TString PathInEvents = "../TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
   TFile *fileEvt = new TFile(PathInEvents, "");
   if (!fileEvt)
   {
@@ -517,18 +518,18 @@ void FitV2orPol(
   if (v2type == 1)
   {
     if (SinputFileName.Index("CFW") != -1)
-      fileResoName = ResoFileName_SPCFW;
+      fileResoName = "../" + ResoFileName_SPCFW;
     else
-      fileResoName = ResoFileName_SPLF;
+      fileResoName = "../" + ResoFileName_SPLF;
   }
   else
   {
     if (SinputFileName.Index("CFW") != -1)
-      fileResoName = ResoFileName_EPCFW;
+      fileResoName = "../" + ResoFileName_EPCFW;
     else
-      fileResoName = ResoFileName_EPLF;
+      fileResoName = "../" + ResoFileName_EPLF;
   }
-  fileResoName = ResoFileName_SPCFW;
+  fileResoName = "../" + ResoFileName_SPCFW;
   fileResoName += ".root";
   TFile *fileResoEP = new TFile(fileResoName, "");
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
@@ -763,7 +764,7 @@ void FitV2orPol(
     if (pt == numPtBinsVar)
       histoAppliedBDTPtInt->SetBinContent(1, BDTscoreCut);
 
-    SPathIn = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
+    SPathIn = "../OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
     if (ChosenPart != 6)
       SPathIn += SBDT;
     if (isApplyWeights)
@@ -2296,8 +2297,8 @@ void FitV2orPol(
 
   TString Soutputfile;
   TString SoutputfileAcceptance;
-  Soutputfile = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
-  SoutputfileAcceptance = "AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart];
+  Soutputfile = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
+  SoutputfileAcceptance = "../AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart];
   Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
   Soutputfile += SIsBkgParab[BkgType];
   Soutputfile += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -2507,8 +2508,8 @@ void FitV2orPol(
   }
   canvasAcc->SaveAs(Soutputfile + "_AccPlot.pdf");
   canvasAcc->SaveAs(Soutputfile + "_AccPlot.png");
-  canvasAcc->SaveAs(Form("AcceptanceComparison_%i-%i.pdf", CentFT0C[mul], CentFT0C[mul + 1]));
-  canvasAcc->SaveAs(Form("AcceptanceComparison_%i-%i.png", CentFT0C[mul], CentFT0C[mul + 1]));
+  canvasAcc->SaveAs(Form("../AcceptanceComparison_%i-%i.pdf", CentFT0C[mul], CentFT0C[mul + 1]));
+  canvasAcc->SaveAs(Form("../AcceptanceComparison_%i-%i.png", CentFT0C[mul], CentFT0C[mul + 1]));
 
   // Performance plot
   Int_t ChosenPt = 8;
@@ -2626,9 +2627,9 @@ void FitV2orPol(
   totalPNorm->Draw("same");
   legend->Draw("");
   legendfit->Draw("");
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasMassP->SaveAs("PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   TCanvas *canvasCos2P = new TCanvas("canvasCos2P", "canvasCos2P", 800, 800);
   StyleCanvas(canvasCos2P, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
@@ -2646,8 +2647,8 @@ void FitV2orPol(
   legendCos2P->SetTextSize(0.035);
   legendCos2P->AddEntry("", Form("Mean = %.3f", histoCos2->GetMean()), "");
   legendCos2P->Draw("same");
-  canvasCos2P->SaveAs("PerformancePlots/Cos2Theta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasCos2P->SaveAs("PerformancePlots/Cos2Theta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCos2P->SaveAs("../PerformancePlots/Cos2Theta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCos2P->SaveAs("../PerformancePlots/Cos2Theta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   TCanvas *canvasCosSinP = new TCanvas("canvasCosSinP", "canvasCosSinP", 800, 800);
   StyleCanvas(canvasCosSinP, 0.2, 0.03, 0.02, 0.14); // L, R, T, B
@@ -2674,8 +2675,8 @@ void FitV2orPol(
   legendCosSin->SetTextSize(0.035);
   legendCosSin->AddEntry("", Form("Mean = %.5f +- %.5f", histoCosSin->GetMean(), histoCosSin->GetMeanError()), "");
   legendCosSin->Draw("same");
-  canvasCosSinP->SaveAs("PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasCosSinP->SaveAs("PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCosSinP->SaveAs("../PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCosSinP->SaveAs("../PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
   TCanvas *canvasCos2 = new TCanvas("canvasCos2", "canvasCos2", 800, 1100);
@@ -2830,9 +2831,9 @@ void FitV2orPol(
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
   TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasP->SaveAs("PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   canvasCos2->cd();
   padL2->Draw();
@@ -2848,9 +2849,9 @@ void FitV2orPol(
   Cos2ThetaBkgFunction[ChosenPt]->Draw("same");
   legendCos2->Draw("");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasCos2->SaveAs("PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCos2->SaveAs("../PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCos2->SaveAs("../PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+  canvasCos2->SaveAs("../PerformancePlots/MassAndCosTheta" + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
 
   // cout << "\nA partire dal file:\n"
   //      << SPathIn << endl;
@@ -2888,8 +2889,4 @@ void FitV2orPol(
     cout << "The acceptance is computed without invariant mass fit " << endl;
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
-
-  cout << "Yield " << endl;
-  cout << "pt interval: " << PtBins[numPtBins] << " - " << PtBins[numPtBins + 1] << endl;
-  cout << Yield[numPtBinsVar] << endl;
 }

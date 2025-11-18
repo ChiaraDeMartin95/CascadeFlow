@@ -16,7 +16,8 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-#include "CommonVar.h"
+//#include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "StyleFile.h"
 
 void ComputeV2(Int_t indexMultTrial = 0,
@@ -54,7 +55,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if ((BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial) && ChosenPart != 6)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
+  TString SinputFile = "../OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
   if (isApplyCentWeight)
@@ -613,9 +614,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
       }
     }
   }
-  QCPhi->SaveAs("QCPlots/QCPhiCasc.png");
+  QCPhi->SaveAs("../QCPlots/QCPhiCasc.png");
 
-  TString SOutputFile = "OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SOutputFile = "../OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
   if (isApplyCentWeight)
