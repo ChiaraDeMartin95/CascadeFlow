@@ -20,7 +20,8 @@
 #include "TLegend.h"
 #include "TPad.h"
 #include "StyleFile.h"
-#include "CommonVar.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 
 double ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Berr)
 {
@@ -156,7 +157,7 @@ void MultiTrial(
     Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = /*"LambdaTopo"*/ "MassAndBDTCut",
+    TString SisSyst = "LambdaTopo" /*"MassAndBDTCut"*/,
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
@@ -205,7 +206,8 @@ void MultiTrial(
   }
   TypeHisto += SisPtIntegrated[isPtIntegrated];
   // TypeHisto += "Mixed";
-  TypeHisto += "NoFit";
+  if (ChosenPart != 6)
+    TypeHisto += "NoFit";
   TypeCos2Theta += SisPtIntegrated[isPtIntegrated];
   TypeCos2Theta += "NoFit";
 
@@ -251,7 +253,7 @@ void MultiTrial(
 
   cout << "The number of trials to be investigated are: " << trials << endl;
 
-  TString Sdef = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
+  TString Sdef = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
   Sdef += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -285,6 +287,20 @@ void MultiTrial(
     SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   if (isReducedPtBins)
     SdefFinal += "_ReducedPtBins";
+
+  if (SisSyst == "LambdaTopo")
+  {
+    SdefFinal = Sdef;
+    if (!isRapiditySel || ExtrisFromTHN)
+      SdefFinal += "_Eta08";
+    if (isTightMassCut)
+      SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    if (isReducedPtBins)
+      SdefFinal += "_ReducedPtBins";
+    SdefFinal += Form("_SysMultTrial_%i", 0);
+    SdefFinal += "_isSysLambdaMultTrial_ResoOnTheFly";
+    cout << "Svaried " << SdefFinal << endl;
+  }
 
   TString Svaried = "";
 
@@ -411,26 +427,26 @@ void MultiTrial(
     legTrial->AddEntry(hDefault, Form("Mass cut: %.1f", Extrsigmacentral[1]), "pl");
   TLegend *legTrialReduced = (TLegend *)legTrial->Clone("legTrialReduced");
 
-  TH1F *h[trials];
-  TH1F *hVariedCut[trials];
-  TH1F *hAbsoluteSyst[trials];
-  TH1F *hNSigmaBarlow[trials];
-  TH1F *hRatio[trials];
-  TH1F *hError[trials];
-  TH1F *hErrorRatio[trials];
-  TH1F *hRawYield[trials];
-  TH1F *hRawYieldRatio[trials];
-  TH1F *hRawYieldRatioToTighter[trials];
-  TH1F *hPurity[trials];
-  TH1F *hPurityRatio[trials];
-  TH1F *hSignificance[trials];
-  TH1F *hSignificanceRatio[trials];
-  TH1F *hCos2Theta[trials];
-  TH1F *hCos2ThetaRatio[trials];
-  Float_t BDTscoreCut[trials];
-  Float_t LowLimitSysXi[trials];
-  Float_t UpLimitSysXi[trials];
-  TFile *fvaried[trials];
+  std::vector<TH1F *> h(trials);
+  std::vector<TH1F *> hVariedCut(trials);
+  std::vector<TH1F *> hAbsoluteSyst(trials);
+  std::vector<TH1F *> hNSigmaBarlow(trials);
+  std::vector<TH1F *> hRatio(trials);
+  std::vector<TH1F *> hError(trials);
+  std::vector<TH1F *> hErrorRatio(trials);
+  std::vector<TH1F *> hRawYield(trials);
+  std::vector<TH1F *> hRawYieldRatio(trials);
+  std::vector<TH1F *> hRawYieldRatioToTighter(trials);
+  std::vector<TH1F *> hPurity(trials);
+  std::vector<TH1F *> hPurityRatio(trials);
+  std::vector<TH1F *> hSignificance(trials);
+  std::vector<TH1F *> hSignificanceRatio(trials);
+  std::vector<TH1F *> hCos2Theta(trials);
+  std::vector<TH1F *> hCos2ThetaRatio(trials);
+  std::vector<float> BDTscoreCut(trials);
+  std::vector<float> LowLimitSysXi(trials);
+  std::vector<float> UpLimitSysXi(trials);
+  std::vector<TFile *> fvaried(trials);
 
   TF1 *lineatnSigmaBarlow = new TF1("lineatnSigmaBarlow", "pol0", 0, 8);
   lineatnSigmaBarlow->SetLineColor(kBlack);
@@ -564,7 +580,7 @@ void MultiTrial(
     hErrorRatio[i] = (TH1F *)hError[i]->Clone(Form("hErrorRatio_%i", i));
     hErrorRatio[i]->Divide(hDefaultError);
 
-    h[i] = makeSystPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
+    h[i] = makeSystPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName); // Rel. Error
     hAbsoluteSyst[i] = (TH1F *)h[i]->Clone(Form("hAbsoluteSyst_%i", i));
     hAbsoluteSyst[i]->Multiply(hDefault);
     hNSigmaBarlow[i] = makeNSigmaBarlowPlots(i + 1, SdefFinal + ".root", Svaried + ".root", histoName);
@@ -617,16 +633,17 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f, Mass cut: %.3f - %.3f", BDTscoreCut[i], LowLimitSysXi[i], UpLimitSysXi[i]), "pl");
     hVariedCut[i]->Draw("same");
   }
+  hDefault->Draw("same");
   legTrial->Draw();
   if (isV2)
   {
-    cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".pdf");
-    cv2->SaveAs("Systematics/V2MultTrial" + Suffix + ".png");
+    cv2->SaveAs("../Systematics/V2MultTrial" + Suffix + ".pdf");
+    cv2->SaveAs("../Systematics/V2MultTrial" + Suffix + ".png");
   }
   else
   {
-    cv2->SaveAs("Systematics/Pzs2MultTrial" + Suffix + ".pdf");
-    cv2->SaveAs("Systematics/Pzs2MultTrial" + Suffix + ".png");
+    cv2->SaveAs("../Systematics/Pzs2MultTrial" + Suffix + ".pdf");
+    cv2->SaveAs("../Systematics/Pzs2MultTrial" + Suffix + ".png");
   }
 
   TCanvas *cNSigmaBarlow = new TCanvas("cNSigmaBarlow", "cNSigmaBarlow", 1000, 800);
@@ -698,13 +715,13 @@ void MultiTrial(
   lineat1->Draw("same");
   if (isV2)
   {
-    cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".pdf");
-    cv2Ratio->SaveAs("Systematics/v2RatioMultTrial" + Suffix + ".png");
+    cv2Ratio->SaveAs("../Systematics/v2RatioMultTrial" + Suffix + ".pdf");
+    cv2Ratio->SaveAs("../Systematics/v2RatioMultTrial" + Suffix + ".png");
   }
   else
   {
-    // cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".pdf");
-    // cv2Ratio->SaveAs("Systematics/Pzs2RatioMultTrial" + Suffix + ".png");
+    // cv2Ratio->SaveAs("../Systematics/Pzs2RatioMultTrial" + Suffix + ".pdf");
+    // cv2Ratio->SaveAs("../Systematics/Pzs2RatioMultTrial" + Suffix + ".png");
     cv2Ratio->Close();
   }
 
@@ -734,8 +751,8 @@ void MultiTrial(
     hRawYield[i]->Draw("same");
   }
   legTrial->Draw();
-  cYield->SaveAs("Systematics/YieldMultTrial" + Suffix + ".pdf");
-  cYield->SaveAs("Systematics/YieldMultTrial" + Suffix + ".png");
+  cYield->SaveAs("../Systematics/YieldMultTrial" + Suffix + ".pdf");
+  cYield->SaveAs("../Systematics/YieldMultTrial" + Suffix + ".png");
 
   // ratio of raw yields to default one
   TCanvas *cYieldRatio = new TCanvas("cYieldRatio", "cYieldRatio", 1000, 800);
@@ -762,8 +779,8 @@ void MultiTrial(
   }
   legTrial->Draw();
   lineat1->Draw("same");
-  cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + Suffix + ".pdf");
-  cYieldRatio->SaveAs("Systematics/YieldRatioMultTrial" + Suffix + ".png");
+  cYieldRatio->SaveAs("../Systematics/YieldRatioMultTrial" + Suffix + ".pdf");
+  cYieldRatio->SaveAs("../Systematics/YieldRatioMultTrial" + Suffix + ".png");
 
   // ratio of raw yields to previous one
   TCanvas *cYieldRatioToTighter = new TCanvas("cYieldRatioToTighter", "cYieldRatioToTighter", 1000, 800);
@@ -790,8 +807,8 @@ void MultiTrial(
   }
   // legTrial->Draw();
   lineat1->Draw("same");
-  cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".pdf");
-  cYieldRatioToTighter->SaveAs("Systematics/YieldRatioToTighterMultTrial" + Suffix + ".png");
+  cYieldRatioToTighter->SaveAs("../Systematics/YieldRatioToTighterMultTrial" + Suffix + ".pdf");
+  cYieldRatioToTighter->SaveAs("../Systematics/YieldRatioToTighterMultTrial" + Suffix + ".png");
 
   // purity plots
   TCanvas *cPurity = new TCanvas("cPurity", "cPurity", 1000, 800);
@@ -819,8 +836,8 @@ void MultiTrial(
     hPurity[i]->Draw("same");
   }
   legTrialReduced->Draw();
-  cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + Suffix + ".pdf");
-  cPurity->SaveAs("Systematics/PurityMultTrial" + inputFileName + Suffix + ".png");
+  cPurity->SaveAs("../Systematics/PurityMultTrial" + inputFileName + Suffix + ".pdf");
+  cPurity->SaveAs("../Systematics/PurityMultTrial" + inputFileName + Suffix + ".png");
 
   // ratio of purities to default one
   TCanvas *cPurityRatio = new TCanvas("cPurityRatio", "cPurityRatio", 1000, 800);
@@ -851,8 +868,8 @@ void MultiTrial(
   }
   lineat1->Draw("same");
   legTrialReduced->Draw();
-  cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".pdf");
-  cPurityRatio->SaveAs("Systematics/PurityRatioMultTrial" + Suffix + ".png");
+  cPurityRatio->SaveAs("../Systematics/PurityRatioMultTrial" + Suffix + ".pdf");
+  cPurityRatio->SaveAs("../Systematics/PurityRatioMultTrial" + Suffix + ".png");
 
   // significance plots
   TCanvas *cSignificance = new TCanvas("cSignificance", "cSignificance", 1000, 800);
@@ -876,8 +893,8 @@ void MultiTrial(
     hSignificance[i]->Draw("same");
   }
   legTrial->Draw();
-  cSignificance->SaveAs("Systematics/SignificanceMultTrial" + Suffix + ".pdf");
-  cSignificance->SaveAs("Systematics/SignificanceMultTrial" + Suffix + ".png");
+  cSignificance->SaveAs("../Systematics/SignificanceMultTrial" + Suffix + ".pdf");
+  cSignificance->SaveAs("../Systematics/SignificanceMultTrial" + Suffix + ".png");
 
   // ratio of significances to default one
   TCanvas *cSignificanceRatio = new TCanvas("cSignificanceRatio", "cSignificanceRatio", 1000, 800);
@@ -904,8 +921,8 @@ void MultiTrial(
   }
   legTrial->Draw();
   lineat1->Draw("same");
-  cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".pdf");
-  cSignificanceRatio->SaveAs("Systematics/SignificanceRatioMultTrial" + Suffix + ".png");
+  cSignificanceRatio->SaveAs("../Systematics/SignificanceRatioMultTrial" + Suffix + ".pdf");
+  cSignificanceRatio->SaveAs("../Systematics/SignificanceRatioMultTrial" + Suffix + ".png");
 
   // acceptance plots
   TCanvas *cAcceptance = new TCanvas("cAcceptance", "cAcceptance", 1000, 800);
@@ -930,8 +947,8 @@ void MultiTrial(
     hCos2Theta[i]->Draw("same");
   }
   legTrial->Draw();
-  cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".pdf");
-  cAcceptance->SaveAs("Systematics/AcceptanceMultTrial" + Suffix + ".png");
+  cAcceptance->SaveAs("../Systematics/AcceptanceMultTrial" + Suffix + ".pdf");
+  cAcceptance->SaveAs("../Systematics/AcceptanceMultTrial" + Suffix + ".png");
 
   // ratio of acceptances to default one
   TCanvas *cAcceptanceRatio = new TCanvas("cAcceptanceRatio", "cAcceptanceRatio", 1000, 800);
@@ -958,8 +975,8 @@ void MultiTrial(
   }
   legTrialReduced->Draw();
   lineat1->Draw("same");
-  cAcceptanceRatio->SaveAs("Systematics/AcceptanceRatioMultTrial" + Suffix + ".pdf");
-  cAcceptanceRatio->SaveAs("Systematics/AcceptanceRatioMultTrial" + Suffix + ".png");
+  cAcceptanceRatio->SaveAs("../Systematics/AcceptanceRatioMultTrial" + Suffix + ".pdf");
+  cAcceptanceRatio->SaveAs("../Systematics/AcceptanceRatioMultTrial" + Suffix + ".png");
 
   // systematic computation taking max variation wrt to default
   const int bins = h[0]->GetNbinsX(); // pt bins
@@ -1006,8 +1023,8 @@ void MultiTrial(
   TCanvas *c2 = new TCanvas("c2", "c2", 1000, 1200);
   // c2->Divide(4,4);
 
-  TH1F *hPtDev[bins];
-  TF1 *fgaus[bins];
+  std::vector<TH1F *> hPtDev(bins);
+  std::vector<TF1 *> fgaus(bins);
 
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
@@ -1033,7 +1050,7 @@ void MultiTrial(
     }
     for (int pt = 0; pt < bins; pt++)
     {
-      hPtDev[pt]->Fill(h[i]->GetBinContent(pt + 1));
+      hPtDev[pt]->Fill(h[i]->GetBinContent(pt + 1)); // rel. error
     }
   }
 
@@ -1048,6 +1065,7 @@ void MultiTrial(
     hPtDev[pt]->GetYaxis()->SetRangeUser(0., hPtDev[pt]->GetMaximum() * 1.2);
     hPtDev[pt]->GetXaxis()->SetTitleSize(0.06);
     hPtDev[pt]->GetXaxis()->SetTitleOffset(1.);
+    hPtDev[pt]->SetTitle("Relative syst. variations distribution");
     hPtDev[pt]->Draw("EP");
     hPtDev[pt]->SetMarkerStyle(kFullCircle);
     hPtDev[pt]->Draw("EP SAME");
@@ -1059,8 +1077,8 @@ void MultiTrial(
     ltx->DrawLatexNDC(0.6, 0.6, Form("#chi^{2}/ndf = %.1f", fgaus[pt]->GetChisquare() / fgaus[pt]->GetNDF()));
   }
 
-  c2->SaveAs("Systematics/MultTrial" + Suffix + ".pdf");
-  c2->SaveAs("Systematics/MultTrial" + Suffix + ".png");
+  c2->SaveAs("../Systematics/MultTrial" + Suffix + ".pdf");
+  c2->SaveAs("../Systematics/MultTrial" + Suffix + ".png");
   // c2->Close();
 
   // relative syst. uncertainty from fit
@@ -1071,13 +1089,13 @@ void MultiTrial(
   hSystMultiTrialRMS->Reset();
   for (int pt = 0; pt < bins; pt++)
   {
-    hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2));
+    hSystMultiTrial->SetBinContent(pt + 1, fgaus[pt]->GetParameter(2)); // rel. error --> gaussian sigma
     hSystMultiTrial->SetBinError(pt + 1, 0);
-    hSystMultiTrialRMS->SetBinContent(pt + 1, hPtDev[pt]->GetRMS());
+    hSystMultiTrialRMS->SetBinContent(pt + 1, hPtDev[pt]->GetRMS()); // rel. error --> RMS
     hSystMultiTrialRMS->SetBinError(pt + 1, 0);
   }
   hSystMultiTrial->GetYaxis()->SetRangeUser(0., 0.5);
-  hSystMultiTrial->GetYaxis()->SetTitle("Rel. syst. error");
+  hSystMultiTrial->GetYaxis()->SetTitle("Rel. syst. error (gaussian #sigma)");
   hSystMultiTrial->SetLineColor(kBlack);
   if (!isPtIntegrated)
     hSystMultiTrial->Smooth();
@@ -1120,8 +1138,8 @@ void MultiTrial(
   // Gaussian distribution of maximum deviations
   TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1000, 800);
   StyleCanvas(cgaus, 0.15, 0.05, 0.05, 0.15);
-  TH1F *hCollectionAbsoluteSyst[bins];
-  TF1 *fgaus2[bins];
+  std::vector<TH1F *> hCollectionAbsoluteSyst(bins);
+  std::vector<TF1 *> fgaus2(bins);
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
     cgaus->cd(pt + 1);
@@ -1143,18 +1161,25 @@ void MultiTrial(
     hCollectionAbsoluteSyst[pt]->Draw("EP SAME");
     fgaus2[pt]->SetParameter(0, hCollectionAbsoluteSyst[pt]->GetMaximum());
     fgaus2[pt]->SetLineColor(kBlue);
+    hCollectionAbsoluteSyst[pt]->GetYaxis()->SetTitle("Counts");
+    hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of absolute deviations");
     hCollectionAbsoluteSyst[pt]->Fit(fgaus2[pt], "LLR+");
     fgaus2[pt]->Draw("same");
+    TLegend *legend2 = new TLegend(0.2, 0.65, 0.5, 0.85);
+    legend2->SetBorderSize(0);
+    legend2->SetTextSize(0.03);
+    legend2->AddEntry(fgaus2[pt], Form("#sigma = %.5f", fgaus2[pt]->GetParameter(2)), "l");
+    legend2->Draw();
   }
-  cgaus->SaveAs("Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".pdf");
-  cgaus->SaveAs("Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".png");
+  cgaus->SaveAs("../Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".pdf");
+  cgaus->SaveAs("../Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".png");
   // cgaus->Close();
-  
+
   TH1F *hSystMultiTrial2 = (TH1F *)h[0]->Clone("hSystMultiTrial2");
   hSystMultiTrial2->Reset();
   for (int pt = 0; pt < bins; pt++)
   {
-    hSystMultiTrial2->SetBinContent(pt + 1, fgaus2[pt]->GetParameter(2));
+    hSystMultiTrial2->SetBinContent(pt + 1, fgaus2[pt]->GetParameter(2)); // abs. error --> gaussian sigma
     hSystMultiTrial2->SetBinError(pt + 1, 0);
   }
 
@@ -1164,7 +1189,7 @@ void MultiTrial(
   hAbsoluteMaxDev->SetMarkerColor(kGray + 1);
   hAbsoluteMaxDev->SetLineWidth(1);
   hAbsoluteMaxDev->SetMarkerStyle(33);
-  hAbsoluteMaxDev->GetYaxis()->SetTitle("Absolute syst. uncertainty from BDT score variation");
+  hAbsoluteMaxDev->GetYaxis()->SetTitle("Absolute syst. uncertainty");
   hAbsoluteMaxDev->GetYaxis()->SetRangeUser(0., 1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
   if (!isPtIntegrated)
     hAbsoluteMaxDev->Smooth();
@@ -1176,12 +1201,24 @@ void MultiTrial(
   hRMS->Draw("same");
   TH1F *hSystFromGauss = (TH1F *)hSystMultiTrial->Clone("hSystFromGauss");
   hSystFromGauss->Reset();
-  hSystFromGauss->SetBinContent(1, abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)));
+  hSystFromGauss->SetBinContent(1, abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1))); // abs. error --> rel. error gaussian sigma * default value
   hSystFromGauss->SetBinError(1, 0);
   hSystFromGauss->SetLineColor(kBlue);
   hSystFromGauss->SetMarkerColor(kBlue);
   hSystFromGauss->SetMarkerStyle(33);
   hSystFromGauss->Draw("same");
+  hSystMultiTrial2->SetLineColor(kGreen + 3);
+  hSystMultiTrial2->SetMarkerColor(kGreen + 3);
+  hSystMultiTrial2->SetMarkerStyle(33);
+  hSystMultiTrial2->Draw("same");
+  TLegend *legend1 = new TLegend(0.2, 0.65, 0.65, 0.85);
+  legend1->SetBorderSize(0);
+  legend1->SetTextSize(0.03);
+  legend1->AddEntry(hAbsoluteMaxDev, "Max. absolute deviation", "lp");
+  legend1->AddEntry(hRMS, "RMS of absolute deviations", "lp");
+  legend1->AddEntry(hSystMultiTrial2, "Gaussian sigma of absolute deviations", "lp");
+  legend1->AddEntry(hSystFromGauss, "Rel. error from Gaussian sigma * default value", "lp");
+  legend1->Draw();
 
   // Stat. uncertainties
   TCanvas *cStat = new TCanvas("cStat", "cStat", 1000, 800);
@@ -1210,12 +1247,12 @@ void MultiTrial(
     hError[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hError[i]->Draw("same");
   }
-  hAbsoluteMaxDev->Draw("same");
-  hRMS->Draw("same");
-  hSystFromGauss->Draw("same");
+  // hAbsoluteMaxDev->Draw("same");
+  // hRMS->Draw("same");
+  // hSystFromGauss->Draw("same");
   legTrialReduced->Draw();
-  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".pdf");
-  cStat->SaveAs("Systematics/StatErrorMultTrial" + Suffix + ".png");
+  cStat->SaveAs("../Systematics/StatErrorMultTrial" + Suffix + ".pdf");
+  cStat->SaveAs("../Systematics/StatErrorMultTrial" + Suffix + ".png");
 
   // ratio of stat. uncertainties to default one
   TCanvas *cStatRatio = new TCanvas("cStatRatio", "cStatRatio", 1000, 800);
@@ -1242,11 +1279,11 @@ void MultiTrial(
   }
   lineat1->Draw("same");
   legTrialReduced->Draw();
-  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
-  cStatRatio->SaveAs("Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
+  cStatRatio->SaveAs("../Systematics/StatErrorRatioMultTrial" + Suffix + ".pdf");
+  cStatRatio->SaveAs("../Systematics/StatErrorRatioMultTrial" + Suffix + ".png");
 
   // save histos in output files
-  TString OutputFile = "Systematics/SystMultiTrial_" + inputFileName + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_";
+  TString OutputFile = "../Systematics/SystMultiTrial_" + inputFileName + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_";
   OutputFile += SisSyst;
   if (isPtIntegrated)
     OutputFile += "_PtInt";
@@ -1286,9 +1323,9 @@ void MultiTrial(
   cout << "\n\nHo creato il file: " << OutputFile << endl;
   cout << "The number of actual trials is: " << NumberOfActualTrials << endl;
   cout << "The default value is: " << hDefault->GetBinContent(1) << endl;
-  cout << "Syst error (RMS of results): " << hRMS->GetBinContent(1) << endl;
   cout << "Syst. error (gauss fit to results distribution): " << hSystMultiTrial2->GetBinContent(1) << endl;
-  cout << "Syst. error from gaus fit (from rel. deviation): " << abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
-  cout << "Syst. error from RMS (of rel. deviations): " << abs(hSystMultiTrialRMS->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
+  cout << "Syst. error (RMS of results distribution): " << hRMS->GetBinContent(1) << endl;
+  cout << "Syst. error (from gauss fit to rel. deviation): " << abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
+  cout << "Syst. error (from RMS of rel. deviations): " << abs(hSystMultiTrialRMS->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
   cout << "Stat error: " << hDefaultError->GetBinContent(1) << endl;
 }
