@@ -33,17 +33,16 @@
 using namespace ROOT;
 using namespace std;
 
-void createChain(TChain &chainD, const std::string &filename, const std::string &treename)
+void createChain(TChain &chainD, TFile *f)
 {
-  TFile fileD(filename.c_str());
-  TIter next(fileD.GetListOfKeys());
+  TIter next(f->GetListOfKeys());
   TKey *key;
   while ((key = (TKey *)next()))
   {
     std::string keyName = key->GetName();
     if (keyName.find("DF_") != std::string::npos)
     {
-      chainD.Add((filename + "/" + keyName + "/" + chainD.GetName()).c_str());
+      chainD.Add(Form("%s/%s/%s", f->GetName(), keyName.c_str(), chainD.GetName()));
     }
   }
 }
@@ -82,7 +81,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Int_t EtaSysChoice = ExtrEtaSysChoice,
-                       Bool_t isSysMultTrial = ExtrisSysMultTrial)
+                       Bool_t isSysMultTrial = ExtrisSysLambdaMultTrial)
 {
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -128,17 +127,16 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   //  TString inputFile = "TreeForAnalysis";
   //  inputFile += "/AnalysisResults_trees_" + inputFileName + "_New.root";
 
-  std::vector<TFile*>inputFile(nfiles);
+  std::vector<TFile *> inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
   // for (Int_t i = 0; i < nfiles; i++){
-  for (Int_t i = 0; i < 1; i++)
+  for (Int_t i = 0; i < 2; i++)
   {
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
-    createChain(chainDataMB, name[i].c_str(), "O2lambdaanalysis");
+    createChain(chainDataMB, inputFile[i]);
   }
   auto originalDF = ROOT::RDataFrame(chainDataMB);
-  //  RDataFrame originalDF(TreeName, inputFile);
 
   auto d1 = originalDF;
 
@@ -171,7 +169,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto histoBefDcaNegToPV = d2.Histo1D({"histoBefDcaNegToPV", "DCA Neg to PV Distribution", 100, -2, 2}, "fDcaNegToPV");
   auto histoBefDcaPosToPV = d2.Histo1D({"histoBefDcaPosToPV", "DCA Pos to PV Distribution", 100, -2, 2}, "fDcaPosToPV");
 
-  // topological selections
+  // topological selections -- OLD way using Filter
+  /*
   gRandom->SetSeed(0);
   string V0FilterString = Form("fV0Radius > %.2f", DefaultV0RadiusCut);
   if (isSysMultTrial)
@@ -233,6 +232,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto d2c = d2b.Filter(V0CosPAString);
   auto d2d = d2c.Filter(DcaNegToPVString);
   auto d2e = d2d.Filter(DcaPosToPVString);
+  */
 
   // default cuts
   auto df_withCuts = d2.Define("cutV0Radius", [=]()
@@ -320,11 +320,11 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       {"hMassVsPt", "Mass vs pT;M_{Λ} (GeV/c^{2});p_{T} (GeV/c)", 100, 1.09, 1.14, 100, 0, 10},
       "fMassLambda", "fPt");
 
-  auto histoV0Radius = d2e.Histo1D({"histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
-  auto histoDcaV0Daughters = d2e.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
-  auto histoV0CosPA = d2e.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
-  auto histoDcaNegToPV = d2e.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
-  auto histoDcaPosToPV = d2e.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
+  auto histoV0Radius = df_selected.Histo1D({"histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
+  auto histoDcaV0Daughters = df_selected.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
+  auto histoV0CosPA = df_selected.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
+  auto histoDcaNegToPV = df_selected.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
+  auto histoDcaPosToPV = df_selected.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
 
   TH1D *hg_V0Radius = new TH1D("hg_V0Radius", "V0 Radius Distribution", 30, 0.8, 1.3);
   TH1D *hg_DcaV0Daughters = new TH1D("hg_DcaV0Daughters", "DCA V0 Daughters Distribution", 30, 0.9, 1.6);
@@ -332,6 +332,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TH1D *hg_DcaNegToPV = new TH1D("hg_DcaNegToPV", "DCA Neg to PV Distribution", 30, 0.04, 0.11);
   TH1D *hg_DcaPosToPV = new TH1D("hg_DcaPosToPV", "DCA Pos to PV Distribution", 30, 0.04, 0.11);
   // histogram topo distribution
+  /*
   auto test_histoV0Radius = df_selected.Histo1D({"test_histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
   auto variations_V0Radius = ROOT::RDF::Experimental::VariationsFor(test_histoV0Radius);
   auto test_histoDcaV0Daughters = df_selected.Histo1D({"test_histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
@@ -342,24 +343,25 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto variations_DcaNegToPV = ROOT::RDF::Experimental::VariationsFor(test_histoDcaNegToPV);
   auto test_histoDcaPosToPV = df_selected.Histo1D({"test_histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
   auto variations_DcaPosToPV = ROOT::RDF::Experimental::VariationsFor(test_histoDcaPosToPV);
+  */
 
   // pt vs centrality after selections
-  auto hPtvsCent_AftSel = d2e.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
+  auto hPtvsCent_AftSel = df_selected.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
 
   // invariant mass histograms
-  auto hmass = d2e.Histo1D({"mass_Lambda", "Invariant mass of p#pi", 100, 1.09, 1.14}, "fMassLambda");
+  auto hmass = df_selected.Histo1D({"mass_Lambda", "Invariant mass of p#pi", 100, 1.09, 1.14}, "fMassLambda");
 
   // invariant mass histograms vs pt
-  auto hmassvsPt = d2e.Histo2D({"mass_LambdavPt", "Invariant mass of p#pi vs pT", 100, 1.09, 1.14, 100, 0, 10}, "fMassLambda", "fPt");
+  auto hmassvsPt = df_selected.Histo2D({"mass_LambdavPt", "Invariant mass of p#pi vs pT", 100, 1.09, 1.14, 100, 0, 10}, "fMassLambda", "fPt");
 
   // eta distributions
-  //  auto heta = d2e.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
+  //  auto heta = df_selected.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
 
   // phi distributions
-  auto hphi = d2e.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
+  auto hphi = df_selected.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
 
   // eta - phi distributions
-  // auto hEtaPhi = d2e.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
+  // auto hEtaPhi = df_selected.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
 
   // create output file
   cout << "I am creating the output file " << endl;
@@ -385,8 +387,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       OutputFileName += "_isLoosest";
     else if (isTightest)
       OutputFileName += "_isTightest";
-    else
-      OutputFileName += "_SysMultTrial";
+    // else
+    //   OutputFileName += "_SysMultTrial";
   }
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
@@ -425,9 +427,11 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       std::declval<ROOT::RDF::RResultPtr<TH3D>>()))>
       h_variationsmassVsPtVsPzs2;
 
+  /*
   std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
       std::declval<ROOT::RDF::RResultPtr<TH2D>>()))>
       h_variationsmassVsPt;
+  */
 
   df_selected = df_selected.Define("fPsiDiff", "if ((fPhi-fPsiT0C) < 0) return (fPhi-fPsiT0C+(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > 2* TMath::Pi()) return (fPhi-fPsiT0C-2*(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > TMath::Pi()) return (fPhi-fPsiT0C-(float)TMath::Pi()); else return (fPhi-fPsiT0C);");
   df_selected = df_selected.Define("f2PsiDiffCorr", "2*fPsiDiff");
@@ -507,9 +511,9 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                                         10,
                                     },
                                     "fMassLambda", "fPt");
-    auto variationsmassVsPt = ROOT::RDF::Experimental::VariationsFor(massvspt2D);
+    //    auto variationsmassVsPt = ROOT::RDF::Experimental::VariationsFor(massvspt2D);
     massvsptVector.push_back(massvspt2D);
-    h_variationsmassVsPt.push_back(variationsmassVsPt);
+    // h_variationsmassVsPt.push_back(variationsmassVsPt);
 
     auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "v2C", Nv2, Minv2, Maxv2}, v2Chosen);
     v2CVector.push_back(v2C);
@@ -571,6 +575,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   histoBefDcaNegToPV->Write();
   histoBefDcaPosToPV->Write();
 
+  /*
   auto tags = variations_V0Radius.GetKeys();
   for (auto &tag : tags)
   {
@@ -637,12 +642,12 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   hg_V0CosPA->Write();
   hg_DcaNegToPV->Write();
   hg_DcaPosToPV->Write();
-
+  */
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
 
     auto &variationMap = h_variationsmassVsPtVsPzs2[cent];
-    auto &variationMapmassVsPt = h_variationsmassVsPt[cent];
+    // auto &variationMapmassVsPt = h_variationsmassVsPt[cent];
 
     // Retrieve the variation tags
     auto tags = variationMap.GetKeys();
@@ -656,6 +661,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       TString histName = Form("massVsPtVsPzs2_cent%i_%s", cent, tag.c_str());
       histo.Write(histName); // or histo->Draw()
     }
+    /*
     for (auto &tag : tags)
     {
       std::cout << " | Variation tag Mass vs Pt: " << tag << std::endl;
@@ -664,9 +670,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       TString histName = Form("MassVsPt_cent%i_%s", cent, tag.c_str());
       histo.Write(histName); // or histo->Draw()
     }
+    */
     massvsptVector[cent]->Write();
-    massVsPtVsV2CVector[cent]->Write();
     massVsPtVsPzs2Vector[cent]->Write();
+    massVsPtVsV2CVector[cent]->Write();
     massVsPsiVsPzVector[cent]->Write();
     massVsPtVsCos2Vector[cent]->Write();
     massVsPsiVsCos2Vector[cent]->Write();
