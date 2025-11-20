@@ -177,6 +177,19 @@ void MultiTrial(
     CentFT0CMin = CentFT0C[mul];
     CentFT0CMax = CentFT0C[mul + 1];
   }
+  if (isOOCentrality)
+  {
+    if (mul == numCentLambdaOO)
+    {
+      CentFT0CMin = 0;
+      CentFT0CMax = 100;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0CLambdaOO[mul];
+      CentFT0CMax = CentFT0CLambdaOO[mul + 1];
+    }
+  }
 
   // histoName
   Bool_t isPolFromLambda = 0;
@@ -298,7 +311,9 @@ void MultiTrial(
     if (isReducedPtBins)
       SdefFinal += "_ReducedPtBins";
     SdefFinal += Form("_SysMultTrial_%i", 0);
-    SdefFinal += "_isSysLambdaMultTrial_ResoOnTheFly";
+    SdefFinal += "_isSysLambdaMultTrial";
+    if (ExtrisApplyResoOnTheFly)
+      SdefFinal += "_ResoOnTheFly";
     cout << "Svaried " << SdefFinal << endl;
   }
 
@@ -509,7 +524,9 @@ void MultiTrial(
       if (isReducedPtBins)
         Svaried += "_ReducedPtBins";
       Svaried += Form("_SysMultTrial_%i", i);
-      Svaried += "_isSysLambdaMultTrial_ResoOnTheFly";
+      Svaried += "_isSysLambdaMultTrial";
+      if (ExtrisApplyResoOnTheFly)
+        Svaried += "_ResoOnTheFly";
       cout << "Svaried " << Svaried << endl;
     }
 
@@ -1302,6 +1319,15 @@ void MultiTrial(
   OutputFile += STHN[ExtrisFromTHN];
   if (nsigmaBarlow != 0)
     OutputFile += Form("_nsigmaBarlow%.1f", nsigmaBarlow);
+  if (SisSyst == "LambdaTopo")
+  {
+    if (isTightMassCut)
+      OutputFile += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    if (isReducedPtBins)
+      OutputFile += "_ReducedPtBins";
+    if (ExtrisApplyResoOnTheFly)
+      OutputFile += "_ResoOnTheFly";
+  }
   OutputFile += ".root";
 
   TFile *Write = new TFile(OutputFile, "RECREATE");
