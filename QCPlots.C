@@ -116,7 +116,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   gStyle->SetOptStat(0);
   Int_t nrebinx = 4;
   Int_t nrebiny = 4;
-  const Int_t nCanvas = 16;
+  const Int_t nCanvas = 17;
 
   TString SAfterEventsel = "";
   if (isAfterEPSel)
@@ -175,6 +175,13 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   {
     cout << "No shifted EP histos found, taking in input a random histo" << endl;
     hPsiV0AvsFT0C_Shifted = (TH2F *)hPsiT0CvsFT0C->Clone("hPsiT0CvsCentFT0C_dummy1");
+    // return;
+  }
+  TH2F *hPsiT0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FT0A_shifted");
+  if (!hPsiT0AvsFT0C_Shifted)
+  {
+    cout << "No shifted EP histos found, taking in input a random histo" << endl;
+    hPsiT0AvsFT0C_Shifted = (TH2F *)hPsiT0CvsFT0C->Clone("hPsiT0CvsCentFT0C_dummy1");
     // return;
   }
   TH2F *hPsiTPCLvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCA_shifted");
@@ -472,6 +479,32 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   leg->Draw();
   c[15]->SaveAs("../QCPlots/hPsiTPCR_Shifted" + inputFileName + ".pdf");
   c[15]->SaveAs("../QCPlots/hPsiTPCR_Shifted" + inputFileName + ".png");
+
+  TH1D *hPsiT0A[commonNumCent];
+  c[16]->cd();
+  for (Int_t mult = 0; mult < commonNumCent; mult++)
+  {
+    if (isOOCentrality)
+    {
+      hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
+    }
+    else
+      hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    hPsiT0A[mult]->Scale(1. / hPsiT0A[mult]->Integral());
+    hPsiT0A[mult]->SetLineColor(ColorMult[mult]);
+    hPsiT0A[mult]->SetMarkerColor(ColorMult[mult]);
+    hPsiT0A[mult]->SetMarkerStyle(MarkerMult[mult]);
+    hPsiT0A[mult]->SetMarkerSize(SizeMult[mult]);
+    hPsiT0A[mult]->GetXaxis()->SetTitle("#Psi_{T0A}");
+    hPsiT0A[mult]->SetTitle("EP T0A");
+    hPsiT0A[mult]->SetTitle("");
+    if (mult < (commonNumCent - 2))
+      hPsiT0A[mult]->Draw("same hist");
+  }
+  leg->Draw();
+  c[16]->SaveAs("../QCPlots/hPsiT0A_Shifted" + inputFileName + ".pdf");
+  c[16]->SaveAs("../QCPlots/hPsiT0A_Shifted" + inputFileName + ".png");
+
 
   TString OutputFile = "../QCPlots/QCPlots_" + inputFileName;
   for (Int_t i = 0; i < nCanvas; i++)
