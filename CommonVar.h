@@ -4,13 +4,13 @@ Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0; // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1;
+Bool_t isApplyCentWeight = 1; //1 for OO
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
-Bool_t ExtrisApplyResoOnTheFly = 1;
+Bool_t ExtrisApplyResoOnTheFly = 1; // 1 for OO
 Int_t v2type = 2;         // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0; // 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 1;
-Bool_t isOOCentrality = 1;
+Bool_t isReducedPtBins = 1; //1 for Lambda in OO
+Bool_t isOOCentrality = 1; //1 for Lambda in OO
 
 const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 bool isRun2Binning = 0;
@@ -22,7 +22,7 @@ const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numCentLambdaOO = 10;
-const Int_t commonNumCent = 10; // the maximum of the two above
+const Int_t commonNumCent = 10; // the maximum of the two above (?) (numCent for Xi, numCentLambdaOO for Lambda in OO)
 // const Int_t numCent_PtDiff = 3; // for pt differential measurement
 const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
 
@@ -120,7 +120,24 @@ Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay
 // TString SinputFileName = "LHC25_OO_pass2_Train497609"; // secondary proton acceptance for Lambda pol in OO
 // TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
 
-TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
+//TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
+//TString SinputFileName = "LHC25_OO_pass2_Train543247_T0CEventPlaneTest"; // Pzs2 of Lambda
+//TString SinputFileName = "LHC25_OO_pass2_Train544235_V0AShiftCorr";   
+//TString SinputFileName = "LHC25_OO_pass2_Train545130_V0ANShiftCorr";   
+//TString SinputFileName = "LHC25_OO_pass2_Train546065_V0ANoShiftCorr";   
+//TString SinputFileName = "LHC25_OO_pass2_Train547804_V0AShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train548457_T0AShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train548636_T0CShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train547803_T0ANoShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train548643_T0MNoShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train549121_T0CNoShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train549122_T0MNoShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train549964_T0CShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train549965_T0MShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train557895_T0AShiftCorr"; //T0A shift corrected (validated)
+//TString SinputFileName = "LHC25_OO_pass2_Train557896_V0AShiftCorr"; //V0A shift corrected (validated)
+TString SinputFileName = "LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A"; //T0C shift corrected with corrected TPC event plane and T0A info for resolution
 
 // TString SinputFileName = "LHC25_OO_pass2_Train518384_V0AResolution"; // V0AResolution
 // TString SinputFileName = "LHC25_OO_pass2_Train518383_T0MResolution"; // V0AResolution
@@ -143,7 +160,7 @@ TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train369742";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train370610_ProtonAcc";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics are DONE
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics are DONE and to be USED for PAPER
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456578_ProtonAcc";
@@ -177,7 +194,7 @@ const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 
 const bool isApplyAcceptanceCorrection = 0;                     // for recent files, acceptance correction is applied on the fly
 const bool isAcceptanceFromExternalFile = 0;                    // 1 for acceptance from external file, 0 for acceptance from the same file
 TString SAcceptanceFile = "AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
-const bool useMixedBDTValueInFitMacro = 0;                      // variable used in FitV2OrPol.C macro
+const bool useMixedBDTValueInFitMacro = 1;                      // variable used in FitV2OrPol.C macro
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)
@@ -250,7 +267,7 @@ TString inputFileResoCFW = SinputFileName; // OLD: "LHC23zzh_pass3_Train226234_C
 TString inputFileResoLF = SinputFileName;
 
 // Files with stored resolution
-TString ResoFileName_EPLF = "Resolution/Resolution_EP_LF_" + inputFileResoLF;
-TString ResoFileName_EPCFW = "Resolution/Resolution_EP_CFW_" + inputFileResoCFW;
-TString ResoFileName_SPLF = "Resolution/Resolution_SP_LF_" + inputFileResoLF;
-TString ResoFileName_SPCFW = "Resolution/Resolution_SP_CFW_" + inputFileResoCFW;
+TString ResoFileName_EPLF = "../Resolution/Resolution_EP_LF_" + inputFileResoLF;
+TString ResoFileName_EPCFW = "../Resolution/Resolution_EP_CFW_" + inputFileResoCFW;
+TString ResoFileName_SPLF = "../Resolution/Resolution_SP_LF_" + inputFileResoLF;
+TString ResoFileName_SPCFW = "../Resolution/Resolution_SP_CFW_" + inputFileResoCFW;

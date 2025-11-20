@@ -81,7 +81,8 @@ Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1}; // from PDG 
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1};
 Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.758, 0.747, -0.758, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // decay parameter for Lambda -> p pi
 
 // File names
 // TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
@@ -135,8 +136,8 @@ TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916
 // TString SinputFileNameSyst = "LHC25_OO_Train487953";
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 //TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
-TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
-//TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678"; 
+//TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678"; 
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; 
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
@@ -172,6 +173,7 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
 // --------------------------- SYST ------------------------------
+const int trialsLambdaTopo = 20; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 bool isSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
