@@ -220,6 +220,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 37 --> Compare Pzs2 of Xi with flat and non-flat event plane
   // TypeComp == 38 --> Compare Pzs2 of Lambda with different PV Z vertex selection
   // TypeComp == 39 --> Resolution comparison (T0C reso with different reference detectors)
+  // TypeComp == 40 --> Resolution comparison with corrected TPC (T0C and T0A reso with different reference detectors)
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -971,9 +972,9 @@ void CompareResults(Int_t TypeComp = 0,
   else if (TypeComp == 35)
   {
     numOptions = 4;
-    //fileName[0] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train510916";
-    //fileName[1] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515731_T0MResolution";
-    //fileName[2] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515730_V0AResolution";
+    // fileName[0] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train510916";
+    // fileName[1] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515731_T0MResolution";
+    // fileName[2] = "Resolution/Resolution_SP_CFW_LHC25_OO_pass2_Train515730_V0AResolution";
     fileName[0] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549964_T0CShiftCorr";
     fileName[1] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train549965_T0MShiftCorr";
     fileName[2] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train547804_V0AShiftCorr";
@@ -1068,6 +1069,34 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[2] = "T0C with V0A & TPCC";
     yOffset = 2;
   }
+  else if (TypeComp == 40)
+  {
+    numOptions = 5;
+    // fileName[0] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
+    // fileName[1] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
+    fileName[0] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A";
+    fileName[1] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A";
+    fileName[2] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A";
+    fileName[3] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A";
+    fileName[4] = "../Resolution/Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A";
+    namehisto[0] = "hResoV0ATPCA";
+    namehisto[1] = "hResoV0ATPCC";
+    namehisto[2] = "hResoT0ATPCA";
+    namehisto[3] = "hResoT0ATPCC";
+    namehisto[4] = "hReso";
+    hTitleY = "Resolution";
+    hTitleX = "Centrality (%)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.7;
+    YUpRatio = 1.6;
+    sleg[0] = "T0C with V0A & TPCA";
+    sleg[1] = "T0C with V0A & TPCC";
+    sleg[2] = "T0C with T0A & TPCA";
+    sleg[3] = "T0C with T0A & TPCC";
+    sleg[4] = "T0C with TPCA & TPCC";
+    yOffset = 2;
+  }
   else
   {
     cout << "TypeComp not defined" << endl;
@@ -1146,7 +1175,7 @@ void CompareResults(Int_t TypeComp = 0,
     hDummy->GetXaxis()->SetRangeUser(0, 80);
   if (TypeComp == 34)
     hDummy->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35 || TypeComp == 39)
+  if (TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     hDummy->GetXaxis()->SetRangeUser(0, 100);
   pad1->Draw();
   pad1->cd();
@@ -1168,6 +1197,16 @@ void CompareResults(Int_t TypeComp = 0,
     h[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
     h[i]->SetTitle("");
     h[i]->Draw("same");
+    if (TypeComp == 40 && i == 3)
+    {
+      h[i]->SetMarkerColor(kBlue + 1);
+      h[i]->SetLineColor(kBlue + 1);
+    }
+    if (TypeComp == 40 && i == 2)
+    {
+      h[i]->SetMarkerColor(kCyan + 1);
+      h[i]->SetLineColor(kCyan + 1);
+    }
   }
 
   TLegend *leg = new TLegend(0.3, 0.7, 0.9, 0.9);
@@ -1184,7 +1223,7 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39)
+  else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     leg->AddEntry("", "OO 5.36 TeV", "");
   else
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + Form(" Pb-Pb 5.36 TeV, FT0C %i-%i", CentFT0C[mult], CentFT0C[mult + 1]) + "%", "");
@@ -1208,7 +1247,7 @@ void CompareResults(Int_t TypeComp = 0,
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
   if (TypeComp == 34)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 90);
-  if (TypeComp == 35 || TypeComp == 39)
+  if (TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 100);
   canvas->cd();
   padL1->Draw();
@@ -1221,12 +1260,22 @@ void CompareResults(Int_t TypeComp = 0,
     hRatio[i]->SetMarkerStyle(MarkerMult[i + 1]);
     hRatio[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
     hRatio[i]->Draw("same");
+    if (TypeComp == 40 && i == 3)
+    {
+      hRatio[i]->SetMarkerColor(kBlue + 1);
+      hRatio[i]->SetLineColor(kBlue + 1);
+    }
+    if (TypeComp == 40 && i == 2)
+    {
+      hRatio[i]->SetMarkerColor(kCyan + 1);
+      hRatio[i]->SetLineColor(kCyan + 1);
+    }
   }
   TF1 *line = new TF1("line", "1", MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
     line = new TF1("line", "1", 0, 80);
-  else if (TypeComp == 35 || TypeComp == 39)
-    line = new TF1("line", "1", 0, 100);  
+  else if (TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
+    line = new TF1("line", "1", 0, 100);
   line->SetLineColor(kBlack);
   line->SetLineStyle(9);
   line->Draw("same");
