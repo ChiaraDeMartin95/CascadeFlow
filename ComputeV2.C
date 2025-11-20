@@ -16,7 +16,7 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-//#include "CommonVar.h"
+// #include "CommonVar.h"
 #include "CommonVarLambda.h"
 #include "StyleFile.h"
 
@@ -353,7 +353,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (isSysLambdaMultTrial && ChosenPart == 6)
     {
-      hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial-1);
+      hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial - 1);
       if (indexMultTrial == 0)
         hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_nominal", cent);
     }
@@ -377,8 +377,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
 
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName[cent]);
     hmassVsPtVsV2C[cent]->SetName(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
-    hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
-    hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
+
     if (!ExtrisFromTHN && ChosenPart != 6)
       profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName[cent]);
     if (!profmassVsPt[cent] && !ExtrisFromTHN && ChosenPart != 6)
@@ -394,10 +393,21 @@ void ComputeV2(Int_t indexMultTrial = 0,
       cout << "hNamePzs2_3D[cent]: " << hNamePzs2_3D[cent] << endl;
       return;
     }
-    else 
+    else
     {
       cout << "Taking the histogram: " << hNamePzs2_3D[cent] << endl;
     }
+
+    if (ChosenParticle == 6)
+    {
+      hmassVsPt[cent] = (TH2F *)hmassVsPtVsPzs2[cent]->Project3D("yx");
+    }
+    else
+    {
+      hmassVsPt[cent] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("yx");
+    }
+    hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
+
     hmassVsPtVsPzs2LambdaFromC[cent] = (TH3D *)inputFile->Get(hNamePzs2LambdaFromC_3D[cent]);
     if (!hmassVsPtVsPzs2LambdaFromC[cent])
     {
@@ -575,6 +585,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hmassVsCos2ThetaLambdaFromC[cent][pt]->RebinY(RebinFactor);
 
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
+      if (ChosenPart == 6)
+        hmass[cent][pt] = (TH1F *)hmassVsPtVsPzs2[cent]->Project3D("xe"); // mass for Lambda using Pzs2
       hmass[cent][pt]->SetName(hNameMass[cent][pt]);
       hmass[cent][pt]->Rebin(RebinFactor);
 
