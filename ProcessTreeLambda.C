@@ -19,7 +19,7 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-#include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "TRandom3.h"
 #include "TKey.h"
 #include "TChain.h"
@@ -76,8 +76,7 @@ Float_t MaxPzWithAlphaXi = 2.8;
 Float_t MaxPzWithAlphaOmega = 65;
 Int_t NPz = 200;
 
-void ProcessTreeLambda(Int_t indexMultTrial = 0,
-                       Bool_t isRapiditySel = ExtrisRapiditySel,
+void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                        //		       Bool_t isPartialEta = ExtrisPartialEta,
                        Int_t ChosenPart = ChosenParticle,
@@ -129,7 +128,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   //  TString inputFile = "TreeForAnalysis";
   //  inputFile += "/AnalysisResults_trees_" + inputFileName + "_New.root";
 
-  TFile *inputFile[nfiles];
+  std::vector<TFile*>inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
   // for (Int_t i = 0; i < nfiles; i++){
   for (Int_t i = 0; i < 1; i++)
@@ -252,7 +251,7 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 2;
+  const int NVAR = 20;
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -327,11 +326,11 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
   auto histoDcaNegToPV = d2e.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
   auto histoDcaPosToPV = d2e.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
 
-  TH1F *hg_V0Radius = new TH1F("hg_V0Radius", "V0 Radius Distribution", 30, 0.8, 1.3);
-  TH1F *hg_DcaV0Daughters = new TH1F("hg_DcaV0Daughters", "DCA V0 Daughters Distribution", 30, 0.9, 1.6);
-  TH1F *hg_V0CosPA = new TH1F("hg_V0CosPA", "V0 CosPA Distribution", 30, 0.98, 1.0);
-  TH1F *hg_DcaNegToPV = new TH1F("hg_DcaNegToPV", "DCA Neg to PV Distribution", 30, 0.04, 0.11);
-  TH1F *hg_DcaPosToPV = new TH1F("hg_DcaPosToPV", "DCA Pos to PV Distribution", 30, 0.04, 0.11);
+  TH1D *hg_V0Radius = new TH1D("hg_V0Radius", "V0 Radius Distribution", 30, 0.8, 1.3);
+  TH1D *hg_DcaV0Daughters = new TH1D("hg_DcaV0Daughters", "DCA V0 Daughters Distribution", 30, 0.9, 1.6);
+  TH1D *hg_V0CosPA = new TH1D("hg_V0CosPA", "V0 CosPA Distribution", 30, 0.98, 1.0);
+  TH1D *hg_DcaNegToPV = new TH1D("hg_DcaNegToPV", "DCA Neg to PV Distribution", 30, 0.04, 0.11);
+  TH1D *hg_DcaPosToPV = new TH1D("hg_DcaPosToPV", "DCA Pos to PV Distribution", 30, 0.04, 0.11);
   // histogram topo distribution
   auto test_histoV0Radius = df_selected.Histo1D({"test_histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
   auto variations_V0Radius = ROOT::RDF::Experimental::VariationsFor(test_histoV0Radius);
@@ -387,12 +386,13 @@ void ProcessTreeLambda(Int_t indexMultTrial = 0,
     else if (isTightest)
       OutputFileName += "_isTightest";
     else
-      OutputFileName += Form("_SysMultTrial_%i", indexMultTrial);
+      OutputFileName += "_SysMultTrial";
   }
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
+  OutputFileName += Form("_Nvar%i", NVAR);
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
