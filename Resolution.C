@@ -240,6 +240,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   TH1D *hReso2T0ATPCC = (TH1D *)hReso->Clone("hReso2T0ATPCC");
   TH1D *hResoPerCentBins = new TH1D("hResoPerCentBins", "hResoPerCentBins", 100, 0, 100);
   TH1D *hResoPerCentBinsV0A = new TH1D("hResoPerCentBinsV0A", "hResoPerCentBinsV0A", 100, 0, 100);
+  TH1D *hResoPerCentBinsT0ATPCC = new TH1D("hResoPerCentBinsT0ATPCC", "hResoPerCentBinsT0ATPCC", 100, 0, 100);
   TH1D *hReso080 = new TH1D("hReso080", "hReso080", 1, 0, 1);
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
@@ -372,30 +373,46 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     hQT0CV0A->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     hQV0ATPCA->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     hQV0ATPCC->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
+    hQT0ATPCA->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
+    hQT0ATPCC->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
+    hQT0CT0A->GetYaxis()->SetRangeUser(cent + 0.001, cent + 0.001);
     TH1F *h1QT0CTPCA = (TH1F *)hQT0CTPCA->ProjectionX("h1QT0CTPCA");
     TH1F *h1QT0CTPCC = (TH1F *)hQT0CTPCC->ProjectionX("h1QT0CTPCC");
     TH1F *h1QTPCAC = (TH1F *)hQTPCAC->ProjectionX("h1QTPCAC");
     TH1F *h1QT0CV0A = (TH1F *)hQT0CV0A->ProjectionX("h1QT0CV0A");
     TH1F *h1QV0ATPCA = (TH1F *)hQV0ATPCA->ProjectionX("h1QV0ATPCA");
     TH1F *h1QV0ATPCC = (TH1F *)hQV0ATPCC->ProjectionX("h1QV0ATPCC");
+    TH1F *h1QT0ATPCA = (TH1F *)hQT0ATPCA->ProjectionX("h1QT0ATPCA");
+    TH1F *h1QT0ATPCC = (TH1F *)hQT0ATPCC->ProjectionX("h1QT0ATPCC");
+    TH1F *h1QT0CT0A = (TH1F *)hQT0CT0A->ProjectionX("h1QT0CT0A");
     Float_t MeanT0CTPCA = h1QT0CTPCA->GetMean();
     Float_t MeanT0CTPCC = h1QT0CTPCC->GetMean();
     Float_t MeanTPCAC = h1QTPCAC->GetMean();
     Float_t MeanT0CV0A = h1QT0CV0A->GetMean();
     Float_t MeanV0ATPCA = h1QV0ATPCA->GetMean();
     Float_t MeanV0ATPCC = h1QV0ATPCC->GetMean();
+    Float_t MeanT0CT0A = h1QT0CT0A->GetMean();
+    Float_t MeanT0ATPCA = h1QT0ATPCA->GetMean();
+    Float_t MeanT0ATPCC = h1QT0ATPCC->GetMean();
     Float_t ErrMeanT0CTPCA = h1QT0CTPCA->GetMeanError();
     Float_t ErrMeanT0CTPCC = h1QT0CTPCC->GetMeanError();
     Float_t ErrMeanTPCAC = h1QTPCAC->GetMeanError();
     Float_t ErrMeanT0CV0A = h1QT0CV0A->GetMeanError();
     Float_t ErrMeanV0ATPCA = h1QV0ATPCA->GetMeanError();
     Float_t ErrMeanV0ATPCC = h1QV0ATPCC->GetMeanError();
+    Float_t ErrMeanT0CT0A = h1QT0CT0A->GetMeanError();
+    Float_t ErrMeanT0ATPCA = h1QT0ATPCA->GetMeanError();
+    Float_t ErrMeanT0ATPCC = h1QT0ATPCC->GetMeanError();
     Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     Float_t RelErr2V0A = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
     Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+    Float_t RelErr2T0ATPCC = pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
+    Float_t ErrResoT0ATPCC = sqrt(RelErr2T0ATPCC * (MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
+
     hResoPerCentBins->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+    hResoPerCentBinsT0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
     cout << "Cent: " << cent << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << MeanT0CTPCA << " " << MeanT0CTPCC << " " << MeanTPCAC << " " << ErrMeanT0CTPCA << " " << ErrMeanT0CTPCC << " " << ErrMeanTPCAC << endl;
     cout << "hResoPerCentBinsV0A: " << hResoPerCentBinsV0A->GetBinContent(cent + 1) << endl;
@@ -408,6 +425,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     }
     hResoPerCentBins->SetBinError(cent + 1, ErrReso);
     hResoPerCentBinsV0A->SetBinError(cent + 1, ErrResoV0A);
+    hResoPerCentBinsT0ATPCC->SetBinError(cent + 1, ErrResoT0ATPCC);
   }
 
   gStyle->SetOptStat(0);
@@ -576,6 +594,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hResoT0ATPCA->Write();
   hResoT0ATPCC->Write();
   hResoPerCentBinsV0A->Write();
+  hResoPerCentBinsT0ATPCC->Write();
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
 }
