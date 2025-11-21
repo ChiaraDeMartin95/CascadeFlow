@@ -113,7 +113,8 @@ Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0.0015};
 
 Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
-Float_t ResoRelError[numCentLambdaOO + 1] = {0.045, 0.05, 0.06, 0.065, 0.07, 0.09, 0.127, 0.1915, 0.2865, 0.39};
+// Float_t ResoRelError[numCentLambdaOO + 1] = {0.045, 0.05, 0.06, 0.065, 0.07, 0.09, 0.127, 0.1915, 0.2865, 0.39};
+Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
@@ -140,19 +141,19 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
 
   // fileIn Default
   TString PathIn = "";
-  TFile *fileIn[numCent + 1];
+  TFile *fileIn[commonNumCent + 1];
 
   TString PathIn1 = "";
   TString PathIn2 = "";
   // fileInBDT
   TString PathInBDT;
-  TFile *fileInBDT[numCent + 1];
+  TFile *fileInBDT[commonNumCent + 1];
   // fileIn MassCut
   TString PathInMassCut;
-  TFile *fileInMassCut[numCent + 1];
+  TFile *fileInMassCut[commonNumCent + 1];
   // fileIn MassCutAndBDT
   TString PathInMassCutAndBDT;
-  TFile *fileInMassCutAndBDT[numCent + 1];
+  TFile *fileInMassCutAndBDT[commonNumCent + 1];
 
   // fileout name
   TString stringout;
@@ -195,20 +196,40 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
 
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
-  TH1F *fHistPzs2[numCent + 1];
-  TH1F *fHistBDTError[numCent + 1];
-  TH1F *fHistMassCutError[numCent + 1];
-  TH1F *fHistMassCutAndBDTError[numCent + 1];
-  TH1F *fHistBDTErrorVsCent = new TH1F("fHistBDTErrorVsCent", "fHistBDTErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistMassCutErrorVsCent = new TH1F("fHistMassCutErrorVsCent", "fHistMassCutErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistMassCutAndBDTErrorVsCent = new TH1F("fHistMassCutAndBDTErrorVsCent", "fHistMassCutAndBDTErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistPrimaryLambdaErrorVsCent = new TH1F("fHistPrimaryLambdaErrorVsCent", "fHistPrimaryLambdaErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistAccErrorVsCent = new TH1F("fHistAccErrorVsCent", "fHistAccErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCent, fCentFT0C);
-  TH1F *fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
-  TString Smolt[numCent + 1];
+  TH1F *fHistPzs2[commonNumCent + 1];
+  TH1F *fHistBDTError[commonNumCent + 1];
+  TH1F *fHistMassCutError[commonNumCent + 1];
+  TH1F *fHistMassCutAndBDTError[commonNumCent + 1];
+  TH1F *fHistBDTErrorVsCent;
+  TH1F *fHistMassCutErrorVsCent;
+  TH1F *fHistMassCutAndBDTErrorVsCent;
+  TH1F *fHistPrimaryLambdaErrorVsCent;
+  TH1F *fHistAccErrorVsCent;
+  TH1F *fHistResoErrorVsCent;
+  TH1F *fHistTotalErrorVsCent;
+  if (isOOCentrality)
+  {
+    fHistBDTErrorVsCent = new TH1F("fHistBDTErrorVsCent", "fHistBDTErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistMassCutErrorVsCent = new TH1F("fHistMassCutErrorVsCent", "fHistMassCutErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistMassCutAndBDTErrorVsCent = new TH1F("fHistMassCutAndBDTErrorVsCent", "fHistMassCutAndBDTErrorVsCent  ", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistPrimaryLambdaErrorVsCent = new TH1F("fHistPrimaryLambdaErrorVsCent", "fHistPrimaryLambdaErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistAccErrorVsCent = new TH1F("fHistAccErrorVsCent", "fHistAccErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+  }
+  else
+  {
+    fHistBDTErrorVsCent = new TH1F("fHistBDTErrorVsCent", "fHistBDTErrorVsCent", numCent, fCentFT0C);
+    fHistMassCutErrorVsCent = new TH1F("fHistMassCutErrorVsCent", "fHistMassCutErrorVsCent", numCent, fCentFT0C);
+    fHistMassCutAndBDTErrorVsCent = new TH1F("fHistMassCutAndBDTErrorVsCent", "fHistMassCutAndBDTErrorVsCent", numCent, fCentFT0C);
+    fHistPrimaryLambdaErrorVsCent = new TH1F("fHistPrimaryLambdaErrorVsCent", "fHistPrimaryLambdaErrorVsCent", numCent, fCentFT0C);
+    fHistAccErrorVsCent = new TH1F("fHistAccErrorVsCent", "fHistAccErrorVsCent", numCent, fCentFT0C);
+    fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCent, fCentFT0C);
+    fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
+  }
+  TString Smolt[commonNumCent + 1];
   // get spectra in multiplicity classes
-  for (Int_t m = 0; m < numCent; m++)
+  for (Int_t m = 0; m < commonNumCent; m++)
   {
     if (m == numCent)
     { // 0-80%
@@ -219,6 +240,19 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     {
       CentFT0CMin = CentFT0C[m];
       CentFT0CMax = CentFT0C[m + 1];
+    }
+    if (isOOCentrality)
+    {
+      if (m == (numCentLambdaOO))
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = 90;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CLambdaOO[m];
+        CentFT0CMax = CentFT0CLambdaOO[m + 1];
+      }
     }
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
 
@@ -358,6 +392,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistAccErrorVsCent->SetBinError(m + 1, 0);
       fHistResoErrorVsCent->SetBinContent(m + 1, ResoRelError[m] * fHistPzs2[m]->GetBinContent(1));
+      cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
+      cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
+      cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
       fHistResoErrorVsCent->SetBinError(m + 1, 0);
     }
     else
@@ -372,7 +409,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistMassCutErrorVsCent->Smooth();
   fHistMassCutAndBDTErrorVsCent->Smooth();
 
-  for (Int_t m = 0; m < numCent; m++)
+  for (Int_t m = 0; m < commonNumCent; m++)
   {
     // fHistTotalErrorVsCent->SetBinContent(m + 1, TMath::Sqrt(fHistBDTErrorVsCent->GetBinContent(m + 1) * fHistBDTErrorVsCent->GetBinContent(m + 1) + fHistMassCutErrorVsCent->GetBinContent(m + 1) * fHistMassCutErrorVsCent->GetBinContent(m + 1)));
     // fHistTotalErrorVsCent->SetBinContent(m + 1, TMath::Sqrt(fHistBDTErrorVsCent->GetBinContent(m + 1) * fHistBDTErrorVsCent->GetBinContent(m + 1) +
@@ -399,9 +436,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   Float_t tickY = 0.042;
 
   if (ChosenPart == 6)
-    YUp[part] = 0.02;
+    YUp[part] = 0.004;
 
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 8000, 0, 80);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
   canvasError->cd();
@@ -410,6 +447,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(0, 80);
+  if (ChosenPart == 6)
+    hDummy->GetXaxis()->SetRangeUser(0, 90);
   hDummy->Draw("");
   fHistBDTErrorVsCent->SetLineColor(kRed);
   fHistMassCutErrorVsCent->SetLineColor(kGreen + 2);
@@ -440,8 +479,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "Topological selections", "l");
   else
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "Mass Cut + BDT", "l");
-  if (ChosenPart == 6)
-    legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
+  // if (ChosenPart == 6)
+  //   legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
   legend->AddEntry(fHistTotalErrorVsCent, "Total", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
