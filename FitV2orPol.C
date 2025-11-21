@@ -787,7 +787,7 @@ void FitV2orPol(
     if (isReducedPtBins)
       SPathIn += "_ReducedPtBins";
 
-    if (ChosenPart == 6 && isSysLambdaMultTrial)
+    if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
     {
       if (isLoosest)
         SPathIn += "_isLoosest";
@@ -2348,7 +2348,7 @@ void FitV2orPol(
   }
   if (isReducedPtBins)
     Soutputfile += "_ReducedPtBins";
-  if (ChosenPart == 6 && isSysLambdaMultTrial)
+  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       Soutputfile += "_isLoosest";
@@ -2356,7 +2356,7 @@ void FitV2orPol(
       Soutputfile += "_isTightest";
     else
       Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
-    Soutputfile += "_isSysLambdaMultTrial";
+    Soutputfile += "_ExtrisSysLambdaMultTrial";
   }
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
