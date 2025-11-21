@@ -50,6 +50,11 @@ Int_t CentFT0CLambdaOO[numCentLambdaOO + 1]= {0, 10, 20, 30, 40, 50, 60, 70, 80,
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
 Double_t dNdEtaAbhiErr[numCent] = {63, 40, 27, 19, 13, 8, 5, 3};
+Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50};
+Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23};
+Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
+Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
+
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
 
 // Pt bins
