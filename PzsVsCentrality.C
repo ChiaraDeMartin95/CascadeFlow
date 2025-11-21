@@ -402,6 +402,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     if (isReducedPtBins)
       PathIn += "_ReducedPtBins";
+    if (ChosenPart==6){
+      PathIn += "_SysMultTrial_0_isSysLambdaMultTrial";
+    }
     if (ExtrisApplyResoOnTheFly)
       PathIn += "_ResoOnTheFly";
     PathIn += ".root";

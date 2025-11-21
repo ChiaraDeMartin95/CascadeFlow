@@ -492,6 +492,8 @@ void FitV2orPol(
 
   Int_t NEvents = 0;
   TString PathInEvents = "../TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
+  if (ChosenPart == 6)
+    PathInEvents = "../TreeForAnalysis/AnalysisResults_" + SinputFileNameAR + ".root";
   TFile *fileEvt = new TFile(PathInEvents, "");
   if (!fileEvt)
   {
@@ -2356,7 +2358,7 @@ void FitV2orPol(
       Soutputfile += "_isTightest";
     else
       Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
-    Soutputfile += "_ExtrisSysLambdaMultTrial";
+    Soutputfile += "_isSysLambdaMultTrial";
   }
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";

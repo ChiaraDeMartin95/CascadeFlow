@@ -69,7 +69,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SinputFile += "_Eta08";
   SinputFile += SBDT;
-  if (ChosenPart == 6 && isSysLambdaMultTrial)
+  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       SinputFile += "_isLoosest";
@@ -82,6 +82,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
     SinputFile += "_ResoOnTheFly";
+  if (ChosenPart==6 && ExtrisSysLambdaMultTrial)
+    SinputFile += "_Nvar20";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -351,7 +353,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart == 6 && !ExtrisFromTHN)
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (isSysLambdaMultTrial && ChosenPart == 6)
+    if (ExtrisSysLambdaMultTrial && ChosenPart == 6)
     {
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial - 1);
       if (indexMultTrial == 0)
@@ -649,7 +651,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isReducedPtBins)
     SOutputFile += "_ReducedPtBins";
   SOutputFile += STHN[ExtrisFromTHN];
-  if (ChosenPart == 6 && isSysLambdaMultTrial)
+  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       SOutputFile += "_isLoosest";
