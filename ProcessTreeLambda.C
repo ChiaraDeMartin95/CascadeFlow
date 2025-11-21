@@ -129,8 +129,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   std::vector<TFile *> inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
-  // for (Int_t i = 0; i < nfiles; i++){
-  for (Int_t i = 0; i < 2; i++)
+  for (Int_t i = 0; i < nfiles; i++)
+  //for (Int_t i = 0; i < 2; i++)
   {
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
@@ -146,7 +146,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   TString resoCentFileName = SinputFileNameResoWeight;
   TFile *resoFile = new TFile(resoCentFileName, "READ");
-  TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get("hResoPerCentBins") : nullptr};
+  TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get("hResoPerCentBinsV0A") : nullptr};
 
   auto h = d1.Histo1D("fPt");
 
@@ -395,6 +395,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
   OutputFileName += Form("_Nvar%i", NVAR);
+  OutputFileName += "_CorrectReso";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;

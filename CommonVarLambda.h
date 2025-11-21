@@ -117,7 +117,8 @@ TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 10
 //TString SinputFileName = "LambdaTest";
 
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
-TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
+//TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
+TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -176,7 +177,7 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 const int trialsLambdaTopo = 20; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-bool isSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
 const int trialsBDT = 20;    // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
