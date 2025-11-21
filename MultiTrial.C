@@ -629,7 +629,6 @@ void MultiTrial(
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
     }
-    cout << "here I am " << endl;
     NumberOfActualTrials++;
     ColorIndex += 1;
     hVariedCut[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
@@ -1011,6 +1010,8 @@ void MultiTrial(
     // cout << "check " << hMaxDev->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
     for (int i = 0; i < trials; i++)
     {
+      if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+        continue;
       if (i == IndexNotDisplayed)
         continue;
       // skip those variations for which the fit is not good
@@ -1058,6 +1059,8 @@ void MultiTrial(
 
   for (int i = 1; i < trials; i++)
   {
+    if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+      continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -1134,6 +1137,8 @@ void MultiTrial(
   ColorIndex = -1;
   for (Int_t i = 0; i < trials; i++)
   {
+    if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+      continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -1164,6 +1169,8 @@ void MultiTrial(
     hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     for (int i = 0; i < trials; i++)
     {
+      if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+        continue;
       if (i == IndexNotDisplayed)
         continue;
       // skip those variations for which the fit is not good
@@ -1251,6 +1258,8 @@ void MultiTrial(
   ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
+    if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+        continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -1278,6 +1287,8 @@ void MultiTrial(
   ColorIndex = -1;
   for (int i = 0; i < trials; i++)
   {
+    if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
+        continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
