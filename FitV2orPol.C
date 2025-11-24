@@ -15,7 +15,7 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
-//#include "CommonVar.h"
+// #include "CommonVar.h"
 #include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
@@ -2523,7 +2523,7 @@ void FitV2orPol(
   if (ParticleType == 1)
     UpperCutHisto = 1.8;
   else if (ParticleType == 2)
-    UpperCutHisto = 1.8;
+    UpperCutHisto = 2.1;
 
   TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
   if (ParticleType == 0)
@@ -2552,7 +2552,10 @@ void FitV2orPol(
   else
     legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   // legend->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
-  legend->AddEntry("", Form("BDT selected, S/(S+B)(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
+  if (ChosenPart == 6)
+    legend->AddEntry("", Form("S/(S+B)(2#sigma) = %.4f #pm %.4f", SSB[ChosenPt], errSSB[ChosenPt]), "");
+  else
+    legend->AddEntry("", Form("BDT selected, S/(S+B)(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
   // legend->AddEntry("", Form("BDT selected, Purity(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
 
   TLegend *legendfit = new TLegend(0.2, 0.57, 0.71, 0.65);
@@ -2577,6 +2580,8 @@ void FitV2orPol(
              TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   histo->GetYaxis()->SetRangeUser(0.0001, 299);
+  if (ChosenPart == 6)
+    histo->GetYaxis()->SetRangeUser(0.0001, 370);
   histo->GetXaxis()->SetLabelSize(0.043);
   histo->GetXaxis()->SetTitleSize(0.045);
   histo->GetYaxis()->SetLabelSize(0.043);
@@ -2710,7 +2715,10 @@ void FitV2orPol(
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
   else
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  LegendTitle->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  if (ChosenPart == 6)
+    LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  else
+    LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   TLegend *legendCos2 = new TLegend(0.6, 0.37, 0.85, 0.52);
   legendCos2->SetFillStyle(0);

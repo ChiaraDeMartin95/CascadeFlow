@@ -793,6 +793,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummyPurity->GetYaxis()->SetTitle("S / (S+B)");
   hDummyPurity->Draw("");
   StyleHistoYield(fHistPuritySummary, 0.9, 1, ColorPart[part], MarkerPart[part], TitleXCent, "S / (S+B)", "", MarkerPartSize[part], 1.15, 1.6);
+  hDummyPurity->GetYaxis()->SetTitleOffset(1.3);
   fHistPuritySummary->Draw("same");
   canvasPurity->SaveAs(stringoutpdf + "_Purity.pdf");
   canvasPurity->SaveAs(stringoutpdf + "_Purity.png");
