@@ -65,7 +65,8 @@ Float_t MaxPzs2 = 1;
 Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 65, 80, 120, 160, 240};
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
-Int_t NPzs2 = 200;
+const Int_t NPzs2 = 200;
+Double_t PzsBinsLambda[NPzs2 + 1];
 
 Float_t MinPz = -1;
 Float_t MinPzWithAlphaXi = -2.8;
@@ -74,6 +75,9 @@ Float_t MaxPz = 1;
 Float_t MaxPzWithAlphaXi = 2.8;
 Float_t MaxPzWithAlphaOmega = 65;
 Int_t NPz = 200;
+
+const Int_t numLambdaMassBins = 48;
+Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
 
 void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
@@ -130,7 +134,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   std::vector<TFile *> inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
   for (Int_t i = 0; i < nfiles; i++)
-  //for (Int_t i = 0; i < 2; i++)
+  // for (Int_t i = 0; i < 2; i++)
   {
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
@@ -251,7 +255,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 20;
+  const int NVAR = 100;
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -491,12 +495,22 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       }
     }
 
+    for (Int_t i = 0; i <= NPzs2; i++)
+    {
+      PzsBinsLambda[i] = MinPzs2 + i * (MaxPzs2 - MinPzs2) / NPzs2;
+    }
+    for (Int_t i = 0; i <= numLambdaMassBins; i++)
+    {
+      LambdaMassBins[i] = 1.1 + i * (1.13 - 1.1) / numLambdaMassBins;
+    }
+
     cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
     auto dcent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
 
-    // histogram your invariant mass and pT
-    auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
+    ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
+    auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
+    // auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
     auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
     massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
     h_variationsmassVsPtVsPzs2.push_back(variationsmassVsPtVsPzs2);
