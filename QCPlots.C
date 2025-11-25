@@ -21,7 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
+//#include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -524,7 +525,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hCentWeight->SetBinContent(b, 1. / (hCentrality->GetBinContent(b) / pol0->GetParameter(0)));
   }
 
-  TFile *fout = new TFile("CentralityWeight_" + inputFileName + ".root", "RECREATE");
+  TFile *fout = new TFile("../CentralityWeight_" + inputFileName + ".root", "RECREATE");
   hCentWeight->Write();
   fout->Close();
 
