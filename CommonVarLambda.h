@@ -5,11 +5,11 @@ Bool_t ExtrisPartialEta = 0; // 1: select only 0 < eta < 0.8 (opposite to FT0C)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1;
+Bool_t isApplyCentWeight = 0;
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
-Bool_t ExtrisApplyResoOnTheFly = 1;
+Bool_t ExtrisApplyResoOnTheFly = 0;
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0;         // 0: process the tree, 1: process the THnSparse
+Bool_t ExtrisFromTHN = 1;         // 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 1;
 Bool_t isOOCentrality = 1;
 
@@ -117,13 +117,19 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 // TString SinputFileName = "LHC25_OO_Train487953"; // test with Lambdas
 //TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // Pzs2 of Lambda
 //TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
-TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 100%
-//TString SinputFileName = "AO2D_LambdaPol_564374_11"; 
-//TString SinputFileName = "LambdaTest";
 
-TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
+//TString SinputFileName = "LHC25_OO_pass2_Train510678_CorrectReso"; //Pzs2 of Lambda up to 100%
+TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+
+//TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
+TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
+
+//TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
+TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
+
 //TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
-TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
+//TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
+TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132_wTHN.root";
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -143,7 +149,7 @@ TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 //TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
 //TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
-TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678"; 
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso"; 
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; 
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
@@ -182,7 +188,7 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 const int trialsLambdaTopo = 20; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-bool ExtrisSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 const int trialsBDT = 20;    // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
@@ -233,8 +239,8 @@ TString inputFileNameIR = "Train207098";
 // Files to compute resolution
 // TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_Train224930.root";      //<-- LF framework
 // TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass4_test5_Train235645.root";      //<-- LF framework
-TString inputFileResoCFW = SinputFileName; // OLD: "LHC23zzh_pass3_Train226234_CFW";
-TString inputFileResoLF = SinputFileName;
+TString inputFileResoCFW = SinputFileNameAR; // OLD: "LHC23zzh_pass3_Train226234_CFW";
+TString inputFileResoLF = SinputFileNameAR;
 
 // Files with stored resolution
 TString ResoFileName_EPLF = "Resolution/Resolution_EP_LF_" + inputFileResoLF;
