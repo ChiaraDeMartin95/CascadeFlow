@@ -24,4 +24,6 @@ QCPlots/
 *.log
 *.txt
 *.pptx
-
+*pcm
+*.d
+*.so
