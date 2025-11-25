@@ -402,7 +402,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     if (isReducedPtBins)
       PathIn += "_ReducedPtBins";
-    if (ChosenPart==6){
+    if (ChosenPart == 6 && !ExtrisFromTHN)
+    {
       PathIn += "_SysMultTrial_0_isSysLambdaMultTrial";
     }
     if (ExtrisApplyResoOnTheFly)
@@ -519,7 +520,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   PathInSyst += "_Pzs2";
   if (isApplyWeights)
     PathInSyst += "_Weighted";
-  if (isApplyCentWeight)
+  if (isApplyCentWeight || ChosenPart == 6)
     PathInSyst += "_CentWeighted";
   if (!useCommonBDTValue)
     PathInSyst += "_BDTCentDep";
@@ -529,7 +530,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_PolFromLambda";
   if (!isRapiditySel)
     PathInSyst += "_Eta08";
-  PathInSyst += STHN[ExtrisFromTHN];
+  if (ChosenPart != 6)
+    PathInSyst += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
     PathInSyst += "_MixedBDT";
   if (isTightMassCut)
@@ -537,7 +539,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // PathInSyst += V2FromFit[isFromFit];
   if (isReducedPtBins)
     PathInSyst += "_ReducedPtBins";
-  if (ExtrisApplyResoOnTheFly)
+  if (ExtrisApplyResoOnTheFly || ChosenPart == 6)
     PathInSyst += "_ResoOnTheFly";
   PathInSyst += ".root";
   // if (ChosenPart == 6)
@@ -604,11 +606,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
   TLegend *LegendPreliminary3;
-  LegendPreliminary3 = new TLegend(0.06, 0.83, 0.45, 0.95);
+  LegendPreliminary3 = new TLegend(0.06, 0.86, 0.45, 0.95);
   LegendPreliminary3->SetFillStyle(0);
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
-  LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  // LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  LegendPreliminary3->AddEntry("", "ALICE", "");
 
   TLegend *legendXi = new TLegend(0.06, 0.643, 0.45, 0.784);
   legendXi->SetFillStyle(0);
@@ -927,7 +930,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
   // TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
-  TLegend *legendParticles = new TLegend(0.136, 0.66, 0.526, 0.8);
+  TLegend *legendParticles = new TLegend(0.11, 0.7, 0.5, 0.85);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
   legendParticles->SetTextSize(0.048);
@@ -936,7 +939,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   else
     legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   // legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
-  legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
+  legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
   TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
   StyleCanvas(canvasPzsXiLambda, 0.06, 0.12, 0.1, 0.03);
   canvasPzsXiLambda->cd();
@@ -970,7 +973,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     hDummyVsMultiplicity->SetBinContent(i, -1000);
   canvasPzsVsMultiplicity->cd();
   SetFont(hDummyVsMultiplicity);
-  TString titledNdeta="#LTd#it{N}_{ch}/d#it{#eta}#GT_{|#it{#eta}|<0.5}";
+  TString titledNdeta = "#LTd#it{N}_{ch}/d#it{#eta}#GT_{|#it{#eta}|<0.5}";
   StyleHistoYield(hDummyVsMultiplicity, YLow[part], 0.031, 1, 1, titledNdeta, TitleYPzs, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummyVsMultiplicity, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyVsMultiplicity, tickX, tickY);
@@ -986,15 +989,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TGraphErrors *gPzsVsMultNeNeJunlee = new TGraphErrors(2);
   TGraphErrors *gPzsVsMultSist;
   TGraphErrors *gPzsVsMultSistJunlee = new TGraphErrors(8);
-  TGraphErrors *gPzsVsMultSistNeNeJunlee = new TGraphErrors(2); //not available yet
-  
+  TGraphErrors *gPzsVsMultSistNeNeJunlee = new TGraphErrors(2); // not available yet
+
   for (Int_t i = 1; i <= gPzsLambdaJunlee->GetN(); i++)
   {
     // cout << "i " << i << " " << dNdEtaAbhi[gPzsLambdaJunlee->GetN() - i] << " " << gPzsLambdaJunlee->GetY()[gPzsLambdaJunlee->GetN() - i] << endl;
     gPzsVsMultJunlee->SetPoint(i, dNdEtaAbhi[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunlee->GetY()[gPzsLambdaJunlee->GetN() - i]);
     gPzsVsMultJunlee->SetPointError(i, dNdEtaAbhiErr[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunlee->GetEY()[gPzsLambdaJunlee->GetN() - i]);
     gPzsVsMultSistJunlee->SetPoint(i, dNdEtaAbhi[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunleeSist->GetY()[gPzsLambdaJunlee->GetN() - i]);
-    gPzsVsMultSistJunlee->SetPointError(i, dNdEtaAbhiErr[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunleeSist->GetEY()[gPzsLambdaJunlee->GetN() - i]); 
+    gPzsVsMultSistJunlee->SetPointError(i, dNdEtaAbhiErr[gPzsLambdaJunlee->GetN() - i], gPzsLambdaJunleeSist->GetEY()[gPzsLambdaJunlee->GetN() - i]);
   }
   for (Int_t i = 1; i <= gPzsNeNeJunlee->GetN(); i++)
   {
@@ -1002,14 +1005,16 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gPzsVsMultNeNeJunlee->SetPoint(i, dNdEtaNeNe[gPzsVsMultNeNeJunlee->GetN() - i], gPzsNeNeJunlee->GetY()[gPzsNeNeJunlee->GetN() - i]);
     gPzsVsMultNeNeJunlee->SetPointError(i, dNdEtaNeNeErr[gPzsVsMultNeNeJunlee->GetN() - i], gPzsNeNeJunlee->GetEY()[gPzsNeNeJunlee->GetN() - i]);
   }
-  if (isOOCentrality){
+  if (isOOCentrality)
+  {
     gPzsVsMult = new TGraphErrors(numCentLambdaOO);
     gPzsVsMultSist = new TGraphErrors(numCentLambdaOO);
-  }  
-  else{
+  }
+  else
+  {
     gPzsVsMult = new TGraphErrors(numCent);
     gPzsVsMultSist = new TGraphErrors(numCent);
-  } 
+  }
   Int_t CommonNumCent = numCent;
   if (isOOCentrality)
     CommonNumCent = numCentLambdaOO;
