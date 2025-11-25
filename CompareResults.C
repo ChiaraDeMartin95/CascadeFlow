@@ -221,6 +221,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 38 --> Compare Pzs2 of Lambda with different PV Z vertex selection
   // TypeComp == 39 --> Resolution comparison (T0C reso with different reference detectors)
   // TypeComp == 40 --> Resolution comparison with corrected TPC (T0C and T0A reso with different reference detectors)
+  // TypeComp == 41 --> Compare Pzs2 of Lambda from THN and from Tree
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1096,6 +1097,26 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[3] = "T0C with T0A & TPCC";
     sleg[4] = "T0C with TPCA & TPCC";
     yOffset = 2;
+  }
+  else if (TypeComp == 41)
+  {
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
+    fileName[0] = "_Train562132_wTHN_Lambda_BkgParab_Pzs2_PtInt_Eta08_FromTHN_TightMassCut2.1_ReducedPtBins";
+    fileName[1] = "_Train510678_CorrectReso_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "THN";
+    sleg[1] = "Tree";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 90;
   }
   else
   {
