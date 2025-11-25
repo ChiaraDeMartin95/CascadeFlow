@@ -21,7 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
+//#include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -242,6 +243,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   TH1D *hResoPerCentBinsV0A = new TH1D("hResoPerCentBinsV0A", "hResoPerCentBinsV0A", 100, 0, 100);
   TH1D *hResoPerCentBinsT0ATPCC = new TH1D("hResoPerCentBinsT0ATPCC", "hResoPerCentBinsT0ATPCC", 100, 0, 100);
   TH1D *hReso080 = new TH1D("hReso080", "hReso080", 1, 0, 1);
+  TH1D *hResoV0ATPCA080 = new TH1D("hResoV0ATPCA080", "hResoV0ATPCA080", 1, 0, 1);
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   Int_t commonnumCent = numCent;
@@ -327,6 +329,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     {
       hReso080->SetBinContent(1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
       hReso080->SetBinError(1, ErrReso);
+      hResoV0ATPCA080->SetBinContent(1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
+      hResoV0ATPCA080->SetBinError(1, ErrResoV0ATPCA);
     }
     else
     {
@@ -567,20 +571,20 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   // legend->Draw();
 
-  TString Soutputfile = "";
+  TString Soutputfile = "../";
   if (!isSPReso)
   { // event plane method
     if (isLFReso)
-      Soutputfile = ResoFileName_EPLF;
+      Soutputfile += ResoFileName_EPLF;
     else
-      Soutputfile = ResoFileName_EPCFW;
+      Soutputfile += ResoFileName_EPCFW;
   }
   else
   {
     if (isLFReso)
-      Soutputfile = ResoFileName_SPLF;
+      Soutputfile += ResoFileName_SPLF;
     else
-      Soutputfile = ResoFileName_SPCFW;
+      Soutputfile += ResoFileName_SPCFW;
   }
   canvas->SaveAs(Soutputfile + ".pdf");
   canvas->SaveAs(Soutputfile + ".png");
@@ -588,6 +592,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   hReso->Write();
   hReso080->Write();
+  hResoV0ATPCA080->Write();
   hResoPerCentBins->Write();
   hResoV0ATPCA->Write();
   hResoV0ATPCC->Write();
