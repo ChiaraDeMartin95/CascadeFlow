@@ -19,7 +19,8 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-#include "CommonVar.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
@@ -29,6 +30,7 @@ using namespace std;
 void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
+                //Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
@@ -56,7 +58,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
 
   // inputFileName = "TestTHN";
-  TString SinputFile = "TreeForAnalysis";
+  TString SinputFile = "../TreeForAnalysis";
   SinputFile += "/AnalysisResults_" + inputFileName + ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -213,8 +215,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
   TH1F *hDummyCentrality = (TH1F *)hV2->Projection(0);
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
-  TH1F *hDummyPt = (TH1F *)hV2->Projection(3);
-  TH1F *hDummyMass = (TH1F *)hV2->Projection(2);
+  TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
+  TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
   TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
   // TH1F *hDummyPt = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
@@ -253,7 +255,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 90;
+        CentFT0CMax = 100;
       }
       else
       {
@@ -428,13 +430,13 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hmassVsPsiVsPzLambdaFromC[cent]->SetName(hNamePzVsPsiLambdaFromC_3D[cent]);
     if (isProducedAcceptancePlots)
       hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(4, 3, AxisNumber + 1); // mass, pt, cos2ThetaLambda
-    else //DUMMY
-      hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(4, 3, 5); // mass, pt, cos2ThetaLambda
+    else                                                                                   // DUMMY
+      hmassVsPtVsCos2Theta[cent] = (TH3D *)hXiCos2Theta->Projection(4, 3, AxisNumber);     // mass, pt, cos2ThetaLambda
     hmassVsPtVsCos2Theta[cent]->SetName(hNameCos2Theta_3D[cent]);
     if (isProducedAcceptancePlots)
       hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(4, 3, AxisNumber + 1); // mass, pt, cos2ThetaProton
     else                                                                                                        // DUMMY
-      hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(4, 3, 5);              // mass, pt, cos2ThetaProton
+      hmassVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambda->Projection(4, 3, AxisNumber);     // mass, pt, cos2ThetaProton
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->SetName(hNameCos2ThetaLambdaFromC_3D[cent]);
     if (isProducedAcceptancePlots)
       hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)hXiCos2ThetaFromLambdaL->Projection(2, 3, AxisNumber + 1); // eta, pt, cos2ThetaProton
@@ -459,7 +461,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  TString OutputFileName = "OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
+  TString OutputFileName = "../OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
   if (isApplyWeights)
     OutputFileName += "_Weighted";
   if (v2type == 1)
@@ -474,6 +476,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += SBDT;
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
+  //if (isApplyResoOnTheFly)
+  //  OutputFileName += "_ResoOnTheFly";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
