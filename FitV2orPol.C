@@ -533,9 +533,22 @@ void FitV2orPol(
   }
   fileResoName = "../" + ResoFileName_SPCFW;
   fileResoName += ".root";
+  if (ChosenPart == 6)
+    fileResoName = "../Resolution/" + SinputFileNameResoWeight;
+
   TFile *fileResoEP = new TFile(fileResoName, "");
+  if (!fileResoEP)
+  {
+    cout << "File Reso does not exist" << endl;
+    return;
+  }
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
   TH1F *hReso080 = (TH1F *)fileResoEP->Get("hReso080");
+  if (ChosenPart == 6)
+  {
+    hReso = (TH1F *)fileResoEP->Get("hResoV0ATPCA");
+    hReso080 = (TH1F *)fileResoEP->Get("hResoV0ATPCA080");
+  }
   cout << "Reso name: " << fileResoName << endl;
   if (isOOCentrality)
   {
