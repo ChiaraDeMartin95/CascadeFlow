@@ -242,6 +242,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_ReducedPtBins";
   if (ExtrisApplyResoOnTheFly)
     stringout += "_ResoOnTheFly";
+  // if (ChosenPart == 6)
+  //   stringout += "_CorrectReso_TestLeassPtBins";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -402,12 +404,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     if (isReducedPtBins)
       PathIn += "_ReducedPtBins";
-    if (ChosenPart == 6 && !ExtrisFromTHN)
-    {
-      PathIn += "_SysMultTrial_0_isSysLambdaMultTrial";
-    }
+    // if (ChosenPart == 6 && !ExtrisFromTHN && ExtrisSysLambdaMultTrial)
+    //{
+    //   PathIn += "_SysMultTrial_0_isSysLambdaMultTrial";
+    // }
     if (ExtrisApplyResoOnTheFly)
       PathIn += "_ResoOnTheFly";
+    // if (ChosenPart == 6)
+    //   PathIn += "_CorrectReso_TestLeassPtBins";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -1043,6 +1047,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gPzspPb->SetPoint(i, gPzspPb->GetX()[i] / 4.8, gPzspPb->GetY()[i] / 100);
     gPzspPb->SetPointError(i, 0, 0, gPzspPb->GetErrorYlow(i) / 100, gPzspPb->GetErrorYhigh(i) / 100);
   }
+  cout << "Nsigma between OO and PbPb results at multiplicity of about 100: " << endl;
+  cout << "Mult (OO, PbPb): " << gPzsVsMult->GetX()[9] << " " << gPzsVsMultJunlee->GetX()[2] << endl;
+  cout << "Pzs,2 (OO, PbPb): " << gPzsVsMult->GetY()[9] << " " << gPzsVsMultJunlee->GetY()[2] << endl;
+  Double_t ErrorOO = sqrt(pow(gPzsVsMult->GetErrorYlow(9), 2) + pow(gPzsVsMultSist->GetErrorYlow(9), 2));
+  Double_t ErrorPbPb = sqrt(pow(gPzsVsMultJunlee->GetErrorYlow(2), 2) + pow(gPzsVsMultSistJunlee->GetErrorYlow(2), 2));
+  cout << "ErrorOO: " << ErrorOO << " ErrorPbPb: " << ErrorPbPb << endl;
+  cout << "Nsigma: " << fabs(gPzsVsMult->GetY()[9] - gPzsVsMultJunlee->GetY()[2]) / sqrt(ErrorOO * ErrorOO + ErrorPbPb * ErrorPbPb) << endl;
+
+
   gPzspPb->SetLineColor(kBlack);
   gPzspPb->SetMarkerColor(kBlack);
   gPzspPb->SetMarkerStyle(20);
