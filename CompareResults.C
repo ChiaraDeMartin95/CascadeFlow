@@ -222,6 +222,8 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 39 --> Resolution comparison (T0C reso with different reference detectors)
   // TypeComp == 40 --> Resolution comparison with corrected TPC (T0C and T0A reso with different reference detectors)
   // TypeComp == 41 --> Compare Pzs2 of Lambda from THN and from Tree
+  // TypeComp == 42 --> Compare Pzs2 of Lambda from Tree with less and more pt bins
+  // TypeComp == 43 --> Compare Pzs2 of Lambda from two different trains
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1118,6 +1120,46 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 90;
   }
+  else if (TypeComp == 42)
+  {
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
+    fileName[0] = "_Train510678_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_CorrectReso_TestLeassPtBins";
+    fileName[1] = "_Train510678_CorrectReso_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "less bins";
+    sleg[1] = "more bins";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 90;
+  }
+  else if (TypeComp == 43)
+  {
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
+    fileName[0] = "_Train510678_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_CorrectReso_TestLeassPtBins";
+    fileName[1] = "_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "Train 510678";
+    sleg[1] = "Train 562850";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 90;
+  }
   else
   {
     cout << "TypeComp not defined" << endl;
@@ -1198,6 +1240,8 @@ void CompareResults(Int_t TypeComp = 0,
     hDummy->GetXaxis()->SetRangeUser(0, 90);
   if (TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     hDummy->GetXaxis()->SetRangeUser(0, 100);
+  if (TypeComp==43)
+    hDummy->GetXaxis()->SetRangeUser(0, 90);
   pad1->Draw();
   pad1->cd();
   // hDummy->Draw("same");
@@ -1209,6 +1253,7 @@ void CompareResults(Int_t TypeComp = 0,
   hDef->SetMarkerSize(0.6 * SizeMult[0]);
   hDef->SetTitle("");
   hDef->GetYaxis()->SetRangeUser(YLow, YUp);
+  hDef->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
