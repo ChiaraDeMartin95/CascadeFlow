@@ -15,8 +15,8 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVar.h"
+// #include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
 {
@@ -531,7 +531,7 @@ void FitV2orPol(
     else
       fileResoName = "../" + ResoFileName_EPLF;
   }
-  fileResoName = "../" + ResoFileName_SPCFW;
+  fileResoName = ResoFileName_EPCFW;
   fileResoName += ".root";
   if (ChosenPart == 6)
     fileResoName = "../Resolution/" + SinputFileNameResoWeight;
@@ -815,6 +815,8 @@ void FitV2orPol(
     SPathIn += STHN[ExtrisFromTHN];
     if (ExtrisApplyResoOnTheFly)
       SPathIn += "_ResoOnTheFly";
+    // if (ChosenPart == 6)
+    // SPathIn += "_CorrectReso_TestLeassPtBins";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -1240,10 +1242,13 @@ void FitV2orPol(
       if (ParticleType == 1) // Xi
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
-        total[pt]->SetParLimits(1, 1.31, 1.335);
-        total[pt]->SetParLimits(2, 0.0012, 0.010);
+        total[pt]->SetParLimits(1, 1.318, 1.324);
+        if (mul == 6)
+          total[pt]->SetParLimits(2, 0.0015, 0.010);
+        else
+          total[pt]->SetParLimits(2, 0.0012, 0.010);
         total[pt]->SetParLimits(3, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
-        total[pt]->SetParLimits(4, 1.31, 1.335);
+        total[pt]->SetParLimits(4, 1.318, 1.324);
         total[pt]->SetParLimits(5, 0.001, 0.01);
         if (isMeanFixedPDG)
         {
@@ -2375,6 +2380,10 @@ void FitV2orPol(
   }
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
+  // if (ChosenPart == 6)
+  // Soutputfile += "_CorrectReso_TestLeassPtBins";
+  if (ChosenPart == 0)
+    Soutputfile += "_EPReso";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
