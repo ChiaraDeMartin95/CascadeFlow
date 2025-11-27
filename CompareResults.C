@@ -224,6 +224,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 41 --> Compare Pzs2 of Lambda from THN and from Tree
   // TypeComp == 42 --> Compare Pzs2 of Lambda from Tree with less and more pt bins
   // TypeComp == 43 --> Compare Pzs2 of Lambda from two different trains
+  // TypeComp == 44 --> Compare T0C event plane resolution in PbPb (normalised SP vs EP)
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1160,6 +1161,47 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 90;
   }
+  else if (TypeComp == 44)
+  {
+    numOptions = 2;
+    fileName[0] = "../Resolution/Resolution_EP_CFW_LHC23_PbPb_pass5_Train563856";
+    fileName[1] = "../Resolution/Resolution_SP_CFW_LHC23_PbPb_pass5_Train540301";
+    namehisto[0] = "hReso";
+    namehisto[1] = "hReso";
+    hTitleY = "Resolution";
+    hTitleX = "Centrality (%)";
+    YLow = 0;
+    YUp = 1.5;
+    YLowRatio = 0.9;
+    YUpRatio = 1.6;
+    sleg[0] = "EP";
+    sleg[1] = "Normalised SP";
+    yOffset = 2;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 45)
+  {
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[0] = "_EPReso";
+    fileName[1] = "";
+    namehisto[0] = "fHistPzsError";
+    namehisto[1] = "fHistPzsError";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "EP reso";
+    sleg[1] = "SP reso";
+    //YLowRatio = 0.5;
+    //YUpRatio = 1.5;
+    //YLow = -0.002;
+    //YUp = 0.02;
+    YLowRatio = 0.7;
+    YUpRatio = 1.3;
+    YLow = 0.;
+    YUp = 0.004;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
   else
   {
     cout << "TypeComp not defined" << endl;
@@ -1240,8 +1282,10 @@ void CompareResults(Int_t TypeComp = 0,
     hDummy->GetXaxis()->SetRangeUser(0, 90);
   if (TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     hDummy->GetXaxis()->SetRangeUser(0, 100);
-  if (TypeComp==43)
+  if (TypeComp == 43)
     hDummy->GetXaxis()->SetRangeUser(0, 90);
+  if (TypeComp == 44)
+    hDummy->GetXaxis()->SetRangeUser(0, 80);
   pad1->Draw();
   pad1->cd();
   // hDummy->Draw("same");
@@ -1287,7 +1331,7 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 12)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28)
+  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28 || TypeComp == 44 || TypeComp == 45)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     leg->AddEntry("", "OO 5.36 TeV", "");
@@ -1309,7 +1353,7 @@ void CompareResults(Int_t TypeComp = 0,
   SetHistoTextSize(hDummyRatio, xTitleR, xLabelR, xOffsetR, xLabelOffsetR, yTitleR, yLabelR, yOffsetR, yLabelOffsetR);
   SetTickLength(hDummyRatio, tickX, tickY);
   hDummyRatio->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
-  if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
+  if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30 || TypeComp == 44)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 80);
   if (TypeComp == 34)
     hDummyRatio->GetXaxis()->SetRangeUser(0, 90);
