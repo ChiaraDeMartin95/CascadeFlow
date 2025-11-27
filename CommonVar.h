@@ -1,16 +1,16 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
-Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
+Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0; // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1; //1 for OO
+Bool_t isApplyCentWeight = 0; //1 for OO
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
-Bool_t ExtrisApplyResoOnTheFly = 1; // 1 for OO
+Bool_t ExtrisApplyResoOnTheFly = 0; // 1 for OO
 Int_t v2type = 2;         // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0; // 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 1; //1 for Lambda in OO
-Bool_t isOOCentrality = 1; //1 for Lambda in OO
+Bool_t ExtrisFromTHN = 1; // 0: process the tree, 1: process the THnSparse
+Bool_t isReducedPtBins = 0; //1 for Lambda in OO
+Bool_t isOOCentrality = 0; //1 for Lambda in OO
 
 const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 bool isRun2Binning = 0;
@@ -22,7 +22,7 @@ const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numCentLambdaOO = 10;
-const Int_t commonNumCent = 10; // the maximum of the two above (?) (numCent for Xi, numCentLambdaOO for Lambda in OO)
+const Int_t commonNumCent = 8; // the maximum of the two above (?) (numCent for Xi, numCentLambdaOO for Lambda in OO)
 // const Int_t numCent_PtDiff = 3; // for pt differential measurement
 const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
 
@@ -88,38 +88,15 @@ Float_t CXiToLambda = 0.925;
 Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay parameter for Lambda -> p pi
 
 // File names
-// TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
-// TString SinputFileName = "LHC23_PbPb_pass4_Train300924";
-// TString SinputFileName = "LHC23_PbPb_pass4_Train321006"; //All PbPb statistics
-// TString SinputFileName = "LHC23_PbPb_pass4_Train332687"; //Partial 2023 PbPb statistics, pass4 training, BDT > 0.8
-// TString SinputFileName = "LHC23_PbPb_pass4_Train331632"; //Partial 2023 PbPb statistics, pass4 training
-// TString SinputFileName = "LHC23_PbPb_pass4_Train333596"; //All PbPb stata, pass4 training, bug in Pz fixed
-// TString SinputFileName = "TestTHN";
-// TString SinputFileName = "LHC23_PbPb_pass4_medium_Train346163"; //THN only
-// TString SinputFileName = "LHC23_PbPb_pass4_Train347929"; // THN only, BDT score > 0.4, Pzs2 from Lambda
-// TString SinputFileName = "LHC23_PbPb_pass4_Train354079"; // THN only, BDT score > 0.2, Pzs2 from Lambda
-// TString SinputFileName = "LHC23_PbPb_pass4_Train361757"; // THN only, for Pz,s2 of Xi (direct measurement), acceptance applied on the fly
-// TString SinputFileName = "LHC23_PbPb_pass4_Train365784"; // THN only, for Pz,s2 of Xi (direct measurement), acceptance not applied
-// TString SinputFileName = "LHC23_PbPb_pass4_Train366446"; // proton acceptance calculation (vs pt Lambda)
-// TString SinputFileName = "LHC23_PbPb_pass4_Train368064_ProtonAcc"; // proton acceptance calculation (vs pt and eta of Lambda)
-// TString SinputFileName = "LHC23_PbPb_pass4_Train369742"; // Pzs2 from Lambda, proton acceptance vs pt on the fly
-// TString SinputFileName = "LHC23_PbPb_pass4_Train370610_ProtonAcc"; // PRELIMINARIES: Pzs2 from Lambda, proton acceptance vs pt on the fly, proton acceptance vs pt and eta of Lambda
 
 // TString SinputFileName = "LHC23_PbPb_pass5_Train456578_ProtonAcc"; // proton acceptance vs pt and eta of Lambda for Xi polarization
 // TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
-// TString SinputFileName = "LHC23_PbPb_pass5_Train534683";// Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5
-//TString SinputFileName = "LHC23_PbPb_pass5_Train540301";  // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
-//TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected) - zVtx < 8 cm
-// TString SinputFileName = "LHC25_OO_pass2_small_Train534263"; // test of event plane
+//TString SinputFileName = "LHC23_PbPb_pass5_Train534683";// Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5
+TString SinputFileName = "LHC23_PbPb_pass5_Train540301";  // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
+//TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
+//TString SinputFileName = "LHC23_PbPb_pass5_Train563856"; //same settings as Train540301 but histograms for EP resolutions stored (to be used for resolution!)
 
-// TString SinputFileName = "LHC23_PbPb_pass5_Train463978_PrimaryProtonAcceptance"; //proton acceptance for primary lambdas
-// TString SinputFileName = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; //Lambda polarization, proton acceptance for secondary lambdas
-
-// TString SinputFileName = "LHC25_OO_Train487953"; // test with Lambdas
-// TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // Pzs2 of Lambda
-// TString SinputFileName = "LHC25_OO_pass2_Train497609"; // secondary proton acceptance for Lambda pol in OO
-// TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
-
+//Reso tests in OO
 //TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
 //TString SinputFileName = "LHC25_OO_pass2_Train543247_T0CEventPlaneTest"; // Pzs2 of Lambda
 //TString SinputFileName = "LHC25_OO_pass2_Train544235_V0AShiftCorr";   
@@ -137,16 +114,21 @@ Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay
 //TString SinputFileName = "LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
 //TString SinputFileName = "LHC25_OO_pass2_Train557895_T0AShiftCorr"; //T0A shift corrected (validated)
 //TString SinputFileName = "LHC25_OO_pass2_Train557896_V0AShiftCorr"; //V0A shift corrected (validated)
-TString SinputFileName = "LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A"; //T0C shift corrected with corrected TPC event plane and T0A info for resolution
+//TString SinputFileName = "LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A"; //T0C shift corrected with corrected TPC event plane and T0A info for resolution
+//TString SinputFileName = "LHC25_OO_pass2_Train558333_T0MShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train562133_T0CShiftCorr";
+//TString SinputFileName = "LHC25_OO_pass2_Train518384_V0AResolution"; // V0AResolution
+//TString SinputFileName = "LHC25_OO_pass2_Train518383_T0MResolution"; // V0AResolution
+//TString SinputFileName = "LHC25_OO_pass2_Train523874";
+//TString SinputFileName = "LHC25_OO_pass2_Train515730_V0AResolution";
+//TString SinputFileName = "LHC25_OO_pass2_Train515731_T0MResolution";
+//TString SinputFileName = "LHC25_OO_pass2_Train510916"; //reso in 1% centrality bins
+//TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; // secondary proton acceptance for Lambda pol in OO (possibly used to evaluate systematics)
+//TString SinputFileName = "LHC25_OO_pass2_Train510677"; // resolution in 1% centrality bins
 
-// TString SinputFileName = "LHC25_OO_pass2_Train518384_V0AResolution"; // V0AResolution
-// TString SinputFileName = "LHC25_OO_pass2_Train518383_T0MResolution"; // V0AResolution
-// TString SinputFileName = "LHC25_OO_pass2_Train523874";
-// TString SinputFileName = "LHC25_OO_pass2_Train515730_V0AResolution";
-// TString SinputFileName = "LHC25_OO_pass2_Train515731_T0MResolution";
-//  TString SinputFileName = "LHC25_OO_pass2_Train510916"; //reso in 1% centrality bins
-//  TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; // secondary proton acceptance for Lambda pol in OO (possibly used to evaluate systematics)
-// TString SinputFileName = "LHC25_OO_pass2_Train510677"; // resolution in 1% centrality bins
+TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
+TString SinputFileNameAR = SinputFileName; 
+TString SinputFileNameResoWeight = ""; //empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -166,14 +148,6 @@ TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456578_ProtonAcc";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
-// TString SinputFileNameSyst = "LHC25_OO_Train487953";
-
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
-//  TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
-// TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
-
-// TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
-//  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
@@ -211,7 +185,7 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 const int trialsLambdaTopo = 2;
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0;   // 1 for systematic studies, 0 for default analysis
-bool isSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 const int trialsBDT = 20;      // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
@@ -263,8 +237,8 @@ TString inputFileNameIR = "Train207098";
 // Files to compute resolution
 // TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_Train224930.root";      //<-- LF framework
 // TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass4_test5_Train235645.root";      //<-- LF framework
-TString inputFileResoCFW = SinputFileName; // OLD: "LHC23zzh_pass3_Train226234_CFW";
-TString inputFileResoLF = SinputFileName;
+TString inputFileResoCFW = SinputFileNameReso; // OLD: "LHC23zzh_pass3_Train226234_CFW";
+TString inputFileResoLF = SinputFileNameReso;
 
 // Files with stored resolution
 TString ResoFileName_EPLF = "../Resolution/Resolution_EP_LF_" + inputFileResoLF;

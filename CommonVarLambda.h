@@ -5,11 +5,11 @@ Bool_t ExtrisPartialEta = 0; // 1: select only 0 < eta < 0.8 (opposite to FT0C)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 0;
+Bool_t isApplyCentWeight = 1;
 Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
-Bool_t ExtrisApplyResoOnTheFly = 0;
+Bool_t ExtrisApplyResoOnTheFly = 1;
 Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 1;         // 0: process the tree, 1: process the THnSparse
+Bool_t ExtrisFromTHN = 0;         // 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 1;
 Bool_t isOOCentrality = 1;
 
@@ -119,10 +119,13 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 //TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
 
 //TString SinputFileName = "LHC25_OO_pass2_Train510678_CorrectReso"; //Pzs2 of Lambda up to 100%
-TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+//TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 100%
+//TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+TString SinputFileName = "LHC25_OO_pass2_Train562850"; 
 
 //TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
-TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
+//TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
+TString SinputFileNameAR = "LHC25_OO_pass2_Train562850";
 
 //TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
