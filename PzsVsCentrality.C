@@ -22,8 +22,8 @@
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVar.h"
+// #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -242,6 +242,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_ReducedPtBins";
   if (ExtrisApplyResoOnTheFly)
     stringout += "_ResoOnTheFly";
+  if (ChosenPart == 0)
+    stringout += "_EPReso";
   // if (ChosenPart == 6)
   //   stringout += "_CorrectReso_TestLeassPtBins";
   stringoutpdf = stringout;
@@ -412,6 +414,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_ResoOnTheFly";
     // if (ChosenPart == 6)
     //   PathIn += "_CorrectReso_TestLeassPtBins";
+    if (ChosenPart == 0)
+      PathIn += "_EPReso";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -540,7 +544,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_MixedBDT";
   if (isTightMassCut)
     PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
-  // PathInSyst += V2FromFit[isFromFit];
+  PathInSyst += V2FromFit[isFromFit];
   if (isReducedPtBins)
     PathInSyst += "_ReducedPtBins";
   if (ExtrisApplyResoOnTheFly || ChosenPart == 6)
@@ -610,12 +614,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
   TLegend *LegendPreliminary3;
-  LegendPreliminary3 = new TLegend(0.06, 0.86, 0.45, 0.95);
+  LegendPreliminary3 = new TLegend(0.06, 0.85, 0.45, 0.93);
   LegendPreliminary3->SetFillStyle(0);
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
-  // LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  LegendPreliminary3->AddEntry("", "ALICE", "");
+  if (ChosenPart == 6)
+    LegendPreliminary3->AddEntry("", "ALICE", "");
+  else
+    LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
   TLegend *legendXi = new TLegend(0.06, 0.643, 0.45, 0.784);
   legendXi->SetFillStyle(0);
@@ -894,8 +900,16 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TLegend *legendfit = new TLegend(0.2, 0.58, 0.5, 0.73);
   legendfit->SetFillStyle(0);
   legendfit->SetTextSize(0.04);
-  legendfit->AddEntry(fpol0, Form("pol0, Chi2/NDF = %.2f/%i, p0 = %.4f +- %.4f", fpol0->GetChisquare(), fpol0->GetNDF(), fpol0->GetParameter(0), fpol0->GetParError(0)), "l");
-  legendfit->AddEntry(fpol1, Form("pol1, Chi2/NDF = %.2f/%i, m = %.5f +- %.5f", fpol1->GetChisquare(), fpol1->GetNDF(), fpol1->GetParameter(1), fpol1->GetParError(1)), "l");
+  if (ChosenPart == 6)
+  {
+    legendfit->AddEntry(fpol0, Form("pol0, Chi2/NDF = %.2f/%i, p0 = %.4f +- %.4f", fpol0->GetChisquare(), fpol0->GetNDF(), fpol0->GetParameter(0), fpol0->GetParError(0)), "l");
+    legendfit->AddEntry(fpol1, Form("pol1, Chi2/NDF = %.2f/%i, m = %.5f +- %.5f", fpol1->GetChisquare(), fpol1->GetNDF(), fpol1->GetParameter(1), fpol1->GetParError(1)), "l");
+  }
+  else
+  {
+    legendfit->AddEntry(fpol0, Form("pol0, Chi2/NDF = %.2f/%i", fpol0->GetChisquare(), fpol0->GetNDF()), "l");
+    legendfit->AddEntry(fpol1, Form("pol1, Chi2/NDF = %.2f/%i", fpol1->GetChisquare(), fpol1->GetNDF()), "l");
+  }
   legendfit->Draw("");
   canvasfitPol0->SaveAs(stringoutpdf + "_fitPol0.pdf");
   canvasfitPol0->SaveAs(stringoutpdf + "_fitPol0.png");
@@ -934,7 +948,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
   // TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
-  TLegend *legendParticles = new TLegend(0.11, 0.7, 0.5, 0.85);
+  TLegend *legendParticles = new TLegend(0.14, 0.7, 0.5, 0.83);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
   legendParticles->SetTextSize(0.048);
@@ -943,7 +957,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   else
     legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   // legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
-  legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
+  if (ChosenPart == 6)
+    legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
+  else
+    legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
   TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
   StyleCanvas(canvasPzsXiLambda, 0.06, 0.12, 0.1, 0.03);
   canvasPzsXiLambda->cd();
@@ -1055,7 +1072,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "ErrorOO: " << ErrorOO << " ErrorPbPb: " << ErrorPbPb << endl;
   cout << "Nsigma: " << fabs(gPzsVsMult->GetY()[9] - gPzsVsMultJunlee->GetY()[2]) / sqrt(ErrorOO * ErrorOO + ErrorPbPb * ErrorPbPb) << endl;
 
-
   gPzspPb->SetLineColor(kBlack);
   gPzspPb->SetMarkerColor(kBlack);
   gPzspPb->SetMarkerStyle(20);
@@ -1114,7 +1130,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fileout->Close();
 
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
-
+  cout << "and the file: " << PathInSyst << " for syst. uncertainties,\n";
   cout << "\nI have created the file:\n " << stringout << endl;
 
   // if (ChosenPart == 6)
