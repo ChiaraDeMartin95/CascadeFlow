@@ -19,8 +19,8 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVar.h"
+//#include "CommonVarLambda.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
@@ -30,7 +30,6 @@ using namespace std;
 void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
-                //Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
@@ -217,7 +216,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
   TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
   TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
-  TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
+  //TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
+  TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
   // TH1F *hDummyPt = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
   // TH1F *hDummyMass = (TH1F *)hXiCos2ThetaFromLambda->Projection(4);
@@ -232,7 +232,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   hDummyCentrality->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyCharge->GetYaxis()->SetRangeUser(0, 1);
   hDummyPt->GetYaxis()->SetRangeUser(0, 0.25);
-  hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
+  //hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
+  hDummyMass->GetYaxis()->SetRangeUser(0, 0.3);
   hDummyBDT->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
 
@@ -355,7 +356,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hCharge[cent]->Draw("same");
 
     canvasQC->cd(3);
-    hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
+    //hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
+    hPt[cent] = (TH1F *)hV2->Projection(2);
     // hPt[cent] = (TH1F *)hXiCos2Theta->Projection(3); // pt
     hPt[cent]->Scale(1. / hPt[cent]->Integral());
     hPt[cent]->SetLineColor(ColorMult[cent]);
@@ -366,8 +368,10 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hPt[cent]->Draw("same");
 
     canvasQC->cd(4);
-    hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
-    // hMass[cent] = (TH1F *)hXiCos2Theta->Projection(2);
+    if (isProducedAcceptancePlots)
+      hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
+    else
+      hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
     hMass[cent]->Scale(1. / hMass[cent]->Integral());
     hMass[cent]->SetLineColor(ColorMult[cent]);
     hMass[cent]->SetMarkerColor(ColorMult[cent]);
@@ -377,7 +381,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hMass[cent]->Draw("same");
 
     canvasQC->cd(5);
-    hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
+    if (isProducedAcceptancePlots) hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
+    else hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
     hBDT[cent]->Scale(1. / hBDT[cent]->Integral());
     hBDT[cent]->SetLineColor(ColorMult[cent]);
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
