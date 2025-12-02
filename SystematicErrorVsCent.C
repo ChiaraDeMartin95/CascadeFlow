@@ -21,8 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVar.h"
+// #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -113,8 +113,12 @@ Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0.0015};
 
 Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
+Float_t LambdaDecayParameterRelError = 0.01;
+Float_t TransferCoefficienctRelError = 0.0043;
 // Float_t ResoRelError[numCentLambdaOO + 1] = {0.045, 0.05, 0.06, 0.065, 0.07, 0.09, 0.127, 0.1915, 0.2865, 0.39};
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
+Float_t PrimaryLambdaFraction = 0.03;
+Float_t SecondaryLambdaFraction = 0.1;
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
@@ -159,7 +163,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   TString stringout;
   TString stringoutpdf;
   stringout = "../Systematics/SystVsCentrality_" + NameAnalysis[!isV2] + "_";
-  stringout += SinputFileName;
+  stringout += SinputFileNameSyst;
   stringout += "_" + ParticleName[ChosenPart];
   stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
@@ -206,6 +210,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistPrimaryLambdaErrorVsCent;
   TH1F *fHistAccErrorVsCent;
   TH1F *fHistResoErrorVsCent;
+  TH1F *fHistDecayParErrorVsCent;
+  TH1F *fHistTransferCoeffErrorVsCent;
   TH1F *fHistTotalErrorVsCent;
   if (isOOCentrality)
   {
@@ -215,6 +221,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistPrimaryLambdaErrorVsCent = new TH1F("fHistPrimaryLambdaErrorVsCent", "fHistPrimaryLambdaErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistAccErrorVsCent = new TH1F("fHistAccErrorVsCent", "fHistAccErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
   }
   else
@@ -225,6 +233,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistPrimaryLambdaErrorVsCent = new TH1F("fHistPrimaryLambdaErrorVsCent", "fHistPrimaryLambdaErrorVsCent", numCent, fCentFT0C);
     fHistAccErrorVsCent = new TH1F("fHistAccErrorVsCent", "fHistAccErrorVsCent", numCent, fCentFT0C);
     fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCent, fCentFT0C);
+    fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCent, fCentFT0C);
+    fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCent, fCentFT0C);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
   }
   TString Smolt[commonNumCent + 1];
@@ -299,7 +309,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       return;
     }
 
-    PathIn1 = "../Systematics/SystMultiTrial_" + SinputFileName + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_";
+    PathIn1 = "../Systematics/SystMultiTrial_" + SinputFileNameSyst + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_";
     PathIn2 = "";
     if (isPtIntegrated)
       PathIn2 += "_PtInt";
@@ -326,7 +336,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
         PathIn2 += "_ReducedPtBins";
       PathIn2 += "_ResoOnTheFly";
     }
-
+    PathIn2 += "_NewTest";
     PathInBDT = PathIn1 + "BDT" + PathIn2 + ".root";
     cout << "Path in BDT: " << PathInBDT << endl;
     fileInBDT[m] = TFile::Open(PathInBDT);
@@ -373,12 +383,12 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
 
     if (ChosenPart == 6)
     {
-      fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, 0.1 * fHistPzs2[m]->GetBinContent(1));
+      fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, std::abs(SecondaryLambdaFraction * fHistPzs2[m]->GetBinContent(1)));
       fHistPrimaryLambdaErrorVsCent->SetBinError(m + 1, 0);
     }
     else
     {
-      fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, 0.03 * fHistPzs2[m]->GetBinContent(1));
+      fHistPrimaryLambdaErrorVsCent->SetBinContent(m + 1, std::abs(PrimaryLambdaFraction * fHistPzs2[m]->GetBinContent(1)));
       fHistPrimaryLambdaErrorVsCent->SetBinError(m + 1, 0);
     }
     fHistBDTErrorVsCent->SetBinContent(m + 1, fHistBDTError[m]->GetBinContent(1));
@@ -396,13 +406,21 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
       cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
       fHistResoErrorVsCent->SetBinError(m + 1, 0);
+      fHistDecayParErrorVsCent->SetBinContent(m + 1, std::abs(LambdaDecayParameterRelError * fHistPzs2[m]->GetBinContent(1)));
+      fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
+      fHistTransferCoeffErrorVsCent->SetBinContent(m + 1, 0);
+      fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
     }
     else
     {
-      fHistAccErrorVsCent->SetBinContent(m + 1, AccRelError[m] * fHistPzs2[m]->GetBinContent(1));
+      fHistAccErrorVsCent->SetBinContent(m + 1, std::abs(AccRelError[m] * fHistPzs2[m]->GetBinContent(1)));
       fHistAccErrorVsCent->SetBinError(m + 1, 0);
       fHistResoErrorVsCent->SetBinContent(m + 1, 0);
       fHistResoErrorVsCent->SetBinError(m + 1, 0);
+      fHistDecayParErrorVsCent->SetBinContent(m + 1, std::abs(LambdaDecayParameterRelError * fHistPzs2[m]->GetBinContent(1)));
+      fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
+      fHistTransferCoeffErrorVsCent->SetBinContent(m + 1, std::abs(TransferCoefficienctRelError * fHistPzs2[m]->GetBinContent(1)));
+      fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
     }
   } // end loop on mult
   fHistBDTErrorVsCent->Smooth();
@@ -418,7 +436,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistTotalErrorVsCent->SetBinContent(m + 1, TMath::Sqrt(fHistMassCutAndBDTErrorVsCent->GetBinContent(m + 1) * fHistMassCutAndBDTErrorVsCent->GetBinContent(m + 1) +
                                                             fHistPrimaryLambdaErrorVsCent->GetBinContent(m + 1) * fHistPrimaryLambdaErrorVsCent->GetBinContent(m + 1) +
                                                             fHistAccErrorVsCent->GetBinContent(m + 1) * fHistAccErrorVsCent->GetBinContent(m + 1) +
-                                                            fHistResoErrorVsCent->GetBinContent(m + 1) * fHistResoErrorVsCent->GetBinContent(m + 1)));
+                                                            fHistResoErrorVsCent->GetBinContent(m + 1) * fHistResoErrorVsCent->GetBinContent(m + 1) +
+                                                            fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) * fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) +
+                                                            fHistDecayParErrorVsCent->GetBinContent(m + 1) * fHistDecayParErrorVsCent->GetBinContent(m + 1)));
     fHistTotalErrorVsCent->SetBinError(m + 1, 0);
   }
 
@@ -456,6 +476,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistPrimaryLambdaErrorVsCent->SetLineColor(kOrange + 2);
   fHistAccErrorVsCent->SetLineColor(kBlue);
   fHistResoErrorVsCent->SetLineColor(kMagenta);
+  fHistDecayParErrorVsCent->SetLineColor(kRed + 1);
+  fHistTransferCoeffErrorVsCent->SetLineColor(kViolet+1);
   fHistTotalErrorVsCent->SetLineColor(kBlack);
   fHistTotalErrorVsCent->SetLineWidth(2);
   // fHistBDTErrorVsCent->Draw("same");
@@ -463,6 +485,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistAccErrorVsCent->Draw("same");
   fHistMassCutAndBDTErrorVsCent->Draw("same");
   fHistPrimaryLambdaErrorVsCent->Draw("same");
+  fHistDecayParErrorVsCent->Draw("same");
+  if (ChosenPart != 6)
+    fHistTransferCoeffErrorVsCent->Draw("same");
   if (ChosenPart == 6)
     fHistResoErrorVsCent->Draw("same");
   fHistTotalErrorVsCent->Draw("same");
@@ -470,15 +495,19 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->SetTextSize(0.05);
-  legend->AddEntry(fHistPrimaryLambdaErrorVsCent, "Primary #Lambda", "l");
-  // legend->AddEntry(fHistBDTErrorVsCent, "BDT", "l");
-  // legend->AddEntry(fHistMassCutErrorVsCent, "Mass Cut", "l");
-  if (ChosenPart != 6)
-    legend->AddEntry(fHistAccErrorVsCent, "Acceptance", "l");
   if (ChosenPart == 6)
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "Topological selections", "l");
   else
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "Mass Cut + BDT", "l");
+  legend->AddEntry(fHistPrimaryLambdaErrorVsCent, "Primary #Lambda", "l");
+  // legend->AddEntry(fHistBDTErrorVsCent, "BDT", "l");
+  // legend->AddEntry(fHistMassCutErrorVsCent, "Mass Cut", "l");
+  legend->AddEntry(fHistDecayParErrorVsCent, "Decay parameter", "l");
+  if (ChosenPart != 6)
+  {
+    legend->AddEntry(fHistAccErrorVsCent, "Acceptance", "l");
+    legend->AddEntry(fHistTransferCoeffErrorVsCent, "Transfer coefficient", "l");
+  }
   // if (ChosenPart == 6)
   //   legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
   legend->AddEntry(fHistTotalErrorVsCent, "Total", "l");
