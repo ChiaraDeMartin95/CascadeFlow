@@ -108,8 +108,8 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
 
 void Acceptance(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
-                Bool_t isRapiditySel = ExtrisRapiditySel,
                 TString inputFileName = SinputFileName,
+                Bool_t isRapiditySel = ExtrisRapiditySel,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
@@ -125,7 +125,7 @@ void Acceptance(Int_t indexMultTrial = 0,
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
-  TString SinputFile = "OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
+  TString SinputFile = "../OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
   if (v2type == 1)
@@ -342,7 +342,7 @@ void Acceptance(Int_t indexMultTrial = 0,
     hPtLambda[cent][eta]->Draw("same");
   }
 
-  TString SOutputFile = "AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SOutputFile = "../AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (isApplyWeights)
     SOutputFile += "_Weighted";
   if (v2type == 1)
