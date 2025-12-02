@@ -143,15 +143,15 @@ Float_t xLabelOffsetR = 0.02;
 Float_t yLabelOffsetR = 0.04;
 
 TString Sinputfile = "";
-TString namehisto[10] = {""};
+TString namehisto[100] = {""};
 TString CommonFileName = "";
 
 Int_t numOptions = 0;
 TH1F *hDef;
-TString fileName[10] = {""};
-TH1F *h[10];
-TH1F *hRatio[10];
-TString sleg[10] = {""};
+TString fileName[100] = {""};
+TH1F *h[100];
+TH1F *hRatio[100];
+TString sleg[100] = {""};
 TString Smolt[numCent + 1];
 
 void CompareResults(Int_t TypeComp = 0,
@@ -225,6 +225,10 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 42 --> Compare Pzs2 of Lambda from Tree with less and more pt bins
   // TypeComp == 43 --> Compare Pzs2 of Lambda from two different trains
   // TypeComp == 44 --> Compare T0C event plane resolution in PbPb (normalised SP vs EP)
+  // TypeComp == 45 --> Compare Pzs errors (normalised SP vs EP)
+  // TypeComp == 46 --> Xi Pzs2: preliminaries vs paper proposal results
+  // TypeComp == 47 --> Xi Pzs2: from fit vs assuming zero background polarization
+  // TypeComp == 48 --> Compare acceptance of Lambda from different runs
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -683,7 +687,7 @@ void CompareResults(Int_t TypeComp = 0,
   {
     // TypeComp = 19 --> Pz from Lambda vs from Xi
     numOptions = 2;
-    CommonFileName = "Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass4_";
     fileName[0] = "Train370610_ProtonAcc";
     fileName[1] = "Train361757";
     fileName[0] += "_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
@@ -1191,14 +1195,127 @@ void CompareResults(Int_t TypeComp = 0,
     hTitleX = "FT0C centrality (%)";
     sleg[0] = "EP reso";
     sleg[1] = "SP reso";
-    //YLowRatio = 0.5;
-    //YUpRatio = 1.5;
-    //YLow = -0.002;
-    //YUp = 0.02;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    // YLow = -0.002;
+    // YUp = 0.02;
     YLowRatio = 0.7;
     YUpRatio = 1.3;
     YLow = 0.;
     YUp = 0.004;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 46)
+  {
+    // TypeComp = 46 --> Xi Pzs2: preliminaries vs paper proposal results
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass";
+    fileName[0] = "4_Train370610_ProtonAcc_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit";
+    fileName[1] = "5_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit_EPReso";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "";
+    hTitleX = "";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = -6;
+    YUpRatio = 6;
+    sleg[0] = "pass4";
+    sleg[1] = "pass5";
+    yOffset = 6;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 47)
+  {
+    // TypeComp = 47 --> Xi Pzs2: from fit vs assuming zero background polarization
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
+    fileName[0] = "NoFit_EPReso";
+    fileName[1] = "_EPReso";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "";
+    hTitleX = "";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    sleg[0] = "No fit";
+    sleg[1] = "Fit";
+    yOffset = 6;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 48)
+  {
+    // TypeComp = 48 --> Compare acceptance in different runs
+    numOptions = 92;
+    const Int_t numOptionsConst = 91;
+    // Int_t nrun[numOptionsConst] = {, 545312, , 545296, , 545295, , 545294, , 545291, , 545249, 545223, 545210, 545185, 545066};
+    // Int_t nrun[numOptionsConst] = {545064, 545063, 545047, 545009, 544992, 544968, 544964, 544963, 544961, 544947};
+    // Int_t nrun[numOptionsConst] = {544931, 544917, 544914, 544913, 544896, 544887, 544886, 544868, 544813, 544797};
+    // Int_t nrun[numOptionsConst] = {544795, 544794, 544767, 544754, 544742, 544739, 544696, 544694, 544693, 544692};
+    // Int_t nrun[numOptionsConst] = {544674, 544672, 544653, 544652, 544640, 544614, 544585, 544583, 544582, 544580};
+    // Int_t nrun[numOptionsConst] = {544568, 544567, 544565, 544564, 544551, 544550, 544549, 544548, 544518, 544515};
+    // Int_t nrun[numOptionsConst] = {544514, 544512, 544511, 544510, 544508, 544492, 544491, 544490, 544477, 544476};
+    // Int_t nrun[numOptionsConst] = {544475, 544474, 544454, 544451, 544392, 544391, 544390, 544389, 544185, 544184};
+    // Int_t nrun[numOptionsConst] = {544124, 544123, 544122, 544121, 544116, 544098, 544095, 544091, 544032, 544028, 544013};
+    Int_t nrun[numOptionsConst] = {545312, 545296, 545295, 545294, 545291, 545249, 545223, 545210, 545185, 545066, 545064, 545063, 545047, 545009,
+                                   544992, 544968, 544964, 544963, 544961, 544947, 544931, 544917, 544914, 544913, 544896, 544887, 544886, 544868, 544813, 544797, 544795,
+                                   544794, 544767, 544754, 544742, 544739, 544696, 544694, 544693, 544692, 544674, 544672, 544653, 544652, 544640, 544614, 544585, 544583,
+                                   544582, 544580, 544568, 544567, 544565, 544564, 544551, 544550, 544549, 544548, 544518, 544515, 544514, 544512, 544511, 544510, 544508,
+                                   544492, 544491, 544490, 544477, 544476, 544475, 544474, 544454, 544451, 544392, 544391, 544390, 544389, 544185, 544184, 544124, 544123,
+                                   544122, 544121, 544116, 544098, 544095, 544091, 544032, 544028, 544013};
+
+    CommonFileName = "../AcceptancePlots/Acceptance_LHC23_PbPb_pass5_";
+    fileName[0] = "Train566502_Xi_WithAlpha_Eta08_FromTHN";
+    for (Int_t i = 1; i < numOptions; i++)
+    {
+      fileName[i] = Form("Train566502_%i_Xi_WithAlpha_Eta08_FromTHN", nrun[i - 1]);
+    }
+    for (Int_t i = 0; i < numOptions; i++)
+    {
+      namehisto[i] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    }
+    hTitleY = "";
+    hTitleX = "";
+    YLow = 0;
+    YUp = 0.8;
+    // YLowRatio = 0.99;
+    // YUpRatio = 1.01;
+    YLowRatio = 0.7;
+    YUpRatio = 1.3;
+    // YLowRatio = 0.;
+    // YUpRatio = 5;
+    sleg[0] = "Train566502";
+    for (Int_t i = 1; i < numOptions; i++)
+    {
+      sleg[i] = Form("Run %i", nrun[i - 1]);
+    }
+    yOffset = 6;
+    // MinHistoX = -0.795;
+    // MaxHistoX = 0.795;
+    MinHistoX = 0.4;
+    MaxHistoX = 10;
+  }
+  else if (TypeComp == 49)
+  {
+    numOptions = 2;
+    fileName[0] = "../Resolution/Resolution_EP_CFW_LHC23_PbPb_pass5_Train563856";
+    fileName[1] = "../Resolution/Resolution_EP_CFW_LHC23_PbPb_pass5_Train567157_OccupancyCut";
+    namehisto[0] = "hReso";
+    namehisto[1] = "hReso";
+    hTitleY = "Resolution";
+    hTitleX = "Centrality (%)";
+    YLow = 0;
+    YUp = 1;
+    YLowRatio = 0.9;
+    YUpRatio = 1.1;
+    sleg[0] = "";
+    sleg[1] = "Occupancy < 3000";
+    yOffset = 2;
     MinHistoX = 0;
     MaxHistoX = 80;
   }
@@ -1207,10 +1324,11 @@ void CompareResults(Int_t TypeComp = 0,
     cout << "TypeComp not defined" << endl;
     return;
   }
-
+  cout << "CommonFileName: " << CommonFileName << endl;
   TString hTitleYRatio = "Ratio to " + sleg[0];
   for (Int_t i = 0; i < numOptions; i++)
   {
+    cout << "CommonFileName: " << CommonFileName << endl;
     Sinputfile = CommonFileName + fileName[i] + ".root";
     cout << "Input file: " << Sinputfile << endl;
     TFile *inputFile = new TFile(Sinputfile);
@@ -1240,11 +1358,30 @@ void CompareResults(Int_t TypeComp = 0,
       {
         for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
         {
-          // hRatio[i]->SetBinContent(j, (hRatio[i]->GetBinContent(j) - hDef->GetBinContent(j)) / hDef->GetBinError(j));
+          hRatio[i]->SetBinContent(j, (hRatio[i]->GetBinContent(j) - hDef->GetBinContent(j)) / hDef->GetBinError(j));
         }
       }
-      if (TypeComp == 11)
+      else if (TypeComp == 48)
+      {
+        ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+        for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
+        {
+          // OPTION 1: relative difference divided by uncertainty on the default
+          // float delta = std::abs(h[i]->GetBinContent(j) - hDef->GetBinContent(j));
+          // float sigmaDelta = hRatio[i]->GetBinError(j) * hDef->GetBinContent(j);
+          // hRatio[i]->SetBinContent(j, delta / sigmaDelta);
+          // hRatio[i]->SetBinError(j, 0);
+          // OPTION 2: show ratio only if significantly different from zero
+          if (std::abs(hRatio[i]->GetBinContent(j) - 1) < 3 * hRatio[i]->GetBinError(j))
+          {
+            // hRatio[i]->SetBinContent(j, 1e-2);
+            // hRatio[i]->SetBinError(j, 0);
+          }
+        }
+      }
+      else if (TypeComp == 11)
         ErrRatioCorr(h[i], hDef, hRatio[i], 1);
+      // else if (TypeComp!=46)
       else
         ErrRatioCorr(h[i], hDef, hRatio[i], 0);
       if (TypeComp == 30)
@@ -1301,10 +1438,29 @@ void CompareResults(Int_t TypeComp = 0,
   hDef->Draw("same");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    h[i]->SetMarkerColor(ColorMult[i + 1]);
-    h[i]->SetLineColor(ColorMult[i + 1]);
-    h[i]->SetMarkerStyle(MarkerMult[i + 1]);
-    h[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
+    int indexColor = i + 1;
+    if (i > 10 && i < 20)
+      indexColor = i + 1 - 10;
+    else if (i >= 20 && i < 30)
+      indexColor = i + 1 - 20;
+    else if (i >= 30 && i < 40)
+      indexColor = i + 1 - 30;
+    else if (i >= 40 && i < 50)
+      indexColor = i + 1 - 40;
+    else if (i >= 50 && i < 60)
+      indexColor = i + 1 - 50;
+    else if (i >= 60 && i < 70)
+      indexColor = i + 1 - 60;
+    else if (i >= 70 && i < 80)
+      indexColor = i + 1 - 70;
+    else if (i >= 80 && i < 90)
+      indexColor = i + 1 - 80;
+    else if (i >= 90 && i < 100)
+      indexColor = i + 1 - 90;
+    h[i]->SetMarkerColor(ColorMult[indexColor]);
+    h[i]->SetLineColor(ColorMult[indexColor]);
+    h[i]->SetMarkerStyle(MarkerMult[indexColor]);
+    h[i]->SetMarkerSize(0.6 * SizeMult[indexColor]);
     h[i]->SetTitle("");
     h[i]->Draw("same");
     if (TypeComp == 40 && i == 3)
@@ -1322,6 +1478,11 @@ void CompareResults(Int_t TypeComp = 0,
   TLegend *leg = new TLegend(0.3, 0.7, 0.9, 0.9);
   if (TypeComp == 23 || TypeComp == 24 || TypeComp == 25)
     leg = new TLegend(0.3, 0.3, 0.9, 0.5);
+  else if (TypeComp == 48)
+  {
+    leg = new TLegend(0.3, 0.5, 0.9, 0.92);
+    leg->SetNColumns(2);
+  }
   leg->SetBorderSize(0);
   leg->SetFillStyle(0);
   leg->SetTextSize(0.04);
@@ -1329,9 +1490,9 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 11)
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 12)
+  else if (TypeComp == 12 || TypeComp == 48)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28 || TypeComp == 44 || TypeComp == 45)
+  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28 || TypeComp == 44 || TypeComp == 45 || TypeComp == 46 || TypeComp == 47)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     leg->AddEntry("", "OO 5.36 TeV", "");
@@ -1365,10 +1526,30 @@ void CompareResults(Int_t TypeComp = 0,
   hDummyRatio->Draw("");
   for (Int_t i = 1; i < numOptions; i++)
   {
-    hRatio[i]->SetMarkerColor(ColorMult[i + 1]);
-    hRatio[i]->SetLineColor(ColorMult[i + 1]);
-    hRatio[i]->SetMarkerStyle(MarkerMult[i + 1]);
-    hRatio[i]->SetMarkerSize(0.6 * SizeMult[i + 1]);
+    int indexColor = i + 1;
+    if (i > 10 && i < 20)
+      indexColor = i + 1 - 10;
+    else if (i >= 20 && i < 30)
+      indexColor = i + 1 - 20;
+    else if (i >= 30 && i < 40)
+      indexColor = i + 1 - 30;
+    else if (i >= 40 && i < 50)
+      indexColor = i + 1 - 40;
+    else if (i >= 50 && i < 60)
+      indexColor = i + 1 - 50;
+    else if (i >= 60 && i < 70)
+      indexColor = i + 1 - 60;
+    else if (i >= 70 && i < 80)
+      indexColor = i + 1 - 70;
+    else if (i >= 80 && i < 90)
+      indexColor = i + 1 - 80;
+    else if (i >= 90 && i < 100)
+      indexColor = i + 1 - 90;
+    hRatio[i]->SetMarkerColor(ColorMult[indexColor]);
+    hRatio[i]->SetLineColor(ColorMult[indexColor]);
+    hRatio[i]->SetMarkerStyle(MarkerMult[indexColor]);
+    hRatio[i]->SetMarkerSize(0.6 * SizeMult[indexColor]);
+    hRatio[i]->GetYaxis()->SetRangeUser(YLowRatio, YUpRatio);
     hRatio[i]->Draw("same");
     if (TypeComp == 40 && i == 3)
     {
@@ -1389,6 +1570,8 @@ void CompareResults(Int_t TypeComp = 0,
   line->SetLineColor(kBlack);
   line->SetLineStyle(9);
   line->Draw("same");
+  padL1->Modified();
+  padL1->Update();
 
   canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.png", TypeComp));
   canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.pdf", TypeComp));
