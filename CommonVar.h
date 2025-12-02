@@ -3,14 +3,14 @@ Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: 
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
 Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
-Bool_t isApplyWeights = 0; // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 0; //1 for OO
-Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
+Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
+Bool_t isApplyCentWeight = 0;       // 1 for OO
+Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Bool_t ExtrisApplyResoOnTheFly = 0; // 1 for OO
-Int_t v2type = 2;         // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 1; // 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 0; //1 for Lambda in OO
-Bool_t isOOCentrality = 0; //1 for Lambda in OO
+Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
+Bool_t ExtrisFromTHN = 1;           // 0: process the tree, 1: process the THnSparse
+Bool_t isReducedPtBins = 0;         // 1 for Lambda in OO
+Bool_t isOOCentrality = 0;          // 1 for Lambda in OO
 
 const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 bool isRun2Binning = 0;
@@ -85,69 +85,60 @@ Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1}; // from PDG 
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1};
 Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.757, 0.747, -0.757, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1};     // decay parameter for Lambda -> p pi
+Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // decay parameter for Lambda -> p pi
 
 // File names
-
+// TString SinputFileName = "LHC23_PbPb_pass4_Train370610_ProtonAcc"; // PRELIMINARIES: Pzs2 from Lambda, proton acceptance vs pt on the fly, proton acceptance vs pt and eta of Lambda
 // TString SinputFileName = "LHC23_PbPb_pass5_Train456578_ProtonAcc"; // proton acceptance vs pt and eta of Lambda for Xi polarization
 // TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
-//TString SinputFileName = "LHC23_PbPb_pass5_Train534683";// Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5
-TString SinputFileName = "LHC23_PbPb_pass5_Train540301";  // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
-//TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
-//TString SinputFileName = "LHC23_PbPb_pass5_Train563856"; //same settings as Train540301 but histograms for EP resolutions stored (to be used for resolution!)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train534683"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5
+TString SinputFileName = "LHC23_PbPb_pass5_Train540301"; // PAPER PROPOSAL: Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train563856"; // same settings as Train540301 but histograms for EP resolutions stored (to be used for resolution!)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train566502"; // acceptance for run by run studies
+//TString SinputFileName = "LHC23_PbPb_pass5_Train567157_OccupancyCut"; // systematic associated with occupancy; FT0COccupancy < 3000 (cuts a lot of events)
 
-//Reso tests in OO
-//TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
-//TString SinputFileName = "LHC25_OO_pass2_Train543247_T0CEventPlaneTest"; // Pzs2 of Lambda
-//TString SinputFileName = "LHC25_OO_pass2_Train544235_V0AShiftCorr";   
-//TString SinputFileName = "LHC25_OO_pass2_Train545130_V0ANShiftCorr";   
-//TString SinputFileName = "LHC25_OO_pass2_Train546065_V0ANoShiftCorr";   
-//TString SinputFileName = "LHC25_OO_pass2_Train547804_V0AShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train548457_T0AShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train548636_T0CShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train547803_T0ANoShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train548643_T0MNoShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train549121_T0CNoShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train549122_T0MNoShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train549964_T0CShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train549965_T0MShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train557895_T0AShiftCorr"; //T0A shift corrected (validated)
-//TString SinputFileName = "LHC25_OO_pass2_Train557896_V0AShiftCorr"; //V0A shift corrected (validated)
-//TString SinputFileName = "LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A"; //T0C shift corrected with corrected TPC event plane and T0A info for resolution
-//TString SinputFileName = "LHC25_OO_pass2_Train558333_T0MShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train562133_T0CShiftCorr";
-//TString SinputFileName = "LHC25_OO_pass2_Train518384_V0AResolution"; // V0AResolution
-//TString SinputFileName = "LHC25_OO_pass2_Train518383_T0MResolution"; // V0AResolution
-//TString SinputFileName = "LHC25_OO_pass2_Train523874";
-//TString SinputFileName = "LHC25_OO_pass2_Train515730_V0AResolution";
-//TString SinputFileName = "LHC25_OO_pass2_Train515731_T0MResolution";
-//TString SinputFileName = "LHC25_OO_pass2_Train510916"; //reso in 1% centrality bins
-//TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; // secondary proton acceptance for Lambda pol in OO (possibly used to evaluate systematics)
-//TString SinputFileName = "LHC25_OO_pass2_Train510677"; // resolution in 1% centrality bins
+// Reso tests in OO
+// TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
+// TString SinputFileName = "LHC25_OO_pass2_Train543247_T0CEventPlaneTest"; // Pzs2 of Lambda
+// TString SinputFileName = "LHC25_OO_pass2_Train544235_V0AShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train545130_V0ANShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train546065_V0ANoShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train547804_V0AShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train548457_T0AShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train548636_T0CShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train547803_T0ANoShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train548643_T0MNoShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train549121_T0CNoShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train549122_T0MNoShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train549964_T0CShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train549965_T0MShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train556005_T0CShiftCorr_TPCCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train557895_T0AShiftCorr"; //T0A shift corrected (validated)
+// TString SinputFileName = "LHC25_OO_pass2_Train557896_V0AShiftCorr"; //V0A shift corrected (validated)
+// TString SinputFileName = "LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A"; //T0C shift corrected with corrected TPC event plane and T0A info for resolution
+// TString SinputFileName = "LHC25_OO_pass2_Train558333_T0MShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train562133_T0CShiftCorr";
+// TString SinputFileName = "LHC25_OO_pass2_Train518384_V0AResolution"; // V0AResolution
+// TString SinputFileName = "LHC25_OO_pass2_Train518383_T0MResolution"; // V0AResolution
+// TString SinputFileName = "LHC25_OO_pass2_Train523874";
+// TString SinputFileName = "LHC25_OO_pass2_Train515730_V0AResolution";
+// TString SinputFileName = "LHC25_OO_pass2_Train515731_T0MResolution";
+// TString SinputFileName = "LHC25_OO_pass2_Train510916"; //reso in 1% centrality bins
+// TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; // secondary proton acceptance for Lambda pol in OO (possibly used to evaluate systematics)
+// TString SinputFileName = "LHC25_OO_pass2_Train510677"; // resolution in 1% centrality bins
 
-TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
-TString SinputFileNameAR = SinputFileName; 
-TString SinputFileNameResoWeight = ""; //empty, not needed for Xi in Pb-Pb
+TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856"; //used for PAPER PROPOSAL
+//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
+TString SinputFileNameAR = SinputFileName;
+TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_medium_Train346163";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train347929";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train354079";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train361757";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train365784";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train366446";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train368064_ProtonAcc";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train369742";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train370610_ProtonAcc";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics are DONE and to be USED for PAPER
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456578_ProtonAcc";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
+//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
@@ -184,9 +175,9 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // --------------------------- SYST ------------------------------
 const int trialsLambdaTopo = 2;
 // systematic studies on BDT score variation ----------------------
-bool ExtrisSysMultTrial = 0;   // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysMultTrial = 0;       // 1 for systematic studies, 0 for default analysis
 bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 20;      // number of trials for the systematic studies related to BDTscore
+const int trialsBDT = 20;          // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
@@ -245,3 +236,9 @@ TString ResoFileName_EPLF = "../Resolution/Resolution_EP_LF_" + inputFileResoLF;
 TString ResoFileName_EPCFW = "../Resolution/Resolution_EP_CFW_" + inputFileResoCFW;
 TString ResoFileName_SPLF = "../Resolution/Resolution_SP_LF_" + inputFileResoLF;
 TString ResoFileName_SPCFW = "../Resolution/Resolution_SP_CFW_" + inputFileResoCFW;
+
+// theory predictions
+// A.Palermo, Pzs2 of Lambda vs centrality with bulk viscosity
+Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
+Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
+                           2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};

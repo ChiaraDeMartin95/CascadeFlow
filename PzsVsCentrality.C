@@ -942,6 +942,19 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsXi->SaveAs("../XiPolVsCent.png");
   canvasPzsXi->SaveAs("../XiPolVsCent.eps");
 
+  TGraphErrors *gPzsPalermo = new TGraphErrors(9);
+
+  for (Int_t i = 0; i < gPzsPalermo->GetN(); i++)
+  {
+    // cout << "Palermo: i " << i << " " << dNdEtaPalermo[gPzsPalermo->GetN() - i - 1] << " " << gPzsPalermo->GetY()[gPzsPalermo->GetN() - i - 1] << endl;
+    gPzsPalermo->SetPoint(i, CentPalermo[i], Pzs2Palermo[i]);
+    gPzsPalermo->SetPointError(i, 0, 0);
+  }
+  TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
+  legendPalermo->SetFillStyle(0);
+  legendPalermo->SetTextAlign(12);
+  legendPalermo->SetTextSize(0.048);
+
   // Int_t colorJunlee = kGreen + 2;
   Int_t colorJunlee = kAzure - 3;
   StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
@@ -976,11 +989,18 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambdaNeNeJunlee->SetMarkerColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerStyle(29);
   fHistPzsLambdaNeNeJunlee->SetMarkerSize(2.1);
+  gPzsPalermo->SetLineColor(kBlue + 1);
+  gPzsPalermo->SetMarkerColor(kBlue + 1);
+  gPzsPalermo->SetLineWidth(3);
+  legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
+  legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
+  gPzsPalermo->Draw("same l");
   // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
   //  gPzsLambdaJunlee->Draw("same p");
   //  gPzsLambdaJunleeSist->Draw("same e2");
   LegendPreliminary3->Draw("");
   legendParticles->Draw("");
+  legendPalermo->Draw("");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.pdf");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.png");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.eps");
