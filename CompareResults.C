@@ -153,6 +153,14 @@ TH1F *h[100];
 TH1F *hRatio[100];
 TString sleg[100] = {""};
 TString Smolt[numCent + 1];
+const Int_t numOptionsConst = 91;
+Int_t SignRun[numOptionsConst] = {0};
+Int_t nrun[numOptionsConst] = {545312, 545296, 545295, 545294, 545291, 545249, 545223, 545210, 545185, 545066, 545064, 545063, 545047, 545009,
+                               544992, 544968, 544964, 544963, 544961, 544947, 544931, 544917, 544914, 544913, 544896, 544887, 544886, 544868, 544813, 544797, 544795,
+                               544794, 544767, 544754, 544742, 544739, 544696, 544694, 544693, 544692, 544674, 544672, 544653, 544652, 544640, 544614, 544585, 544583,
+                               544582, 544580, 544568, 544567, 544565, 544564, 544551, 544550, 544549, 544548, 544518, 544515, 544514, 544512, 544511, 544510, 544508,
+                               544492, 544491, 544490, 544477, 544476, 544475, 544474, 544454, 544451, 544392, 544391, 544390, 544389, 544185, 544184, 544124, 544123,
+                               544122, 544121, 544116, 544098, 544095, 544091, 544032, 544028, 544013};
 
 void CompareResults(Int_t TypeComp = 0,
                     Int_t mult = 0,
@@ -161,6 +169,10 @@ void CompareResults(Int_t TypeComp = 0,
                     Int_t BkgType = ExtrBkgType,
                     Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
+
+  Bool_t isRatio = 1;    // 1 for ratio, 0 for difference
+  Bool_t isFullCorr = 0; // 1 for full correlation, 0 for partial correlation
+  Bool_t isFitRatio = 0;
 
   gStyle->SetOptStat(0);
 
@@ -508,6 +520,7 @@ void CompareResults(Int_t TypeComp = 0,
   else if (TypeComp == 11)
   {
     numOptions = 2;
+    isFullCorr = 0;
     CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_" + ParticleName[ChosenPart];
     CommonFileName += SIsBkgParab[BkgType] + "_Pzs2";
     if (isApplyWeights)
@@ -1231,19 +1244,33 @@ void CompareResults(Int_t TypeComp = 0,
   {
     // TypeComp = 47 --> Xi Pzs2: from fit vs assuming zero background polarization
     numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 0;
+    isFitRatio = 1;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1";
-    fileName[0] = "NoFit_EPReso";
+    // fileName[0] = "NoFit_EPReso";
+    fileName[0] = "NoFit_EPReso_NoPurityDivision";
     fileName[1] = "_EPReso";
+    // fileName[2] = "_EPReso_isBkgPol0";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
+    namehisto[2] = "fHistPzs";
+    namehisto[3] = "fHistPzs";
     hTitleY = "";
     hTitleX = "";
     YLow = -0.004;
     YUp = 0.02;
-    YLowRatio = 0.5;
-    YUpRatio = 1.5;
+    YLowRatio = -0.001;
+    YUpRatio = 0.001;
+    if (isRatio == 1)
+    {
+      YLowRatio = 0;
+      YUpRatio = 2;
+    }
+    // sleg[0] = "No fit";
     sleg[0] = "No fit";
     sleg[1] = "Fit";
+    // sleg[3] = "Fit, Pz, bkg = 0";
     yOffset = 6;
     MinHistoX = 0;
     MaxHistoX = 80;
@@ -1252,7 +1279,6 @@ void CompareResults(Int_t TypeComp = 0,
   {
     // TypeComp = 48 --> Compare acceptance in different runs
     numOptions = 92;
-    const Int_t numOptionsConst = 91;
     // Int_t nrun[numOptionsConst] = {, 545312, , 545296, , 545295, , 545294, , 545291, , 545249, 545223, 545210, 545185, 545066};
     // Int_t nrun[numOptionsConst] = {545064, 545063, 545047, 545009, 544992, 544968, 544964, 544963, 544961, 544947};
     // Int_t nrun[numOptionsConst] = {544931, 544917, 544914, 544913, 544896, 544887, 544886, 544868, 544813, 544797};
@@ -1262,12 +1288,6 @@ void CompareResults(Int_t TypeComp = 0,
     // Int_t nrun[numOptionsConst] = {544514, 544512, 544511, 544510, 544508, 544492, 544491, 544490, 544477, 544476};
     // Int_t nrun[numOptionsConst] = {544475, 544474, 544454, 544451, 544392, 544391, 544390, 544389, 544185, 544184};
     // Int_t nrun[numOptionsConst] = {544124, 544123, 544122, 544121, 544116, 544098, 544095, 544091, 544032, 544028, 544013};
-    Int_t nrun[numOptionsConst] = {545312, 545296, 545295, 545294, 545291, 545249, 545223, 545210, 545185, 545066, 545064, 545063, 545047, 545009,
-                                   544992, 544968, 544964, 544963, 544961, 544947, 544931, 544917, 544914, 544913, 544896, 544887, 544886, 544868, 544813, 544797, 544795,
-                                   544794, 544767, 544754, 544742, 544739, 544696, 544694, 544693, 544692, 544674, 544672, 544653, 544652, 544640, 544614, 544585, 544583,
-                                   544582, 544580, 544568, 544567, 544565, 544564, 544551, 544550, 544549, 544548, 544518, 544515, 544514, 544512, 544511, 544510, 544508,
-                                   544492, 544491, 544490, 544477, 544476, 544475, 544474, 544454, 544451, 544392, 544391, 544390, 544389, 544185, 544184, 544124, 544123,
-                                   544122, 544121, 544116, 544098, 544095, 544091, 544032, 544028, 544013};
 
     CommonFileName = "../AcceptancePlots/Acceptance_LHC23_PbPb_pass5_";
     fileName[0] = "Train566502_Xi_WithAlpha_Eta08_FromTHN";
@@ -1319,6 +1339,27 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 80;
   }
+  else if (TypeComp == 50)
+  {
+    // TypeComp = 50 --> Xi Pzs2: occupancy dependence
+    numOptions = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train";
+    fileName[0] = "540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit_EPReso";
+    fileName[1] = "568467_OccupancySel30000_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1NoFit_EPReso";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleY = "";
+    hTitleX = "";
+    YLow = -0.004;
+    YUp = 0.02;
+    YLowRatio = -2;
+    YUpRatio = 5;
+    sleg[0] = "Default";
+    sleg[1] = "Occupancy < 30000";
+    yOffset = 6;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
   else
   {
     cout << "TypeComp not defined" << endl;
@@ -1326,6 +1367,22 @@ void CompareResults(Int_t TypeComp = 0,
   }
   cout << "CommonFileName: " << CommonFileName << endl;
   TString hTitleYRatio = "Ratio to " + sleg[0];
+  if (!isRatio)
+    hTitleYRatio = "Difference to " + sleg[0];
+
+  double frac = 0;
+  TH1F *hEvents = new TH1F("hEvents", "hEvents", 92, 0.5, 92.5);
+  // TH1F *hgauss = new TH1F("hgauss", "hgauss", 100, 0.8, 1.2);
+  TH1F *hgauss = new TH1F("hgauss", "hgauss", 100, -5, 5);
+  TH1F *hgaussSigmaDelta = new TH1F("hgaussSigmaDelta", "hgaussSigmaDelta", 100, 0, 0.05);
+  TH1F *hgaussPt[100];
+  TLegend *legGauss = new TLegend(0.6, 0.7, 0.9, 0.9);
+  legGauss->SetBorderSize(0);
+  legGauss->SetTextSize(0.04);
+  legGauss->SetFillStyle(0);
+  for (Int_t j = 1; j <= 100; j++)
+    hgaussPt[j - 1] = new TH1F(Form("hgaussPt_%d", j - 1), Form("hgaussPt_%d", j - 1), 50, -5, 5);
+
   for (Int_t i = 0; i < numOptions; i++)
   {
     cout << "CommonFileName: " << CommonFileName << endl;
@@ -1352,8 +1409,26 @@ void CompareResults(Int_t TypeComp = 0,
       }
       h[i]->SetName(Form("hVar_%i", i));
       hRatio[i] = (TH1F *)h[i]->Clone(Form("hRatio_%i", i));
-      hRatio[i]->Divide(hDef);
-      // hRatio[i]->Add(hDef, -1);
+      if (isRatio)
+      {
+        hRatio[i]->Divide(hDef);
+        if (isFullCorr)
+          ErrRatioCorr(h[i], hDef, hRatio[i], 1);
+        else
+          ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+      }
+      else
+      {
+        hRatio[i]->Add(hDef, -1);
+        for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
+        {
+          if (isFullCorr)
+            hRatio[i]->SetBinError(j, std::abs(hDef->GetBinError(j) - h[i]->GetBinError(j)));
+          else
+            hRatio[i]->SetBinError(j, sqrt(std::abs(pow(hDef->GetBinError(j), 2) - pow(h[i]->GetBinError(j), 2))));
+        }
+      }
+
       if (TypeComp == 29)
       {
         for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
@@ -1363,27 +1438,72 @@ void CompareResults(Int_t TypeComp = 0,
       }
       else if (TypeComp == 48)
       {
-        ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+        ErrRatioCorr(h[i], hDef, hRatio[i], 0); // numerator is a subsample of denominator
+        double weight = 0;
+        double n_tot = 0;
+        TFile *fileTot = new TFile("../TreeForAnalysis/AnalysisResults_LHC23_PbPb_pass5_Train566502.root");
+        if (fileTot->IsOpen())
+        {
+          TH1F *hEventsTot = (TH1F *)fileTot->Get("lf-cascade-flow/histos/hEventVertexZ");
+          if (!hEventsTot)
+            return;
+          n_tot = hEventsTot->GetEntries();
+          fileTot->Close();
+          cout << "ntot" << n_tot << endl;
+        }
+        else
+        {
+          cout << "Could not open total events file!" << endl;
+        }
+        double n_run = 0;
+        cout << "ntot" << n_tot << endl;
+        TFile *fileRun = new TFile(Form("../TreeForAnalysis/AnalysisResults_LHC23_PbPb_pass5_Train566502_%i.root", nrun[i - 1]));
+        if (fileRun->IsOpen())
+        {
+          TH1F *hEventsPerRun = (TH1F *)fileRun->Get("lf-cascade-flow/histos/hEventVertexZ");
+          n_run = hEventsPerRun->GetEntries();
+          weight = (double)n_run / (double)n_tot;
+          fileRun->Close();
+        }
+        else
+        {
+          cout << "Could not open run events file!" << endl;
+        }
+        cout << "Weight is: " << weight << " for run " << nrun[i - 1] << endl;
         for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
         {
           // OPTION 1: relative difference divided by uncertainty on the default
-          // float delta = std::abs(h[i]->GetBinContent(j) - hDef->GetBinContent(j));
-          // float sigmaDelta = hRatio[i]->GetBinError(j) * hDef->GetBinContent(j);
+          float delta = h[i]->GetBinContent(j) - hDef->GetBinContent(j);
+          float sigmaDelta = sqrt((pow(h[i]->GetBinError(j), 2) - pow(hDef->GetBinError(j), 2))); // numerator is a subsample of denominator
           // hRatio[i]->SetBinContent(j, delta / sigmaDelta);
           // hRatio[i]->SetBinError(j, 0);
+          // END OPTION 1
           // OPTION 2: show ratio only if significantly different from zero
           if (std::abs(hRatio[i]->GetBinContent(j) - 1) < 3 * hRatio[i]->GetBinError(j))
           {
-            // hRatio[i]->SetBinContent(j, 1e-2);
-            // hRatio[i]->SetBinError(j, 0);
+            hRatio[i]->SetBinContent(j, 1e-2);
+            hRatio[i]->SetBinError(j, 0);
           }
+          else
+          {
+            SignRun[i - 1] = 1;
+            cout << "i: " << i << " Run " << nrun[i - 1] << ", bin " << j << ": delta = " << delta << ", sigmaDelta = " << sigmaDelta << ", ratio = " << hRatio[i]->GetBinContent(j) << " +/- " << hRatio[i]->GetBinError(j) << endl;
+          }
+          // END OPTION 2
+          // hgauss->Fill(hRatio[i]->GetBinContent(j)); //FILLING WITH RATIO
+          hgauss->Fill(delta / sigmaDelta, weight); // FILLING WITH PULL VALUE
+          hEvents->SetBinContent(i, weight);
+          hgaussSigmaDelta->Fill(sigmaDelta);
+          hgaussPt[j - 1]->Fill(delta / sigmaDelta);
+        }
+        if (SignRun[i - 1] == 1)
+        {
+          cout << "Adding weights " << endl;
+          frac += weight;
+          cout << "frac: " << frac << endl;
         }
       }
-      else if (TypeComp == 11)
-        ErrRatioCorr(h[i], hDef, hRatio[i], 1);
-      // else if (TypeComp!=46)
-      else
-        ErrRatioCorr(h[i], hDef, hRatio[i], 0);
+
       if (TypeComp == 30)
       {
         for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
@@ -1394,6 +1514,66 @@ void CompareResults(Int_t TypeComp = 0,
       }
     }
   }
+
+  TCanvas *cevents = new TCanvas("cevents", "cevents", 700, 500);
+  hEvents->SetTitle("");
+  hEvents->GetXaxis()->SetTitle("Run index");
+  hEvents->GetYaxis()->SetTitle("Fraction of events");
+  hEvents->Draw();
+
+  TCanvas *cgaussSigmaDelta = new TCanvas("cgaussSigmaDelta", "cgaussSigmaDelta", 700, 500);
+  hgaussSigmaDelta->SetTitle("");
+  hgaussSigmaDelta->GetXaxis()->SetTitle("#sigma_{#Delta}");
+  hgaussSigmaDelta->GetYaxis()->SetTitle("Entries");
+  hgaussSigmaDelta->Draw();
+
+  TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 700, 500);
+  legGauss->AddEntry("", Form("#mu = %.3f #pm %.3f", hgauss->GetMean(), hgauss->GetMeanError()), "");
+  legGauss->AddEntry("", Form("RMS = %.3f", hgauss->GetRMS()), "");
+  // TF1 *gauss = new TF1("gauss", "gaus", 0.8, 1.2);
+  TF1 *gauss = new TF1("gauss", "gaus", -3, 3);
+  hgauss->SetTitle("");
+  // hgauss->GetXaxis()->SetTitle("hVar / hDef");
+  hgauss->GetXaxis()->SetTitle("(hVar - hDef) / #sigma");
+  hgauss->Fit(gauss, "R+");
+  legGauss->AddEntry("", Form("#mu fit = %.3f #pm %.3f", gauss->GetParameter(1), gauss->GetParError(1)), "");
+  legGauss->AddEntry("", Form("#sigma fit = %.3f #pm %.3f", gauss->GetParameter(2), gauss->GetParError(2)), "");
+  legGauss->Draw();
+  for (Int_t j = 1; j <= hDef->GetNbinsX(); j++)
+  {
+    // hgaussPt[j - 1]->Draw("same");
+  }
+  if (TypeComp == 48)
+    cgaus->SaveAs(Form("../CompareResults/GaussianDistribution_TypeComp%i.png", TypeComp));
+
+  TCanvas *cgausVsPt = new TCanvas("cgausVsPt", "cgausVsPt", 700, 500);
+  TH1F *hGaussVsPt = (TH1F *)hDef->Clone("hGaussVsPt");
+  for (Int_t j = 1; j <= hDef->GetNbinsX(); j++)
+  {
+    hgaussPt[j - 1]->Fit(gauss, "R+");
+    hGaussVsPt->SetBinContent(j, gauss->GetParameter(1));
+    // hGaussVsPt->SetBinError(j, gauss->GetParameter(2));
+    hGaussVsPt->SetBinError(j, hgaussPt[j - 1]->GetRMS());
+  }
+  hGaussVsPt->SetTitle("");
+  hGaussVsPt->GetYaxis()->SetTitle("Mean of (hVar - hDef) / #sigma");
+  hGaussVsPt->GetXaxis()->SetTitle(hTitleX);
+  hGaussVsPt->GetYaxis()->SetRangeUser(-3, 3);
+  hGaussVsPt->Draw();
+  TLine *lineZero = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 0, hGaussVsPt->GetXaxis()->GetXmax(), 0);
+  lineZero->SetLineColor(kBlue);
+  lineZero->SetLineStyle(2);
+  lineZero->Draw("same");
+  TLine *linePlus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 1, hGaussVsPt->GetXaxis()->GetXmax(), 1);
+  linePlus->SetLineColor(kGray);
+  linePlus->SetLineStyle(2);
+  linePlus->Draw("same");
+  TLine *lineMinus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), -1, hGaussVsPt->GetXaxis()->GetXmax(), -1);
+  lineMinus->SetLineColor(kGray);
+  lineMinus->SetLineStyle(2);
+  lineMinus->Draw("same");
+  if (TypeComp == 48)
+    cgausVsPt->SaveAs(Form("../CompareResults/GaussianDistributionVsEta_TypeComp%i.png", TypeComp));
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
   Float_t LLUpperPad = 0.33;
@@ -1492,7 +1672,7 @@ void CompareResults(Int_t TypeComp = 0,
     leg->AddEntry("", ParticleNameLegend[ChosenPart] + " Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 12 || TypeComp == 48)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
-  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28 || TypeComp == 44 || TypeComp == 45 || TypeComp == 46 || TypeComp == 47)
+  else if (TypeComp == 19 || TypeComp == 24 || TypeComp == 25 || TypeComp == 26 || TypeComp == 27 || TypeComp == 28 || TypeComp == 44 || TypeComp == 45 || TypeComp == 46 || TypeComp == 47 || TypeComp == 50)
     leg->AddEntry("", "Pb-Pb 5.36 TeV", "");
   else if (TypeComp == 32 || TypeComp == 33 || TypeComp == 35 || TypeComp == 39 || TypeComp == 40)
     leg->AddEntry("", "OO 5.36 TeV", "");
@@ -1505,6 +1685,7 @@ void CompareResults(Int_t TypeComp = 0,
   }
   leg->Draw("same");
 
+  TF1 *FitPol0[100];
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, -100, 100);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
     hDummyRatio->SetBinContent(i, 1e-12);
@@ -1524,6 +1705,14 @@ void CompareResults(Int_t TypeComp = 0,
   padL1->Draw();
   padL1->cd();
   hDummyRatio->Draw("");
+  TLegend *legFit = new TLegend(0.3, 0.7, 0.9, 0.9);
+  if (isFitRatio)
+  {
+    legFit->SetBorderSize(0);
+    legFit->SetFillStyle(0);
+    legFit->SetTextSize(0.06);
+    legFit->Draw("same");
+  }
   for (Int_t i = 1; i < numOptions; i++)
   {
     int indexColor = i + 1;
@@ -1545,6 +1734,9 @@ void CompareResults(Int_t TypeComp = 0,
       indexColor = i + 1 - 80;
     else if (i >= 90 && i < 100)
       indexColor = i + 1 - 90;
+
+    FitPol0[i] = new TF1(Form("FitPol0_%d", i), "pol0", MinHistoX, MaxHistoX);
+    FitPol0[i]->SetLineColor(ColorMult[indexColor]);
     hRatio[i]->SetMarkerColor(ColorMult[indexColor]);
     hRatio[i]->SetLineColor(ColorMult[indexColor]);
     hRatio[i]->SetMarkerStyle(MarkerMult[indexColor]);
@@ -1561,6 +1753,15 @@ void CompareResults(Int_t TypeComp = 0,
       hRatio[i]->SetMarkerColor(kCyan + 1);
       hRatio[i]->SetLineColor(kCyan + 1);
     }
+    if (isFitRatio)
+    {
+      hRatio[i]->Fit(FitPol0[i], "R+");
+      legFit->AddEntry(FitPol0[i], Form("p0 = %.5f #pm %.5f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
+    }
+  }
+  if (isFitRatio)
+  {
+    legFit->Draw("same");
   }
   TF1 *line = new TF1("line", "1", MinHistoX, MaxHistoX);
   if (TypeComp == 5 || TypeComp == 29 || TypeComp == 30)
@@ -1590,4 +1791,6 @@ void CompareResults(Int_t TypeComp = 0,
   leg->Draw("same");
   canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
   canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.pdf", TypeComp));
+
+  cout << "frac: " << frac << endl;
 }
