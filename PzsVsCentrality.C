@@ -119,6 +119,7 @@ Float_t YUp[numPart] = {0.011};
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
                      Bool_t isFromFit = 0,
+                     Bool_t isBkgPol = 1,
                      Bool_t isRapiditySel = ExtrisRapiditySel,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -244,8 +245,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
     stringout += "_EPReso";
-  // if (ChosenPart == 6)
-  //   stringout += "_CorrectReso_TestLeassPtBins";
+  if (!isFromFit) stringout += "_NoPurityDivision";
+  if (isBkgPol == 0)
+    stringout += "_isBkgPol0";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -416,6 +418,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     //   PathIn += "_CorrectReso_TestLeassPtBins";
     if (ChosenPart == 0)
       PathIn += "_EPReso";
+    if (isBkgPol == 0)
+      PathIn += "_isBkgPol0";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -478,9 +482,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     if (!isFromFit)
     {
-      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
-      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
-      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      //fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
+      //fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+      //fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
       fHistPzsError->SetBinError(m + 1, 0);
     }
     else
