@@ -341,6 +341,8 @@ Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11}; // 
 Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12};
 Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // bkg and total fit range
 Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
+Float_t liminfV2[numPart] = {1.308, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; 
+Float_t limsupV2[numPart] = {1.335, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1};
 Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13};
 
@@ -360,6 +362,7 @@ Float_t ftcReso[commonNumCent + 1] = {0};
 void FitV2orPol(
     Bool_t isPtAnalysis = 1,    // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
+    Bool_t isBkgPol = 1,
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
     Int_t indexMassCut = 0,
@@ -1720,7 +1723,8 @@ void FitV2orPol(
     }
 
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
-    v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[ChosenPart], limsup[ChosenPart], 3);
+    //v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminf[ChosenPart], limsup[ChosenPart], 3);
+    v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminfV2[ChosenPart], limsupV2[ChosenPart], 3);
     v2FitFunction[pt]->SetLineColor(kRed + 1);
     if (pt < 4)
       canvas[0]->cd(pt + 4 + 1);
@@ -1730,6 +1734,13 @@ void FitV2orPol(
       canvas[2]->cd(pt + 4 + 1 - 8);
     else if (pt < 16)
       canvas[3]->cd(pt + 4 + 1 - 12);
+    cout << "Pt " << SPt[pt] << " GeV/c" << endl;
+    cout << "Fitting the V2 / polarization... " << endl;
+    if (isBkgPol == 0) {
+      v2FitFunction[pt]->FixParameter(1, 0); // bkg v2 constant
+      v2FitFunction[pt]->FixParameter(2, 0); // bkg v2 constant
+    }
+    //hV2[pt]->Rebin(2);
     hV2[pt]->Fit(v2FitFunction[pt], "R0");
 
     v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
@@ -2384,6 +2395,7 @@ void FitV2orPol(
   // Soutputfile += "_CorrectReso_TestLeassPtBins";
   if (ChosenPart == 0)
     Soutputfile += "_EPReso";
+  if (isBkgPol==0) Soutputfile += "_isBkgPol0";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -2781,7 +2793,7 @@ void FitV2orPol(
     hDummy->SetBinContent(i, 1e-12);
   canvasP->cd();
   SetFont(hDummy);
-  StyleHistoYield(hDummy, 1e-3, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummy, 1e-3, 1.2 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -2848,11 +2860,13 @@ void FitV2orPol(
   padL1->cd();
   if (!isV2)
   {
-    hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
+    hDummyRatio->GetYaxis()->SetRangeUser(-0.015, 0.015);
     if (mul > 3)
-      hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
-    if (mul > 5)
-      hDummyRatio->GetYaxis()->SetRangeUser(-0.2, 0.2);
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
+    if (mul > 6)
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
+    if (mul > 7)
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.005, 0.005);
   }
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
