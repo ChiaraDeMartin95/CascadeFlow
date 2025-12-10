@@ -115,6 +115,7 @@ Float_t YUp[numPart] = {0.0015};
 Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
 Float_t LambdaDecayParameterRelError = 0.01;
 Float_t TransferCoefficienctRelError = 0.0043;
+Float_t RunByRunAccRelError = 0.01;
 // Float_t ResoRelError[numCentLambdaOO + 1] = {0.045, 0.05, 0.06, 0.065, 0.07, 0.09, 0.127, 0.1915, 0.2865, 0.39};
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0.03;
@@ -212,6 +213,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistResoErrorVsCent;
   TH1F *fHistDecayParErrorVsCent;
   TH1F *fHistTransferCoeffErrorVsCent;
+  TH1F *fHistRunByRunAccErrorVsCent;
   TH1F *fHistTotalErrorVsCent;
   if (isOOCentrality)
   {
@@ -223,6 +225,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
   }
   else
@@ -235,6 +238,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistResoErrorVsCent = new TH1F("fHistResoErrorVsCent", "fHistResoErrorVsCent", numCent, fCentFT0C);
     fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCent, fCentFT0C);
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCent, fCentFT0C);
+    fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCent, fCentFT0C);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
   }
   TString Smolt[commonNumCent + 1];
@@ -410,6 +414,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
       fHistTransferCoeffErrorVsCent->SetBinContent(m + 1, 0);
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
+      fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, 0);
+      fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
     }
     else
     {
@@ -421,6 +427,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
       fHistTransferCoeffErrorVsCent->SetBinContent(m + 1, std::abs(TransferCoefficienctRelError * fHistPzs2[m]->GetBinContent(1)));
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
+      fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, std::abs(RunByRunAccRelError * fHistPzs2[m]->GetBinContent(1)));
+      fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
     }
   } // end loop on mult
   fHistBDTErrorVsCent->Smooth();
@@ -438,7 +446,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                                                             fHistAccErrorVsCent->GetBinContent(m + 1) * fHistAccErrorVsCent->GetBinContent(m + 1) +
                                                             fHistResoErrorVsCent->GetBinContent(m + 1) * fHistResoErrorVsCent->GetBinContent(m + 1) +
                                                             fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) * fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) +
-                                                            fHistDecayParErrorVsCent->GetBinContent(m + 1) * fHistDecayParErrorVsCent->GetBinContent(m + 1)));
+                                                            fHistDecayParErrorVsCent->GetBinContent(m + 1) * fHistDecayParErrorVsCent->GetBinContent(m + 1) +
+                                                            fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) * fHistRunByRunAccErrorVsCent->GetBinContent(m + 1)
+                                                          ));
     fHistTotalErrorVsCent->SetBinError(m + 1, 0);
   }
 
@@ -478,6 +488,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistResoErrorVsCent->SetLineColor(kMagenta);
   fHistDecayParErrorVsCent->SetLineColor(kRed + 1);
   fHistTransferCoeffErrorVsCent->SetLineColor(kViolet+1);
+  fHistRunByRunAccErrorVsCent->SetLineColor(kCyan);
   fHistTotalErrorVsCent->SetLineColor(kBlack);
   fHistTotalErrorVsCent->SetLineWidth(2);
   // fHistBDTErrorVsCent->Draw("same");
@@ -486,12 +497,14 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistMassCutAndBDTErrorVsCent->Draw("same");
   fHistPrimaryLambdaErrorVsCent->Draw("same");
   fHistDecayParErrorVsCent->Draw("same");
-  if (ChosenPart != 6)
+  if (ChosenPart != 6){
     fHistTransferCoeffErrorVsCent->Draw("same");
+    fHistRunByRunAccErrorVsCent->Draw("same");
+  }
   if (ChosenPart == 6)
     fHistResoErrorVsCent->Draw("same");
   fHistTotalErrorVsCent->Draw("same");
-  TLegend *legend = new TLegend(0.5, 0.6, 0.9, 0.9);
+  TLegend *legend = new TLegend(0.3, 0.6, 0.9, 0.9);
   legend->SetBorderSize(0);
   legend->SetFillStyle(0);
   legend->SetTextSize(0.05);
@@ -507,12 +520,14 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   {
     legend->AddEntry(fHistAccErrorVsCent, "Acceptance", "l");
     legend->AddEntry(fHistTransferCoeffErrorVsCent, "Transfer coefficient", "l");
+    legend->AddEntry(fHistRunByRunAccErrorVsCent, "Run-by-run acceptance dep.", "l");
   }
   // if (ChosenPart == 6)
   //   legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
   legend->AddEntry(fHistTotalErrorVsCent, "Total", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
+  canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.pdf", ParticleName[ChosenPart].Data()));
 
   TFile *fileout = new TFile(stringout, "RECREATE");
   fHistBDTErrorVsCent->Write();
