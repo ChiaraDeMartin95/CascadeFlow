@@ -21,8 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -214,6 +214,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistDecayParErrorVsCent;
   TH1F *fHistTransferCoeffErrorVsCent;
   TH1F *fHistRunByRunAccErrorVsCent;
+  TH1F *fHistPolBkg0ErrorVsCent;
   TH1F *fHistTotalErrorVsCent;
   if (isOOCentrality)
   {
@@ -226,6 +227,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistPolBkg0ErrorVsCent = new TH1F("fHistPolBkg0ErrorVsCent", "fHistPolBkg0ErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
   }
   else
@@ -239,8 +241,28 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistDecayParErrorVsCent = new TH1F("fHistDecayParErrorVsCent", "fHistDecayParErrorVsCent", numCent, fCentFT0C);
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCent, fCentFT0C);
     fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCent, fCentFT0C);
+    fHistPolBkg0ErrorVsCent = new TH1F("fHistPolBkg0ErrorVsCent", "fHistPolBkg0ErrorVsCent", numCent, fCentFT0C);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
   }
+
+  TFile *fileInResoError = TFile::Open("../CompareResults/SystUncertainty_Reso.root");
+  TH1F *fHistResoError = (TH1F *)fileInResoError->Get("hRatio_1");
+  if (!fHistResoError)
+  {
+    cout << "Error: histogram not found" << endl;
+    return;
+  }
+  fHistResoError->SetName("hResoSystError");
+
+  TFile *fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty_BkgPol0.root");
+  TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatio_1");;
+  if (!fHistPolBkg0Error)
+  {
+    cout << "Error: histogram not found" << endl;
+    return;
+  }
+  fHistPolBkg0Error->SetName("hPolBkg0SystError");
+
   TString Smolt[commonNumCent + 1];
   // get spectra in multiplicity classes
   for (Int_t m = 0; m < commonNumCent; m++)
@@ -340,12 +362,14 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
         PathIn2 += "_ReducedPtBins";
       PathIn2 += "_ResoOnTheFly";
     }
-    PathIn2 += "_NewTest";
+    // PathIn2 += "_NewTest";
     PathInBDT = PathIn1 + "BDT" + PathIn2 + ".root";
-    cout << "Path in BDT: " << PathInBDT << endl;
+    if (ChosenParticle != 6)
+      cout << "Path in BDT: " << PathInBDT << endl;
     fileInBDT[m] = TFile::Open(PathInBDT);
     PathInMassCut = PathIn1 + "MassCut" + PathIn2 + Form("_nsigmaBarlow%.1f.root", nsigmaBarlowMassCut);
-    cout << "Path in MassCut: " << PathInMassCut << endl;
+    if (ChosenParticle != 6)
+      cout << "Path in MassCut: " << PathInMassCut << endl;
     fileInMassCut[m] = TFile::Open(PathInMassCut);
     PathInMassCutAndBDT = PathIn1;
     if (ChosenPart == 6)
@@ -405,7 +429,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     {
       fHistAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistAccErrorVsCent->SetBinError(m + 1, 0);
-      fHistResoErrorVsCent->SetBinContent(m + 1, ResoRelError[m] * fHistPzs2[m]->GetBinContent(1));
+      fHistResoErrorVsCent->SetBinContent(m + 1, abs(fHistResoError->GetBinContent(m + 1)));
       cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
       cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
       cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
@@ -416,6 +440,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
+      //fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, abs(fHistPolBkg0Error->GetBinContent(m + 1)));
+      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0); //not significant
+      fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
     }
     else
     {
@@ -429,11 +456,14 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, std::abs(RunByRunAccRelError * fHistPzs2[m]->GetBinContent(1)));
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
+      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0);
+      fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
     }
   } // end loop on mult
   fHistBDTErrorVsCent->Smooth();
   fHistMassCutErrorVsCent->Smooth();
   fHistMassCutAndBDTErrorVsCent->Smooth();
+  //fHistResoErrorVsCent->Smooth();
 
   for (Int_t m = 0; m < commonNumCent; m++)
   {
@@ -447,8 +477,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                                                             fHistResoErrorVsCent->GetBinContent(m + 1) * fHistResoErrorVsCent->GetBinContent(m + 1) +
                                                             fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) * fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) +
                                                             fHistDecayParErrorVsCent->GetBinContent(m + 1) * fHistDecayParErrorVsCent->GetBinContent(m + 1) +
-                                                            fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) * fHistRunByRunAccErrorVsCent->GetBinContent(m + 1)
-                                                          ));
+                                                            fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) * fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) +
+                                                            fHistPolBkg0ErrorVsCent->GetBinContent(m + 1) * fHistPolBkg0ErrorVsCent->GetBinContent(m + 1)));
     fHistTotalErrorVsCent->SetBinError(m + 1, 0);
   }
 
@@ -487,8 +517,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistAccErrorVsCent->SetLineColor(kBlue);
   fHistResoErrorVsCent->SetLineColor(kMagenta);
   fHistDecayParErrorVsCent->SetLineColor(kRed + 1);
-  fHistTransferCoeffErrorVsCent->SetLineColor(kViolet+1);
+  fHistTransferCoeffErrorVsCent->SetLineColor(kViolet + 1);
   fHistRunByRunAccErrorVsCent->SetLineColor(kCyan);
+  fHistPolBkg0ErrorVsCent->SetLineColor(kGray + 1);
   fHistTotalErrorVsCent->SetLineColor(kBlack);
   fHistTotalErrorVsCent->SetLineWidth(2);
   // fHistBDTErrorVsCent->Draw("same");
@@ -497,12 +528,15 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistMassCutAndBDTErrorVsCent->Draw("same");
   fHistPrimaryLambdaErrorVsCent->Draw("same");
   fHistDecayParErrorVsCent->Draw("same");
-  if (ChosenPart != 6){
+  if (ChosenPart != 6)
+  {
     fHistTransferCoeffErrorVsCent->Draw("same");
     fHistRunByRunAccErrorVsCent->Draw("same");
   }
-  if (ChosenPart == 6)
+  if (ChosenPart == 6){
     fHistResoErrorVsCent->Draw("same");
+    fHistPolBkg0ErrorVsCent->Draw("same");
+  }
   fHistTotalErrorVsCent->Draw("same");
   TLegend *legend = new TLegend(0.3, 0.6, 0.9, 0.9);
   legend->SetBorderSize(0);
@@ -515,15 +549,17 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   legend->AddEntry(fHistPrimaryLambdaErrorVsCent, "Primary #Lambda", "l");
   // legend->AddEntry(fHistBDTErrorVsCent, "BDT", "l");
   // legend->AddEntry(fHistMassCutErrorVsCent, "Mass Cut", "l");
-  legend->AddEntry(fHistDecayParErrorVsCent, "Decay parameter", "l");
   if (ChosenPart != 6)
   {
     legend->AddEntry(fHistAccErrorVsCent, "Acceptance", "l");
     legend->AddEntry(fHistTransferCoeffErrorVsCent, "Transfer coefficient", "l");
     legend->AddEntry(fHistRunByRunAccErrorVsCent, "Run-by-run acceptance dep.", "l");
   }
-  // if (ChosenPart == 6)
-  //   legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
+  if (ChosenPart == 6){
+    legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
+    //legend->AddEntry(fHistPolBkg0ErrorVsCent, "P_{z, s2, bkg} = 0", "l");
+  }
+  legend->AddEntry(fHistDecayParErrorVsCent, "Decay parameter", "l");
   legend->AddEntry(fHistTotalErrorVsCent, "Total", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
