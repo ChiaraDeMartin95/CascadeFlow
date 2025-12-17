@@ -104,7 +104,8 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "", TStrin
     double dev = hVariedCut->GetBinContent(i) - 1; // hR - 1
     double err = hVariedCut->GetBinError(i);       // sB
 
-    hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
+    //hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
+    hDev->SetBinContent(i, PassRogerBarlowCriterion(nsigmaBarlow, dev, err)); // rel. syst. error = hR-1 if |hR-1| > 1*sB
 
     cout << "default: " << hDefault->GetBinContent(i) << " +- " << hDefault->GetBinError(i) << endl;
     cout << "varied: " << hVariedCutCopy->GetBinContent(i) << " +- " << hVariedCutCopy->GetBinError(i) << endl;
@@ -618,6 +619,7 @@ void MultiTrial(
   cv2->cd();
   Int_t ColorIndex = -1;
   Int_t NumberOfActualTrials = 0;
+  Int_t NumberOfActualTrialsBis = 0;
 
   for (int i = 0; i < trials; i++)
   {
@@ -817,7 +819,10 @@ void MultiTrial(
     hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
     hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hRawYieldRatioToTighter[i]->SetTitle("");
-    hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
+    if (ChosenPart == 6)
+      hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to last but one selection");
+    else
+      hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
     hRawYieldRatioToTighter[i]->GetYaxis()->SetRangeUser(0.9, 1.5);
     hRawYieldRatioToTighter[i]->Draw("same");
   }
@@ -1020,6 +1025,7 @@ void MultiTrial(
         if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
           continue;
       }
+      NumberOfActualTrialsBis++;
       if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
       {
         hMaxDev->SetBinContent(pt + 1, h[i]->GetBinContent(pt + 1));
@@ -1047,14 +1053,19 @@ void MultiTrial(
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
     hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2., +2.);
+    fgaus[pt] = new TF1(Form("fgaus%i", pt), "gaus", -2.5, +2.5);
     if (mul == 1)
       hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -0.5, +0.5);
     else if (mul == 2)
       hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -10.0, +10.0);
     else if (mul == 3)
       hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2.0, +2.0);
+    if (ChosenPart == 6)
+    {
+      hPtDev[pt] = new TH1F(Form("hPtDev%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys}/Y_{def} - 1;Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.2, +0.2);
+      fgaus[pt] = new TF1(Form("fgaus%i", pt), "gaus", -0.2, +0.2);
+    }
     hPtDev[pt]->SetStats(0);
-    fgaus[pt] = new TF1(Form("fgaus%i", pt), "gaus", -2.5, +2.5);
   }
 
   for (int i = 1; i < trials; i++)
@@ -1159,14 +1170,15 @@ void MultiTrial(
 
   // Gaussian distribution of maximum deviations
   TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1000, 800);
-  StyleCanvas(cgaus, 0.15, 0.05, 0.05, 0.15);
+  StyleCanvas(cgaus, 0.1, 0.1, 0.1, 0.1);
   std::vector<TH1F *> hCollectionAbsoluteSyst(bins);
   std::vector<TF1 *> fgaus2(bins);
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
     cgaus->cd(pt + 1);
     fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-    hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     for (int i = 0; i < trials; i++)
     {
       if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
@@ -1186,12 +1198,14 @@ void MultiTrial(
     fgaus2[pt]->SetParameter(0, hCollectionAbsoluteSyst[pt]->GetMaximum());
     fgaus2[pt]->SetLineColor(kBlue);
     hCollectionAbsoluteSyst[pt]->GetYaxis()->SetTitle("Counts");
-    hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of absolute deviations");
+    hCollectionAbsoluteSyst[pt]->GetXaxis()->SetTitle("Y_{sys} - Y_{def}");
+    //hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of deviations");
     hCollectionAbsoluteSyst[pt]->Fit(fgaus2[pt], "LLR+");
     fgaus2[pt]->Draw("same");
-    TLegend *legend2 = new TLegend(0.2, 0.65, 0.5, 0.85);
+    TLegend *legend2 = new TLegend(0.6, 0.75, 0.8, 0.85);
     legend2->SetBorderSize(0);
-    legend2->SetTextSize(0.03);
+    legend2->SetTextSize(0.04);
+    legend2->AddEntry(fgaus2[pt], Form("#mu = %.5f", fgaus2[pt]->GetParameter(1)), "l");
     legend2->AddEntry(fgaus2[pt], Form("#sigma = %.5f", fgaus2[pt]->GetParameter(2)), "l");
     legend2->Draw();
   }
@@ -1200,11 +1214,15 @@ void MultiTrial(
   // cgaus->Close();
 
   TH1F *hSystMultiTrial2 = (TH1F *)h[0]->Clone("hSystMultiTrial2");
+  TH1F *hSystMultiTrialMean = (TH1F *)h[0]->Clone("hSystMultiTrialMean");
   hSystMultiTrial2->Reset();
+  hSystMultiTrialMean->Reset();
   for (int pt = 0; pt < bins; pt++)
   {
     hSystMultiTrial2->SetBinContent(pt + 1, fgaus2[pt]->GetParameter(2)); // abs. error --> gaussian sigma
     hSystMultiTrial2->SetBinError(pt + 1, 0);
+    hSystMultiTrialMean->SetBinContent(pt + 1, fgaus2[pt]->GetParameter(1) + hDefault->GetBinContent(pt + 1)); // value --> gaussian mean
+    hSystMultiTrialMean->SetBinError(pt + 1, 0);
   }
 
   // Absolute syst. uncertainty from maximum deviation
@@ -1259,7 +1277,7 @@ void MultiTrial(
   for (int i = 0; i < trials; i++)
   {
     if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
-        continue;
+      continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -1288,7 +1306,7 @@ void MultiTrial(
   for (int i = 0; i < trials; i++)
   {
     if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
-        continue;
+      continue;
     if (i == IndexNotDisplayed)
       continue;
     if (SisSyst == "BDT" || SisSyst == "MassAndBDTCut")
@@ -1339,6 +1357,7 @@ void MultiTrial(
     if (ExtrisApplyResoOnTheFly)
       OutputFile += "_ResoOnTheFly";
   }
+  // OutputFile += "_NewTest";
   OutputFile += ".root";
 
   TFile *Write = new TFile(OutputFile, "RECREATE");
@@ -1348,6 +1367,8 @@ void MultiTrial(
     fgaus[pt]->Write();
     fgaus2[pt]->Write();
   }
+  hDefault->Write();
+  hSystMultiTrialMean->Write();
   hSystMultiTrial->Write();
   hSystMultiTrialRMS->Write();
   hSystMultiTrial2->Write();
@@ -1358,7 +1379,7 @@ void MultiTrial(
   Write->Close();
 
   cout << "\n\nHo creato il file: " << OutputFile << endl;
-  cout << "The number of actual trials is: " << NumberOfActualTrials << endl;
+  cout << "The number of actual trials is: " << NumberOfActualTrialsBis << endl;
   cout << "The default value is: " << hDefault->GetBinContent(1) << endl;
   cout << "Syst. error (gauss fit to results distribution): " << hSystMultiTrial2->GetBinContent(1) << endl;
   cout << "Syst. error (RMS of results distribution): " << hRMS->GetBinContent(1) << endl;
