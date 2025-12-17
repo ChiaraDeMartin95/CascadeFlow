@@ -22,8 +22,8 @@
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
-#include "CommonVar.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -120,6 +120,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
                      Bool_t isFromFit = 0,
                      Bool_t isBkgPol = 1,
+                     Bool_t isTighterPzFitRange = 0,
                      Bool_t isRapiditySel = ExtrisRapiditySel,
                      Int_t BkgType = ExtrBkgType,
                      Bool_t UseTwoGauss = ExtrUseTwoGauss)
@@ -245,9 +246,13 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
     stringout += "_EPReso";
-  if (!isFromFit) stringout += "_NoPurityDivision";
+  if (!isFromFit)
+    stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
     stringout += "_isBkgPol0";
+  // stringout += "_SystReso";
+  if (isTighterPzFitRange)
+    stringout += "_TighterPzFitRange";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -420,6 +425,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_EPReso";
     if (isBkgPol == 0)
       PathIn += "_isBkgPol0";
+    // PathIn += "_SystReso";
+    if (isTighterPzFitRange)
+      PathIn += "_TighterPzFitRange";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -482,11 +490,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     if (!isFromFit)
     {
-      //fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
       fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
-      //fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
       fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
-      //fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
       fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
       fHistPzsError->SetBinError(m + 1, 0);
     }
@@ -531,7 +539,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   PathInSyst += SinputFileNameSyst;
   PathInSyst += "_" + ParticleName[ChosenPart];
   PathInSyst += IsOneOrTwoGauss[UseTwoGauss];
-  PathInSyst += SIsBkgParab[BkgType];
+  PathInSyst += SIsBkgParab[ExtrBkgTypeSyst];
   PathInSyst += "_Pzs2";
   if (isApplyWeights)
     PathInSyst += "_Weighted";
@@ -798,9 +806,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendSignif->SetFillStyle(0);
   legendSignif->SetTextAlign(12);
   legendSignif->SetTextSize(0.048);
-  legendSignif->AddEntry(fHistPzsSignif, "stat. + syst. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "pl");
-  legendSignif->AddEntry(fHistPzsSignifStat, "stat. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "pl");
-  legendSignif->AddEntry(fHistPzsSignifLambda, "stat. #Lambda + #bar{#Lambda} Run 2", "pl");
+  if (ChosenParticle == 6)
+  {
+    legendSignif->AddEntry(fHistPzsSignif, "stat. + syst. #Lambda + #bar{#Lambda} Run 3", "pl");
+    legendSignif->AddEntry(fHistPzsSignifStat, "stat. #Lambda + #bar{#Lambda} Run 3", "pl");
+  }
+  else
+  {
+    legendSignif->AddEntry(fHistPzsSignif, "stat. + syst. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "pl");
+    legendSignif->AddEntry(fHistPzsSignifStat, "stat. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "pl");
+    legendSignif->AddEntry(fHistPzsSignifLambda, "stat. #Lambda + #bar{#Lambda} Run 2", "pl");
+  }
   legendSignif->Draw("");
   canvasPzsSignif->SaveAs(stringoutpdf + "_Signif.pdf");
   canvasPzsSignif->SaveAs(stringoutpdf + "_Signif.png");
@@ -1001,13 +1017,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsPalermo->SetLineWidth(3);
   legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
-  gPzsPalermo->Draw("same l");
+  if (ChosenPart != 6)
+    gPzsPalermo->Draw("same l");
   // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
   //  gPzsLambdaJunlee->Draw("same p");
   //  gPzsLambdaJunleeSist->Draw("same e2");
   LegendPreliminary3->Draw("");
   legendParticles->Draw("");
-  legendPalermo->Draw("");
+  if (ChosenPart != 6)
+    legendPalermo->Draw("");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.pdf");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.png");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.eps");
@@ -1099,10 +1117,18 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "ErrorOO: " << ErrorOO << " ErrorPbPb: " << ErrorPbPb << endl;
   cout << "Nsigma: " << fabs(gPzsVsMult->GetY()[9] - gPzsVsMultJunlee->GetY()[2]) / sqrt(ErrorOO * ErrorOO + ErrorPbPb * ErrorPbPb) << endl;
 
+  cout << "Nsigma between OO and PbPb results at multiplicity of about 50: " << endl;
+  cout << "Mult (OO, PbPb): " << gPzsVsMult->GetX()[6] << " " << gPzsVsMultJunlee->GetX()[1] << endl;
+  cout << "Pzs,2 (OO, PbPb): " << gPzsVsMult->GetY()[6] << " " << gPzsVsMultJunlee->GetY()[1] << endl;
+  ErrorOO = sqrt(pow(gPzsVsMult->GetErrorYlow(6), 2) + pow(gPzsVsMultSist->GetErrorYlow(6), 2));
+  ErrorPbPb = sqrt(pow(gPzsVsMultJunlee->GetErrorYlow(1), 2) + pow(gPzsVsMultSistJunlee->GetErrorYlow(1), 2));
+  cout << "ErrorOO: " << ErrorOO << " ErrorPbPb: " << ErrorPbPb << endl;
+  cout << "Nsigma: " << fabs(gPzsVsMult->GetY()[6] - gPzsVsMultJunlee->GetY()[1]) / sqrt(ErrorOO * ErrorOO + ErrorPbPb * ErrorPbPb) << endl;
+  
   gPzspPb->SetLineColor(kBlack);
   gPzspPb->SetMarkerColor(kBlack);
   gPzspPb->SetMarkerStyle(20);
-  gPzspPb->Draw("same p");
+  // gPzspPb->Draw("same p");
   gPzsVsMult->SetMarkerStyle(20);
   gPzsVsMult->SetMarkerColor(kRed + 1);
   gPzsVsMult->SetLineColor(kRed + 1);
@@ -1125,7 +1151,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsVsMultNeNeJunlee->SetMarkerStyle(20);
   gPzsVsMultNeNeJunlee->SetMarkerColor(kGreen + 2);
   gPzsVsMultNeNeJunlee->SetLineColor(kGreen + 2);
-  gPzsVsMultNeNeJunlee->Draw("same p");
+  // gPzsVsMultNeNeJunlee->Draw("same p");
   TLegend *legendSystem = new TLegend(0.2, 0.7, 0.60, 0.9);
   legendSystem->SetFillStyle(0);
   legendSystem->SetTextAlign(12);
@@ -1134,9 +1160,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     legendSystem->AddEntry(gPzsVsMult, Form("#Lambda + #bar{#Lambda}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", MinPt[ChosenPart]), "pl");
   else
     legendSystem->AddEntry(gPzsVsMult, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", MinPt[ChosenPart]), "pl");
-  legendSystem->AddEntry(gPzspPb, "#Lambda + #bar{#Lambda}, |#it{#eta} | < 2.4, #it{p}_{T} > 0.8 GeV/#it{c}, p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "pl");
+  // legendSystem->AddEntry(gPzspPb, "#Lambda + #bar{#Lambda}, |#it{#eta} | < 2.4, #it{p}_{T} > 0.8 GeV/#it{c}, p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV", "pl");
   legendSystem->AddEntry(gPzsVsMultJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
-  legendSystem->AddEntry(gPzsVsMultNeNeJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Ne-Ne #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
+  // legendSystem->AddEntry(gPzsVsMultNeNeJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Ne-Ne #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
   legendSystem->Draw("");
   // gPzsVsMultJunleeSist->SetFillStyle(0);
   // gPzsVsMultJunleeSist->Draw("same e2");
