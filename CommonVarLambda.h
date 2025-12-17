@@ -2,7 +2,8 @@ Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2), 
 Bool_t ExtrisPartialEta = 0; // 1: select only 0 < eta < 0.8 (opposite to FT0C)
-Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 1;
@@ -16,8 +17,6 @@ Bool_t isOOCentrality = 1;
 const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 bool isRun2Binning = 0;
 // const Int_t numPtBins = 15;
-const Int_t numPtBins = 7;
-const Int_t numPtBinsReduced = 7;
 //  const Int_t numPtBins = 6; // Run2 binning
 const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
@@ -58,12 +57,18 @@ Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
 
 // Pt bins
-// Double_t PtBins[numPtBins + 1] = {0.8, 1.4, 2, 2.5, 3, 4, 6}; // Run 2 binning for v2
-// Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
+const Int_t numPtBins = 7;
+const Int_t numPtBinsReduced = 7;
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
-Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.5, 2, 2.5, 3, 4, 8};
+Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 8};
 Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8};
+
+// Acceptance correction
+const Int_t numEtaBins = 8;
+const Int_t numPtBinsLambda = 9;
+Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
+Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
 
 // Colors and markers
 Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange};
@@ -75,18 +80,12 @@ Float_t SizeMultRatio[] = {1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 
 Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29};
 Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 
-// Acceptance correction
-const Int_t numEtaBins = 8;
-const Int_t numPtBinsLambda = 9;
-Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
-Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
-
 // Decay parameters
 Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1}; // from PDG 2024, for Xi+ and Omega+-, set to 1 as it has no meaning
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1};
 Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.747, -0.758, 0.747, -0.758, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1}; // decay parameter for Lambda -> p pi
 Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // decay parameter for Lambda -> p pi
 
 // File names
@@ -121,18 +120,22 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 //TString SinputFileName = "LHC25_OO_pass2_Train510678_CorrectReso"; //Pzs2 of Lambda up to 100%
 //TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 100%
 //TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
-TString SinputFileName = "LHC25_OO_pass2_Train562850"; 
+TString SinputFileName = "LHC25_OO_pass2_Train562850"; //latest
+//TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+//TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; //used for acceptance
 
 //TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
 //TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
 TString SinputFileNameAR = "LHC25_OO_pass2_Train562850";
+//TString SinputFileNameAR = "LHC25_OO_pass2_Train567017"; //latest resolution    
 
 //TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
 //TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
 //TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
-TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132_wTHN.root";
+TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017.root"; //the most recent ones, compatible with Train557787_T0CShiftCorr_TPCCorr_WithT0A
+//TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132_wTHN.root";
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -152,8 +155,9 @@ TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 //TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
 //TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
-TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso"; 
+//TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso"; 
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; 
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train562850"; 
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
@@ -173,7 +177,7 @@ const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 
 // Variabls used in FitV2OrPol.C macro ----------------------
 const bool isApplyAcceptanceCorrection = 0;                     // for recent files, acceptance correction is applied on the fly
 const bool isAcceptanceFromExternalFile = 0;                    // 1 for acceptance from external file, 0 for acceptance from the same file
-TString SAcceptanceFile = "AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
+TString SAcceptanceFile = "../AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
 const bool useMixedBDTValueInFitMacro = 0;                      // variable used in FitV2OrPol.C macro
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
@@ -188,11 +192,11 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
 // --------------------------- SYST ------------------------------
-const int trialsLambdaTopo = 20; // number of trials for the systematic studies related to Lambda topology
+const int trialsLambdaTopo = 100; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 20;    // number of trials for the systematic studies related to BDTscore
+const int trialsBDT = 100;    // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
@@ -250,3 +254,10 @@ TString ResoFileName_EPLF = "Resolution/Resolution_EP_LF_" + inputFileResoLF;
 TString ResoFileName_EPCFW = "Resolution/Resolution_EP_CFW_" + inputFileResoCFW;
 TString ResoFileName_SPLF = "Resolution/Resolution_SP_LF_" + inputFileResoLF;
 TString ResoFileName_SPCFW = "Resolution/Resolution_SP_CFW_" + inputFileResoCFW;
+
+// theory predictions
+// A.Palermo, Pzs2 of Lambda vs centrality with bulk viscosity
+Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
+Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
+                           2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};
+
