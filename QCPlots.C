@@ -527,6 +527,9 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 
   TFile *fout = new TFile("../CentralityWeight_" + inputFileName + ".root", "RECREATE");
   hCentWeight->Write();
+  TList *list = new TList();
+  list->Add(hCentWeight);
+  list->Write("ccdb_object", TObject::kSingleKey);
   fout->Close();
 
   TCanvas *cCentWeight = new TCanvas("cCentWeight", "cCentWeight", 800, 600);
