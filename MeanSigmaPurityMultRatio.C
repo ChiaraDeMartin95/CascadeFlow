@@ -21,7 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -134,9 +135,10 @@ Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.2, 1
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
+                              Bool_t isTightMassForAcceptancePurity = 1,
                               Int_t ChosenMult = 7 /*commonNumCent*/ /*- 3*/,
                               Bool_t isRapiditySel = ExtrisRapiditySel,
-                              TString OutputDir = "MeanSigmaPurityMultClasses/",
+                              TString OutputDir = "../MeanSigmaPurityMultClasses/",
                               Int_t BkgType = ExtrBkgType,
                               Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
@@ -285,8 +287,12 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   if (isReducedPtBins)
     stringout += "_ReducedPtBins";
-  if (isOOCentrality)
-    stringout += "_isOOCentrality";
+  if (ExtrisApplyResoOnTheFly)
+    stringout += "_ResoOnTheFly";
+  if (ChosenPart == 0)
+    stringout += "_EPReso";
+  if (isTightMassForAcceptancePurity)
+    stringout += "_isTightMassForAcceptancePurity";
   stringoutpdf = stringout;
   stringout += ".root";
   TFile *fileout = new TFile(stringout, "RECREATE");
@@ -404,7 +410,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         CentFT0CMax = CentFT0CLambdaOO[m + 1];
       }
     }
-    PathIn = "OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
+    PathIn = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
     PathIn += "_" + ParticleName[ChosenPart];
     PathIn += IsOneOrTwoGauss[UseTwoGauss];
@@ -440,11 +446,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
     if (Choice == 10 || Choice == 11)
     {
-      PathIn = "AcceptancePlots/Acceptance_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
+      PathIn = "../AcceptancePlots/Acceptance_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
       if (isApplyWeights)
         PathIn += "_Weighted";
-      if (isApplyCentWeight)
-        PathIn += "_CentWeighted";
+      // if (isApplyCentWeight)
+      //   PathIn += "_CentWeighted";
       if (v2type == 1)
         PathIn += "_SP";
       if (!useCommonBDTValue)
@@ -460,10 +466,17 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         PathIn += "_Eta08";
       PathIn += STHN[ExtrisFromTHN];
     }
-    if (isReducedPtBins)
-      PathIn += "_ReducedPtBins";
-    // if (isOOCentrality)
-    //   PathIn += "_isOOCentrality";
+    // if (isReducedPtBins)
+    //   PathIn += "_ReducedPtBins";
+    if (isOOCentrality)
+      PathIn += "_isOOCentrality";
+    // if (ExtrisApplyResoOnTheFly)
+    //   PathIn += "_ResoOnTheFly";
+    if (ChosenPart == 0)
+      PathIn += "_EPReso";
+    if (isTightMassForAcceptancePurity)
+      PathIn += "_TightAcceptance";
+    // PathIn += "_isTightMassForAcceptancePurity";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -554,7 +567,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     {
       cout << "bin " << b << " " << fHistSpectrum[m]->GetBinContent(b) << "+-" << fHistSpectrum[m]->GetBinError(b) << endl;
       cout << "bin " << b << " " << fHistSpectrumScaled[m]->GetBinContent(b) << "+-" << fHistSpectrumScaled[m]->GetBinError(b) << endl;
-      //fHistSpectrumScaled[m]->SetBinError(b, fHistSpectrumScaled[commonNumCent]->GetBinError(b));
+      // fHistSpectrumScaled[m]->SetBinError(b, fHistSpectrumScaled[commonNumCent]->GetBinError(b));
     }
     SetFont(fHistSpectrumScaled[m]);
     fHistSpectrumScaled[m]->SetMarkerColor(ColorMult[m]);
@@ -644,7 +657,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       // cout << "bin " << b << " " << fHistSpectrum[m]->GetBinContent(b) << endl;
       // cout << "bin " << b << " " << fHistSpectrum[ChosenMult]->GetBinContent(b) << endl;
       // cout << "bin " << b << " " << fHistSpectrumMultRatio[m]->GetBinContent(b) << endl;
-      //fHistSpectrumMultRatio[m]->SetBinError(b, fHistSpectrumMultRatio[commonNumCent]->GetBinError(b));
+      // fHistSpectrumMultRatio[m]->SetBinError(b, fHistSpectrumMultRatio[commonNumCent]->GetBinError(b));
     }
     fHistSpectrumMultRatio[m]->SetMarkerColor(ColorMult[m]);
     fHistSpectrumMultRatio[m]->SetLineColor(ColorMult[m]);
