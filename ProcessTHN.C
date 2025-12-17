@@ -19,8 +19,8 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-#include "CommonVar.h"
-//#include "CommonVarLambda.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
@@ -29,6 +29,7 @@ using namespace std;
 
 void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
+                Bool_t isTightAcceptance = 0,
                 TString inputFileName = SinputFileName,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
@@ -216,7 +217,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
   TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
   TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
-  //TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
+  // TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
   TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
   // TH1F *hDummyPt = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
@@ -232,7 +233,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   hDummyCentrality->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyCharge->GetYaxis()->SetRangeUser(0, 1);
   hDummyPt->GetYaxis()->SetRangeUser(0, 0.25);
-  //hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
+  // hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
   hDummyMass->GetYaxis()->SetRangeUser(0, 0.3);
   hDummyBDT->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
@@ -319,7 +320,14 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     }
 
     // LambdaMass selection
-    hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.119 - 0.00001));
+    if (isTightAcceptance)
+    {
+      hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.114 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.117 - 0.00001));
+    }
+    else
+    {
+      hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.119 - 0.00001));
+    }
 
     // Lambda Eta selection
     hXiCos2ThetaFromLambdaL->GetAxis(2)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(2)->FindBin(-0.8 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(2)->FindBin(0.8 - 0.00001));
@@ -356,7 +364,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hCharge[cent]->Draw("same");
 
     canvasQC->cd(3);
-    //hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
+    // hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
     hPt[cent] = (TH1F *)hV2->Projection(2);
     // hPt[cent] = (TH1F *)hXiCos2Theta->Projection(3); // pt
     hPt[cent]->Scale(1. / hPt[cent]->Integral());
@@ -381,8 +389,10 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hMass[cent]->Draw("same");
 
     canvasQC->cd(5);
-    if (isProducedAcceptancePlots) hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
-    else hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
+    if (isProducedAcceptancePlots)
+      hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
+    else
+      hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
     hBDT[cent]->Scale(1. / hBDT[cent]->Integral());
     hBDT[cent]->SetLineColor(ColorMult[cent]);
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
@@ -481,8 +491,10 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += SBDT;
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
-  //if (isApplyResoOnTheFly)
-  //  OutputFileName += "_ResoOnTheFly";
+  // if (isApplyResoOnTheFly)
+  //   OutputFileName += "_ResoOnTheFly";
+  if (isTightAcceptance)
+    OutputFileName += "_TightAcceptance";
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
