@@ -1,7 +1,8 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
-Bool_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 0;       // 1 for OO
@@ -94,10 +95,12 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 // TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
 // TString SinputFileName = "LHC23_PbPb_pass5_Train534683"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5
 TString SinputFileName = "LHC23_PbPb_pass5_Train540301"; // PAPER PROPOSAL: Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
-// TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected), |z|< 8 cm
 // TString SinputFileName = "LHC23_PbPb_pass5_Train563856"; // same settings as Train540301 but histograms for EP resolutions stored (to be used for resolution!)
 // TString SinputFileName = "LHC23_PbPb_pass5_Train566502"; // acceptance for run by run studies
 //TString SinputFileName = "LHC23_PbPb_pass5_Train567157_OccupancyCut"; // systematic associated with occupancy; FT0COccupancy < 3000 (cuts a lot of events)
+//TString SinputFileName = "LHC23_PbPb_pass5_Train568468_OccupancySel20000";
+//TString SinputFileName = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
 
 // Reso tests in OO
 // TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
@@ -136,6 +139,7 @@ TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
 TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics are DONE and to be USED for PAPER
+//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
 //TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
