@@ -16,7 +16,7 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
-#include "CommonVar.h"
+#include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
 {
@@ -107,6 +107,7 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
 }
 
 void Acceptance(Int_t indexMultTrial = 0,
+                Bool_t isTightAcceptance = 0,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
                 Bool_t isRapiditySel = ExtrisRapiditySel,
@@ -139,6 +140,8 @@ void Acceptance(Int_t indexMultTrial = 0,
   SinputFile += SBDT;
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
+  if (isTightAcceptance)
+    SinputFile += "_TightAcceptance";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -189,7 +192,7 @@ void Acceptance(Int_t indexMultTrial = 0,
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 90;
+        CentFT0CMax = 100;
       }
       else
       {
@@ -362,6 +365,9 @@ void Acceptance(Int_t indexMultTrial = 0,
   SOutputFile += STHN[ExtrisFromTHN];
   if (isOOCentrality)
     SOutputFile += "_isOOCentrality";
+  if (isTightAcceptance)
+    SOutputFile += "_TightAcceptance";
+
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   TList *listAcceptance = new TList();
