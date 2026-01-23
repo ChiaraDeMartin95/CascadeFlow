@@ -1,16 +1,16 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
-Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2), 
-Bool_t ExtrisPartialEta = 0; // 1: select only 0 < eta < 0.8 (opposite to FT0C)
-Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
-Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2),
+Bool_t ExtrisPartialEta = 0;  // 1: select only 0 < eta < 0.8 (opposite to FT0C)
+Int_t ExtrBkgType = 1;        // 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t ExtrUseTwoGauss = 1;
-Bool_t isApplyWeights = 0;        // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1;
-Bool_t ExtrisApplyEffWeights = 0; // weights to take into account efficiency dependence on multiplciity (for v2 only)
-Bool_t ExtrisApplyResoOnTheFly = 1;
-Int_t v2type = 2;                 // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0;         // 0: process the tree, 1: process the THnSparse
+Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
+Bool_t isApplyCentWeight = 1;       // 0 for acceptance
+Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
+Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
+Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
+Bool_t ExtrisFromTHN = 0;           // 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 1;
 Bool_t isOOCentrality = 1;
 
@@ -45,14 +45,16 @@ TString TitleYPzs = "#it{P}_{z,s2}";
 // Centrality
 Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80}; //{0, 30, 50, 80}; // for pt differential measurement
 Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
-Int_t CentFT0CLambdaOO[numCentLambdaOO + 1]= {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
 Double_t dNdEtaAbhiErr[numCent] = {63, 40, 27, 19, 13, 8, 5, 3};
-Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50};
-Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23};
-Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
-Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
+Double_t dNdEtaOOPrel[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50}; //approved up to 60%
+Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23}; //approved up to 60%
+Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.91, 14.87, 11.11}; // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.58, 0.54, 0.48};         // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaNeNe[2] = {105.59, 20.63};                                                                            // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
+Double_t dNdEtaNeNeErr[2] = {3.52, 0.69};                                                                            // random reasonable errors assigned
 
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
 
@@ -85,7 +87,7 @@ Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1}; // from PDG 
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1};
 Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1};     // decay parameter for Lambda -> p pi
 Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // decay parameter for Lambda -> p pi
 
 // File names
@@ -105,37 +107,43 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 // TString SinputFileName = "LHC23_PbPb_pass4_Train368064_ProtonAcc"; // proton acceptance calculation (vs pt and eta of Lambda)
 // TString SinputFileName = "LHC23_PbPb_pass4_Train369742"; // Pzs2 from Lambda, proton acceptance vs pt on the fly
 // TString SinputFileName = "LHC23_PbPb_pass4_Train370610_ProtonAcc"; // PRELIMINARIES: Pzs2 from Lambda, proton acceptance vs pt on the fly, proton acceptance vs pt and eta of Lambda
-//TString SinputFileName = "LHC23_PbPb_pass5_Train456578_ProtonAcc"; // Xi polarization, proton acceptance vs pt and eta of Lambda
-//TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
-//TString SinputFileName = "LHC23_PbPb_pass5_Train463978_PrimaryProtonAcceptance"; //proton acceptance for primary lambdas
-//TString SinputFileName = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; //Lambda polarization, proton acceptance for secondary lambdas
-//TString SinputFileName = "464640_NewEP"; 
-//TString SinputFileName = "TestLFEP"; 
-//TString SinputFileName = "LHC23_PbPb_pass5_small_testEP"; // test with LF EP
-//TString SinputFileName = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
+// TString SinputFileName = "LHC23_PbPb_pass5_Train456578_ProtonAcc"; // Xi polarization, proton acceptance vs pt and eta of Lambda
+// TString SinputFileName = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS4
+// TString SinputFileName = "LHC23_PbPb_pass5_Train463978_PrimaryProtonAcceptance"; //proton acceptance for primary lambdas
+// TString SinputFileName = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; //Lambda polarization, proton acceptance for secondary lambdas
+// TString SinputFileName = "464640_NewEP";
+// TString SinputFileName = "TestLFEP";
+// TString SinputFileName = "LHC23_PbPb_pass5_small_testEP"; // test with LF EP
+// TString SinputFileName = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
 // TString SinputFileName = "LHC25_OO_Train487953"; // test with Lambdas
-//TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // Pzs2 of Lambda
-//TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
+// TString SinputFileName = "LHC25_OO_LambdaPol_Train491711"; // Pzs2 of Lambda
+// TString SinputFileName = "LHC25_OO_pass2_Train503805"; // Pzs2 of Lambda
 
-//TString SinputFileName = "LHC25_OO_pass2_Train510678_CorrectReso"; //Pzs2 of Lambda up to 100%
-//TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 100%
-//TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
-TString SinputFileName = "LHC25_OO_pass2_Train562850"; //latest
-//TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
-//TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; //used for acceptance
+// TString SinputFileName = "LHC25_OO_pass2_Train510678_CorrectReso"; //Pzs2 of Lambda up to 100%
+// TString SinputFileName = "LHC25_OO_pass2_Train510678"; //Pzs2 of Lambda up to 100%
+// TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+// TString SinputFileName = "LHC25_OO_pass2_Train562850"; //latest
+// TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
+// TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; //used for acceptance
+// TString SinputFileName = "LHC25_OO_pass2_Train576495"; //tree with |eta| < 0.8 -- the DEFAULT ONE FOR THE MOMENT
+// TString SinputFileName = "LHC25_OO_pass2_Train575744"; //THN
+// TString SinputFileName = "LHC25_OO_pass2_Train576496"; //tree with |eta| < 0.8 and |z| < 8 cm
+// TString SinputFileName = "LHC25_OO_pass2_Train589559"; //THN larger range pzs2
+TString SinputFileName = "LHC25_OO_pass2_Train589711"; // tree with new acceptance
 
-//TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
-//TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
-TString SinputFileNameAR = "LHC25_OO_pass2_Train562850";
-//TString SinputFileNameAR = "LHC25_OO_pass2_Train567017"; //latest resolution    
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train562850";
+TString SinputFileNameAR = "LHC25_OO_pass2_Train589711";
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train567017"; //latest resolution
 
-//TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
+// TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
-//TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
-//TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
-TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017.root"; //the most recent ones, compatible with Train557787_T0CShiftCorr_TPCCorr_WithT0A
-//TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132_wTHN.root";
+// TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
+// TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train557787_T0CShiftCorr_TPCCorr_WithT0A.root";
+TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017.root"; // the most recent ones, compatible with Train557787_T0CShiftCorr_TPCCorr_WithT0A
+// TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train562132_wTHN.root";
 
 // File names for systematics
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train333596";
@@ -148,20 +156,24 @@ TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train368064_ProtonAcc";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train369742";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass4_Train370610_ProtonAcc";
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456578_ProtonAcc";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456578_ProtonAcc";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train481586"; // test with Lambdas
 // TString SinputFileNameSyst = "LHC25_OO_Train487953";
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
-//TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
-//TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
-//TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso"; 
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas"; 
-TString SinputFileNameSyst = "LHC25_OO_pass2_Train562850"; 
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train456579_ProtAccFromPass4";
+// TString SinputFileNameSyst = "LHC25_OO_LambdaPol_Train491711";
+// TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
+// TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas";
+//TString SinputFileNameSyst = "LHC25_OO_pass2_Train562850";
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train589711"; 
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
 TString SinputFileNameEffSyst = "LHC24g3_pass4_Train331315";
+
+// MC file for Lambda feed-down fraction
+TString SinputFileNameFDFraction = "LHC25h3b_pass2_Train591313";
 
 // BDT selections---------------------------------------------------------
 const float DefaultBDTscoreCut = 0.96;
@@ -175,10 +187,10 @@ const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 
 //---------------------------------------------------------
 
 // Variabls used in FitV2OrPol.C macro ----------------------
-const bool isApplyAcceptanceCorrection = 0;                     // for recent files, acceptance correction is applied on the fly
-const bool isAcceptanceFromExternalFile = 0;                    // 1 for acceptance from external file, 0 for acceptance from the same file
+const bool isApplyAcceptanceCorrection = 0;                        // for recent files, acceptance correction is applied on the fly
+const bool isAcceptanceFromExternalFile = 0;                       // 1 for acceptance from external file, 0 for acceptance from the same file
 TString SAcceptanceFile = "../AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
-const bool useMixedBDTValueInFitMacro = 0;                      // variable used in FitV2OrPol.C macro
+const bool useMixedBDTValueInFitMacro = 0;                         // variable used in FitV2OrPol.C macro
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)
@@ -194,9 +206,9 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // --------------------------- SYST ------------------------------
 const int trialsLambdaTopo = 100; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
-bool ExtrisSysMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 100;    // number of trials for the systematic studies related to BDTscore
+bool ExtrisSysMultTrial = 0;       // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
+const int trialsBDT = 100;         // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
@@ -210,19 +222,19 @@ const bool isTightest = 0;
 // systematics for Lambda
 const float DefaultV0RadiusCut = 1.0;
 const float UpperlimitV0RadiusCut = 1.2;
-const float LowerlimitV0RadiusCut = 0.9; //derived data limit
+const float LowerlimitV0RadiusCut = 0.9; // derived data limit
 const float DefaultDcaV0DauCut = 1.2;
-const float UpperlimitDcaV0DauCut = 1.5; //derived data limit
-const float LowerlimitDcaV0DauCut = 1.0; 
+const float UpperlimitDcaV0DauCut = 1.5; // derived data limit
+const float LowerlimitDcaV0DauCut = 1.0;
 const double DefaultV0CosPA = 0.995;
 const double UpperlimitV0CosPA = 0.999;
-const double LowerlimitV0CosPA = 0.99; //0.97 is the derived data limit
+const double LowerlimitV0CosPA = 0.99; // 0.97 is the derived data limit
 const float DefaultDcaNegToPV = 0.06;
 const float UpperlimitDcaNegToPV = 0.1;
-const float LowerlimitDcaNegToPV = 0.05; //derived data limit
+const float LowerlimitDcaNegToPV = 0.05; // derived data limit
 const float DefaultDcaPosToPV = 0.06;
 const float UpperlimitDcaPosToPV = 0.1;
-const float LowerlimitDcaPosToPV = 0.05; //derived data limit
+const float LowerlimitDcaPosToPV = 0.05; // derived data limit
 
 // Systematic studies on mass cut
 const int trialsMassCut = 7;
@@ -260,4 +272,3 @@ TString ResoFileName_SPCFW = "Resolution/Resolution_SP_CFW_" + inputFileResoCFW;
 Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
 Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
                            2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};
-
