@@ -107,7 +107,7 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
 }
 
 void Acceptance(Int_t indexMultTrial = 0,
-                Bool_t isTightAcceptance = 0,
+                Int_t isTightAcceptance = 0,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
                 Bool_t isRapiditySel = ExtrisRapiditySel,
@@ -140,8 +140,10 @@ void Acceptance(Int_t indexMultTrial = 0,
   SinputFile += SBDT;
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
-  if (isTightAcceptance)
+  if (isTightAcceptance == 1)
     SinputFile += "_TightAcceptance";
+  else if (isTightAcceptance == 2)
+    SinputFile += "_TighterAcceptance2";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -365,8 +367,10 @@ void Acceptance(Int_t indexMultTrial = 0,
   SOutputFile += STHN[ExtrisFromTHN];
   if (isOOCentrality)
     SOutputFile += "_isOOCentrality";
-  if (isTightAcceptance)
+  if (isTightAcceptance == 1)
     SOutputFile += "_TightAcceptance";
+  else if (isTightAcceptance == 2)
+    SOutputFile += "_TightAcceptance2";
 
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
