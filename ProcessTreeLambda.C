@@ -81,6 +81,7 @@ Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
 
 void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
+                       Bool_t isSystReso = 0,
                        //		       Bool_t isPartialEta = ExtrisPartialEta,
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
@@ -151,6 +152,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TString resoCentFileName = SinputFileNameResoWeight;
   TFile *resoFile = new TFile(resoCentFileName, "READ");
   TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get("hResoPerCentBinsV0A") : nullptr};
+  if (isSystReso)
+    reso = (TH1D *)resoFile->Get("hResoPerCentBinsT0ATPCC");
 
   auto h = d1.Histo1D("fPt");
 
@@ -168,10 +171,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
 
   auto histoBefV0Radius = d2.Histo1D({"histoBefV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
-  auto histoBefDcaV0Daughters = d2.Histo1D({"histoBefDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
-  auto histoBefV0CosPA = d2.Histo1D({"histoBefV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
-  auto histoBefDcaNegToPV = d2.Histo1D({"histoBefDcaNegToPV", "DCA Neg to PV Distribution", 100, -2, 2}, "fDcaNegToPV");
-  auto histoBefDcaPosToPV = d2.Histo1D({"histoBefDcaPosToPV", "DCA Pos to PV Distribution", 100, -2, 2}, "fDcaPosToPV");
+  auto histoBefDcaV0Daughters = d2.Histo1D({"histoBefDcaV0Daughters", "DCA V0 Daughters Distribution", 100, 0, 2}, "fDcaV0Daughters");
+  auto histoBefV0CosPA = d2.Histo1D({"histoBefV0CosPA", "V0 CosPA Distribution", 90, 0.985, 1}, "fV0CosPA");
+  auto histoBefDcaNegToPV = d2.Histo1D({"histoBefDcaNegToPV", "DCA Neg to PV Distribution", 200, -1, 1}, "fDcaNegToPV");
+  auto histoBefDcaPosToPV = d2.Histo1D({"histoBefDcaPosToPV", "DCA Pos to PV Distribution", 200, -1, 1}, "fDcaPosToPV");
 
   // topological selections -- OLD way using Filter
   /*
@@ -255,7 +258,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 100;
+  const int NVAR = 200;
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -325,10 +328,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       "fMassLambda", "fPt");
 
   auto histoV0Radius = df_selected.Histo1D({"histoV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
-  auto histoDcaV0Daughters = df_selected.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, -2, 2}, "fDcaV0Daughters");
-  auto histoV0CosPA = df_selected.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 100, 0.985, 1}, "fV0CosPA");
-  auto histoDcaNegToPV = df_selected.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -2, 2}, "fDcaNegToPV");
-  auto histoDcaPosToPV = df_selected.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -2, 2}, "fDcaPosToPV");
+  auto histoDcaV0Daughters = df_selected.Histo1D({"histoDcaV0Daughters", "DCA V0 Daughters Distribution", 100, 0, 2}, "fDcaV0Daughters");
+  auto histoV0CosPA = df_selected.Histo1D({"histoV0CosPA", "V0 CosPA Distribution", 90, 0.985, 1}, "fV0CosPA");
+  auto histoDcaNegToPV = df_selected.Histo1D({"histoDcaNegToPV", "DCA Neg to PV Distribution", 200, -1, 1}, "fDcaNegToPV");
+  auto histoDcaPosToPV = df_selected.Histo1D({"histoDcaPosToPV", "DCA Pos to PV Distribution", 200, -1, 1}, "fDcaPosToPV");
 
   TH1D *hg_V0Radius = new TH1D("hg_V0Radius", "V0 Radius Distribution", 30, 0.8, 1.3);
   TH1D *hg_DcaV0Daughters = new TH1D("hg_DcaV0Daughters", "DCA V0 Daughters Distribution", 30, 0.9, 1.6);
@@ -359,10 +362,14 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto hmassvsPt = df_selected.Histo2D({"mass_LambdavPt", "Invariant mass of p#pi vs pT", 100, 1.09, 1.14, 100, 0, 10}, "fMassLambda", "fPt");
 
   // eta distributions
-  //  auto heta = df_selected.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
+  auto heta = df_selected.Histo1D({"eta", "Eta distribution of selected candidates", 200, -2, 2}, "fEta");
 
   // phi distributions
   auto hphi = df_selected.Histo1D({"phi", "Phi distribution of selected candidates", 200, 0, 2 * TMath::Pi()}, "fPhi");
+
+  // rapidity distributions
+  df_selected = df_selected.Define("fRapidity", "asinh(fPt/sqrt(fPt*fPt + 1.115683*1.115683) * sinh(fEta))");
+  auto hrapidity = df_selected.Histo1D({"rapidity", "Rapidity distribution of selected candidates", 200, -5, 5}, "fRapidity");
 
   // eta - phi distributions
   // auto hEtaPhi = df_selected.Histo2D({"PhivsEta", "Phi vs Eta distribution of selected candidates", 100, -1, 1, 200, 0, 2 * TMath::Pi()}, "fEta", "fPhi");
@@ -394,12 +401,16 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     // else
     //   OutputFileName += "_SysMultTrial";
   }
+  //OutputFileName += "_isTightest";
+  //OutputFileName += "_isLoosest";
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
   OutputFileName += Form("_Nvar%i", NVAR);
-  OutputFileName += "_CorrectReso";
+  // OutputFileName += "_CorrectReso";
+  if (isSystReso)
+    OutputFileName += "_SystReso";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -438,6 +449,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       h_variationsmassVsPt;
   */
 
+  // y = arsinh(pT/mT * sinh(eta))
   df_selected = df_selected.Define("fPsiDiff", "if ((fPhi-fPsiT0C) < 0) return (fPhi-fPsiT0C+(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > 2* TMath::Pi()) return (fPhi-fPsiT0C-2*(float)TMath::Pi()); else if ((fPhi-fPsiT0C) > TMath::Pi()) return (fPhi-fPsiT0C-(float)TMath::Pi()); else return (fPhi-fPsiT0C);");
   df_selected = df_selected.Define("f2PsiDiffCorr", "2*fPsiDiff");
   df_selected = df_selected.Define("f2PsiDiff", "2*fPhi-2*fPsiT0C");
@@ -579,6 +591,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   hmassvsPt->Write();
   hMassVsPt->Write();
   hphi->Write();
+  heta->Write();
+  hrapidity->Write();
   histoV0Radius->Write();
   histoDcaV0Daughters->Write();
   histoV0CosPA->Write();
