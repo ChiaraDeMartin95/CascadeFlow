@@ -21,8 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -593,7 +593,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
-  TString Soutputfile = "";
+  TString Soutputfile = "../";
   if (!isSPReso)
   { // event plane method
     if (isLFReso)
@@ -622,6 +622,10 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   hResoT0ATPCC->Write();
   hResoPerCentBinsV0A->Write();
   hResoPerCentBinsT0ATPCC->Write();
+  TList *listReso = new TList();
+  listReso->Add(hResoPerCentBinsV0A);
+  listReso->Add(hResoPerCentBinsT0ATPCC);
+  listReso->Write("ccdb_object", TObject::kSingleKey);
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
 }
