@@ -22,6 +22,7 @@
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
+               Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
                Bool_t isRapiditySel = ExtrisRapiditySel,
                TString inputFileName = SinputFileName,
                Int_t RebinFactor = 1,
@@ -75,20 +76,18 @@ void ComputeV2(Int_t indexMultTrial = 0,
       SinputFile += "_isLoosest";
     else if (isTightest)
       SinputFile += "_isTightest";
-    // else
-    // SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+    //SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
   }
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
     SinputFile += "_ResoOnTheFly";
-  if (ChosenPart==6 && ExtrisSysLambdaMultTrial)
-    SinputFile += "_Nvar20";
+  if (ChosenPart == 6 && !ExtrisFromTHN)
+    SinputFile += "_Nvar200";
+  if (ChosenPart == 6 && !isMassCutForAcceptance)
+    SinputFile += "_NoMassCutForAcceptance";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
-
-  if (ChosenParticle == 6)
-    PtBins[0] = 0.5; // for Lambda
 
   TFile *inputFile = new TFile(SinputFile);
   TH3D *hmassVsPtVsV2C[commonNumCent + 1];
@@ -453,6 +452,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
       return;
     }
 
+    if (ChosenParticle == 6 && isProducedAcceptancePlots)
+    {
+      hmassVsPt[cent] = (TH2F *)hmassVsPtVsCos2Theta[cent]->Project3D("yx");
+      hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
+    }
     // psi binning for polarization
     Double_t PhiBins[numPsiBins + 1];
     for (Int_t psi = 0; psi < numPsiBins; psi++)
@@ -588,7 +592,13 @@ void ComputeV2(Int_t indexMultTrial = 0,
 
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
       if (ChosenPart == 6)
+      {
         hmass[cent][pt] = (TH1F *)hmassVsPtVsPzs2[cent]->Project3D("xe"); // mass for Lambda using Pzs2
+        if (isProducedAcceptancePlots)
+        {
+          hmass[cent][pt] = (TH1F *)hmassVsPtVsCos2Theta[cent]->Project3D("xe"); // mass for Lambda using Cos2Theta
+        }
+      }
       hmass[cent][pt]->SetName(hNameMass[cent][pt]);
       hmass[cent][pt]->Rebin(RebinFactor);
 
@@ -663,6 +673,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
   if (ExtrisApplyResoOnTheFly)
     SOutputFile += "_ResoOnTheFly";
+  // if (ChosenPart == 6)
+  //   SOutputFile += "_CorrectReso_TestLeassPtBins";
+  // SOutputFile += "_SystReso";
+  if (ChosenPart == 6 && !isMassCutForAcceptance)
+    SOutputFile += "_NoMassCutForAcceptance";
   SOutputFile += ".root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
@@ -704,7 +719,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
       else if (cent != numCent && pt != numPtBins && !ExtrisFromTHN)
         hPhiCentHisto1D[cent][pt]->Write();
     }
-    cout << "hello" << cent << endl;
     for (Int_t psi = 0; psi < numPsiBins; psi++)
     {
       //   hmassVsPz[cent][psi]->Write();
