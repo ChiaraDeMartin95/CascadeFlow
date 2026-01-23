@@ -29,12 +29,23 @@ using namespace std;
 
 void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
-                Bool_t isTightAcceptance = 0,
+                Int_t isTightAcceptance = 0,
+                Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
                 TString inputFileName = SinputFileName,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (!isMassCutForAcceptance && !isProducedAcceptancePlots)
+  {
+    cout << "Mass cut for acceptance can be removed only when producing acceptance plots, to avoid assigning the wrong names to the output files!" << endl;
+    return;
+  }
+  if (!isMassCutForAcceptance && ChosenPart != 6)
+  {
+    cout << "Mass cut for acceptance removal is implemented only for Lambda. Please check the settings." << endl;
+    return;
+  }
   // phi and efficiency weights should be applied in task
   Int_t Part = 0;
   if ((ChosenPart == 1) || (ChosenPart == 4) || (ChosenPart == 5))
@@ -217,8 +228,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
   TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
   TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
-  // TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
-  TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
+  TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
+  // TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
   // TH1F *hDummyPt = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
   // TH1F *hDummyMass = (TH1F *)hXiCos2ThetaFromLambda->Projection(4);
@@ -320,9 +331,14 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     }
 
     // LambdaMass selection
-    if (isTightAcceptance)
+    // These histos are used for the Lambda daughter acceptance (XI analysis) and for the Lambda acceptance (Lambda analysis) computed without fit in the macro Acceptance.C
+    if (isTightAcceptance == 1)
     {
-      hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.114 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.117 - 0.00001));
+      hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.1145 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.1158 - 0.00001)); // 3 mass intervals arounf the peak
+    }
+    else if (isTightAcceptance == 2)
+    {
+      hXiCos2ThetaFromLambdaL->GetAxis(4)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.1153 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(4)->FindBin(1.1153 - 0.00001)); // 1 mass intervals arounf the peak
     }
     else
     {
@@ -334,7 +350,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
     if (ChosenPart == 6)
     {
-      hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2Theta->GetAxis(4)->FindBin(1.119 - 0.00001));
+      if (isMassCutForAcceptance)
+        hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2Theta->GetAxis(4)->FindBin(1.119 - 0.00001));
       hXiCos2Theta->GetAxis(2)->SetRange(hXiCos2Theta->GetAxis(2)->FindBin(-0.8 + 0.00001), hXiCos2Theta->GetAxis(2)->FindBin(0.8 - 0.00001));
     }
     // QCPlots
@@ -479,6 +496,8 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TString OutputFileName = "../OutputAnalysis/Output_FromTHN_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
   if (isApplyWeights)
     OutputFileName += "_Weighted";
+  if (isApplyCentWeight)
+    OutputFileName += "_CentWeighted";
   if (v2type == 1)
     OutputFileName += "_SP";
   if (!useCommonBDTValue)
@@ -491,10 +510,17 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += SBDT;
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
+  if (ExtrisApplyResoOnTheFly)
+    OutputFileName += "_ResoOnTheFly";
   // if (isApplyResoOnTheFly)
   //   OutputFileName += "_ResoOnTheFly";
-  if (isTightAcceptance)
+  if (isTightAcceptance == 1)
     OutputFileName += "_TightAcceptance";
+  else if (isTightAcceptance == 2)
+    OutputFileName += "_TighterAcceptance2";
+  if (ChosenPart == 6 && !isMassCutForAcceptance)
+    OutputFileName += "_NoMassCutForAcceptance";
+
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
