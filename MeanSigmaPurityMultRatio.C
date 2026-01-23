@@ -468,15 +468,18 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     }
     // if (isReducedPtBins)
     //   PathIn += "_ReducedPtBins";
-    if (isOOCentrality)
+    if ((isOOCentrality) && (Choice == 10 || Choice == 11))
       PathIn += "_isOOCentrality";
     // if (ExtrisApplyResoOnTheFly)
     //   PathIn += "_ResoOnTheFly";
     if (ChosenPart == 0)
       PathIn += "_EPReso";
     if (isTightMassForAcceptancePurity)
-      PathIn += "_TightAcceptance";
-    // PathIn += "_isTightMassForAcceptancePurity";
+      PathIn += "_isTightMassForAcceptancePurity";
+    if (Choice == 2 && isProducedAcceptancePlots)
+      PathIn += "_NoMassCutForAcceptance";
+    if ((Choice == 10 || Choice == 11) && ChosenParticle == 6)
+      PathIn += "_TightAcceptance2"; 
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
