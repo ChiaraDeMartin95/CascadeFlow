@@ -95,19 +95,6 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-Float_t YLow[numPart] = {0};
-Float_t YUp[numPart] = {0.0015};
-
-Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
-Float_t LambdaDecayParameterRelError = 0.01;
-Float_t TransferCoefficienctRelError = 0.0043;
-Float_t RunByRunAccRelError = 0.01;
-// Float_t ResoRelError[numCentLambdaOO + 1] = {0.045, 0.05, 0.06, 0.065, 0.07, 0.09, 0.127, 0.1915, 0.2865, 0.39};
-Float_t ResoRelError[numCentLambdaOO + 1] = {0};
-Float_t PrimaryLambdaFraction = 0.03;
-Float_t SecondaryLambdaFraction = 0.1;
-Float_t ZVertexErrorLambdaOO = 0.00005;
-
 void FDFraction()
 {
 
