@@ -221,19 +221,19 @@ const bool isTightest = 0;
 
 // systematics for Lambda
 const float DefaultV0RadiusCut = 1.0;
-const float UpperlimitV0RadiusCut = 1.2;
+const float UpperlimitV0RadiusCut = 1.4;
 const float LowerlimitV0RadiusCut = 0.9; // derived data limit
 const float DefaultDcaV0DauCut = 1.2;
 const float UpperlimitDcaV0DauCut = 1.5; // derived data limit
-const float LowerlimitDcaV0DauCut = 1.0;
+const float LowerlimitDcaV0DauCut = 0.26;
 const double DefaultV0CosPA = 0.995;
-const double UpperlimitV0CosPA = 0.999;
+const double UpperlimitV0CosPA = 0.998;
 const double LowerlimitV0CosPA = 0.99; // 0.97 is the derived data limit
 const float DefaultDcaNegToPV = 0.06;
-const float UpperlimitDcaNegToPV = 0.1;
+const float UpperlimitDcaNegToPV = 0.09;
 const float LowerlimitDcaNegToPV = 0.05; // derived data limit
 const float DefaultDcaPosToPV = 0.06;
-const float UpperlimitDcaPosToPV = 0.1;
+const float UpperlimitDcaPosToPV = 0.09;
 const float LowerlimitDcaPosToPV = 0.05; // derived data limit
 
 // Systematic studies on mass cut
