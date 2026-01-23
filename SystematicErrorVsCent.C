@@ -1,29 +1,14 @@
-#include "Riostream.h"
-#include "TTimer.h"
 #include "TROOT.h"
 #include "TStyle.h"
 #include "TMath.h"
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
-#include <TH3F.h>
-#include "TNtuple.h"
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TF1.h"
-#include "TProfile.h"
-#include <TTree.h>
-#include <TLatex.h>
-#include <TLegend.h>
-#include <TLegendEntry.h>
-#include <TFile.h>
-#include <TLine.h>
-#include <TSpline.h>
-#include "TFitResult.h"
-#include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
+#include "TLegend.h"
 #include "CommonVarLambda.h"
-#include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
 {
@@ -120,6 +105,7 @@ Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0.03;
 Float_t SecondaryLambdaFraction = 0.1;
+Float_t ZVertexErrorLambdaOO = 0.00005;
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
@@ -215,6 +201,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistTransferCoeffErrorVsCent;
   TH1F *fHistRunByRunAccErrorVsCent;
   TH1F *fHistPolBkg0ErrorVsCent;
+  TH1F *fHistZVertexErrorVsCent;
   TH1F *fHistTotalErrorVsCent;
   if (isOOCentrality)
   {
@@ -228,6 +215,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistPolBkg0ErrorVsCent = new TH1F("fHistPolBkg0ErrorVsCent", "fHistPolBkg0ErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
+    fHistZVertexErrorVsCent = new TH1F("fHistZVertexErrorVsCent", "fHistZVertexErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCentLambdaOO, fCentFT0CLambdaOO);
   }
   else
@@ -242,6 +230,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistTransferCoeffErrorVsCent = new TH1F("fHistTransferCoeffErrorVsCent", "fHistTransferCoeffErrorVsCent", numCent, fCentFT0C);
     fHistRunByRunAccErrorVsCent = new TH1F("fHistRunByRunAccErrorVsCent", "fHistRunByRunAccErrorVsCent", numCent, fCentFT0C);
     fHistPolBkg0ErrorVsCent = new TH1F("fHistPolBkg0ErrorVsCent", "fHistPolBkg0ErrorVsCent", numCent, fCentFT0C);
+    fHistZVertexErrorVsCent = new TH1F("fHistZVertexErrorVsCent", "fHistZVertexErrorVsCent", numCent, fCentFT0C);
     fHistTotalErrorVsCent = new TH1F("fHistTotalErrorVsCent", "fHistTotalErrorVsCent", numCent, fCentFT0C);
   }
 
@@ -255,7 +244,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistResoError->SetName("hResoSystError");
 
   TFile *fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty_BkgPol0.root");
-  TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatio_1");;
+  TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatio_1");
+  ;
   if (!fHistPolBkg0Error)
   {
     cout << "Error: histogram not found" << endl;
@@ -321,8 +311,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       PathIn += "_ReducedPtBins";
     if (ChosenPart == 6)
     {
-      PathIn += Form("_SysMultTrial_%i", 0);
-      PathIn += "_isSysLambdaMultTrial_ResoOnTheFly";
+      // PathIn += Form("_SysMultTrial_%i", 0);
+      // PathIn += "_isSysLambdaMultTrial_";
+      PathIn += "_ResoOnTheFly";
     }
 
     PathIn += ".root";
@@ -423,6 +414,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistBDTErrorVsCent->SetBinError(m + 1, 0);
     fHistMassCutErrorVsCent->SetBinContent(m + 1, fHistMassCutError[m]->GetBinContent(1));
     fHistMassCutErrorVsCent->SetBinError(m + 1, 0);
+    //cout << "fHistMassCutAndBDTError[m]->GetBinContent(1): " << fHistMassCutAndBDTError[m]->GetBinContent(1) << endl;
     fHistMassCutAndBDTErrorVsCent->SetBinContent(m + 1, fHistMassCutAndBDTError[m]->GetBinContent(1));
     fHistMassCutAndBDTErrorVsCent->SetBinError(m + 1, 0);
     if (ChosenPart == 6)
@@ -430,9 +422,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistAccErrorVsCent->SetBinError(m + 1, 0);
       fHistResoErrorVsCent->SetBinContent(m + 1, abs(fHistResoError->GetBinContent(m + 1)));
-      cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
-      cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
-      cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
+      //cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
+      //cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
+      //cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
       fHistResoErrorVsCent->SetBinError(m + 1, 0);
       fHistDecayParErrorVsCent->SetBinContent(m + 1, std::abs(LambdaDecayParameterRelError * fHistPzs2[m]->GetBinContent(1)));
       fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
@@ -440,9 +432,11 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
-      //fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, abs(fHistPolBkg0Error->GetBinContent(m + 1)));
-      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0); //not significant
+      // fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, abs(fHistPolBkg0Error->GetBinContent(m + 1)));
+      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0); // not significant
       fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
+      fHistZVertexErrorVsCent->SetBinContent(m + 1, ZVertexErrorLambdaOO);
+      fHistZVertexErrorVsCent->SetBinError(m + 1, 0);
     }
     else
     {
@@ -458,12 +452,15 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
       fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0);
       fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
+      fHistZVertexErrorVsCent->SetBinContent(m + 1, 0);
+      fHistZVertexErrorVsCent->SetBinError(m + 1, 0);
     }
   } // end loop on mult
+
   fHistBDTErrorVsCent->Smooth();
   fHistMassCutErrorVsCent->Smooth();
   fHistMassCutAndBDTErrorVsCent->Smooth();
-  //fHistResoErrorVsCent->Smooth();
+  // fHistResoErrorVsCent->Smooth();
 
   for (Int_t m = 0; m < commonNumCent; m++)
   {
@@ -478,6 +475,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                                                             fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) * fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) +
                                                             fHistDecayParErrorVsCent->GetBinContent(m + 1) * fHistDecayParErrorVsCent->GetBinContent(m + 1) +
                                                             fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) * fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) +
+                                                            fHistZVertexErrorVsCent->GetBinContent(m + 1) * fHistZVertexErrorVsCent->GetBinContent(m + 1) +
                                                             fHistPolBkg0ErrorVsCent->GetBinContent(m + 1) * fHistPolBkg0ErrorVsCent->GetBinContent(m + 1)));
     fHistTotalErrorVsCent->SetBinError(m + 1, 0);
   }
@@ -520,10 +518,12 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistTransferCoeffErrorVsCent->SetLineColor(kViolet + 1);
   fHistRunByRunAccErrorVsCent->SetLineColor(kCyan);
   fHistPolBkg0ErrorVsCent->SetLineColor(kGray + 1);
+  fHistZVertexErrorVsCent->SetLineColor(kGreen);
   fHistTotalErrorVsCent->SetLineColor(kBlack);
   fHistTotalErrorVsCent->SetLineWidth(2);
   // fHistBDTErrorVsCent->Draw("same");
   // fHistMassCutErrorVsCent->Draw("same");
+
   fHistAccErrorVsCent->Draw("same");
   fHistMassCutAndBDTErrorVsCent->Draw("same");
   fHistPrimaryLambdaErrorVsCent->Draw("same");
@@ -533,9 +533,11 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistTransferCoeffErrorVsCent->Draw("same");
     fHistRunByRunAccErrorVsCent->Draw("same");
   }
-  if (ChosenPart == 6){
+  if (ChosenPart == 6)
+  {
     fHistResoErrorVsCent->Draw("same");
     fHistPolBkg0ErrorVsCent->Draw("same");
+    fHistZVertexErrorVsCent->Draw("same");
   }
   fHistTotalErrorVsCent->Draw("same");
   TLegend *legend = new TLegend(0.3, 0.6, 0.9, 0.9);
@@ -555,9 +557,11 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     legend->AddEntry(fHistTransferCoeffErrorVsCent, "Transfer coefficient", "l");
     legend->AddEntry(fHistRunByRunAccErrorVsCent, "Run-by-run acceptance dep.", "l");
   }
-  if (ChosenPart == 6){
+  if (ChosenPart == 6)
+  {
     legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
-    //legend->AddEntry(fHistPolBkg0ErrorVsCent, "P_{z, s2, bkg} = 0", "l");
+    legend->AddEntry(fHistZVertexErrorVsCent, "Z_{vtx} selection", "l");
+    // legend->AddEntry(fHistPolBkg0ErrorVsCent, "P_{z, s2, bkg} = 0", "l");
   }
   legend->AddEntry(fHistDecayParErrorVsCent, "Decay parameter", "l");
   legend->AddEntry(fHistTotalErrorVsCent, "Total", "l");
@@ -565,11 +569,103 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s.pdf", ParticleName[ChosenPart].Data()));
 
+  // RelErrors
+  TH1F *fHistBDTRelErrorVsCent = (TH1F *)fHistBDTErrorVsCent->Clone("fHistBDTRelErrorVsCent");
+  TH1F *fHistMassCutRelErrorVsCent = (TH1F *)fHistMassCutErrorVsCent->Clone("fHistMassCutRelErrorVsCent");
+  TH1F *fHistMassCutAndBDTRelErrorVsCent = (TH1F *)fHistMassCutAndBDTErrorVsCent->Clone("fHistMassCutAndBDTRelErrorVsCent");
+  TH1F *fHistPrimaryLambdaRelErrorVsCent = (TH1F *)fHistPrimaryLambdaErrorVsCent->Clone("fHistPrimaryLambdaRelErrorVsCent");
+  TH1F *fHistAccRelErrorVsCent = (TH1F *)fHistAccErrorVsCent->Clone("fHistAccRelErrorVsCent");
+  TH1F *fHistResoRelErrorVsCent = (TH1F *)fHistResoErrorVsCent->Clone("fHistResoRelErrorVsCent");
+  TH1F *fHistDecayParRelErrorVsCent = (TH1F *)fHistDecayParErrorVsCent->Clone("fHistDecayParRelErrorVsCent");
+  TH1F *fHistTransferCoeffRelErrorVsCent = (TH1F *)fHistTransferCoeffErrorVsCent->Clone("fHistTransferCoeffRelErrorVsCent");
+  TH1F *fHistRunByRunAccRelErrorVsCent = (TH1F *)fHistRunByRunAccErrorVsCent->Clone("fHistRunByRunAccRelErrorVsCent");
+  TH1F *fHistPolBkg0RelErrorVsCent = (TH1F *)fHistPolBkg0ErrorVsCent->Clone("fHistPolBkg0RelErrorVsCent");
+  TH1F *fHistZVertexRelErrorVsCent = (TH1F *)fHistZVertexErrorVsCent->Clone("fHistZVertexRelErrorVsCent");
+  TH1F *fHistTotalRelErrorVsCent = (TH1F *)fHistTotalErrorVsCent->Clone("fHistTotalRelErrorVsCent");
+  for (Int_t m = 0; m < commonNumCent; m++)
+  {
+    fHistBDTRelErrorVsCent->SetBinContent(m + 1, fHistBDTErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistMassCutRelErrorVsCent->SetBinContent(m + 1, fHistMassCutErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistMassCutAndBDTRelErrorVsCent->SetBinContent(m + 1, fHistMassCutAndBDTErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistPrimaryLambdaRelErrorVsCent->SetBinContent(m + 1, fHistPrimaryLambdaErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistAccRelErrorVsCent->SetBinContent(m + 1, fHistAccErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistResoRelErrorVsCent->SetBinContent(m + 1, fHistResoErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistDecayParRelErrorVsCent->SetBinContent(m + 1, fHistDecayParErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistTransferCoeffRelErrorVsCent->SetBinContent(m + 1, fHistTransferCoeffErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistRunByRunAccRelErrorVsCent->SetBinContent(m + 1, fHistRunByRunAccErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistPolBkg0RelErrorVsCent->SetBinContent(m + 1, fHistPolBkg0ErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistZVertexRelErrorVsCent->SetBinContent(m + 1, fHistZVertexErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistTotalRelErrorVsCent->SetBinContent(m + 1, fHistTotalErrorVsCent->GetBinContent(m + 1) / TMath::Abs(fHistPzs2[m]->GetBinContent(1)));
+    fHistBDTRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistMassCutRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistMassCutAndBDTRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistPrimaryLambdaRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistAccRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistResoRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistDecayParRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistTransferCoeffRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistRunByRunAccRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistPolBkg0RelErrorVsCent->SetBinError(m + 1, 0);
+    fHistZVertexRelErrorVsCent->SetBinError(m + 1, 0);
+    fHistTotalRelErrorVsCent->SetBinError(m + 1, 0);
+  }
+
+  TCanvas *canvasRelError = new TCanvas("canvasRelError", "canvasRelError", 800, 600);
+  StyleCanvas(canvasRelError, 0.05, 0.2, 0.2, 0.03);
+  canvasRelError->cd();
+  TH1F *hDummyRelError = new TH1F("hDummyRelError", "hDummyRelError", 10000, 0, 100);
+  for (Int_t i = 1; i <= hDummyRelError->GetNbinsX(); i++)
+    hDummyRelError->SetBinContent(i, 1e-12);
+  canvasRelError->cd();
+  SetFont(hDummyRelError);
+  StyleHistoYield(hDummyRelError, 0, 0.3, 1, 1, TitleXCent, "Relative syst. uncertainty", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyRelError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, 2, yLabelOffset);
+  SetTickLength(hDummyRelError, tickX, tickY);
+  hDummyRelError->GetXaxis()->SetRangeUser(0, 80);
+  if (ChosenPart == 6)
+    hDummyRelError->GetXaxis()->SetRangeUser(0, 90);
+  hDummyRelError->Draw("");
+  fHistBDTRelErrorVsCent->Draw("same");
+  fHistMassCutRelErrorVsCent->Draw("same");
+  fHistAccRelErrorVsCent->Draw("same");
+  fHistMassCutAndBDTRelErrorVsCent->Draw("same"); 
+  fHistPrimaryLambdaRelErrorVsCent->Draw("same");
+  fHistDecayParRelErrorVsCent->Draw("same");
+  if (ChosenPart != 6)
+  {
+    fHistTransferCoeffRelErrorVsCent->Draw("same");
+    fHistRunByRunAccRelErrorVsCent->Draw("same");
+  }
+  if (ChosenPart == 6)
+  {    
+    fHistResoRelErrorVsCent->Draw("same");
+    fHistPolBkg0RelErrorVsCent->Draw("same");
+    fHistZVertexRelErrorVsCent->Draw("same");
+  }
+  fHistTotalRelErrorVsCent->Draw("same");
+  legend->Draw("same");
+  canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
+  canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s.pdf", ParticleName[ChosenPart].Data()));
+
   TFile *fileout = new TFile(stringout, "RECREATE");
-  fHistBDTErrorVsCent->Write();
-  fHistMassCutErrorVsCent->Write();
   fHistMassCutAndBDTErrorVsCent->Write();
+  fHistDecayParErrorVsCent->Write();
+  if (ChosenPart != 6)
+  {
+    fHistBDTErrorVsCent->Write();
+    fHistMassCutErrorVsCent->Write();
+    fHistTransferCoeffErrorVsCent->Write();
+    fHistRunByRunAccErrorVsCent->Write();
+  }
+  if (ChosenPart == 6)
+  {
+    fHistPrimaryLambdaErrorVsCent->Write();
+    fHistResoErrorVsCent->Write();
+    // fHistPolBkg0ErrorVsCent->Write();
+    fHistZVertexErrorVsCent->Write();
+  }
   fHistTotalErrorVsCent->Write();
+  fileout->Close();
 
   cout << "\nStarting from the files (for the different mult): " << PathInBDT << endl;
   cout << "\nI have created the file:\n " << stringout << endl;
