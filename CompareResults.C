@@ -257,6 +257,8 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 60 --> Compare Pzs2 of Lambda with |z| < 10 cm and |z| < 8 cm
   // TypeComp == 61 --> Compare Pzs2 of Lambda with new and old acceptance (new = higher purity)
   // TypeComp == 62 --> Compare Pzs2 of Lambda with FD correction vs without FD correction
+  // TypeComp == 63 --> Compare proton acceptance with and without |eta| < 0.8 cut for daughters
+  // TypeComp == 64 --> Compare proton acceptance with |eta| < 0.8 and 0 < eta < 0.8 and -0.8 < eta < 0
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -967,13 +969,13 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 1.1;
     YLowRatio = 0.98;
     YUpRatio = 1.02;
-    //namehisto[0] = "fHistYieldSummary";
-    //namehisto[1] = "fHistYieldSummary";
-    //namehisto[2] = "fHistYieldSummary";
-    //YLow = 0;
-    //YUp = 1.5;
-    //YLowRatio = 0.8;
-    //YUpRatio = 1.2;
+    // namehisto[0] = "fHistYieldSummary";
+    // namehisto[1] = "fHistYieldSummary";
+    // namehisto[2] = "fHistYieldSummary";
+    // YLow = 0;
+    // YUp = 1.5;
+    // YLowRatio = 0.8;
+    // YUpRatio = 1.2;
     MinHistoX = 0;
     MaxHistoX = 90;
   }
@@ -1721,6 +1723,67 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.02;
     MinHistoX = 0;
     MaxHistoX = 90;
+  }
+  else if (TypeComp == 63)
+  {
+    // TypeComp == 63 --> Compare proton acceptance with and without |eta| < 0.8 cut for daughters
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 0;
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/Acceptance_LHC25_OO_pass2";
+    fileName[0] = "_SecondaryProtonAcc_Train508938_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality";
+    fileName[1] = "_Train597528_NewAcc_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    // namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    // namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "#eta";
+    // hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.8;
+    YUpRatio = 1.2;
+    sleg[0] = "|#eta| < 1.5 for daughters";
+    sleg[1] = "|#eta| < 0.8 for daughters";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    // MinHistoX = 0.5;
+    // MaxHistoX = 10;
+    yOffset = 6;
+  }
+  else if (TypeComp == 64)
+  {
+    // TypeComp == 64 --> Compare proton acceptance with |eta| < 0.8 and 0 < eta < 0.8 and -0.8 < eta < 0
+    numOptions = 3;
+    isRatio = 1;
+    isFullCorr = 0;
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/Acceptance_LHC25_OO_pass2";
+    fileName[0] = "_Train597528_NewAcc_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    fileName[1] = "_Train597527_NewAcc_EtaPos_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    fileName[2] = "_Train597526_NewAcc_EtaNeg_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "#eta";
+    //hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.4;
+    YUpRatio = 1.2;
+    sleg[0] = "|#eta| < 0.8";
+    sleg[1] = "0 < #eta < 0.8";
+    sleg[2] = "-0.8 < #eta < 0";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    //MinHistoX = 0.5;
+    //MaxHistoX = 10;
+    yOffset = 6;
   }
   else
   {
