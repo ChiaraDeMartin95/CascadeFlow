@@ -49,12 +49,12 @@ Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
 Double_t dNdEtaAbhiErr[numCent] = {63, 40, 27, 19, 13, 8, 5, 3};
-Double_t dNdEtaOOPrel[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50}; //approved up to 60%
-Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23}; //approved up to 60%
-Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.91, 14.87, 11.11}; // from 60% to 90%, extrapolated with MultVsCent.C macro
-Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.58, 0.54, 0.48};         // from 60% to 90%, extrapolated with MultVsCent.C macro
-Double_t dNdEtaNeNe[2] = {105.59, 20.63};                                                                            // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
-Double_t dNdEtaNeNeErr[2] = {3.52, 0.69};                                                                            // random reasonable errors assigned
+Double_t dNdEtaOOPrel[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50}; // approved up to 60%
+Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23};         // approved up to 60%
+Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.91, 14.87, 11.11};    // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.58, 0.54, 0.48};             // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaNeNe[2] = {105.59, 20.63};                                                                                // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
+Double_t dNdEtaNeNeErr[2] = {3.52, 0.69};                                                                                // random reasonable errors assigned
 
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
 
@@ -67,16 +67,17 @@ Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8};
 
 // Acceptance correction
-const Int_t numEtaBins = 8;
+const Int_t numEtaBins = 16; // was 8
 const Int_t numPtBinsLambda = 9;
-Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
+//Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
+Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
 Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
 
 // Colors and markers
 Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange};
 Int_t MarkerPart[numPart] = {20, 33, 20, 20, 33, 33, 33};
 Float_t MarkerPartSize[numPart] = {1.5, 2., 1.5, 1.5, 2., 2., 2.};
-Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1};
+Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1, kRed + 1, kGray + 1};
 Float_t SizeMult[] = {2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8};
 Float_t SizeMultRatio[] = {1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8};
 Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29};
@@ -130,6 +131,9 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // d
 // TString SinputFileName = "LHC25_OO_pass2_Train576496"; //tree with |eta| < 0.8 and |z| < 8 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train589559"; //THN larger range pzs2
 TString SinputFileName = "LHC25_OO_pass2_Train589711"; // tree with new acceptance
+//TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
+//TString SinputFileName = "LHC25_OO_pass2_Train597527_NewAcc_EtaPos"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
+//TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 
 // TString SinputFileNameAR = "LHC25_OO_pass2_Train510678";
 // TString SinputFileNameAR = "LHC25_OO_pass2_Train562132_wTHN";
@@ -165,8 +169,8 @@ TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017
 // TString SinputFileNameSyst = "LHC25_OO_pass2_Train503805";
 // TString SinputFileNameSyst = "LHC25_OO_pass2_Train510678_CorrectReso";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train463979_ProtAcceptanceFromSecondayLambdas";
-//TString SinputFileNameSyst = "LHC25_OO_pass2_Train562850";
-TString SinputFileNameSyst = "LHC25_OO_pass2_Train589711"; 
+// TString SinputFileNameSyst = "LHC25_OO_pass2_Train562850";
+TString SinputFileNameSyst = "LHC25_OO_pass2_Train589711";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
@@ -182,7 +186,7 @@ const float bdtCut[numCent + 1] = {0.95, 0.95, 0.95, 0.85, 0.85, 0.85, 0.85, 0.8
 
 //---------------------------------------------------------
 // BDT scores applied to produce the acceptance correction (chosen in order to have large purity)
-bool isProducedAcceptancePlots = 0; // 1 for acceptance production, 0 for default analysis
+bool isProducedAcceptancePlots = 1; // 1 for acceptance production, 0 for default analysis
 const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
 //---------------------------------------------------------
 
@@ -204,11 +208,11 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
 // --------------------------- SYST ------------------------------
-const int trialsLambdaTopo = 100; // number of trials for the systematic studies related to Lambda topology
+const int trialsLambdaTopo = 200; // number of trials for the systematic studies related to Lambda topology
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0;       // 1 for systematic studies, 0 for default analysis
 bool ExtrisSysLambdaMultTrial = 1; // 1 for systematic studies, 0 for default analysis
-const int trialsBDT = 100;         // number of trials for the systematic studies related to BDTscore
+const int trialsBDT = 200;         // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
@@ -272,3 +276,17 @@ TString ResoFileName_SPCFW = "Resolution/Resolution_SP_CFW_" + inputFileResoCFW;
 Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
 Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
                            2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};
+
+// Published V2 of charged particles in OO collisions (arxiv.org/pdf/2509.06428)
+const Int_t numV2OOPubCent = 16;
+Double_t V2OOPubCent[numV2OOPubCent + 1] = {0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60};
+Double_t V2OOPubCentMid[numV2OOPubCent] = {130.785, 127.023, 123.37, 119.822, 116.376, 106.621, 92.1451, 79.6348,
+                                           68.8231, 59.4792, 51.4039, 44.425, 38.3936, 33.181, 28.6761, 24.7829};
+Double_t V2OOPubCentMidErr[numV2OOPubCent] = {3.47982, 3.29583, 3.12024, 2.95276, 2.79311, 2.35845, 1.76754, 1.32212,
+                                              1.0029, 0.793745, 0.675824, 0.622972, 0.606406, 0.60396, 0.603009, 0.597924};
+Double_t V2OOPub[numV2OOPubCent] = {0.058265, 0.059672, 0.060794, 0.062044, 0.062179, 0.063781, 0.065495, 0.066987,
+                                    0.067843, 0.068207, 0.068403, 0.068001, 0.067598, 0.066635, 0.066261, 0.064535};
+Double_t V2OOPubErrStat[numV2OOPubCent] = {0.000070, 0.000162, 0.000165, 0.000134, 0.000126, 0.000072, 0.000070, 0.000069,
+                                           0.000090, 0.000095, 0.000123, 0.000084, 0.000165, 0.000186, 0.000198, 0.000196};
+Double_t V2OOPubErrSys[numV2OOPubCent] = {0.000226, 0.000232, 0.000236, 0.000241, 0.000241, 0.000248, 0.000254, 0.000260,
+                                          0.000263, 0.000265, 0.000266, 0.000264, 0.000263, 0.000259, 0.000257, 0.000251};
