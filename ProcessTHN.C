@@ -226,15 +226,22 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
   TH1F *hDummyCentrality = (TH1F *)hV2->Projection(0);
   TH1F *hDummyCharge = (TH1F *)hV2->Projection(1);
-  TH1F *hDummyPt = (TH1F *)hV2->Projection(2);
-  TH1F *hDummyMass = (TH1F *)hV2->Projection(3);
-  TH1F *hDummyBDT = (TH1F *)hV2->Projection(4);
-  // TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
+  TH1F *hDummyPt;
+  TH1F *hDummyMass;
+  TH1F *hDummyBDT;
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
-  // TH1F *hDummyPt = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
-  // TH1F *hDummyMass = (TH1F *)hXiCos2ThetaFromLambda->Projection(4);
-  // TH1F *hDummyBDT = (TH1F *)hV2->Projection(5);
-  // TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
+  if (ChosenParticle == 6 && isProducedAcceptancePlots)
+  {
+    hDummyBDT = (TH1F *)hV2->Projection(2); // eta
+    hDummyPt = (TH1F *)hV2->Projection(3);
+    hDummyMass = (TH1F *)hV2->Projection(4); // lambda mass
+  }
+  else
+  {
+    hDummyBDT = (TH1F *)hV2->Projection(4);
+    hDummyPt = (TH1F *)hV2->Projection(2);
+    hDummyMass = (TH1F *)hV2->Projection(3);
+  }
   hDummyCentrality->Reset();
   hDummyCharge->Reset();
   hDummyPt->Reset();
@@ -244,7 +251,6 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   hDummyCentrality->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyCharge->GetYaxis()->SetRangeUser(0, 1);
   hDummyPt->GetYaxis()->SetRangeUser(0, 0.25);
-  // hDummyMass->GetYaxis()->SetRangeUser(0, 0.15);
   hDummyMass->GetYaxis()->SetRangeUser(0, 0.3);
   hDummyBDT->GetYaxis()->SetRangeUser(0, 1.2);
   hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
@@ -381,9 +387,10 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hCharge[cent]->Draw("same");
 
     canvasQC->cd(3);
-    // hPt[cent] = (TH1F *)hXiPzs2FromLambda->Projection(2);
-    hPt[cent] = (TH1F *)hV2->Projection(2);
-    // hPt[cent] = (TH1F *)hXiCos2Theta->Projection(3); // pt
+    if (isProducedAcceptancePlots)
+      hPt[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
+    else
+      hPt[cent] = (TH1F *)hV2->Projection(2);
     hPt[cent]->Scale(1. / hPt[cent]->Integral());
     hPt[cent]->SetLineColor(ColorMult[cent]);
     hPt[cent]->SetMarkerColor(ColorMult[cent]);
@@ -394,26 +401,35 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
     canvasQC->cd(4);
     if (isProducedAcceptancePlots)
-      hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
+    {
+      if (ChosenParticle == 6)
+        hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
+      else
+        hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
+    }
     else
       hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
     hMass[cent]->Scale(1. / hMass[cent]->Integral());
     hMass[cent]->SetLineColor(ColorMult[cent]);
     hMass[cent]->SetMarkerColor(ColorMult[cent]);
-    hMass[cent]->GetXaxis()->SetRangeUser(1.3, 1.345);
     if (cent == 0)
       hDummyMass->Draw();
     hMass[cent]->Draw("same");
 
     canvasQC->cd(5);
     if (isProducedAcceptancePlots)
-      hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
+    {
+      if (ChosenPart == 6)
+        hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(2); //eta
+      else
+        hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
+    }
     else
       hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
     hBDT[cent]->Scale(1. / hBDT[cent]->Integral());
     hBDT[cent]->SetLineColor(ColorMult[cent]);
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
-    hBDT[cent]->GetXaxis()->SetRangeUser(0, 1);
+    hBDT[cent]->GetXaxis()->SetRangeUser(-1, 1);
     hBDT[cent]->GetYaxis()->SetRangeUser(0, 0.4);
     if (cent == 0)
       hDummyBDT->Draw();
