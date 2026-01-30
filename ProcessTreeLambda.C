@@ -58,14 +58,19 @@ Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
-Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -65, -80, -120, -160, -240};
+// Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -65, -80, -120, -160, -240};
+// Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-40, -46, -60, -70, -80, -120, -130, -160, -240, -320, -480};
+Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -70, -120, -180, -400, -600};
 Float_t MinPzs2WithAlphaXi = -2.8;
 Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
-Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 65, 80, 120, 160, 240};
+// Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 65, 80, 120, 160, 240};
+// Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {40, 46, 60, 70, 80, 120, 130, 160, 240, 320, 480};
+Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 70, 120, 180, 400, 600};
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
-const Int_t NPzs2 = 200;
+// const Int_t NPzs2 = 200;
+const Int_t NPzs2 = 400;
 Double_t PzsBinsLambda[NPzs2 + 1];
 
 Float_t MinPz = -1;
@@ -96,7 +101,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
-  if (ChosenPart != 6 && (isLoosest || isTightest))
+  if (ChosenPart != 6 && ChosenPart != 7 && ChosenPart != 8 && (isLoosest || isTightest))
   {
     cout << "You set the loosest or the tightest topo sel, this can only be done for lambdas" << endl;
     return;
@@ -107,7 +112,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   //  cout << "IsPartialEta: only eta > 0 selected (opposite to FT0C)" << endl;
 
   std::vector<std::string> name;
-  TString filename = "input_" + SinputFileName + ".txt";
+  TString filename = "input_" + inputFileName + ".txt";
   std::ifstream fileIn(Form("%s", filename.Data()));
 
   cout << filename.Data() << endl;
@@ -162,6 +167,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   // apply charge selection
   string chargecut = "fSign >= 0";
+  if (ChosenPart == 7) // LambdaPart
+    chargecut = "fSign == 0";
+  else if (ChosenPart == 8) // AntiLambda
+    chargecut = "fSign == 1";
   auto d2 = d1.Filter(chargecut);
 
   // apply eta selection
@@ -286,7 +295,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
         variations[4].reserve(NVAR); // cutDcaNegToPV
 
         // Initialize random generator (fixed seed for reproducibility)
-        std::mt19937 gen(42);
+        //std::mt19937 gen(42);
+        std::mt19937 gen(43);
         std::uniform_real_distribution<double> distR(V0Radius_min, V0Radius_max);
         std::uniform_real_distribution<double> distD(DcaV0Daughters_min, DcaV0Daughters_max);
         std::uniform_real_distribution<double> distC(CosPA_min, CosPA_max);
@@ -401,8 +411,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     // else
     //   OutputFileName += "_SysMultTrial";
   }
-  //OutputFileName += "_isTightest";
-  //OutputFileName += "_isLoosest";
+  // OutputFileName += "_isTightest";
+  // OutputFileName += "_isLoosest";
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
@@ -496,7 +506,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       CentFT0CMax = CentFT0CLambdaOO[cent + 1];
     }
 
-    if (ChosenPart == 6)
+    if (ChosenPart == 6 || ChosenPart == 7 || ChosenPart == 8)
     {
       MinPzs2 = -7;
       MaxPzs2 = 7;
