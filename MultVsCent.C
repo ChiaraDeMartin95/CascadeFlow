@@ -148,7 +148,7 @@ void MultVsCent()
 
   TF1 *fitExpoFull = new TF1("fitExpoFull", "expo", 0, 100);
   fitExpoFull->SetLineColor(kBlack);
-  //hMultVsCent->Fit(fitExpoFull, "R+");
+  // hMultVsCent->Fit(fitExpoFull, "R+");
 
   TF1 *fitExpoFinal = new TF1("fitExpoFinal", "expo", 0, 100);
   fitExpoFinal->SetParameters(fitExpo->GetParameter(0), fitExpo->GetParameter(1));
@@ -163,8 +163,6 @@ void MultVsCent()
   canvasMultVsCent->SaveAs("../MultVsCent/Canvas_MultVsCent_LambdaOO.png");
   canvasMultVsCent->SaveAs("../MultVsCent/Canvas_MultVsCent_LambdaOO.pdf");
 
-  cout << "\nhola " << sqrt(cov[0][0]) << " " << fitExpo->GetParError(0) << endl;
-
   cout << "Fit results for <dN/d#eta> vs Centrality:" << endl;
   for (Int_t mul = 0; mul < numCentLambdaOO - 1; mul++)
   {
@@ -174,5 +172,24 @@ void MultVsCent()
     cout << "Centrality " << CentFT0CLambdaOO[mul] << "-" << CentFT0CLambdaOO[mul + 1]
          << "%: Fit Value = " << fitValue << " +- " << fitError
          << ", Original Value = " << hMultVsCent->GetBinContent(mul + 1) << "+- " << hMultVsCent->GetBinError(mul + 1) << endl;
+  }
+  cout << "----------------------------------------" << endl;
+  for (Int_t mul = 0; mul < numCentLambdaOO - 1; mul++)
+  {
+    Float_t fitValueLow = fitExpoFinal->Eval(CentFT0CLambdaOO[mul]);
+    Float_t fitValueUp = fitExpoFinal->Eval(CentFT0CLambdaOO[mul + 1]);
+    cout << "Centrality " << CentFT0CLambdaOO[mul] << "-" << CentFT0CLambdaOO[mul + 1]
+         << "%: Fit Value = " << fitValueLow << " to " << fitValueUp
+         << endl;
+    cout << "----------------------------------------" << endl;
+    for (Int_t mul = 0; mul < 20; mul++)
+    {
+      Float_t centValue = (mul*5) +5 + 2.5;
+      Float_t fitValue = fitExpoFinal->Eval(centValue);
+      Float_t fitError = fitValue * TMath::Sqrt(pow(fitExpo->GetParError(0), 2) + pow(centValue * fitExpo->GetParError(1), 2) + 2 * centValue * covFit);
+      cout << "Centrality " << (mul*5) +5 << "-" << (mul*5) + 10
+           << "%: Fit Value = " << fitValue << " +- " << fitError
+            << endl;
+    }
   }
 }

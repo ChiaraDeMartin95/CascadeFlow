@@ -14,7 +14,7 @@ Bool_t ExtrisFromTHN = 0;           // 0: process the tree, 1: process the THnSp
 Bool_t isReducedPtBins = 1;
 Bool_t isOOCentrality = 1;
 
-const Int_t numPart = 7; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
+const Int_t numPart = 9; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda, Lambda, AntiLambda
 bool isRun2Binning = 0;
 // const Int_t numPtBins = 15;
 //  const Int_t numPtBins = 6; // Run2 binning
@@ -33,9 +33,9 @@ TString NameAnalysis[2] = {"V2", "Pzs2"};
 TString RapidityCoverage[2] = {"Eta08", "Y05"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
 TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
-Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245, 1.67245, 1.115683}; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
-TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus", "Lambda"};
-TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda"};
+Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245, 1.67245, 1.115683, 1.115683, 1.115683}; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
+TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus", "Lambda", "LambdaPart", "AntiLambda"};
+TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda + #bar{#Lambda}", "#Lambda", "#bar{#Lambda}"};
 TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta*_{#Lambda})#GT", "#LTcos^{2}(#theta*_{p})#GT", "v2, corr", "#LTcos^{2}(#theta*_{p})#GT", "#LTcos^{2}(#theta*_{p})#GT"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
@@ -63,8 +63,8 @@ const Int_t numPtBins = 7;
 const Int_t numPtBinsReduced = 7;
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 8};
-Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5};
-Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8};
+Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5, 0.5, 0.5};
+Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
@@ -74,9 +74,9 @@ Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0
 Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
 
 // Colors and markers
-Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange};
-Int_t MarkerPart[numPart] = {20, 33, 20, 20, 33, 33, 33};
-Float_t MarkerPartSize[numPart] = {1.5, 2., 1.5, 1.5, 2., 2., 2.};
+Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange, kOrange - 2, kOrange - 4};
+Int_t MarkerPart[numPart] = {20, 33, 20, 20, 33, 33, 33, 33, 33};
+Float_t MarkerPartSize[numPart] = {1.5, 2., 1.5, 1.5, 2., 2., 2., 2., 2};
 Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1, kRed + 1, kGray + 1};
 Float_t SizeMult[] = {2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8};
 Float_t SizeMultRatio[] = {1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8};
@@ -84,12 +84,12 @@ Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29
 Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
 
 // Decay parameters
-Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1}; // from PDG 2024, for Xi+ and Omega+-, set to 1 as it has no meaning
+Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1, 1, 1}; // from PDG 2024, for Xi+ and Omega+-, set to 1 as it has no meaning
 // Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
-Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1};
+Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1, 1, 1};
 Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1};     // decay parameter for Lambda -> p pi
-Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1}; // decay parameter for Lambda -> p pi
+Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1, 1, 1};     // decay parameter for Lambda -> p pi
+Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}; // decay parameter for Lambda -> p pi
 
 // File names
 // TString SinputFileNameSyst = "LHC23_PbPb_pass3_Train218607"; OLD
