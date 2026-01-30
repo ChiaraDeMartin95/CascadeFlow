@@ -135,7 +135,7 @@ Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.2, 1
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
-                              Bool_t isTightMassForAcceptancePurity = 1,
+                              Bool_t isTightMassForAcceptancePurity = 0,
                               Int_t ChosenMult = 7 /*commonNumCent*/ /*- 3*/,
                               Bool_t isRapiditySel = ExtrisRapiditySel,
                               TString OutputDir = "../MeanSigmaPurityMultClasses/",
@@ -479,7 +479,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if (Choice == 2 && isProducedAcceptancePlots)
       PathIn += "_NoMassCutForAcceptance";
     if ((Choice == 10 || Choice == 11) && ChosenParticle == 6)
-      PathIn += "_TightAcceptance2"; 
+      PathIn += "_TightAcceptance"; 
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
