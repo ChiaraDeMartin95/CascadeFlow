@@ -333,30 +333,30 @@ Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
 TString titleYield = "1/N_{evt} dN/dp_{T}";
 TString titleYieldNN = "dN/dp_{T}";
 TString titlePt = "p_{T} (GeV/c)";
-TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})", "(p, #pi)"};
+TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})", "(p, #pi)", "(p, #pi^{-})", "(#overline{p}, #pi^{+})"};
 TString SInvMass = "invariant mass (GeV/c^{2})";
 
 // fit ranges
-Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12};
-Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // bkg and total fit range
-Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
-Float_t liminfBkg[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // bkg and total fit range
-Float_t limsupBkg[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13};
-Float_t liminfV2[numPart] = {1.308, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1};
-Float_t limsupV2[numPart] = {1.335, 1.71, 1.352, 1.352, 1.71, 1.71, 1.3};
-Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1};
-Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13};
+Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11, 1.11, 1.11}; // gauss fit range
+Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12, 1.12, 1.12};
+Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13, 1.13, 1.13};
+Float_t liminfBkg[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsupBkg[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13, 1.13, 1.13};
+Float_t liminfV2[numPart] = {1.308, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // v2 fit range
+Float_t limsupV2[numPart] = {1.335, 1.71, 1.352, 1.352, 1.71, 1.71, 1.3, 1.3, 1.3};
+Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
+Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
 
 // visualisation ranges
-Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.6551, 1.1}; // range to compute approximate yield (signal + bkg)
-Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685, 1.13};
-Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1}; // display range of gauss functions (from total fit)
-Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71, 1.13};
-Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626, 1.1}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72, 1.13};
-Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626, 1.1}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72, 1.13};
+Float_t LowMassRange[numPart] = {1.31, 1.655, 1.31, 1.31, 1.655, 1.6551, 1.1, 1.1, 1.1}; // range to compute approximate yield (signal + bkg)
+Float_t UpMassRange[numPart] = {1.33, 1.685, 1.33, 1.33, 1.685, 1.685, 1.13, 1.13, 1.13};
+Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // display range of gauss functions (from total fit)
+Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.71, 1.35, 1.35, 1.71, 1.71, 1.13, 1.13, 1.13};
+Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.626, 1.29, 1.29, 1.626, 1.626, 1.1, 1.1, 1.1}; // display range of bkg function (from total fit)
+Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.72, 1.35, 1.35, 1.72, 1.72, 1.13, 1.13, 1.13};
+Float_t histoMassRangeLow[numPart] = {1.301, 1.626, 1.301, 1.301, 1.626, 1.626, 1.1, 1.1, 1.1}; // display range of mass histograms
+Float_t histoMassRangeUp[numPart] = {1.344, 1.72, 1.344, 1.344, 1.72, 1.72, 1.13, 1.13, 1.13};
 
 // Event plane resolution
 Float_t ftcReso[commonNumCent + 1] = {0};
@@ -401,7 +401,7 @@ void FitV2orPol(
   {
     numCentMax = numCent;
   }
-  if (ChosenPart == 6 && isPolFromLambda)
+  if (ChosenPart >= 6 && isPolFromLambda)
   {
     cout << "Polarization of lambda cannot be computed from polarization of lambdas :) Set isPolFromLambda = 0" << endl;
     return;
@@ -444,7 +444,7 @@ void FitV2orPol(
   Int_t ParticleType = 0; // 1 for Xi, 0 for Omega, 2 for Lambda
   if (ChosenPart == 0 || ChosenPart == 2 || ChosenPart == 3)
     ParticleType = 1;
-  else if (ChosenPart == 6)
+  else if (ChosenPart >= 6)
     ParticleType = 2;
   Int_t part = 0;        // Xi
   if (ParticleType == 1) // Omega
@@ -500,7 +500,7 @@ void FitV2orPol(
 
   Int_t NEvents = 0;
   TString PathInEvents = "../TreeForAnalysis/AnalysisResults_" + inputFileName + ".root";
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     PathInEvents = "../TreeForAnalysis/AnalysisResults_" + SinputFileNameAR + ".root";
   TFile *fileEvt = new TFile(PathInEvents, "");
   if (!fileEvt)
@@ -541,7 +541,7 @@ void FitV2orPol(
   }
   fileResoName = ResoFileName_EPCFW;
   fileResoName += ".root";
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     fileResoName = "../Resolution/" + SinputFileNameResoWeight;
 
   TFile *fileResoEP = new TFile(fileResoName, "");
@@ -552,7 +552,7 @@ void FitV2orPol(
   }
   TH1F *hReso = (TH1F *)fileResoEP->Get("hReso");
   TH1F *hReso080 = (TH1F *)fileResoEP->Get("hReso080");
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
   {
     hReso = (TH1F *)fileResoEP->Get("hResoV0ATPCA");
     hReso080 = (TH1F *)fileResoEP->Get("hResoV0ATPCA080");
@@ -609,13 +609,23 @@ void FitV2orPol(
     return;
   }
 
-  if (ChosenParticle == 6)
+  if (ChosenParticle >= 6)
     PtBins[0] = 0.5; // for Lambda
 
-  if (isTighterPzFitRange && ChosenPart == 6)
+  if (ChosenPart >= 6)
   {
-    liminfV2[ChosenPart] = 1.103;
-    limsupV2[ChosenPart] = 1.127;
+    if (isTighterPzFitRange)
+    {
+      // liminfV2[ChosenPart] = 1.103;
+      liminfV2[ChosenPart] = 1.102;
+      // limsupV2[ChosenPart] = 1.127;
+      limsupV2[ChosenPart] = 1.128;
+    }
+    else
+    {
+      liminfV2[ChosenPart] = 1.1;
+      limsupV2[ChosenPart] = 1.13;
+    }
   }
 
   TString SPt[numPtBins + 1] = {""};
@@ -798,7 +808,7 @@ void FitV2orPol(
       histoAppliedBDTPtInt->SetBinContent(1, BDTscoreCut);
 
     SPathIn = "../OutputAnalysis/V2_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
-    if (ChosenPart != 6)
+    if (ChosenPart < 6)
       SPathIn += SBDT;
     if (isApplyWeights)
       SPathIn += "_Weighted";
@@ -820,7 +830,7 @@ void FitV2orPol(
     if (isReducedPtBins)
       SPathIn += "_ReducedPtBins";
 
-    if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
+    if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
     {
       if (isLoosest)
         SPathIn += "_isLoosest";
@@ -833,11 +843,12 @@ void FitV2orPol(
     SPathIn += STHN[ExtrisFromTHN];
     if (ExtrisApplyResoOnTheFly && !isProducedAcceptancePlots)
       SPathIn += "_ResoOnTheFly";
-    // if (ChosenPart == 6)
+    // if (ChosenPart >= 6)
     // SPathIn += "_CorrectReso_TestLeassPtBins";
     // SPathIn += "_SystReso";
-    if (ChosenPart == 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
+    if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
       SPathIn += "_NoMassCutForAcceptance";
+    // SPathIn += "_TestMoreBins";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -866,7 +877,7 @@ void FitV2orPol(
     if (!isPtAnalysis) // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
 
-    if (ChosenPart != 6)
+    if (ChosenPart < 6)
       cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
     cout << "FileIn: " << SPathIn << endl;
 
@@ -1659,7 +1670,7 @@ void FitV2orPol(
       LowLimit[pt] = ExtrLowLimit;
       UpLimit[pt] = ExtrUpLimit;
     }
-    if (isTightMassForAcceptancePurity && ChosenPart == 6)
+    if (isTightMassForAcceptancePurity && ChosenPart >= 6)
     {
       // LowLimit[pt] = 1.112;
       // UpLimit[pt] = 1.119;
@@ -1764,7 +1775,7 @@ void FitV2orPol(
     if (!bkgFunction || !totalFunction)
       continue;
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
-    if (ChosenPart == 6 && !isTighterPzFitRange)
+    if (ChosenPart >= 6 && !isTighterPzFitRange)
     {
       if (mul == 8)
       {
@@ -2416,7 +2427,7 @@ void FitV2orPol(
   {
     Soutputfile += "_EffW";
   }
-  if (isSysMultTrial && ChosenPart != 6)
+  if (isSysMultTrial && ChosenPart < 6)
     Soutputfile += SBDT;
 
   Soutputfile += SEtaSysChoice[EtaSysChoice];
@@ -2437,7 +2448,7 @@ void FitV2orPol(
   }
   if (isReducedPtBins)
     Soutputfile += "_ReducedPtBins";
-  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
+  if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       Soutputfile += "_isLoosest";
@@ -2449,22 +2460,23 @@ void FitV2orPol(
   }
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
-  // if (ChosenPart == 6)
+  // if (ChosenPart >= 6)
   // Soutputfile += "_CorrectReso_TestLeassPtBins";
   if (ChosenPart == 0)
     Soutputfile += "_EPReso";
   if (isBkgPol == 0)
     Soutputfile += "_isBkgPol0";
-  if (isTightMassForAcceptancePurity)
+  if (isTightMassForAcceptancePurity && ChosenPart >= 6)
     Soutputfile += "_isTightMassForAcceptancePurity";
   if (isTighterPzFitRange)
     Soutputfile += "_TighterPzFitRange";
   // Soutputfile += "_SystReso";
-  if (ChosenPart == 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
+  if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
   {
     Soutputfile += "_NoMassCutForAcceptance";
     SoutputfileAcceptance += "_NoMassCutForAcceptance";
   }
+  // Soutputfile += "_TestMoreBins";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -2624,8 +2636,8 @@ void FitV2orPol(
   Int_t ChosenPt = 8; // 8
   if (ParticleType == 1 || ParticleType == 2)
     ChosenPt = numPtBinsVar;
-  Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1};
-  Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13};
+  Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
+  Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
   if (ParticleType == 1)
     UpperCutHisto = 1.8;
@@ -2659,7 +2671,7 @@ void FitV2orPol(
   else
     legend->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   // legend->AddEntry("", Form("BDT, Signif.(4#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     legend->AddEntry("", Form("S/(S+B)(2#sigma) = %.4f #pm %.4f", SSB[ChosenPt], errSSB[ChosenPt]), "");
   else
     legend->AddEntry("", Form("BDT selected, S/(S+B)(2#sigma) = %.3f #pm %.3f", SSB[ChosenPt], errSSB[ChosenPt]), "");
@@ -2687,7 +2699,7 @@ void FitV2orPol(
              TitleXMass, titleyNorm, "", 1, LowLimitMass[ChosenPart] + 0.001, UpLimitMass[ChosenPart] - 0.001, 1.2, 1.8, 1.2);
   histo->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   histo->GetYaxis()->SetRangeUser(0.0001, 299);
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     histo->GetYaxis()->SetRangeUser(0.0001, 370);
   histo->GetXaxis()->SetLabelSize(0.043);
   histo->GetXaxis()->SetTitleSize(0.045);
@@ -2831,7 +2843,7 @@ void FitV2orPol(
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
   else
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
   else
     LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
@@ -2890,7 +2902,7 @@ void FitV2orPol(
   canvasP->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, 1e-3, 1.2 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
-  if (ChosenPart == 6)
+  if (ChosenPart >= 6)
     StyleHistoYield(hDummy, 1e-3, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
@@ -2941,7 +2953,7 @@ void FitV2orPol(
   {
     // TitleDummyRatio = "P_{z,s2}";
     TitleDummyRatio = "#LT 1/#alpha_{#Xi} cos(#theta_{#Lambda}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
-    if (ChosenPart == 6)
+    if (ChosenPart >= 6)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Lambda}-#Psi_{2})) #GT";
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
@@ -2966,9 +2978,9 @@ void FitV2orPol(
       hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
     if (mul > 7)
       hDummyRatio->GetYaxis()->SetRangeUser(-0.005, 0.005);
-    if (ChosenPart == 6)
+    if (ChosenPart >= 6)
     {
-      hDummyRatio->GetYaxis()->SetRangeUser(-0.015, 0.015);
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
       if (mul > 0)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.03, 0.03);
       if (mul > 2)
@@ -3053,4 +3065,5 @@ void FitV2orPol(
     cout << "The acceptance is computed without invariant mass fit " << endl;
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
+  cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1)/ histoV2PtIntErr->GetBinContent(1) << endl;
 }

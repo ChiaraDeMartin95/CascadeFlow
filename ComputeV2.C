@@ -53,7 +53,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isSysMultTrial)
     BDTscoreCut = LowerlimitBDTscoreCut + (UpperlimitBDTscoreCut - LowerlimitBDTscoreCut) * 1. / trialsBDT * indexMultTrial;
   TString SBDT = "";
-  if ((BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial) && ChosenPart != 6)
+  if ((BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial) && ChosenPart != 6 && ChosenPart != 7 && ChosenPart != 8)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
 
   TString SinputFile = "../OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
@@ -70,21 +70,22 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SinputFile += "_Eta08";
   SinputFile += SBDT;
-  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
+  if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       SinputFile += "_isLoosest";
     else if (isTightest)
       SinputFile += "_isTightest";
-    //SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+    // SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
   }
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
     SinputFile += "_ResoOnTheFly";
-  if (ChosenPart == 6 && !ExtrisFromTHN)
-    SinputFile += "_Nvar200";
-  if (ChosenPart == 6 && !isMassCutForAcceptance)
+  if (ChosenPart >= 6 && !ExtrisFromTHN)
+    SinputFile += "_Nvar1";
+  // SinputFile += "_Nvar1_TestMoreBins";
+  if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SinputFile += "_NoMassCutForAcceptance";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
@@ -343,45 +344,45 @@ void ComputeV2(Int_t indexMultTrial = 0,
     }
     cout << "CentMin " << CentFT0CMin << " CentMax " << CentFT0CMax << endl;
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (isProducedAcceptancePlots && ChosenPart == 6)
+    if (isProducedAcceptancePlots && ChosenPart >= 6)
       hName[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ExtrisApplyEffWeights)
       hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
 
     hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6 && !ExtrisFromTHN)
+    if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ExtrisSysLambdaMultTrial && ChosenPart == 6)
+    if (ExtrisSysLambdaMultTrial && ChosenPart >= 6)
     {
       hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial - 1);
       if (indexMultTrial == 0)
         hNamePzs2_3D[cent] = Form("massVsPtVsPzs2_cent%i_nominal", cent);
     }
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6 && !ExtrisFromTHN)
+    if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6 && !ExtrisFromTHN)
+    if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6 && !ExtrisFromTHN)
+    if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2Theta_3D[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaLambdaFromC_3D[cent] = Form("massVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart >= 6)
       hNameCos2ThetaLambdaFromC_3D[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaVsPsi_3D[cent] = Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ChosenPart == 6)
+    if (ChosenPart >= 6)
       hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
 
     hmassVsPtVsV2C[cent] = (TH3D *)inputFile->Get(hName[cent]);
     hmassVsPtVsV2C[cent]->SetName(Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax));
 
-    if (!ExtrisFromTHN && ChosenPart != 6)
+    if (!ExtrisFromTHN && ChosenPart < 6)
       profmassVsPt[cent] = (TProfile2D *)inputFile->Get(profName[cent]);
-    if (!profmassVsPt[cent] && !ExtrisFromTHN && ChosenPart != 6)
+    if (!profmassVsPt[cent] && !ExtrisFromTHN && ChosenPart < 6)
     {
       cout << "Profile profmassVsPt not available" << endl;
       return;
@@ -399,7 +400,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       cout << "Taking the histogram: " << hNamePzs2_3D[cent] << endl;
     }
 
-    if (ChosenParticle == 6)
+    if (ChosenParticle >= 6)
     {
       hmassVsPt[cent] = (TH2F *)hmassVsPtVsPzs2[cent]->Project3D("yx");
     }
@@ -452,7 +453,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       return;
     }
 
-    if (ChosenParticle == 6 && isProducedAcceptancePlots)
+    if (ChosenParticle >= 6 && isProducedAcceptancePlots)
     {
       hmassVsPt[cent] = (TH2F *)hmassVsPtVsCos2Theta[cent]->Project3D("yx");
       hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -551,7 +552,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       if (pt == numPtBins)
       {
         hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
-        if (!ExtrisFromTHN && ChosenPart != 6)
+        if (!ExtrisFromTHN && ChosenPart < 6)
           profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
         hmassVsPtVsPzs2[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
         hmassVsPtVsPzs2LambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[0] + 0.0001, PtBins[numPtBins] - 0.0001);
@@ -561,14 +562,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
       else
       {
         hmassVsPtVsV2C[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
-        if (!ExtrisFromTHN && ChosenPart != 6)
+        if (!ExtrisFromTHN && ChosenPart < 6)
           profmassVsPt[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsPzs2[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsPzs2LambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsCos2Theta[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
         hmassVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBins[pt] + 0.0001, PtBins[pt + 1] - 0.0001);
       }
-      if (!ExtrisFromTHN && ChosenPart != 6)
+      if (!ExtrisFromTHN && ChosenPart < 6)
         hV2CFromProfile[cent][pt] = (TH1F *)profmassVsPt[cent]->ProjectionX(hNameV2CFromProfile2D[cent][pt], 0, -1, "e"); // v2C from TProfile2D
       hmassVsV2C[cent][pt] = (TH2F *)hmassVsPtVsV2C[cent]->Project3D("xze");                                              // mass vs V2C //"e" option does not change the results
       hmassVsV2C[cent][pt]->SetName(hNameMassV2C[cent][pt]);
@@ -591,7 +592,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hmassVsCos2ThetaLambdaFromC[cent][pt]->RebinY(RebinFactor);
 
       hmass[cent][pt] = (TH1F *)hmassVsPtVsV2C[cent]->Project3D("xe"); // mass
-      if (ChosenPart == 6)
+      if (ChosenPart >= 6)
       {
         hmass[cent][pt] = (TH1F *)hmassVsPtVsPzs2[cent]->Project3D("xe"); // mass for Lambda using Pzs2
         if (isProducedAcceptancePlots)
@@ -661,7 +662,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isReducedPtBins)
     SOutputFile += "_ReducedPtBins";
   SOutputFile += STHN[ExtrisFromTHN];
-  if (ChosenPart == 6 && ExtrisSysLambdaMultTrial)
+  if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
       SOutputFile += "_isLoosest";
@@ -673,11 +674,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
   }
   if (ExtrisApplyResoOnTheFly)
     SOutputFile += "_ResoOnTheFly";
-  // if (ChosenPart == 6)
+  // if (ChosenPart >= 6)
   //   SOutputFile += "_CorrectReso_TestLeassPtBins";
   // SOutputFile += "_SystReso";
-  if (ChosenPart == 6 && !isMassCutForAcceptance)
+  if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SOutputFile += "_NoMassCutForAcceptance";
+  // SOutputFile += "_TestMoreBins";
   SOutputFile += ".root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
@@ -691,13 +693,13 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hmassVsPtVsCos2Theta[cent]->Write();
     hmassVsPtVsCos2ThetaLambdaFromC[cent]->Write();
     hmassVsPt[cent]->Write();
-    if (!ExtrisFromTHN && ChosenPart != 6)
+    if (!ExtrisFromTHN && ChosenPart < 6)
       hAvgPt[cent]->Write();
     for (Int_t pt = 0; pt < numPtBins + 1; pt++)
     {
       hmassVsV2C[cent][pt]->Write();
       hV2C[cent][pt]->Write();
-      if (!ExtrisFromTHN && ChosenPart != 6)
+      if (!ExtrisFromTHN && ChosenPart < 6)
         hV2CFromProfile[cent][pt]->Write();
       pV2C[cent][pt]->Write();
       hmassVsPzs2[cent][pt]->Write();
