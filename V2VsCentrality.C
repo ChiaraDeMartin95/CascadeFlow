@@ -224,7 +224,7 @@ void V2VsCentrality()
     cout << "V2OOPubCentMid[i] " << V2OOPubCentMid[i] << " V2OOPub[i] " << V2OOPub[i] << endl;
     gV2OO->SetPointError(i, V2OOPubCentMidErr[i], V2OOPubCentMidErr[i], V2OOPubErrStat[i], V2OOPubErrStat[i]);
     gV2OOSyst->SetPoint(i, V2OOPubCentMid[i], V2OOPub[i]);
-    gV2OOSyst->SetPointError(i, V2OOPubCentMidErr[i], V2OOPubCentMidErr[i], V2OOPubErrSys[i], V2OOPubErrSys[i]);
+    gV2OOSyst->SetPointError(i, V2OOPubCentMidErr[i], V2OOPubCentMidErr[i], V2OOPubErrSyst[i], V2OOPubErrSyst[i]);
   }
 
   TCanvas *canvasV2VsMultiplicity = new TCanvas("canvasV2VsMultiplicity", "canvasV2VsMultiplicity", 900, 700);
@@ -261,36 +261,37 @@ void V2VsCentrality()
   gV2pPb->SetMarkerColor(kBlack);
   gV2pPb->SetMarkerStyle(21);
   gV2pPb->SetMarkerSize(1.5);
-  gV2pPb->Draw("same p");
+  //gV2pPb->Draw("same p");
   gV2pPbSyst->SetMarkerStyle(21);
   gV2pPbSyst->SetFillStyle(0);
   gV2pPbSyst->SetMarkerColor(kBlack);
   gV2pPbSyst->SetFillColor(kBlack);
   gV2pPbSyst->SetLineColor(kBlack);
-  gV2pPbSyst->Draw("same p2");
-  gV2OO->SetLineColor(kRed + 1);
-  gV2OO->SetMarkerColor(kRed + 1);
+  //gV2pPbSyst->Draw("same p2");
+  gV2OO->SetLineColor(kMagenta +1);
+  gV2OO->SetMarkerColor(kMagenta + 1);
   gV2OO->SetMarkerStyle(20);
   gV2OO->SetMarkerSize(1.5);
   gV2OO->Draw("same p");
   gV2OOSyst->SetMarkerStyle(20);
   gV2OOSyst->SetFillStyle(0);
-  gV2OOSyst->SetMarkerColor(kRed + 1);
-  gV2OOSyst->SetFillColor(kRed + 1);
-  gV2OOSyst->SetLineColor(kRed + 1);
+  gV2OOSyst->SetMarkerColor(kMagenta + 1);
+  gV2OOSyst->SetFillColor(kMagenta + 1);
+  gV2OOSyst->SetLineColor(kMagenta + 1);
   gV2OOSyst->Draw("same p2");
 
   TLegend *legendSystem = new TLegend(0.2, 0.7, 0.60, 0.9);
   legendSystem->SetFillStyle(0);
   legendSystem->SetTextAlign(12);
   legendSystem->SetTextSize(0.035);
-  legendSystem->AddEntry("", "V_{2}{2, |#Delta#it{#eta} | > 1.4}, |#it{#eta} | < 0.8, 0.2 < #it{p}_{T} < 3 GeV/#it{c}", "pl");
+  legendSystem->AddEntry("", "V_{2}{2, |#Delta#it{#eta} | > 1.4}, |#it{#eta} | < 0.8, 0.2 < #it{p}_{T} < 3 GeV/#it{c}", "");
   legendSystem->AddEntry(gV2PbPb, "Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
-  legendSystem->AddEntry(gV2pPb, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
+  //legendSystem->AddEntry(gV2pPb, "p-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV");
   legendSystem->AddEntry(gV2OO, "O-O #sqrt{#it{s}_{NN}} = 5.36 TeV");
 
   legendSystem->Draw("");
   canvasV2VsMultiplicity->SaveAs("../V2VsMultiplicity.pdf");
   canvasV2VsMultiplicity->SaveAs("../V2VsMultiplicity.png");
   canvasV2VsMultiplicity->SaveAs("../V2VsMultiplicity.eps");
+
 }
