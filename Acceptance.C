@@ -238,13 +238,15 @@ void Acceptance(Int_t indexMultTrial = 0,
       hCos2ThetaLambdaFromCVsEta[cent][pt]->Reset();
       for (Int_t bin = 0; bin < hEta[cent][pt]->GetNbinsX(); bin++)
       {
-        TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
+       // TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
+        TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin]+0.0001), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin+1]-0.0001));
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinContent(bin + 1, htemp->GetMean());
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinError(bin + 1, htemp->GetMeanError());
         hCos2ThetaLambdaFromC2D[cent]->SetBinContent(pt + 1, bin + 1, htemp->GetMean());
         hCos2ThetaLambdaFromC2D[cent]->SetBinError(pt + 1, bin + 1, htemp->GetMeanError());
       }
     }
+
     hEtaVsPtVsCos2ThetaLambdaFromC[cent]->GetYaxis()->SetRangeUser(PtBinsLambda[0] + 0.0001, PtBinsLambda[numPtBinsLambda] - 0.0001);
     for (Int_t eta = 0; eta < numEtaBins + 1; eta++)
     {
@@ -303,7 +305,8 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetLineColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->Draw("same");
-    legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt + 1]), "pl");
+    if (pt == numPtBinsLambda) legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]), "pl");
+    else legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt + 1]), "pl");
   }
   legendPt->Draw("same");
   canvasAcceptance->cd(2);
@@ -318,7 +321,8 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetLineColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->Draw("same");
-    legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[eta], EtaBins[eta + 1]), "pl");
+    if (eta == numEtaBins) legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[0], EtaBins[numEtaBins]), "pl");
+    else legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[eta], EtaBins[eta + 1]), "pl");
   }
   legendEta->Draw("same");
   canvasAcceptance->cd(3);
