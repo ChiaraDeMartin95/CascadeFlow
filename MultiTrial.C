@@ -47,7 +47,7 @@ void DivideAndComputeRogerBarlow(TH1F *hVar, TH1F *hDef)
     return;
   }
 
-  Double_t lSigmaDelta[100];
+  Double_t lSigmaDelta[400];
   for (Int_t i = 1; i < hVar->GetNbinsX() + 1; i++)
   {
     // Computation of roger barlow sigma_{delta}
@@ -104,7 +104,7 @@ TH1F *makeSystPlots(int num = 1, TString Sdef = "", TString Svaried = "", TStrin
     double dev = hVariedCut->GetBinContent(i) - 1; // hR - 1
     double err = hVariedCut->GetBinError(i);       // sB
 
-    //hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
+    // hDev->SetBinContent(i, abs(PassRogerBarlowCriterion(nsigmaBarlow, dev, err))); // rel. syst. error = hR-1 if |hR-1| > 1*sB
     hDev->SetBinContent(i, PassRogerBarlowCriterion(nsigmaBarlow, dev, err)); // rel. syst. error = hR-1 if |hR-1| > 1*sB
 
     cout << "default: " << hDefault->GetBinContent(i) << " +- " << hDefault->GetBinError(i) << endl;
@@ -155,7 +155,7 @@ TString SisPtIntegrated[2] = {"", "PtInt"};
 
 void MultiTrial(
     Int_t mul = 0,
-    Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed
+    Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed, 3 = Pzs2
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
     TString SisSyst = "LambdaTopo" /*"MassAndBDTCut"*/,
@@ -267,7 +267,10 @@ void MultiTrial(
 
   cout << "The number of trials to be investigated are: " << trials << endl;
 
-  TString Sdef = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
+  TString Sroot = "../OutputAnalysis/Fit" + NameAnalysis[!isV2];
+  TString Sroot1 = Sroot + "_" + inputFileName;
+  TString Sroot2 = Sroot + "_" + inputFileName + "Bis";
+  TString Sdef = "_" + ParticleName[ChosenPart];
   Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
   Sdef += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -293,8 +296,7 @@ void MultiTrial(
     Sdef1 = "_Eta08";
   Sdef1 += STHN[ExtrisFromTHN];
 
-  TString SdefFinal = Sdef + Sdef1;
-  // if (useMixedBDTValueInFitMacro)
+  TString SdefFinal = Sroot1 + Sdef + Sdef1;
   if (ChosenPart != 6)
     SdefFinal += "_MixedBDT";
   if (isTightMassCut)
@@ -304,7 +306,7 @@ void MultiTrial(
 
   if (SisSyst == "LambdaTopo")
   {
-    SdefFinal = Sdef;
+    SdefFinal = Sroot1 + Sdef;
     if (!isRapiditySel || ExtrisFromTHN)
       SdefFinal += "_Eta08";
     if (isTightMassCut)
@@ -315,12 +317,12 @@ void MultiTrial(
     SdefFinal += "_isSysLambdaMultTrial";
     if (ExtrisApplyResoOnTheFly)
       SdefFinal += "_ResoOnTheFly";
-    cout << "Svaried " << SdefFinal << endl;
+    cout << "SdefFinal " << SdefFinal << endl;
   }
 
   TString Svaried = "";
 
-  cout << "Default input file: " << SdefFinal << endl;
+  cout << "\nDefault input file: " << SdefFinal << endl;
   TFile *fdef = TFile::Open(SdefFinal + ".root");
   if (!fdef)
   {
@@ -490,12 +492,12 @@ void MultiTrial(
     TString SBDT = Form("_BDT%.3f", BDTscoreCut[i]);
     if (SisSyst == "BDT")
     {
-      Svaried = Sdef + SBDT + Sdef1;
+      Svaried = Sroot1 + Sdef + SBDT + Sdef1;
       if (isTightMassCut)
         Svaried += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     }
     else if (SisSyst == "eta")
-      Svaried = Sdef + SEtaSysChoice[i + 1];
+      Svaried = Sroot1 + Sdef + SEtaSysChoice[i + 1];
     else if (SisSyst == "IR")
     {
       Svaried = "OutputAnalysis/FitV2_" + inputFileNameIR + SIRChoice[i + 1] + "_" + ParticleName[ChosenPart];
@@ -505,26 +507,32 @@ void MultiTrial(
     }
     else if (SisSyst == "MassCut")
     {
-      Svaried = Sdef + Sdef1;
+      Svaried = Sroot1 + Sdef + Sdef1;
       // if (useMixedBDTValueInFitMacro)
       Svaried += "_MixedBDT";
       Svaried += Form("_TightMassCutSyst%i", i);
     }
     else if (SisSyst == "MassAndBDTCut")
     {
-      Svaried = Sdef + SBDT + Sdef1;
+      Svaried = Sroot1 + Sdef + SBDT + Sdef1;
       Svaried += Form("_TightMassCutSyst%i", i / trialsBDT);
     }
     else if (SisSyst == "LambdaTopo")
     {
-      Svaried = Sdef;
+      if (i < 197)
+        Svaried = Sroot1 + Sdef;
+      else
+        Svaried = Sroot2 + Sdef;
       if (!isRapiditySel || ExtrisFromTHN)
         Svaried += "_Eta08";
       if (isTightMassCut)
         Svaried += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
       if (isReducedPtBins)
         Svaried += "_ReducedPtBins";
-      Svaried += Form("_SysMultTrial_%i", i);
+      if (i < 197)
+        Svaried += Form("_SysMultTrial_%i", i + 1);
+      else
+        Svaried += Form("_SysMultTrial_%i", i - 197 + 1);
       Svaried += "_isSysLambdaMultTrial";
       if (ExtrisApplyResoOnTheFly)
         Svaried += "_ResoOnTheFly";
@@ -673,6 +681,8 @@ void MultiTrial(
   hdummy->GetYaxis()->SetRangeUser(0, 5.);
   hdummy->GetYaxis()->SetTitle("N_{#sigma}^{Barlow}");
   hdummy->Draw();
+  Int_t NumberOfTrialsBarlowgt1 = 0;
+  Int_t NumberOfTrialsBarlowgt2 = 0;
   for (int i = 0; i < trials; i++)
   {
     if (i == IndexNotDisplayed)
@@ -699,6 +709,14 @@ void MultiTrial(
     hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
     hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
     hNSigmaBarlow[i]->Draw("same");
+    if (hNSigmaBarlow[i]->GetBinContent(1) > 1)
+    {
+      NumberOfTrialsBarlowgt1++;
+    }
+    if (hNSigmaBarlow[i]->GetBinContent(1) > 2)
+    {
+      NumberOfTrialsBarlowgt2++;
+    }
   }
   lineatnSigmaBarlow->Draw("same");
 
@@ -1197,9 +1215,13 @@ void MultiTrial(
     hCollectionAbsoluteSyst[pt]->Draw("EP SAME");
     fgaus2[pt]->SetParameter(0, hCollectionAbsoluteSyst[pt]->GetMaximum());
     fgaus2[pt]->SetLineColor(kBlue);
+    hCollectionAbsoluteSyst[pt]->SetLineColor(kBlack);
+    hCollectionAbsoluteSyst[pt]->SetMarkerColor(kBlack);
+    hCollectionAbsoluteSyst[pt]->SetMarkerStyle(kFullCircle);
+    hCollectionAbsoluteSyst[pt]->SetTitle(Form("FT0C %i-%i %%", CentFT0CMin, CentFT0CMax));
     hCollectionAbsoluteSyst[pt]->GetYaxis()->SetTitle("Counts");
     hCollectionAbsoluteSyst[pt]->GetXaxis()->SetTitle("Y_{sys} - Y_{def}");
-    //hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of deviations");
+    // hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of deviations");
     hCollectionAbsoluteSyst[pt]->Fit(fgaus2[pt], "LLR+");
     fgaus2[pt]->Draw("same");
     TLegend *legend2 = new TLegend(0.6, 0.75, 0.8, 0.85);
@@ -1386,4 +1408,7 @@ void MultiTrial(
   cout << "Syst. error (from gauss fit to rel. deviation): " << abs(hSystMultiTrial->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
   cout << "Syst. error (from RMS of rel. deviations): " << abs(hSystMultiTrialRMS->GetBinContent(1) * hDefault->GetBinContent(1)) << endl;
   cout << "Stat error: " << hDefaultError->GetBinContent(1) << endl;
+
+  cout << " NumberOfTrialsBarlowgt1 = " << NumberOfTrialsBarlowgt1 << " fraction of total: " << (float)NumberOfTrialsBarlowgt1 / (float)NumberOfActualTrialsBis << endl;
+  cout << " NumberOfTrialsBarlowgt2 = " << NumberOfTrialsBarlowgt2 << " fraction of total: " << (float)NumberOfTrialsBarlowgt2 / (float)NumberOfActualTrialsBis << endl;
 }
