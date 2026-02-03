@@ -130,7 +130,7 @@ void FDFraction()
     if (mul == numCentLambdaOO)
     {
       CentFT0CMin = 0;
-      CentFT0CMax = 100;
+      CentFT0CMax = CentFT0CMaxLambdaOO;
     }
     else
     {

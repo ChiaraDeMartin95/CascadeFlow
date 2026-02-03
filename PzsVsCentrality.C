@@ -421,7 +421,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       if (m == (numCentLambdaOO))
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 100;
+        CentFT0CMax = CentFT0CMaxLambdaOO;
       }
       else
       {

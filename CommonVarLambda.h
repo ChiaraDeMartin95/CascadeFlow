@@ -56,6 +56,7 @@ Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80}; //{0, 30, 50,
 Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+Double_t CentFT0CMaxLambdaOO = 100;
 Double_t dNdEtaAbhi[numCent] = {(2047. + 1668.) / 2, 1253, 848, 559, 351, 205, 110, 53}; // values from Abhi
 Double_t dNdEtaAbhiErr[numCent] = {(54. + 42.)/2, 33, 25, 19, 14, 11, 8, 5};
 Double_t dNdEtaOOPrel[numCentLambdaOO] = {(126.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 19.03, 13.22, 8.50, 0}; // approved up to 60%

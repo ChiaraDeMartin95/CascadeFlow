@@ -274,7 +274,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       if (cent == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 100;
+        CentFT0CMax = CentFT0CMaxLambdaOO;
       }
       else
       {

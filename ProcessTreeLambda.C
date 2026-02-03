@@ -485,7 +485,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     if (cent == numCentLambdaOO)
     { // 0-100%
       CentFT0CMin = 0;
-      CentFT0CMax = 100;
+      CentFT0CMax = CentFT0CMaxLambdaOO;
     }
     else
     {

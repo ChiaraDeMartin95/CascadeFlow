@@ -182,7 +182,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
       if (isOOCentrality)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 90;
+        CentFT0CMax = CentFT0CMaxLambdaOO;
       }
     }
     else
