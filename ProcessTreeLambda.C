@@ -47,29 +47,18 @@ void createChain(TChain &chainD, TFile *f)
   }
 }
 
-constexpr double massSigmaParameters[4][2]{
-    {4.9736e-3, 0.006815},
-    {-2.39594, -2.257},
-    {1.8064e-3, 0.00138},
-    {1.03468e-1, 0.1898}};
-
 Float_t Minv2 = -1;
 Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
-// Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -65, -80, -120, -160, -240};
-// Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-40, -46, -60, -70, -80, -120, -130, -160, -240, -320, -480};
 Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -70, -120, -180, -400, -600};
 Float_t MinPzs2WithAlphaXi = -2.8;
 Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
-// Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 65, 80, 120, 160, 240};
-// Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {40, 46, 60, 70, 80, 120, 130, 160, 240, 320, 480};
 Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 70, 120, 180, 400, 600};
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
-// const Int_t NPzs2 = 200;
 const Int_t NPzs2 = 400;
 Double_t PzsBinsLambda[NPzs2 + 1];
 
@@ -488,10 +477,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   string SPzs2LambdaFinal = "fPzs2Lambda";
   if (isApplyResoOnTheFly)
     SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight";
-  //  df_selected = df_selected.Define("fCentResoWeight", Sweight);
   df_selected = df_selected.Define("fPzs2LambdaFinal", SPzs2LambdaFinal);
-  //  df_selected.Display({"fCentFT0C", "fCentResoWeight"}, 512)->Print();
-
+  
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {

@@ -1,6 +1,5 @@
 // This macro was originally written by:
 // chiara.de.martin@cern.ch
-
 #include "TStyle.h"
 #include "TProfile2D.h"
 #include "TFile.h"
@@ -11,14 +10,10 @@
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TF1.h"
-#include "TLatex.h"
-#include "TLine.h"
-#include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
 // #include "CommonVar.h"
 #include "CommonVarLambda.h"
-#include "StyleFile.h"
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
