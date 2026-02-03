@@ -16,14 +16,11 @@ Bool_t isOOCentrality = 1;
 
 const Int_t numPart = 9; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda, Lambda, AntiLambda
 bool isRun2Binning = 0;
-// const Int_t numPtBins = 15;
-//  const Int_t numPtBins = 6; // Run2 binning
 const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numCentLambdaOO = 10;
 const Int_t commonNumCent = 10; // the maximum of the two above (?) (numCent for Xi, numCentLambdaOO for Lambda in OO)
-// const Int_t numCent_PtDiff = 3; // for pt differential measurement
 const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
 
 TString sPolFromLambda[2] = {"", "LambdaFromC"};
@@ -57,7 +54,6 @@ Double_t dNdEtaOOErr[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 
 Double_t dNdEtaOOErrSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0.58, 0.54, 0.48, 0};             // from 60% to 90%, extrapolated with MultVsCent.C macro
 Double_t dNdEtaNeNe[2] = {105.59, 20.63};                                                                                // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
 Double_t dNdEtaNeNeErr[2] = {3.52, 0.69};                                                                                // random reasonable errors assigned
-
 Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
 
 // Pt bins
@@ -71,7 +67,6 @@ Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
 const Int_t numPtBinsLambda = 9;
-//Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
 Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
 Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
 
@@ -226,8 +221,6 @@ const int trialsBDT = 201;         // number of trials for the systematic studie
 const float nsigmaBarlow = 0;
 const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
-// const float MinBDTscorePtInt[numCent + 1] = {0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.4}; // minimum BDT value for syst. evaluation
-// const float MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.8, 0.8, 0.8, 0.6, 0.48, 0.48, 0.96}; // maximum BDT value for syst. evaluation
 const double MinBDTscorePtInt[numCent + 1] = {0.959, 0.92, 0.879, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
 const bool isLoosest = 0;
@@ -265,14 +258,8 @@ TString SIRChoice[6] = {"", "_544013", "_544392", "_544098", "_544032", "_544184
 TString SIRValue[6] = {"", "6 kHz", "12 kHz", "18 kHz", "23 kHz", "33 kHz"};
 TString inputFileNameIR = "Train207098";
 
-// -------- Event plane resolution ------------------------------
-// float ftcResoSourav[numCent] = {0.514595, 0.7228, 0.760156, 0.733402, 0.659964, 0.540407, 0.383689, 0.218501}; // values from Sourav
-// float ftcResoSP[numCent] = {0.805015, 1.06586, 1.10463, 1.07285, 0.984069, 0.82759, 0.602314, 0.34722};
-
-// Files to compute resolution
-// TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_Train224930.root";      //<-- LF framework
-// TString ComputeResoFileNameLF = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass4_test5_Train235645.root";      //<-- LF framework
-TString inputFileResoCFW = SinputFileNameAR; // OLD: "LHC23zzh_pass3_Train226234_CFW";
+// -------- Event plane resolution (not for Pzs of Lambda) ------------------------------
+TString inputFileResoCFW = SinputFileNameAR; 
 TString inputFileResoLF = SinputFileNameAR;
 
 // Files with stored resolution

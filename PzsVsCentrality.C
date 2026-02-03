@@ -1,5 +1,4 @@
 #include "Riostream.h"
-#include "TTimer.h"
 #include "TROOT.h"
 #include "TStyle.h"
 #include "TMath.h"
@@ -111,17 +110,14 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 }
 
 Float_t YLow[numPart] = {-0.001};
-// Float_t YLow[numPart] = {0};
-// Float_t YUp[numPart] = {0.02};
 Float_t YUp[numPart] = {0.011};
-// Float_t YUp[numPart] = {0.05};
 
 Int_t colorJunlee = kAzure - 3;
 Int_t ColorOO = kMagenta + 1;
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
-                     Bool_t isFromFit = 0,
+                     Bool_t isFromFit = 1,
                      Bool_t isFDCorrected = 0,
                      Bool_t isBkgPol = 1,
                      Bool_t isTighterPzFitRange = 0,
@@ -143,12 +139,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Int_t ChosenPt = -999;
   cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
   cin >> ChosenPt;
-
-  // if (ChosenPart == 6 && !isFromFit)
-  //{
-  //   cout << "You have chosen the #Lambda particle and are not using the fit. Please select a different option." << endl;
-  //   return;
-  // }
 
   Int_t part = 0;
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
@@ -480,8 +470,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     }
     if (ExtrisApplyResoOnTheFly)
       PathIn += "_ResoOnTheFly";
-    // if (ChosenPart >= 6)
-    //   PathIn += "_CorrectReso_TestLeassPtBins";
     if (ChosenPart == 0)
       PathIn += "_EPReso";
     if (isBkgPol == 0)
@@ -489,7 +477,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     // PathIn += "_SystReso";
     if (isTighterPzFitRange)
       PathIn += "_TighterPzFitRange";
-    // PathIn += "_TestMoreBins";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -1177,22 +1164,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendPalermo->SetFillStyle(0);
   legendPalermo->SetTextAlign(12);
   legendPalermo->SetTextSize(0.048);
-
-  // Int_t colorJunlee = kGreen + 2;
-
   StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
-  // TLegend *legendParticles = new TLegend(0.20, 0.63, 0.60, 0.77);
   TLegend *legendParticles = new TLegend(0.14, 0.7, 0.5, 0.83);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
-  legendParticles->SetTextSize(0.042); // 0.048
+  legendParticles->SetTextSize(0.042);
   if (ChosenPart >= 6)
     legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pl");
   else
     legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
-  // legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb 5.36 TeV", 0.5), "pl");
   if (ChosenPart >= 6)
     legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
   else
@@ -1231,9 +1213,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
   if (ChosenPart < 6)
     gPzsPalermo->Draw("same l");
-  // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
-  //  gPzsLambdaJunlee->Draw("same p");
-  //  gPzsLambdaJunleeSist->Draw("same e2");
+  //fHistPzsLambdaNeNeJunlee->Draw("same ex0");
+  //gPzsLambdaJunlee->Draw("same p");
+  //gPzsLambdaJunleeSist->Draw("same e2");
   //fHistPzs0To50->Draw("same ex0");
   //fHistPzs0To50Sist->SetFillStyle(0);
   //fHistPzs0To50Sist->Draw("same e2");
@@ -1519,7 +1501,4 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
   cout << "and the file: " << PathInSyst << " for syst. uncertainties,\n";
   cout << "\nI have created the file:\n " << stringout << endl;
-
-  // if (ChosenPart == 6)
-  //   cout << "\n\nWARNING: Syst path for Lambda might be dummy!! " << endl;
 }

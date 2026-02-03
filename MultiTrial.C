@@ -2,7 +2,6 @@
 // francesca.ercolessi@cern.ch
 // and later modified by:
 // chiara.de.martin@cern.ch
-
 #include "TStyle.h"
 #include "TFile.h"
 #include "TFitResult.h"

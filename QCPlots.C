@@ -144,13 +144,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     return;
   }
 
-  cout << "Hello " << endl;
-  // event selection
-  // TDirectoryFile *dirHistos = (TDirectoryFile *)dir->Get("histos");
   TDirectoryFile *dirHistos;
-  // if (ChosenParticle == 6)
-  //   dirHistos = (TDirectoryFile *)dir;
-  // else
   dirHistos = (TDirectoryFile *)dir->Get("histos");
   if (!dirHistos)
   {
