@@ -1,4 +1,46 @@
-How to run the full analysis:
+How to run the full analysis for Lambda polarization in OO:
+1. Event QC: QCPlots.C --> produces QC plots + centrality weight
+2. Resolution: Resolution.C --> produces resolution
+//Acceptance (needed in input of cascadeflow.cxx)
+3. ProcessTHN.C --> Produces histograms needed to compute acceptance
+4. Acceptance.C --> produces acceptance plots which are taken in input by cascadeflow.cxx task. 
+//
+5. ProcessTreeLambda.C --> takes in input the resolution, the centrality weight, and the tree produced by the task cascadeflow.cxx (process function processAnalyseLambdaEP2CentralFW), and produces histograms for Pzs2
+6. ComputeV2.C --> produces histograms
+7. FitV2orPol.C --> produces Pzs2 values for each centrality class and pT interval
+8. PzsVsCentrality.C --> plots Pzs2 values vs centrality. In addition, it also fits Pzs2 vs centrality, plots syt. uncertainty taken from input file, plots purity, yields, mean values, significance vs centrality, Pzs2 vs multiplicity (compared to Pb-Pb values)
+
+// Systematics related to topological selections
+9. MultiTrial.C --> for each centrality, it calculates the systematic uncertainty from topological variations taking in input several file outputs of FitV2orPol.C
+Settings: Choice = 3 (Pzs2), SisSyst = "LambdaTopo".
+Must be run after running several times with different indexMultTrial both ComputeV2.C and FitV2orPol.C (use script script_MultiTrial.sh), with the following settings in CommonVarLambda.h:
+trialsLambdaTopo: number of trails
+ExtrisSysLambdaMultTrial = 1
+//Total systematics
+10. SystematicErrorVsCent.C --> it produces total syst vs centrality
+
+-<>-<>-<>- Input settings found in CommonVarLambda.h -<>-<>-<>- 
+Leave it as is to run the full analysis (macros 5, 6, 7, 8)
+To be changed according to the following instructions to produce acceptance file (macros 3, 4)
+//isApplyCentWeight = 0
+//ExtrisApplyResoOnTheFly = 0
+//ExtrisFromTHN = 1
+//isProducedAcceptancePlots = 1
+//SinputFileName --> take the proper input for acceptance calculation
+To be changed according to the following instructions to run macros 6 and 7 to produce input for macro 9
+//ExtrisSysLambdaMultTrial = 1
+//trialsLambdaTopo --> actual number of variations
+//SinputFileName --> take the proper input for systematic variations
+
+Additional useful macros:
+1. V2VsCentrality.C --> Produces V2 of charged particles vs multiplicity taking published values in input
+2. MeanSigmaPurityMultRatio.C --> Displays mean, sigma, purity, yield, acceptance, Pzs, ... vs pT and plots the ratio to the centrality-intergated results
+3. CompareResults.C --> provides comparison plots
+4. PzsLambdaSumALambda.C --> compares Pzs obtained as [Pzs(Lambda) + Pzs(ALambda)]/2 vs Pzs(Lambda + ALambda)
+6. FDFraction.C --> produces FD fraction (i.e. fraction of Lambdas that are not physicl primary, i.e. come from Xi decay) vs centrality. It takes in input the output of cascadeflow.cxx (process function processMCPrimaryLambdaFraction). It can be given in input to PzsVsCentrality.C (not used for Preliminary results)
+
+///////////////////////////////////
+OLD - How to run the full analysis:
 
 1. QC: QCPlots.C
 2. Resolution: Resolution.C
