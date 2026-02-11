@@ -112,8 +112,8 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 {
 
   TString inputFileName = SinputFileName;
-  if (isEff)
-    inputFileName = SinputFileNameEff;
+  //if (isEff)
+  //  inputFileName = SinputFileNameEff;
   gStyle->SetOptStat(0);
   Int_t nrebinx = 4;
   Int_t nrebiny = 4;
