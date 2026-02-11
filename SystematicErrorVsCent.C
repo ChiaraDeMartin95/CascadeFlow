@@ -105,7 +105,7 @@ Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0.03;
 Float_t SecondaryLambdaFraction = 0.1;
-Float_t ZVertexErrorLambdaOO = 0.00005;
+Float_t ZVertexErrorLambdaOO = 0.00009;
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
@@ -506,9 +506,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistBDTErrorVsCent->Smooth();
   fHistMassCutErrorVsCent->Smooth();
   fHistMassCutAndBDTErrorVsCent->Smooth();
-  fHistBkgExpoErrorVsCent->Smooth();
-  fHistPzFitRangeErrorVsCent->Smooth();
-  fHistPolBkg0ErrorVsCent->Smooth();
+  //fHistBkgExpoErrorVsCent->Smooth();
+  //fHistPzFitRangeErrorVsCent->Smooth();
+  //fHistPolBkg0ErrorVsCent->Smooth();
   // fHistResoErrorVsCent->Smooth();
 
   for (Int_t m = 0; m < commonNumCent; m++)
