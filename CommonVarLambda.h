@@ -22,8 +22,8 @@ Bool_t isApplyCentWeight = 1;       // 0 for acceptance
 Bool_t ExtrisApplyEffWeights = 0;   // not applied for Lambda Pzs
 Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0;           // 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 1;
+Bool_t ExtrisFromTHN = 0;           // 1 for acceptance; 0: process the tree, 1: process the THnSparse
+Bool_t isReducedPtBins = 1;         //0 for acceptance
 Bool_t isOOCentrality = 1;
 
 const Int_t numPart = 9; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda, Lambda, AntiLambda
@@ -44,7 +44,7 @@ TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
 TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245, 1.67245, 1.115683, 1.115683, 1.115683}; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus", "Lambda", "LambdaPart", "AntiLambda"};
-TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda + #overline{#Lambda}", "#Lambda", "#overline{#Lambda}"};
+TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda + #bar{#Lambda}", "#Lambda", "#overline{#Lambda}"};
 TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta*_{#Lambda})#GT", "#LTcos^{2}(#theta*_{p})#GT", "v2, corr", "#LTcos^{2}(#theta*_{p})#GT", "#LTcos^{2}(#theta*_{p})#GT"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
@@ -113,7 +113,7 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}
 // TString SinputFileName = "LHC25_OO_pass2_Train562850"; //latest
 // TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
 // TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; //used for acceptance
-// TString SinputFileName = "LHC25_OO_pass2_Train576495"; //tree with |eta| < 0.8 -- the DEFAULT ONE FOR THE MOMENT
+// TString SinputFileName = "LHC25_OO_pass2_Train576495"; //tree with |eta| < 0.8 
 // TString SinputFileName = "LHC25_OO_pass2_Train575744"; //THN
 // TString SinputFileName = "LHC25_OO_pass2_Train576496"; //tree with |eta| < 0.8 and |z| < 8 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train589559"; //THN larger range pzs2
@@ -122,9 +122,11 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}
 // TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597527_NewAcc_EtaPos"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
-TString SinputFileName = "LHC25_OO_pass2_Train598890"; 
-// TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; 
-// TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; 
+TString SinputFileName = "LHC25_OO_pass2_Train598890"; //for PRELIMINARIES 2026
+// TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8 
+// TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
+// TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
+// TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; //Also -0.8 < etaDau < 0
 
 //To get number of analyzed events
 TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
@@ -132,6 +134,9 @@ TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
 // File name for centrality weights
 // TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
+
+//File name for efficiency weights
+TString SinputFileNameEffWeight = "";
 
 // File name for resolution weights
 // TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
