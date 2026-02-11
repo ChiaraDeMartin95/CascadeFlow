@@ -259,6 +259,13 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 62 --> Compare Pzs2 of Lambda with FD correction vs without FD correction
   // TypeComp == 63 --> Compare proton acceptance with and without |eta| < 0.8 cut for daughters
   // TypeComp == 64 --> Compare proton acceptance with |eta| < 0.8 and 0 < eta < 0.8 and -0.8 < eta < 0
+  // TypeComp == 65 --> Compare Pzs2 of Lambda vs AntiLambda
+  // TypeComp == 66 --> Compare Pzs2 of Lambda (from single file) vs sum #Lambda + #bar{#Lambda} polarization
+  // TypeComp == 67 --> Compare Pzs2 default vs mean value of gaussian of topological variations
+  // TypeComp == 68 --> Compare Pzs2 default vs obtained by doubling the range of Pzs axis
+  // TypeComp == 69 --> Compare Pzs2 default vs |etaDau| < 0.8
+  // TypeComp == 70 --> compare Pzs of Lambda produced in A-side vs C-side
+  // TypeComp == 71 --> compare Pzs of Lambda produced in A-side vs C-side (no sel on eta daughters)
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1467,24 +1474,25 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[1] = "P_{z, s2, bkg} = 0";
     // YLow = 0.;
     // YUp = 0.5;
-    // YLowRatio = -0.003;
-    // YUpRatio = 0.003;
-    YLowRatio = 0.5;
-    YUpRatio = 1.5;
+    YLowRatio = -0.0003;
+    YUpRatio = 0.0003;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
     YLow = -0.002;
-    YUp = 0.02;
+    YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
   }
   else if (TypeComp == 54)
   {
+    // TypeComp == 54 --> Compare Pzs2 of Lambda with different fit ranges in Pz
     numOptions = 2;
     isRatio = 0;
     isFullCorr = 1;
     isStoreSyst = 1;
     isFitRatio = 1;
     TypeSyst = "PzFitRange";
-    //CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[0] = "";
     fileName[1] = "_TighterPzFitRange";
@@ -1495,24 +1503,25 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[1] = "Tighter P_{z, s2} fit range";
     // YLow = 0.;
     // YUp = 0.5;
-    //YLowRatio = -0.004;
-    //YUpRatio = 0.004;
-    YLowRatio = 0.8;
-    YUpRatio = 1.2;
+    YLowRatio = -0.0003;
+    YUpRatio = 0.0003;
+    // YLowRatio = 0.8;
+    // YUpRatio = 1.2;
     YLow = -0.002;
-    YUp = 0.02;
+    YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
   }
   else if (TypeComp == 55)
   {
+    // TypeComp == 55 --> Compare Pzs2 of Lambda with different fit function for inv mass bkg
     numOptions = 2;
     isRatio = 0;
     isFullCorr = 1;
     isStoreSyst = 1;
     TypeSyst = "BkgFit";
     isFitRatio = 1;
-    //CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda";
+    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda";
     fileName[0] = "_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[1] = "_BkgExpo_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
@@ -1523,12 +1532,12 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[1] = "Expo background fit";
     YLow = 0.;
     YUp = 0.5;
-    //YLowRatio = -0.004;
-    //YUpRatio = 0.004;
-    YLowRatio = 0.8;
-    YUpRatio = 1.2;
+    YLowRatio = -0.0003;
+    YUpRatio = 0.0003;
+    // YLowRatio = 0.8;
+    // YUpRatio = 1.2;
     YLow = -0.002;
-    YUp = 0.02;
+    YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
   }
@@ -1541,27 +1550,27 @@ void CompareResults(Int_t TypeComp = 0,
     isStoreSyst = 0;
     TypeSyst = "Acceptance";
     CommonFileName = "../AcceptancePlots/Acceptance_LHC25_OO_pass2_SecondaryProtonAcc_Train508938_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality";
-    // fileName[0] = "";
-    // fileName[1] = "_TightAcceptance";
-    fileName[0] = "_TightAcceptance";
-    fileName[1] = "_TightAcceptance2";
-    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
-    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
-    // namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
-    // namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    fileName[0] = "";
+    fileName[1] = "_TightAcceptance";
+    // fileName[0] = "_TightAcceptance";
+    // fileName[1] = "_TightAcceptance2";
+    // namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    // namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
     hTitleY = "Cos^{2}(#theta_{p})";
-    // hTitleX = "#eta";
-    hTitleX = "p_{T} (GeV/c)";
+    hTitleX = "#eta";
+    // hTitleX = "p_{T} (GeV/c)";
     YLow = 0;
     YUp = 0.5;
     YLowRatio = 0.9;
     YUpRatio = 1.1;
-    sleg[0] = "Default";
-    sleg[1] = "tighter purity";
-    // MinHistoX = -0.8;
-    // MaxHistoX = 0.8;
-    MinHistoX = 0.5;
-    MaxHistoX = 10;
+    sleg[0] = "Looser sel.";
+    sleg[1] = "Default"; // the new acceptance is now the default one
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    // MinHistoX = 0.5;
+    // MaxHistoX = 10;
     yOffset = 6;
   }
   else if (TypeComp == 57)
@@ -1651,7 +1660,7 @@ void CompareResults(Int_t TypeComp = 0,
     isRatio = 0;
     isFullCorr = 0;
     isStoreSyst = 1;
-    isFitRatio = 0;
+    isFitRatio = 1;
     TypeSyst = "ZVertex";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     fileName[0] = "_Train576495_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
@@ -1668,27 +1677,27 @@ void CompareResults(Int_t TypeComp = 0,
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     YLow = -0.002;
-    YUp = 0.02;
+    YUp = 0.01;
     MinHistoX = 0;
-    MaxHistoX = 90;
+    MaxHistoX = 50;
   }
   else if (TypeComp == 61)
   {
     // TypeComp == 61 --> Compare Pzs2 of Lambda with new and old acceptance (new = higher purity)
     numOptions = 2;
-    isRatio = 0;
+    isRatio = 1;
     isFullCorr = 0;
     isStoreSyst = 1;
     isFitRatio = 1;
     TypeSyst = "AcceptancePurity";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
-    fileName[0] = "_Train576495_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    fileName[1] = "_Train589711_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[0] = "_Train589711_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[1] = "_Train576495_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    sleg[0] = "Def acceptance";
-    sleg[1] = "New acceptance";
+    sleg[0] = "Default";
+    sleg[1] = "Looser-sel acceptance";
     // YLow = 0.;
     // YUp = 0.5;
     // YLowRatio = -0.0003;
@@ -1696,9 +1705,9 @@ void CompareResults(Int_t TypeComp = 0,
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     YLow = -0.002;
-    YUp = 0.02;
+    YUp = 0.01;
     MinHistoX = 0;
-    MaxHistoX = 90;
+    MaxHistoX = 50;
   }
   else if (TypeComp == 62)
   {
@@ -1770,12 +1779,12 @@ void CompareResults(Int_t TypeComp = 0,
     fileName[0] = "_Train597528_NewAcc_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
     fileName[1] = "_Train597527_NewAcc_EtaPos_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
     fileName[2] = "_Train597526_NewAcc_EtaNeg_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
-    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
-    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
-    namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
     hTitleY = "Cos^{2}(#theta_{p})";
-    hTitleX = "#eta";
-    // hTitleX = "p_{T} (GeV/c)";
+    // hTitleX = "#eta";
+    hTitleX = "p_{T} (GeV/c)";
     YLow = 0;
     YUp = 0.5;
     YLowRatio = 0.4;
@@ -1783,10 +1792,10 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[0] = "|#eta| < 0.8";
     sleg[1] = "0 < #eta < 0.8";
     sleg[2] = "-0.8 < #eta < 0";
-    MinHistoX = -0.8;
-    MaxHistoX = 0.8;
-    // MinHistoX = 0.5;
-    // MaxHistoX = 10;
+    // MinHistoX = -0.8;
+    // MaxHistoX = 0.8;
+    MinHistoX = 0.5;
+    MaxHistoX = 10;
     yOffset = 6;
   }
   else if (TypeComp == 65)
@@ -1796,7 +1805,7 @@ void CompareResults(Int_t TypeComp = 0,
     isRatio = 1;
     isFullCorr = -1;
     isStoreSyst = 0;
-    isFitRatio = 0;
+    isFitRatio = 1;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     // fileName[0] = "_Train589711_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[0] = "_Train589711_LambdaPart_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
@@ -1821,7 +1830,7 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 66)
   {
-    // TypeComp == 66 --> Compare Pzs2 of Lambda vs AntiLambda
+    // TypeComp == 66 --> Compare Pzs2 of Lambda (from single file) vs sum #Lambda + #bar{#Lambda} polarization
     numOptions = 2;
     isRatio = 1;
     isFullCorr = 1;
@@ -1913,35 +1922,63 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 70)
   {
-    // TypeComp == 70
-    numOptions = 2;
-    isRatio = 1;
-    isFullCorr = -1;
+    // TypeComp == 70 --> compare Pzs of Lambda produced in A-side vs C-side
+    numOptions = 3;
+    isRatio = 0;
+    isFullCorr = 0;
     isStoreSyst = 0;
-    isFitRatio = 1;
+    isFitRatio = 0;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     // TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision.root
     // NoPurityDivision_isBkgPol0
-    // fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    // fileName[1] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_isBkgPol0";
-    // fileName[2] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_isBkgPol0";
+    fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[1] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[2] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     // fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision";
     // fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision";
-    fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    //fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    //fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
-    // namehisto[2] = "fHistPzs";
+    namehisto[2] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
     sleg[0] = "AllEta";
     sleg[1] = "EtaPos";
     sleg[2] = "EtaNeg";
-    YLowRatio = -1;
-    YUpRatio = 2;
-    YLow = -0.01;
-    YUp = 0.05;
+    YLowRatio = -0.005;
+    YUpRatio = 0.005;
+    YLow = -0.001;
+    YUp = 0.01;
     MinHistoX = 0;
-    MaxHistoX = 90;
+    MaxHistoX = 50;
+  }
+  else if (TypeComp == 71)
+  {
+    // TypeComp == 71 --> compare Pzs of Lambda produced in A-side vs C-side (no sel on eta daughters)
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = -1;
+    isStoreSyst = 0;
+    isFitRatio = 0;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
+    // TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision.root
+    // NoPurityDivision_isBkgPol0
+    //fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[0] = "_Train598890_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[1] = "_Train598890_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    //namehisto[2] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    //sleg[0] = "AllEta";
+    sleg[0] = "EtaPos";
+    sleg[1] = "EtaNeg";
+    YLowRatio = -0.002;
+    YUpRatio = 0.002;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 50;
   }
   else
   {
@@ -2393,7 +2430,9 @@ void CompareResults(Int_t TypeComp = 0,
     for (Int_t i = 1; i < numOptions; i++)
     {
       TH1F *hRatioClone = (TH1F *)hRatio[i]->Clone(Form("hRatioClone_%i", i));
-      //hRatioClone->Scale(1. / TMath::Sqrt(12));
+      if (TypeComp == 60)
+        hRatioClone->Scale(1. / 2);
+      // hRatioClone->Scale(1. / TMath::Sqrt(12));
       hRatioClone->Write();
     }
     outputForSyst->Close();
