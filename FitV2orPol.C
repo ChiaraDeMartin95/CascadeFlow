@@ -664,8 +664,16 @@ void FitV2orPol(
 
   TH1F *histoMean = new TH1F("histoMean", "histoMean", numPtBinsVar, BinsVar);
   TH1F *histoMeanPtInt = new TH1F("histoMeanPtInt", "histoMeanPtInt", 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoMean1 = new TH1F("histoMean1", "histoMean1", numPtBinsVar, BinsVar);
+  TH1F *histoMean1PtInt = new TH1F("histoMean1PtInt", "histoMean1PtInt", 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoMean2 = new TH1F("histoMean2", "histoMean2", numPtBinsVar, BinsVar);
+  TH1F *histoMean2PtInt = new TH1F("histoMean2PtInt", "histoMean2PtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoSigma = new TH1F("histoSigma", "histoSigma", numPtBinsVar, BinsVar);
   TH1F *histoSigmaPtInt = new TH1F("histoSigmaPtInt", "histoSigmaPtInt", 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoSigma1 = new TH1F("histoSigma1", "histoSigma1", numPtBinsVar, BinsVar);
+  TH1F *histoSigma1PtInt = new TH1F("histoSigma1PtInt", "histoSigma1PtInt", 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoSigma2 = new TH1F("histoSigma2", "histoSigma2", numPtBinsVar, BinsVar);
+  TH1F *histoSigma2PtInt = new TH1F("histoSigma2PtInt", "histoSigma2PtInt", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoSigmaWeighted = new TH1F("histoSigmaWeighted", "histoSigmaWeighted", numPtBinsVar, BinsVar);
   TH1F *histoSigmaPtIntWeighted = new TH1F("histoSigmaPtIntWeighted", "histoSigmaPtIntWeighted", 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoPurity = new TH1F("histoPurity", "histoPurity", numPtBinsVar, BinsVar);
@@ -1676,8 +1684,10 @@ void FitV2orPol(
       // UpLimit[pt] = 1.119;
       //  LowLimit[pt] = 1.1145;
       //  UpLimit[pt] = 1.1158;
-      LowLimit[pt] = 1.115;
-      UpLimit[pt] = 1.1155;
+      // LowLimit[pt] = 1.1145;
+      // UpLimit[pt] = 1.1158;
+      LowLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinLowEdge(hInvMass[pt]->GetXaxis()->FindBin(1.1145));
+      UpLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinUpEdge(hInvMass[pt]->GetXaxis()->FindBin(1.1158));
     }
     lineP3Sigma[pt] = new TLine(UpLimit[pt], 0, UpLimit[pt], hInvMass[pt]->GetMaximum());
     lineM3Sigma[pt] = new TLine(LowLimit[pt], 0, LowLimit[pt], hInvMass[pt]->GetMaximum());
@@ -1759,11 +1769,23 @@ void FitV2orPol(
       histoMean->SetBinContent(pt + 1, mean[pt]);
       histoMean->SetBinError(pt + 1, errmean[pt]);
 
+      histoMean1->SetBinContent(pt + 1, functions1[pt]->GetParameter(1));
+      histoMean1->SetBinError(pt + 1, total[pt]->GetParError(1));
+
+      histoMean2->SetBinContent(pt + 1, functions2[pt]->GetParameter(1));
+      histoMean2->SetBinError(pt + 1, total[pt]->GetParError(4));
+
       histoSigma->SetBinContent(pt + 1, sigma[pt]);
       histoSigma->SetBinError(pt + 1, errsigma[pt]);
 
       histoSigmaWeighted->SetBinContent(pt + 1, sigmaw[pt]);
       histoSigmaWeighted->SetBinError(pt + 1, errsigmaw[pt]);
+
+      histoSigma1->SetBinContent(pt + 1, functions1[pt]->GetParameter(2));
+      histoSigma1->SetBinError(pt + 1, total[pt]->GetParError(2));
+
+      histoSigma2->SetBinContent(pt + 1, functions2[pt]->GetParameter(2));
+      histoSigma2->SetBinError(pt + 1, total[pt]->GetParError(5));
 
       histoPurity->SetBinContent(pt + 1, SSB[pt]);
       histoPurity->SetBinError(pt + 1, errSSB[pt]);
@@ -1836,8 +1858,16 @@ void FitV2orPol(
       histoV2BkgPtInt->SetBinError(1, PzBkgError);
       histoMeanPtInt->SetBinContent(1, mean[pt]);
       histoMeanPtInt->SetBinError(1, errmean[pt]);
+      histoMean1PtInt->SetBinContent(1, functions1[pt]->GetParameter(1));
+      histoMean1PtInt->SetBinError(1, total[pt]->GetParError(1));
+      histoMean2PtInt->SetBinContent(1, functions2[pt]->GetParameter(1));
+      histoMean2PtInt->SetBinError(1, total[pt]->GetParError(4));
       histoSigmaPtInt->SetBinContent(1, sigma[pt]);
       histoSigmaPtInt->SetBinError(1, errsigma[pt]);
+      histoSigma1PtInt->SetBinContent(1, functions1[pt]->GetParameter(2));
+      histoSigma1PtInt->SetBinError(1, total[pt]->GetParError(2));
+      histoSigma2PtInt->SetBinContent(1, functions2[pt]->GetParameter(2));
+      histoSigma2PtInt->SetBinError(1, total[pt]->GetParError(5));
       histoSigmaPtIntWeighted->SetBinContent(1, sigmaw[pt]);
       histoSigmaPtIntWeighted->SetBinError(1, errsigmaw[pt]);
       histoPurityPtInt->SetBinContent(1, SSB[pt]);
@@ -2509,8 +2539,16 @@ void FitV2orPol(
   outputfile->WriteTObject(histoBPtInt);
   outputfile->WriteTObject(histoMean);
   outputfile->WriteTObject(histoMeanPtInt);
+  outputfile->WriteTObject(histoMean1);
+  outputfile->WriteTObject(histoMean1PtInt);
+  outputfile->WriteTObject(histoMean2);
+  outputfile->WriteTObject(histoMean2PtInt);
   outputfile->WriteTObject(histoSigma);
   outputfile->WriteTObject(histoSigmaPtInt);
+  outputfile->WriteTObject(histoSigma1);
+  outputfile->WriteTObject(histoSigma1PtInt);
+  outputfile->WriteTObject(histoSigma2);
+  outputfile->WriteTObject(histoSigma2PtInt);
   outputfile->WriteTObject(histoSigmaWeighted);
   outputfile->WriteTObject(histoSigmaPtIntWeighted);
   outputfile->WriteTObject(histoPurity);
@@ -3065,5 +3103,5 @@ void FitV2orPol(
     cout << "The acceptance is computed without invariant mass fit " << endl;
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
-  cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1)/ histoV2PtIntErr->GetBinContent(1) << endl;
+  cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1) / histoV2PtIntErr->GetBinContent(1) << endl;
 }
