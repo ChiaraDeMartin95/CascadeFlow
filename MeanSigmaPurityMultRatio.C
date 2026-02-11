@@ -190,7 +190,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       YUpRatio[Choice] = 2;
     }
   }
-  cout << Choice << " " << TypeHisto[Choice] << endl;
+  //cout << Choice << " " << TypeHisto[Choice] << endl;
   if (Choice > (numChoice - 1))
   {
     cout << "Option not implemented" << endl;
@@ -336,7 +336,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   TLegend *LegendTitle;
   if (Choice == 2)
-    LegendTitle = new TLegend(0.54, 0.55, 0.95, 0.72);
+    LegendTitle = new TLegend(0.54, 0.35, 0.95, 0.54);
   else
     LegendTitle = new TLegend(0.54, 0.7, 0.95, 0.92);
   LegendTitle->SetFillStyle(0);
@@ -360,7 +360,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     }
     else if (Choice == 10 || Choice == 11)
     {
-      LegendTitle->AddEntry("", "#Lambda, |#it{#eta} | < 0.8", "");
+      LegendTitle->AddEntry("", "#Lambda + #bar{#Lambda}, |#it{#eta} | < 0.8", "");
     }
     else
     {
@@ -382,7 +382,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   // get spectra in multiplicity classes
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
-    cout << "m " << m << endl;
     if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
@@ -466,12 +465,12 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         PathIn += "_Eta08";
       PathIn += STHN[ExtrisFromTHN];
     }
-    // if (isReducedPtBins)
-    //   PathIn += "_ReducedPtBins";
+    if (isReducedPtBins)
+      PathIn += "_ReducedPtBins";
     if ((isOOCentrality) && (Choice == 10 || Choice == 11))
       PathIn += "_isOOCentrality";
-    // if (ExtrisApplyResoOnTheFly)
-    //   PathIn += "_ResoOnTheFly";
+    if (ExtrisApplyResoOnTheFly)
+      PathIn += "_ResoOnTheFly";
     if (ChosenPart == 0)
       PathIn += "_EPReso";
     if (isTightMassForAcceptancePurity)
@@ -481,9 +480,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if ((Choice == 10 || Choice == 11) && ChosenParticle == 6)
       PathIn += "_TightAcceptance"; 
     PathIn += ".root";
-    cout << "Path in : " << PathIn << endl;
+    cout << "Path in: " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
+    //cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
     if (Choice == 10 || Choice == 11)
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get(TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax));
     else if (Choice == 1)
@@ -545,6 +544,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     gPad->SetLogy();
   hDummy->Draw("same");
 
+  Int_t NFixedBin = 0;
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
     if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
@@ -555,6 +555,12 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     ScaleFactorFinal[m] = ScaleFactor[m];
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
+      cout << "bin " << b << " content " << fHistSpectrum[m]->GetBinContent(b) << " error " << fHistSpectrum[m]->GetBinError(b) << endl;
+      if (std::isnan(fHistSpectrum[m]->GetBinError(b)) || fHistSpectrum[m]->GetBinError(b)/fHistSpectrum[m]->GetBinContent(b) > 1)
+      {
+        fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b-1));
+        NFixedBin++;
+      }
       if (fHistSpectrum[m]->GetBinError(b) != fHistSpectrum[m]->GetBinError(b))
       {
         if (b < fHistSpectrum[m]->GetNbinsX())
@@ -566,12 +572,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
     if (Choice == 3)
       fHistSpectrumScaled[m]->Scale(ScaleFactorFinal[m]);
-    for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
-    {
-      cout << "bin " << b << " " << fHistSpectrum[m]->GetBinContent(b) << "+-" << fHistSpectrum[m]->GetBinError(b) << endl;
-      cout << "bin " << b << " " << fHistSpectrumScaled[m]->GetBinContent(b) << "+-" << fHistSpectrumScaled[m]->GetBinError(b) << endl;
-      // fHistSpectrumScaled[m]->SetBinError(b, fHistSpectrumScaled[commonNumCent]->GetBinError(b));
-    }
     SetFont(fHistSpectrumScaled[m]);
     fHistSpectrumScaled[m]->SetMarkerColor(ColorMult[m]);
     fHistSpectrumScaled[m]->SetLineColor(ColorMult[m]);
@@ -635,7 +635,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   else
   {
     hDummyRatio->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
-    cout << "hola " << MinPt[ChosenPart] << " " << MaxPt[ChosenPart] << endl;
   }
   // hDummyRatio->GetXaxis()->SetRangeUser(1, MaxPt[part]);
   if (!isPtAnalysis)
@@ -700,7 +699,10 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   canvasPtSpectra->SaveAs(stringoutShort + ".png");
   canvas->SaveAs(stringoutShort + "_Top.pdf");
   canvas->SaveAs(stringoutShort + "_Top.png");
-  cout << "\nStarting from the files (for the different mult): " << PathIn << endl;
-
   cout << "\nI have created the file:\n " << stringout << endl;
+
+  if (NFixedBin > 0)
+  {
+    cout << "\nI had to fix " << NFixedBin << " bins with very large errors" << endl;
+  }
 }
