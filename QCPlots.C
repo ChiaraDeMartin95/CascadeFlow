@@ -21,7 +21,7 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-//#include "CommonVar.h"
+// #include "CommonVar.h"
 #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
@@ -112,8 +112,8 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 {
 
   TString inputFileName = SinputFileName;
-  //if (isEff)
-  //  inputFileName = SinputFileNameEff;
+  // if (isEff)
+  //   inputFileName = SinputFileNameEff;
   gStyle->SetOptStat(0);
   Int_t nrebinx = 4;
   Int_t nrebiny = 4;
@@ -500,7 +500,6 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[16]->SaveAs("../QCPlots/hPsiT0A_Shifted" + inputFileName + ".pdf");
   c[16]->SaveAs("../QCPlots/hPsiT0A_Shifted" + inputFileName + ".png");
 
-
   TString OutputFile = "../QCPlots/QCPlots_" + inputFileName;
   for (Int_t i = 0; i < nCanvas; i++)
   {
@@ -535,6 +534,37 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   hCentWeight->Draw("");
   cCentWeight->SaveAs("../QCPlots/hCentWeight_" + inputFileName + ".png");
   cCentWeight->SaveAs("../QCPlots/hCentWeight_" + inputFileName + ".pdf");
+
+  ///
+  TH2D *h2 = (TH2D *)hGlobalTrkvsPVContrib->Clone("h2");                // your 2D histogram
+  TF1 *fpol1 = new TF1("fpol1", "pol1", 0, 700); // fit function (linear in this case)
+  fpol1->SetParameters(40, 0.65);              // initial parameters for the fit (intercept, slope)
+
+  double entriesAbove = 0;
+
+  for (int ix = 1; ix <= h2->GetNbinsX(); ++ix)
+  {
+    double x = h2->GetXaxis()->GetBinCenter(ix);
+
+    for (int iy = 1; iy <= h2->GetNbinsY(); ++iy)
+    {
+      double y = h2->GetYaxis()->GetBinCenter(iy);
+
+      double content = h2->GetBinContent(ix, iy);
+      if (content == 0)
+        continue;
+
+      double yfit = fpol1->Eval(x);
+
+      if (y > yfit)
+      {
+        entriesAbove += content; // counts events, not just bins
+      }
+    }
+  }
+
+  std::cout << "Entries above pol1 = " << entriesAbove << std::endl;
+  cout <<"Farction over the total = " << entriesAbove/h2->GetEntries() << endl;
 
   cout << "\nStarting from the files (for the different mult): " << SinputFile << endl;
 }
