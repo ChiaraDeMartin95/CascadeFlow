@@ -19,7 +19,7 @@ Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3,
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 1;       // 0 for acceptance
-Bool_t ExtrisApplyEffWeights = 0;   // not applied for Lambda Pzs
+Bool_t ExtrisApplyEffWeights = 0;   // 0 default; 
 Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0;           // 1 for acceptance; 0: process the tree, 1: process the THnSparse
@@ -136,7 +136,8 @@ TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
 //File name for efficiency weights
-TString SinputFileNameEffWeight = "";
+TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root";
+TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; 
 
 // File name for resolution weights
 // TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
