@@ -1435,7 +1435,7 @@ void CompareResults(Int_t TypeComp = 0,
     numOptions = 2;
     isRatio = 0;
     isFullCorr = 1;
-    isStoreSyst = 1;
+    isStoreSyst = 0;
     TypeSyst = "Reso1";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[0] = "";
@@ -1452,7 +1452,7 @@ void CompareResults(Int_t TypeComp = 0,
     YLow = -0.002;
     YUp = 0.02;
     MinHistoX = 0;
-    MaxHistoX = 90;
+    MaxHistoX = 50;
   }
   else if (TypeComp == 53)
   {
@@ -1959,7 +1959,7 @@ void CompareResults(Int_t TypeComp = 0,
     isRatio = 0;
     isFullCorr = -1;
     isStoreSyst = 0;
-    isFitRatio = 0;
+    isFitRatio = 1;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     // TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision.root
     // NoPurityDivision_isBkgPol0
@@ -1973,6 +1973,29 @@ void CompareResults(Int_t TypeComp = 0,
     //sleg[0] = "AllEta";
     sleg[0] = "EtaPos";
     sleg[1] = "EtaNeg";
+    YLowRatio = -0.002;
+    YUpRatio = 0.002;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+  }
+   else if (TypeComp == 72)
+  {
+    // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 0;
+    isStoreSyst = 0;
+    isFitRatio = 1;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
+    fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    fileName[1] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "Default";
+    sleg[1] = "Eff weighted";
     YLowRatio = -0.002;
     YUpRatio = 0.002;
     YLow = -0.001;
