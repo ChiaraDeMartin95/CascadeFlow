@@ -77,6 +77,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
     SinputFile += "_ResoOnTheFly";
+  if (ExtrisApplyEffWeights && ChosenPart >= 6)
+    SinputFile += "_EffWeighted";
   if (ChosenPart >= 6 && !ExtrisFromTHN)
     SinputFile += "_Nvar1";
   // SinputFile += "_Nvar1_TestMoreBins";
@@ -341,7 +343,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hName[cent] = Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (isProducedAcceptancePlots && ChosenPart >= 6)
       hName[cent] = Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
-    if (ExtrisApplyEffWeights)
+    if (ExtrisApplyEffWeights && isV2)
       hName[cent] = Form("massVsPtVsV2CWeighted_cent%i-%i", CentFT0CMin, CentFT0CMax);
     profName[cent] = Form("ProfilemassVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax);
 
@@ -648,9 +650,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (isRun2Binning)
     SOutputFile += "_Run2Binning";
   if (ExtrisApplyEffWeights)
-  {
     SOutputFile += "_EffW";
-  }
   SOutputFile += "_WithAlpha";
   if (!isRapiditySel)
     SOutputFile += "_Eta08";

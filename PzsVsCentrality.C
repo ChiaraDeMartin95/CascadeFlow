@@ -147,7 +147,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   TString SErrorSpectrum[3] = {"stat.", "syst. uncorr.", "syst. corr."};
 
-  Int_t UpperRangeLambda = 50;
+  Int_t UpperRangeLambda = 80;
 
   if (ChosenPart >= 6)
   { // for Lambda in OO
@@ -265,6 +265,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       stringout += "_isTightest";
     stringout += "_isSysLambdaMultTrial";
   }
+  if (ExtrisApplyEffWeights)
+    stringout += "_EffW";
   // stringout += "_TestMoreBins";
   stringoutpdf = stringout;
   stringout += ".root";
@@ -311,7 +313,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (isOOCentrality)
     fHistPzsBkgUnderPeak = new TH1F("fHistPzsBkgUnderPeak", "fHistPzsBkgUnderPeak", numCentLambdaOO, fCentFT0CLambdaOO);
   else
-    fHistPzsBkgUnderPeak = new TH1F("fHistPzsBkgUnderPeak", "fHistPzsBkgUnderPeak", numCent, fCentFT0C);  
+    fHistPzsBkgUnderPeak = new TH1F("fHistPzsBkgUnderPeak", "fHistPzsBkgUnderPeak", numCent, fCentFT0C);
   TH1F *fHistPuritySummary;
   if (isOOCentrality)
     fHistPuritySummary = new TH1F("fHistPuritySummary", "fHistPuritySummary", numCentLambdaOO, fCentFT0CLambdaOO);
@@ -455,6 +457,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_Run2Binning";
     if (isPolFromLambda)
       PathIn += "_PolFromLambda";
+    if (ExtrisApplyEffWeights)
+      PathIn += "_EffW";
     if (!isRapiditySel)
       PathIn += "_Eta08";
     PathIn += STHN[ExtrisFromTHN];
@@ -936,8 +940,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummySignif->Draw("");
   fHistPzsSignifUpTo50->Draw("same");
   fHistPzsSignifStatUpTo50->Draw("same");
-  fHistPzsSignifLambda->Draw("same e0x0");
-  // LegendTitle->Draw("");
+  // fHistPzsSignifLambda->Draw("same e0x0");
+  //  LegendTitle->Draw("");
 
   TString titleLambda = "#Lambda + #bar{#Lambda}";
   if (ChosenParticle == 7)

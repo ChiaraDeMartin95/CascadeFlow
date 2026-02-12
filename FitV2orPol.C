@@ -829,9 +829,7 @@ void FitV2orPol(
     if (isRun2Binning)
       SPathIn += "_Run2Binning";
     if (ExtrisApplyEffWeights)
-    {
       SPathIn += "_EffW";
-    }
     SPathIn += "_WithAlpha";
     if (!isRapiditySel)
       SPathIn += "_Eta08";
@@ -2454,9 +2452,7 @@ void FitV2orPol(
     SoutputfileAcceptance += "_PolFromLambda";
   }
   if (ExtrisApplyEffWeights)
-  {
     Soutputfile += "_EffW";
-  }
   if (isSysMultTrial && ChosenPart < 6)
     Soutputfile += SBDT;
 
