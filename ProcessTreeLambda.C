@@ -76,7 +76,7 @@ Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
 void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                        Bool_t isSystReso = 0,
-                       //		       Bool_t isPartialEta = ExtrisPartialEta,
+                       Int_t isAllEta = 1, // 0 for eta < 0, 1 for all eta, 2 for eta > 0
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Int_t EtaSysChoice = ExtrEtaSysChoice,
@@ -98,7 +98,17 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   cout << "ChosenPart: " << ParticleName[ChosenPart] << endl;
   cout << "EtaSysChoice: " << EtaSysChoice << endl;
-  //  cout << "IsPartialEta: only eta > 0 selected (opposite to FT0C)" << endl;
+  if (isAllEta == 0)
+    cout << "only eta < 0 selected (opposite to FT0C)" << endl;
+  else if (isAllEta == 2)
+    cout << "only eta > 0 selected (same as FT0C)" << endl;
+  else if (isAllEta == 1)
+    cout << "all eta selected" << endl;
+  else
+  {
+    cout << "invalid value for isAllEta, please choose 0 for eta < 0, 1 for all eta, 2 for eta > 0" << endl;
+    return;
+  }
 
   std::vector<std::string> name;
   TString filename = "input_" + inputFileName + ".txt";
@@ -149,6 +159,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   if (isSystReso)
     reso = (TH1D *)resoFile->Get("hResoPerCentBinsT0ATPCC");
 
+  TString weightEffFileName = SinputFileNameEfficiencyWeight;
+  TFile *weightEffFile = new TFile(weightEffFileName, "READ");
+  TH1D *hEffWeight{weightEffFileName ? (TH1D *)weightEffFile->Get("hEffWeight") : nullptr};
+
   auto h = d1.Histo1D("fPt");
 
   // invariant mass histograms
@@ -163,7 +177,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto d2 = d1.Filter(chargecut);
 
   // apply eta selection
-  //   if (isPartialEta)  d2 = d2.Filter("fEta > 0");
+  if (isAllEta == 0)
+    d2 = d2.Filter("fEta < 0");
+  else if (isAllEta == 2)
+    d2 = d2.Filter("fEta > 0");
 
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -256,7 +273,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 200;
+  const int NVAR = 1;
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -284,7 +301,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
         variations[4].reserve(NVAR); // cutDcaNegToPV
 
         // Initialize random generator (fixed seed for reproducibility)
-        //std::mt19937 gen(42);
+        // std::mt19937 gen(42);
         std::mt19937 gen(43);
         std::uniform_real_distribution<double> distR(V0Radius_min, V0Radius_max);
         std::uniform_real_distribution<double> distD(DcaV0Daughters_min, DcaV0Daughters_max);
@@ -376,7 +393,12 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   // create output file
   cout << "I am creating the output file " << endl;
   cout << "From the file: " << inputFileName << endl;
-  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
+  TString OutputFileName = "OutputAnalysis/Output_" + inputFileName;
+  if (isAllEta == 0)
+    OutputFileName += "_NegativeEta";
+  else if (isAllEta == 2)
+    OutputFileName += "_PositiveEta";
+  OutputFileName += +"_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice];
   if (isApplyWeights)
     OutputFileName += "_Weighted";
   if (isApplyCentWeight)
@@ -387,8 +409,6 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     OutputFileName += "_Run2Binning";
   if (!isRapiditySel)
   {
-    //    if (isPartialEta) OutputFileName += "_PositiveEta08";
-    // else  OutputFileName += "_Eta08";
     OutputFileName += "_Eta08";
   }
   if (isSysMultTrial)
@@ -406,6 +426,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
+  if (ExtrisApplyEffWeights)
+    OutputFileName += "_EffWeighted";
   OutputFileName += Form("_Nvar%i", NVAR);
   // OutputFileName += "_CorrectReso";
   if (isSystReso)
@@ -474,11 +496,22 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     else return resoWeight[static_cast<int>(cent)]; }, {"fCentFT0C"});
   //  df_selected.Display({"fCentFT0C", "fResoWeight"}, 128)->Print();
 
+  df_selected = df_selected.DefineSlot("fEffWeight", [&hEffWeight](unsigned int, float pt)
+                                       {
+    if (pt < 0.5 || pt > 10.) return 0.;
+    else if (0.5 <= pt && pt <= 0.6) return hEffWeight->GetBinContent(1);
+    else return hEffWeight->GetBinContent(hEffWeight->FindBin(pt)); }, {"fPt"});
+
+  if (ExtrisApplyEffWeights)
+    df_selected = df_selected.Define("fTotalWeight", "fCentWeight * fEffWeight");
+  else
+    df_selected = df_selected.Define("fTotalWeight", "fCentWeight");
+
   string SPzs2LambdaFinal = "fPzs2Lambda";
   if (isApplyResoOnTheFly)
     SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight";
   df_selected = df_selected.Define("fPzs2LambdaFinal", SPzs2LambdaFinal);
-  
+
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
@@ -518,8 +551,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
 
     ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
-    auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
-    // auto massVsPtVsPzs2 = dcent.Histo3D({Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", 80, 1.09, 1.14, 100, 0, 10, NPzs2, MinPzs2, MaxPzs2}, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fCentWeight");
+    auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fTotalWeight");
     auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
     massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
     h_variationsmassVsPtVsPzs2.push_back(variationsmassVsPtVsPzs2);
