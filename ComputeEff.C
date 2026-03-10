@@ -15,7 +15,8 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-#include "CommonVar.h"
+// #include "CommonVar.h"
+#include "CommonVarLambda.h"
 #include "StyleFile.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
@@ -28,8 +29,7 @@ Double_t SetEfficiencyError(Int_t k, Int_t n)
 void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
                 Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
-                Int_t RebinFactor = 1,
-                TString inputFileNameEff = SinputFileNameEff,
+                TString inputFileNameEff = SinputFileNameEfficiency,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
@@ -50,15 +50,18 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   TString SBDT = "";
   if (BDTscoreCut != DefaultBDTscoreCut)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
-  
-  TString SinputFileReco = "OutputAnalysis/Output_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT;
+
+  TString SinputFileReco = "OutputAnalysis/Output_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (!useCommonBDTValue)
     SinputFileReco += "_BDTCentDep";
   if (isRun2Binning)
     SinputFileReco += "_Run2Binning";
-  // SinputFileReco += "_EffTrain305015";
   SinputFileReco += ".root";
-  cout << "Input file: " << SinputFileReco << endl;
+  if (ChosenPart >= 6)
+  {
+    SinputFileReco = "../FileForEfficiency/AnalysisResults_" + inputFileNameEff + ".root";
+  }
+  cout << "Input file (reco) : " << SinputFileReco << endl;
 
   TFile *inputFileReco = new TFile(SinputFileReco, "READ");
   if (!inputFileReco)
@@ -68,40 +71,40 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   }
 
   TH2F *histoRecoBeforeBDT = (TH2F *)inputFileReco->Get("PtvsCent_BefBDT");
-  //before applying BDT in macro (but after applying BDT in task)
+  // before applying BDT in macro (but after applying BDT in task)
   if (isMidRapidity)
     histoRecoBeforeBDT = (TH2F *)inputFileReco->Get("PtvsCent_Y05_BefBDT");
   TH2F *histoRecoAfterBDT = (TH2F *)inputFileReco->Get("PtvsCent_AftBDT");
-  //after applying BDT in macro
+  // after applying BDT in macro
   if (isMidRapidity)
     histoRecoAfterBDT = (TH2F *)inputFileReco->Get("PtvsCent_Y05_AftBDT");
   TH1F *histoRecoPtAfterBDT[numCent + 1];
   TH1F *histoRecoPtBeforeBDT[numCent + 1];
   TH1F *histoRecoPt[numCent + 1];
-  TH1F *histoPtEff[numCent + 1];      // reco after BDT / gen
-  TH1F *histoPtBDTEff[numCent + 1];   // reco after BDT / reco before any BDT selection
+  TH1F *histoPtEff[numCent + 1];         // reco after BDT / gen
+  TH1F *histoPtBDTEff[numCent + 1];      // reco after BDT / reco before any BDT selection
   TH1F *histoPtBDTMacroEff[numCent + 1]; // reco after BDT / reco before macro BDT
-  TH1F *histoPtEffwoBDT[numCent + 1]; // reco before macro BDT / gen
-  TH1F *histoPtRecoEff[numCent + 1];  // reco before any BDT selection / gen
+  TH1F *histoPtEffwoBDT[numCent + 1];    // reco before macro BDT / gen
+  TH1F *histoPtRecoEff[numCent + 1];     // reco before any BDT selection / gen
 
-  TString SinputFileGen = "FileForEfficiency/AnalysisResults_" + inputFileNameEff + ".root";
+  TString SinputFileGen = "../FileForEfficiency/AnalysisResults_" + inputFileNameEff + ".root";
   TFile *inputFileGen = new TFile(SinputFileGen, "READ");
   if (!inputFileGen)
   {
     cout << "File " << SinputFileGen << " not found" << endl;
     return;
   }
-  cout << "Reading file: " << SinputFileGen << endl;
+  cout << "Input file (gen) : " << SinputFileGen << endl;
   TDirectoryFile *dirMCGen = (TDirectoryFile *)inputFileGen->Get("lf-cascade-flow/histosMCGen");
   if (!dirMCGen)
   {
     cout << "Directory histosMCGen not found" << endl;
     return;
   }
-  TH2D *histoGen = (TH2D *)dirMCGen->Get("h2DGen" + ParticleName[part] + RapidityCoverage[isMidRapidity]);
+  TH2D *histoGen = (TH2D *)dirMCGen->Get("h2DGen" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity]);
   if (!histoGen)
   {
-    cout << "Histogram h2DGen" << ParticleName[part] << " not found" << endl;
+    cout << "Histogram h2DGen" << ParticleName[ChosenPart] << " not found" << endl;
     return;
   }
   TH1F *histoGenPt[numCent + 1];
@@ -119,7 +122,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     return;
   }
   Float_t NEvents[numCent + 1] = {0};
-  //TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent"); //all reco Xi from derived data, no BDT applied
+  // TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent"); //all reco Xi from derived data, no BDT applied
   TH2F *histoReco = (TH2F *)dirReco->Get("hXiPtvsCent" + RapidityCoverage[isMidRapidity]);
   if (part == 1)
   {
@@ -175,12 +178,11 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     histoGen->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoGenPt[m] = (TH1F *)histoGen->ProjectionY(Form("histoGen" + RapidityCoverage[isMidRapidity] + "Pt_%i-%i", CentFT0CMin, CentFT0CMax));
     histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(numPtBinsEff, "", PtBinsEff);
-    // histoGenPt[m] = (TH1F *)histoGenPt[m]->Rebin(RebinFactor);
     StyleHistoYield(histoGenPt[m], 0, 1.1 * histoGenPt[numCent]->GetBinContent(histoGenPt[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
     histoGenPtPerEvent[m] = (TH1F *)histoGenPt[m]->Clone(Form("histoGenPtPerEvent_%i-%i", CentFT0CMin, CentFT0CMax));
     histoGenPtPerEvent[m]->Scale(1. / NEvents[m]);
     legendMult->AddEntry(histoGenPt[m], Form("%i-%i %%", CentFT0CMin, CentFT0CMax), "pl");
-    histoGenPt[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoGenPt[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cGen->cd();
     histoGenPt[m]->Draw("same e");
     cGenPerEvent->cd();
@@ -195,25 +197,22 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     histoReco->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoRecoPt[m] = (TH1F *)histoReco->ProjectionY(Form("histoRecoPt_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRecoPt[m] = (TH1F *)histoRecoPt[m]->Rebin(numPtBinsEff, "", PtBinsEff);
-    // histoRecoPt[m] = (TH1F *)histoRecoPt[m]->Rebin(RebinFactor);
     StyleHistoYield(histoRecoPt[m], 0, 1.1 * histoRecoPt[numCent]->GetBinContent(histoRecoPt[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
-    histoRecoPt[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoRecoPt[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
 
     histoRecoBeforeBDT->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoRecoPtBeforeBDT[m] = (TH1F *)histoRecoBeforeBDT->ProjectionY(Form("histoRecoPtBeforeBDT_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRecoPtBeforeBDT[m] = (TH1F *)histoRecoPtBeforeBDT[m]->Rebin(numPtBinsEff, "", PtBinsEff);
-    // histoRecoPtBeforeBDT[m] = (TH1F *)histoRecoPtBeforeBDT[m]->Rebin(RebinFactor);
     StyleHistoYield(histoRecoPtBeforeBDT[m], 0, 1.1 * histoRecoPtBeforeBDT[numCent]->GetBinContent(histoRecoPtBeforeBDT[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
-    histoRecoPtBeforeBDT[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoRecoPtBeforeBDT[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cReco->cd();
     histoRecoPtBeforeBDT[m]->Draw("same e");
 
     histoRecoAfterBDT->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoRecoPtAfterBDT[m] = (TH1F *)histoRecoAfterBDT->ProjectionY(Form("histoRecoPtAfterBDT_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRecoPtAfterBDT[m] = (TH1F *)histoRecoPtAfterBDT[m]->Rebin(numPtBinsEff, "", PtBinsEff);
-    // histoRecoPtAfterBDT[m] = (TH1F *)histoRecoPtAfterBDT[m]->Rebin(RebinFactor);
     StyleHistoYield(histoRecoPtAfterBDT[m], 0, 1.1 * histoRecoPtAfterBDT[numCent]->GetBinContent(histoRecoPtAfterBDT[numCent]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
-    histoRecoPtAfterBDT[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoRecoPtAfterBDT[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     // histoRecoPtAfterBDT[m]->Draw("same e");
 
     histoPtEff[m] = (TH1F *)histoRecoPtAfterBDT[m]->Clone(Form("histoPtEff_%i-%i", CentFT0CMin, CentFT0CMax));
@@ -223,7 +222,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       histoPtEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPtAfterBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
     StyleHistoYield(histoPtEff[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
-    histoPtEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoPtEff[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cEff->cd();
     histoPtEff[m]->Draw("same e");
 
@@ -234,7 +233,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       histoPtBDTEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPtAfterBDT[m]->GetBinContent(i), histoRecoPt[m]->GetBinContent(i)));
     }
     StyleHistoYield(histoPtBDTEff[m], 0, 1.3, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency of BDT cut", "", 1, 1.15, 1.2);
-    histoPtBDTEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoPtBDTEff[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cEffBDT->cd();
     histoPtBDTEff[m]->Draw("same e");
 
@@ -245,7 +244,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       histoPtBDTMacroEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPtAfterBDT[m]->GetBinContent(i), histoRecoPtBeforeBDT[m]->GetBinContent(i)));
     }
     StyleHistoYield(histoPtBDTMacroEff[m], 0, 1.3, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency of BDT cut", "", 1, 1.15, 1.2);
-    histoPtBDTMacroEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoPtBDTMacroEff[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cEffMacroBDT->cd();
     histoPtBDTMacroEff[m]->Draw("same e");
 
@@ -256,7 +255,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       histoPtEffwoBDT[m]->SetBinError(i, SetEfficiencyError(histoRecoPtBeforeBDT[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
     StyleHistoYield(histoPtEffwoBDT[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before BDT task cut", "", 1, 1.15, 1.2);
-    histoPtEffwoBDT[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoPtEffwoBDT[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cEffwoBDT->cd();
     histoPtEffwoBDT[m]->Draw("same e");
 
@@ -267,7 +266,7 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
       histoPtRecoEff[m]->SetBinError(i, SetEfficiencyError(histoRecoPt[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
     }
     StyleHistoYield(histoPtRecoEff[m], 0, 0.2, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency before any BDT cut", "", 1, 1.15, 1.2);
-    histoPtRecoEff[m]->GetXaxis()->SetRangeUser(MinPt[part], MaxPt[part]);
+    histoPtRecoEff[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     cEffReco->cd();
     histoPtRecoEff[m]->Draw("same e");
   } // end loop on centrality
@@ -359,41 +358,41 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
 
   cGen->cd();
   legendMult->Draw();
-  cGen->SaveAs("Efficiency/GenSpectra_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".pdf");
-  cGen->SaveAs("Efficiency/GenSpectra_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".png");
+  cGen->SaveAs("Efficiency/GenSpectra_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".pdf");
+  cGen->SaveAs("Efficiency/GenSpectra_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".png");
   cGenPerEvent->cd();
   legendMult->Draw();
-  cGenPerEvent->SaveAs("Efficiency/GenSpectraPerEvent_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".pdf");
-  cGenPerEvent->SaveAs("Efficiency/GenSpectraPerEvent_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".png");
+  cGenPerEvent->SaveAs("Efficiency/GenSpectraPerEvent_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".pdf");
+  cGenPerEvent->SaveAs("Efficiency/GenSpectraPerEvent_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".png");
   cReco->cd();
   legendMult->Draw();
-  cReco->SaveAs("Efficiency/RecoSpectra_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".pdf");
-  cReco->SaveAs("Efficiency/RecoSpectra_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".png");
+  cReco->SaveAs("Efficiency/RecoSpectra_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".pdf");
+  cReco->SaveAs("Efficiency/RecoSpectra_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".png");
   cEff->cd();
   legendMult->Draw();
-  cEff->SaveAs("Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  cEff->SaveAs("Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  cEff->SaveAs("Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEff->SaveAs("Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
   cEffBDT->cd();
   legendMult->Draw();
-  cEffBDT->SaveAs("Efficiency/BDTEfficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  cEffBDT->SaveAs("Efficiency/BDTEfficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  cEffBDT->SaveAs("Efficiency/BDTEfficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEffBDT->SaveAs("Efficiency/BDTEfficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
   cEffwoBDT->cd();
   legendMult->Draw();
-  cEffwoBDT->SaveAs("Efficiency/EfficiencywoBDT_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".pdf");
-  cEffwoBDT->SaveAs("Efficiency/EfficiencywoBDT_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".png");
+  cEffwoBDT->SaveAs("Efficiency/EfficiencywoBDT_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".pdf");
+  cEffwoBDT->SaveAs("Efficiency/EfficiencywoBDT_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".png");
   cEffReco->cd();
   legendMult->Draw();
-  cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".pdf");
-  cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + ".png");
+  cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".pdf");
+  cEffReco->SaveAs("Efficiency/EfficiencyReco_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + ".png");
 
-  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
-  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
-  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEffvsMult->SaveAs("Efficiency/EfficiencyVsCentrality_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  cEffVsNCh->SaveAs("Efficiency/EfficiencyVsNch_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  Chi2VsPt->SaveAs("Efficiency/Chi2VsPt_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
 
-  TString SOutputFile = "Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT;
+  TString SOutputFile = "Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT;
   if (!useCommonBDTValue)
     SOutputFile += "_BDTCentDep";
   if (isRun2Binning)
@@ -421,10 +420,10 @@ void ComputeEff(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   StyleCanvas(par1Eff, 0.12, 0.05, 0.02, 0.13);
   StyleHistoYield(hpar1_Eff, -0.0015, -0.0002, ColorMult[0], MarkerMult[0], TitleXPt, "par1", "", 1, 1.15, 1.2);
   hpar1_Eff->Draw();
-  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
-  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
-  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[part] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  par0Eff->SaveAs("Efficiency/par0Eff_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
+  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".pdf");
+  par1Eff->SaveAs("Efficiency/par1Eff_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice] + SBDT + ".png");
 
   cout << "I created the file " << file->GetName() << endl;
 }

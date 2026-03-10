@@ -21,7 +21,7 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-//#include "CommonVar.h"
+// #include "CommonVar.h"
 #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
@@ -108,37 +108,89 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetTopMargin(TMargin);
   pad->SetBottomMargin(BMargin);
 }
-void EffWeight()
+void EffWeight(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
+               Int_t ChosenPart = 6,     // 6 for Lambda, 8 for AntiLambda
+               TString inputFileNameEff = SinputFileNameEfficiency)
 {
-
-  TFile *fEff = new TFile("../" + SinputFileNameEfficiency, "READ");
   gStyle->SetOptStat(0);
-  TDirectoryFile *dirEff = (TDirectoryFile *)fEff->Get("efficiencyHistograms_CENT_10_20"); //no centrality dependence expected
-  if (!dirEff)
+  // Romain files
+  // TFile *fEff = new TFile("../" + SinputFileNameEfficiency, "READ");
+  // TDirectoryFile *dirEff = (TDirectoryFile *)fEff->Get("efficiencyHistograms_CENT_10_20"); //no centrality dependence expected
+  // if (!dirEff)
+  //{
+  //   cout << "Error: Directory not found in the file!" << endl;
+  //   return;
+  // }
+  // TH1F *hEfficiency = (TH1F *)dirEff->FindObject("hLambdaEff_CENT_10.00_20.00");
+
+  // my efficiency file
+  TString SEffFile = "../Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".root";
+  TFile *fEff = new TFile(SEffFile, "READ");
+  if (!fEff)
   {
-    cout << "Error: Directory not found in the file!" << endl;
+    cout << "Error: Efficiency file not found!" << endl;
     return;
   }
-  TH1F *hEfficiency = (TH1F *)dirEff->FindObject("hLambdaEff_CENT_10.00_20.00");
-  if (!hEfficiency)
+  else
   {
-    cout << "Error: Efficiency histogram not found in the file!" << endl;
-    return;
+    cout << "Efficiency file found: " << SEffFile << endl;
   }
-  
-  TH1F *hEffWeight = (TH1F*)hEfficiency->Clone("hEffWeight");
-  for (Int_t b = 1; b <= hEfficiency->GetNbinsX(); b++)
+  TH1F *hEfficiency = nullptr;
+  TH1F *hEffWeight[numCentLambdaOO + 1];
+  TH2F *hEffWeight2D = new TH2F("hEffWeight2D" + ParticleName[ChosenPart], "hEffWeight2D", numCentLambdaOO, fCentFT0CLambdaOO, numPtBinsEff, PtBinsEff);
+  Int_t CentFT0CMax = 0;
+  Int_t CentFT0CMin = 0;
+  for (Int_t m = 0; m <= numCentLambdaOO; m++)
   {
-    if (hEfficiency->GetBinContent(b) > 0)
-      hEffWeight->SetBinContent(b, 1. / (hEfficiency->GetBinContent(b)));
+    if (m == (numCentLambdaOO))
+    {
+      CentFT0CMin = 0;
+      CentFT0CMax = CentFT0CMaxLambdaOO;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0CLambdaOO[m];
+      CentFT0CMax = CentFT0CLambdaOO[m + 1];
+    }
+
+    hEfficiency = (TH1F *)fEff->Get(Form("histoPtEff_%i-%i", CentFT0CMin, CentFT0CMax));
+    if (!hEfficiency)
+    {
+      cout << "Error: Efficiency histogram not found in the file!" << endl;
+      return;
+    }
+
+    hEffWeight[m] = (TH1F *)hEfficiency->Clone(Form("hEffWeight_%i-%i", CentFT0CMin, CentFT0CMax));
+    for (Int_t b = 1; b <= hEfficiency->GetNbinsX(); b++)
+    {
+      if (hEfficiency->GetBinContent(b) > 0)
+        hEffWeight[m]->SetBinContent(b, 1. / (hEfficiency->GetBinContent(b)));
+    }
+  }
+  for (Int_t m = 0; m < numCentLambdaOO; m++)
+  {
+    for (Int_t b = 1; b <= hEfficiency->GetNbinsX(); b++)
+    {
+      if (hEffWeight[m]->GetBinCenter(b) < 3)
+        hEffWeight2D->SetBinContent(m + 1, b, hEffWeight[m]->GetBinContent(b));
+      else
+        hEffWeight2D->SetBinContent(m + 1, b, hEffWeight[numCentLambdaOO]->GetBinContent(b));
+    }
   }
 
-  TFile *fout = new TFile("../EfficiencyWeight.root", "RECREATE");
-  hEffWeight->Write();
+  TCanvas *cEffWeight2D = new TCanvas("cEffWeight2D", "cEffWeight2D", 800, 600);
+  StyleCanvas(cEffWeight2D, 0.02, 0.13, 0.1, 0.03);
+  cEffWeight2D->cd();
+  hEffWeight2D->Draw("colz");
+  cEffWeight2D->SaveAs("../QCPlots/hEffWeight2D.png");
+
+  TFile *fout = new TFile("../EfficiencyWeight_" + SinputFileNameEfficiency + "_" + ParticleName[ChosenPart] + "_" + RapidityCoverage[isMidRapidity] + ".root", "RECREATE");
+  hEffWeight2D->Write();
   TList *list = new TList();
-  list->Add(hEffWeight);
+  list->Add(hEffWeight2D);
   list->Write("ccdb_object", TObject::kSingleKey);
   fout->Close();
+  cout << "I created the file " << fout->GetName() << endl;
 
   TCanvas *cEff = new TCanvas("cEff", "cEff", 800, 600);
   StyleCanvas(cEff, 0.02, 0.13, 0.1, 0.03);
@@ -152,9 +204,12 @@ void EffWeight()
   TCanvas *cEffWeight = new TCanvas("cEffWeight", "cEffWeight", 800, 600);
   StyleCanvas(cEffWeight, 0.02, 0.13, 0.1, 0.03);
   cEffWeight->cd();
-  StyleHistoYield(hEffWeight, 1, 15, 1, 20, TitleXCent, "Efficiency weight", "", 1, 1.15, 1);
-  hEffWeight->SetTitle("");
-  hEffWeight->Draw("");
+  for (Int_t m = 0; m < numCentLambdaOO; m++)
+  {
+    StyleHistoYield(hEffWeight[m], 0, 20, 1, 20, TitleXCent, "Efficiency weight", "", 1, 1.15, 1);
+    hEffWeight[m]->SetTitle("");
+    hEffWeight[m]->Draw("");
+  }
   cEffWeight->SaveAs("../QCPlots/hEffWeight.png");
   cEffWeight->SaveAs("../QCPlots/hEffWeight.pdf");
 }
