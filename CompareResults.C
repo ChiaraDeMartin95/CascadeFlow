@@ -266,6 +266,7 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 69 --> Compare Pzs2 default vs |etaDau| < 0.8
   // TypeComp == 70 --> compare Pzs of Lambda produced in A-side vs C-side
   // TypeComp == 71 --> compare Pzs of Lambda produced in A-side vs C-side (no sel on eta daughters)
+  // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1984,20 +1985,23 @@ void CompareResults(Int_t TypeComp = 0,
   {
     // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
     numOptions = 2;
-    isRatio = 0;
+    isRatio = 1;
     isFullCorr = 0;
     isStoreSyst = 0;
     isFitRatio = 1;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    fileName[1] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    //fileName[1] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "_Train598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
     sleg[0] = "Default";
     sleg[1] = "Eff weighted";
-    YLowRatio = -0.002;
-    YUpRatio = 0.002;
+    //YLowRatio = -0.002;
+    //YUpRatio = 0.002;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
     YLow = -0.001;
     YUp = 0.01;
     MinHistoX = 0;
