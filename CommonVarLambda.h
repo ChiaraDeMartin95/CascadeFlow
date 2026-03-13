@@ -141,7 +141,9 @@ TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 //File name for efficiency weights
 //TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
 TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
-TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; 
+//TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; //Romain efficiency
+TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_Lambda_Eta08.root";
+TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_AntiLambda_Eta08.root";
 
 // File name for resolution weights
 // TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
