@@ -19,7 +19,7 @@ Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3,
 Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 1;       // 0 for acceptance
-Bool_t ExtrisApplyEffWeights = 0;   // 0 default; 
+Bool_t ExtrisApplyEffWeights = 1;   
 Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0;           // 1 for acceptance; 0: process the tree, 1: process the THnSparse
@@ -28,7 +28,7 @@ Bool_t isOOCentrality = 1;
 
 const Int_t numPart = 9; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda, Lambda, AntiLambda
 bool isRun2Binning = 0;
-const Int_t numPtBinsEff = 15; // for efficiency
+const Int_t numPtBinsEff = 17; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
 const Int_t numCent = 8;
 const Int_t numCentLambdaOO = 10;
@@ -48,7 +48,7 @@ TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "
 TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta*_{#Lambda})#GT", "#LTcos^{2}(#theta*_{p})#GT", "v2, corr", "#LTcos^{2}(#theta*_{p})#GT", "#LTcos^{2}(#theta*_{p})#GT"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
-TString TitleXCent = "Centrality (%)";
+TString TitleXCent = "T0C centrality (%)";
 TString TitleYPzs = "#it{P}_{z,s2}";
 
 // Centrality
@@ -74,7 +74,7 @@ Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991
 // Pt bins
 const Int_t numPtBins = 7;
 const Int_t numPtBinsReduced = 7;
-Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
+Double_t PtBinsEff[numPtBinsEff + 1] = {0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 8};
 Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5, 0.5, 0.5};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
@@ -124,7 +124,8 @@ Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}
 // TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597527_NewAcc_EtaPos"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
-TString SinputFileName = "LHC25_OO_pass2_Train598890"; //for PRELIMINARIES 2026
+//TString SinputFileName = "LHC25_OO_pass2_Train598890"; 
+TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; //for PRELIMINARIES 2026
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8 
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
@@ -138,7 +139,8 @@ TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
 //File name for efficiency weights
-TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root";
+//TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
+TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
 TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; 
 
 // File name for resolution weights
