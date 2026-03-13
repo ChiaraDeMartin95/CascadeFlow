@@ -147,11 +147,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   TString SErrorSpectrum[3] = {"stat.", "syst. uncorr.", "syst. corr."};
 
-  Int_t UpperRangeLambda = 80;
+  Int_t UpperRangeLambda = 50;
 
   if (ChosenPart >= 6)
   { // for Lambda in OO
     YLow[part] = {-0.0005};
+    //YLow[part] = {-0.0004};
     // YUp[part] = {0.035};
     YUp[part] = {0.0075};
   }
@@ -272,7 +273,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   stringout += ".root";
 
   // FD corrected histogram
-  TH1F *hFDFractionAllLambdavsCent;
+  TH1F *hFDFractionAllLambdavsCent = nullptr;
   if (isFDCorrected)
   {
     TString PathInFD = "../LambdaFDFraction" + SinputFileNameFDFraction + ".root";
@@ -372,7 +373,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
-  LegendTitle->AddEntry("", "#bf{ALICE Work In Progress}", "");
+  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
   {
@@ -736,23 +737,24 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary->SetFillStyle(0);
   LegendPreliminary->SetTextAlign(11);
   LegendPreliminary->SetTextSize(0.04);
-  // LegendPreliminary->AddEntry("", "#bf{ALICE Preliminary}", "");
-  LegendPreliminary->AddEntry("", "#bf{ALICE Work in Progress}", "");
+  LegendPreliminary->AddEntry("", "#bf{ALICE Preliminary}", "");
+  //LegendPreliminary->AddEntry("", "#bf{ALICE Work in Progress}", "");
   LegendPreliminary->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   LegendPreliminary->AddEntry("", "#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.5", "");
   LegendPreliminary->AddEntry("", Form("%1.1f < #it{p}_{T} < %1.1f GeV/#it{c}", MinPt[ChosenPart], 8.), "");
 
   TLegend *LegendPreliminary2;
-  LegendPreliminary2 = new TLegend(0.06, 0.8, 0.45, 0.917);
+  LegendPreliminary2 = new TLegend(0.06, 0.77, 0.45, 0.914);
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
   LegendPreliminary2->SetTextSize(0.048);
-  // LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
-  LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
+  LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  // LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  LegendPreliminary2->AddEntry("", "OO, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
   TLegend *LegendPreliminary3;
-  LegendPreliminary3 = new TLegend(0.06, 0.85, 0.45, 0.93);
+  LegendPreliminary3 = new TLegend(0.05, 0.85, 0.45, 0.93);
   LegendPreliminary3->SetFillStyle(0);
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
@@ -761,7 +763,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   else
     LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
-  TLegend *legendXi = new TLegend(0.06, 0.643, 0.45, 0.784);
+  TLegend *legendXi = new TLegend(0.06, 0.64, 0.45, 0.78);
   legendXi->SetFillStyle(0);
   legendXi->SetTextAlign(12);
   legendXi->SetTextSize(0.048);
@@ -1139,6 +1141,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     hDummy->GetXaxis()->SetRangeUser(0, UpperRangeLambda);
   else
     hDummy->GetXaxis()->SetRangeUser(0, 80);
+  hDummy->GetYaxis()->SetRangeUser(-0.0004, 0.0065);
   hDummy->Draw("");
   lineatZero->Draw("same");
   if (ChosenPart >= 6)
@@ -1151,12 +1154,20 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzs->DrawClone("same ex0");
   fHistPzsSist->SetFillStyle(0);
   fHistPzsSist->DrawClone("same e2");
-  // LegendPreliminary->Draw("");
   LegendPreliminary2->Draw("");
   legendXi->Draw("");
-  canvasPzsXi->SaveAs("../XiPolVsCent.pdf");
-  canvasPzsXi->SaveAs("../XiPolVsCent.png");
-  canvasPzsXi->SaveAs("../XiPolVsCent.eps");
+  TLegend *legendData = new TLegend(0.06, 0.536, 0.42, 0.736);
+  legendData->SetFillStyle(0);
+  legendData->SetTextAlign(12);
+  legendData->SetTextSize(0.035);
+  //legendData->AddEntry(fHistPzs, "Data", "pef");
+  legendData->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
+  //legendData->AddEntry(fHistPzs, "Stat. error", "pe");
+  //legendData->AddEntry(fHistPzsSist, "Syst. error", "f");
+  legendData->Draw("");
+  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.pdf");
+  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.png");
+  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.eps");
 
   TGraphErrors *gPzsPalermo = new TGraphErrors(9);
   cout << "\n\nSignificance in the 0-50% class" << endl;
@@ -1205,16 +1216,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
-  TLegend *legendParticles = new TLegend(0.14, 0.7, 0.5, 0.83);
+  TLegend *legendParticles = new TLegend(0.14, 0.7, 0.51, 0.83);
   legendParticles->SetFillStyle(0);
   legendParticles->SetTextAlign(12);
   legendParticles->SetTextSize(0.042);
+  legendParticles->SetMargin(0.18);
   if (ChosenPart >= 6)
-    legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pl");
+    legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pef");
   else
     legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   if (ChosenPart >= 6)
-    legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pl");
+    legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}, Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV", 0.5), "pef");
   else
     legendParticles->AddEntry(fHistPzsLambdaJunlee, Form("#Lambda + #bar{#Lambda}, |#it{y} | < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
   TCanvas *canvasPzsXiLambda = new TCanvas("canvasPzsXiLambda", "canvasPzsXiLambda", 900, 700);
@@ -1270,7 +1282,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   Float_t xLabelOffsetMult = 0.003;
 
   TCanvas *canvasPzsVsMultiplicity = new TCanvas("canvasPzsVsMultiplicity", "canvasPzsVsMultiplicity", 900, 700);
-  // StyleCanvas(canvasPzsVsMultiplicity, 0.06, 0.15, 0.15, 0.03);
   StyleCanvas(canvasPzsVsMultiplicity, 0.06, 0.15, 0.1, 0.03);
   canvasPzsVsMultiplicity->cd();
   gPad->SetLogx();
@@ -1286,6 +1297,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   SetTickLength(hDummyVsMultiplicity, tickX, tickY);
   hDummyVsMultiplicity->GetXaxis()->SetRangeUser(25, 2500);
   // hDummyVsMultiplicity->GetYaxis()->SetTitleOffset(1.7);
+  hDummyVsMultiplicity->GetYaxis()->SetRangeUser(YLow[part], 0.0085);
   hDummyVsMultiplicity->Draw("");
   TF1 *lineatZeroVsMult = new TF1("lineatZeroVsMult", "0", 25, 2500);
   lineatZeroVsMult->SetLineColor(kBlack);
@@ -1295,6 +1307,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TFile *filePzspPb = new TFile(SfilePzspPb);
   TDirectoryFile *dir = (TDirectoryFile *)filePzspPb->Get("Table 1");
   TGraphAsymmErrors *gPzspPb = (TGraphAsymmErrors *)dir->Get("Graph1D_y3");
+
+  gStyle->SetEndErrorSize(0);
   TGraphErrors *gPzsVsMult;
   TGraphErrors *gPzsVsMultJunlee = new TGraphErrors(8);
   TGraphErrors *gPzsVsMultNeNeJunlee = new TGraphErrors(2);
@@ -1376,20 +1390,24 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzspPb->SetMarkerStyle(20);
   // gPzspPb->Draw("same p");
   gPzsVsMult->SetMarkerStyle(20);
+  gPzsVsMult->SetMarkerSize(1.45);
   gPzsVsMult->SetMarkerColor(ColorOO);
   gPzsVsMult->SetLineColor(ColorOO);
   gPzsVsMult->Draw("same p");
   gPzsVsMultSist->SetMarkerStyle(20);
+  gPzsVsMultSist->SetMarkerSize(1.45);
   gPzsVsMultSist->SetFillStyle(0);
   gPzsVsMultSist->SetMarkerColor(ColorOO);
   gPzsVsMultSist->SetFillColor(ColorOO);
   gPzsVsMultSist->SetLineColor(ColorOO);
   gPzsVsMultSist->Draw("same p2");
-  gPzsVsMultJunlee->SetMarkerStyle(20);
+  gPzsVsMultJunlee->SetMarkerStyle(47);
+  gPzsVsMultJunlee->SetMarkerSize(1.7);
   gPzsVsMultJunlee->SetMarkerColor(colorJunlee);
   gPzsVsMultJunlee->SetLineColor(colorJunlee);
   gPzsVsMultJunlee->Draw("same p");
-  gPzsVsMultSistJunlee->SetMarkerStyle(20);
+  gPzsVsMultSistJunlee->SetMarkerStyle(47);
+  gPzsVsMultSistJunlee->SetMarkerSize(1.7);
   gPzsVsMultSistJunlee->SetFillStyle(0);
   gPzsVsMultSistJunlee->SetMarkerColor(colorJunlee);
   gPzsVsMultSistJunlee->SetLineColor(colorJunlee);

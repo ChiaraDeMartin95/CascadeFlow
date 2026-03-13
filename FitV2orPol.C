@@ -2678,11 +2678,11 @@ void FitV2orPol(
   else if (ParticleType == 2)
     UpperCutHisto = 2.1;
 
-  TString TitleXMass = "#it{m}_{#Lambda#pi} (GeV/#it{c}^{2})";
+  TString TitleXMass = "#it{M}_{#Lambda#pi} (GeV/#it{c}^{2})";
   if (ParticleType == 0)
-    TitleXMass = "#it{m}_{#LambdaK} (GeV/#it{c}^{2})";
+    TitleXMass = "#it{M}_{#LambdaK} (GeV/#it{c}^{2})";
   else if (ParticleType == 2)
-    TitleXMass = "#it{m}_{p#pi} (GeV/#it{c}^{2})";
+    TitleXMass = "#it{M}_{p#pi} (GeV/#it{c}^{2})";
 
   TCanvas *canvasMassP = new TCanvas("canvasMassP", "canvasMassP", 800, 800);
   StyleCanvas(canvasMassP, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
@@ -2692,7 +2692,8 @@ void FitV2orPol(
   legend->SetMargin(0);
   legend->SetTextSize(0.037);
   legend->SetTextAlign(12);
-  legend->AddEntry("", "#bf{ALICE Performance}", "");
+  // legend->AddEntry("", "#bf{ALICE Performance}", "");
+  legend->AddEntry("", "#bf{ALICE Preliminary}", "");
   legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
@@ -2717,10 +2718,10 @@ void FitV2orPol(
   legendfit->SetTextSize(0.031);
   legendfit->SetTextAlign(12);
 
-  TLegend *legendfit2 = new TLegend(0.24, 0.54, 0.71, 0.65);
+  TLegend *legendfit2 = new TLegend(0.255, 0.39, 0.72, 0.54);
   legendfit2->SetFillStyle(0);
   legendfit2->SetMargin(0.1);
-  legendfit2->SetTextSize(0.033);
+  legendfit2->SetTextSize(0.042);
   legendfit2->SetTextAlign(12);
 
   TH1F *histo = hInvMass[ChosenPt];
@@ -2759,8 +2760,10 @@ void FitV2orPol(
   totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
   totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
 
+  legendfit2->AddEntry(histo, "Data", "pl");
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
-  legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
+  // legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
+  legendfit2->AddEntry(totalPNorm, "Total fit", "l");
   TF1 *bkg;
   if (BkgType == 0)
     bkg = bkg1[ChosenPt];
@@ -2783,11 +2786,11 @@ void FitV2orPol(
   bkg->SetLineStyle(8);
   bkg->Draw("same");
   legendfit->AddEntry(bkg, "bkg.", "l");
-  legendfit2->AddEntry(bkg, "bkg.", "l");
-  if (ExtrisApplyResoOnTheFly)
-    legendfit2->AddEntry("", Form("Pz = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
-  else
-    legendfit2->AddEntry("", Form("Pz (no reso) = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
+  legendfit2->AddEntry(bkg, "Background", "l");
+  // if (ExtrisApplyResoOnTheFly)
+  //   legendfit2->AddEntry("", Form("Pz = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
+  // else
+  //   legendfit2->AddEntry("", Form("Pz (no reso) = %.5f + %.5f", v2FitFunction[ChosenPt]->GetParameter(0), v2FitFunction[ChosenPt]->GetParError(0)));
   totalPNorm->SetRange(LowLimitMass[ChosenPart], UpLimitMass[ChosenPart]);
   totalPNorm->SetLineColor(kRed + 1);
   totalPNorm->Draw("same");
@@ -2851,21 +2854,22 @@ void FitV2orPol(
   TPad *pad2 = new TPad("pad2", "pad2", 0, LLUpperPad, 1, 1); // xlow, ylow, xup, yup
   TPad *padL2 = new TPad("padL2", "padL2", 0, 0, 1, ULLowerPad);
 
-  StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
-  StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
+  StylePad(pad1, 0.18, 0.04, 0.03, 0.);   // L, R, T, B
+  StylePad(padL1, 0.18, 0.04, 0.02, 0.3); // L, R, T, B
   StylePad(pad2, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
   StylePad(padL2, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
 
-  TLegend *LegendTitle = new TLegend(0.24, 0.65, 0.75, 0.95);
+  TLegend *LegendTitle = new TLegend(0.24, 0.6, 0.75, 0.95);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetMargin(0);
-  LegendTitle->SetTextSize(0.038);
+  LegendTitle->SetTextSize(0.05);
   LegendTitle->SetTextAlign(12);
-  LegendTitle->AddEntry("", "#bf{ALICE Performance}", "");
+  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
   if (isOOCentrality)
-    LegendTitle->AddEntry("", Form("Run 3 OO #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+    LegendTitle->AddEntry("", Form("OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   else
-    LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+    LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+  LegendTitle->AddEntry("", Form("T0C centrality: %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else if (ParticleType == 0)
@@ -2874,11 +2878,13 @@ void FitV2orPol(
     LegendTitle->AddEntry("", "#Lambda #rightarrow p #pi^{#minus} + c.c.", "");
 
   if (ChosenPt == numPtBinsVar)
-    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+    // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
   else
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   if (ChosenPart >= 6)
-    LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+    cout << "ok " << endl;
+  // LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
   else
     LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
@@ -2906,7 +2912,7 @@ void FitV2orPol(
   Float_t xTitle = 15;
   Float_t xOffset = 4;
   Float_t yTitle = 30;
-  Float_t yOffset = 2.4;
+  Float_t yOffset = 2;
 
   Float_t xLabel = 30;
   Float_t yLabel = 30;
@@ -2937,7 +2943,7 @@ void FitV2orPol(
   SetFont(hDummy);
   StyleHistoYield(hDummy, 1e-3, 1.2 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
   if (ChosenPart >= 6)
-    StyleHistoYield(hDummy, 1e-3, hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
+    StyleHistoYield(hDummy, 1e-3, 1.08*hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -2945,6 +2951,7 @@ void FitV2orPol(
   pad1->cd();
   // gPad->SetLogy();
   hDummy->Draw("same");
+  hInvMass[ChosenPt]->SetMarkerSize(1.0);
   hInvMass[ChosenPt]->Draw("hist same pe");
   totalPNorm->Draw("same");
   LegendTitle->Draw("");
@@ -2968,7 +2975,7 @@ void FitV2orPol(
   Float_t xTitleR = 30;
   Float_t xOffsetR = 1.5;
   Float_t yTitleR = 30;
-  Float_t yOffsetR = 2.4;
+  Float_t yOffsetR = 2;
 
   Float_t xLabelR = 30;
   Float_t yLabelR = 30;
@@ -2980,7 +2987,7 @@ void FitV2orPol(
 
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
-    hDummyRatio->SetBinContent(i, 1e-12);
+    hDummyRatio->SetBinContent(i, -9999);
 
   TString TitleDummyRatio = "v_{2}";
   if (!isV2)
@@ -2991,6 +2998,7 @@ void FitV2orPol(
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Lambda}-#Psi_{2})) #GT";
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
+    TitleDummyRatio = "#it{P}_{z, s2}";
   }
   StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, TitleDummyRatio, "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -3016,7 +3024,7 @@ void FitV2orPol(
     {
       hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
       if (mul > 0)
-        hDummyRatio->GetYaxis()->SetRangeUser(-0.03, 0.03);
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.04 + 0.00001, 0.04 - 0.00001);
       if (mul > 2)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
       if (mul > 4)
@@ -3032,12 +3040,13 @@ void FitV2orPol(
   hDummyRatio->Draw("same");
   hV2[ChosenPt]->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   hV2[ChosenPt]->GetYaxis()->SetRangeUser(0, 0.15);
+  hV2[ChosenPt]->SetMarkerSize(0.9);
   hV2[ChosenPt]->SetTitle("");
   hV2[ChosenPt]->Draw("same e");
   v2FitFunction[ChosenPt]->Draw("same");
   v2BkgFunction[ChosenPt]->Draw("same");
   //  hV2MassIntegrated[ChosenPt]->Draw("");
-  legendChi2->Draw("");
+  // legendChi2->Draw("");
   TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
   canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
@@ -3082,6 +3091,8 @@ void FitV2orPol(
   cout << "\nError of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
   cout << "Error of pt integrated measurement (fit): " << histoV2PtIntErr->GetBinContent(1) << endl;
   cout << "\nPz, bkg in correspondence of mass peak " << histoV2BkgPtInt->GetBinContent(1) << " +- " << histoV2BkgPtInt->GetBinError(1) << " nsigma from zero = " << abs(histoV2BkgPtInt->GetBinContent(1)) / histoV2BkgPtInt->GetBinError(1) << endl;
+  cout << v2FitFunction[numPtBinsVar]->GetParameter(0) << endl;
+  cout << v2FitFunction[numPtBinsVar]->GetParError(0) << endl;
 
   if (!ExtrisSysMassCut)
     cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
