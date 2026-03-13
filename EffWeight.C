@@ -137,7 +137,7 @@ void EffWeight(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
   }
   TH1F *hEfficiency = nullptr;
   TH1F *hEffWeight[numCentLambdaOO + 1];
-  TH2F *hEffWeight2D = new TH2F("hEffWeight2D" + ParticleName[ChosenPart], "hEffWeight2D", numCentLambdaOO, fCentFT0CLambdaOO, numPtBinsEff, PtBinsEff);
+  TH2F *hEffWeight2D = new TH2F("hEffWeight2D" + ParticleName[ChosenPart], "hEffWeight2D", numPtBinsEff, PtBinsEff, numCentLambdaOO, fCentFT0CLambdaOO);
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   for (Int_t m = 0; m <= numCentLambdaOO; m++)
@@ -172,16 +172,28 @@ void EffWeight(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| < 0.5
     for (Int_t b = 1; b <= hEfficiency->GetNbinsX(); b++)
     {
       if (hEffWeight[m]->GetBinCenter(b) < 3)
-        hEffWeight2D->SetBinContent(m + 1, b, hEffWeight[m]->GetBinContent(b));
+        hEffWeight2D->SetBinContent(b, m + 1, hEffWeight[m]->GetBinContent(b));
       else
-        hEffWeight2D->SetBinContent(m + 1, b, hEffWeight[numCentLambdaOO]->GetBinContent(b));
+        hEffWeight2D->SetBinContent(b, m + 1, hEffWeight[numCentLambdaOO]->GetBinContent(b));
     }
   }
 
   TCanvas *cEffWeight2D = new TCanvas("cEffWeight2D", "cEffWeight2D", 800, 600);
   StyleCanvas(cEffWeight2D, 0.02, 0.13, 0.1, 0.03);
   cEffWeight2D->cd();
-  hEffWeight2D->Draw("colz");
+  hEffWeight2D->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+  hEffWeight2D->GetYaxis()->SetTitle("Centrality (%)");
+  hEffWeight2D->GetXaxis()->SetTitleSize(0.05);
+  hEffWeight2D->GetXaxis()->SetLabelSize(0.05);
+  hEffWeight2D->GetXaxis()->SetTitleOffset(1.2);
+  hEffWeight2D->GetYaxis()->SetTitleSize(0.05);
+  hEffWeight2D->GetYaxis()->SetTitleOffset(1.3);
+  hEffWeight2D->GetYaxis()->SetRangeUser(0, 100);
+  hEffWeight2D->SetTitle("");
+  hEffWeight2D->Draw("lego2");
+  gPad->SetTheta(20); // inclinazione verticale
+  gPad->SetPhi(-30);   // rotazione azimutale
+  gPad->Update();
   cEffWeight2D->SaveAs("../QCPlots/hEffWeight2D.png");
 
   TFile *fout = new TFile("../EfficiencyWeight_" + SinputFileNameEfficiency + "_" + ParticleName[ChosenPart] + "_" + RapidityCoverage[isMidRapidity] + ".root", "RECREATE");
