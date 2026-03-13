@@ -139,7 +139,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   std::vector<TFile *> inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
   for (Int_t i = 0; i < nfiles; i++)
-  // for (Int_t i = 0; i < 2; i++)
+  //for (Int_t i = 0; i < 2; i++)
   {
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
@@ -159,10 +159,13 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   if (isSystReso)
     reso = (TH1D *)resoFile->Get("hResoPerCentBinsT0ATPCC");
 
-  TString weightEffFileName = SinputFileNameEfficiencyWeight;
-  TFile *weightEffFile = new TFile(weightEffFileName, "READ");
-  TH1D *hEffWeight{weightEffFileName ? (TH1D *)weightEffFile->Get("hEffWeight") : nullptr};
-
+  TString weightEffFileNameL = SinputFileNameEfficiencyWeightLambda;
+  TFile *weightEffFileL = new TFile(weightEffFileNameL, "READ");
+  TH2D *hEffWeightL{weightEffFileNameL ? (TH2D *)weightEffFileL->Get("hEffWeight2DLambda") : nullptr};
+  TString weightEffFileNameAL = SinputFileNameEfficiencyWeightAntiLambda;
+  TFile *weightEffFileAL = new TFile(weightEffFileNameAL, "READ");
+  TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
+  
   auto h = d1.Histo1D("fPt");
 
   // invariant mass histograms
@@ -496,12 +499,12 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     else return resoWeight[static_cast<int>(cent)]; }, {"fCentFT0C"});
   //  df_selected.Display({"fCentFT0C", "fResoWeight"}, 128)->Print();
 
-  df_selected = df_selected.DefineSlot("fEffWeight", [&hEffWeight](unsigned int, float pt)
+  df_selected = df_selected.DefineSlot("fEffWeight", [&hEffWeightL, &hEffWeightAL](unsigned int, float pt, float cent, short sign)
                                        {
-    if (pt < 0.5 || pt > 10.) return 0.;
-    else if (0.5 <= pt && pt <= 0.6) return hEffWeight->GetBinContent(1);
-    else return hEffWeight->GetBinContent(hEffWeight->FindBin(pt)); }, {"fPt"});
-
+    if (sign==(short)0) return hEffWeightL->GetBinContent(hEffWeightL->FindBin(pt, cent+0.001));
+    else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
+    else return 0.;}, {"fPt", "fCentFT0C", "fSign"});
+  
   if (ExtrisApplyEffWeights)
     df_selected = df_selected.Define("fTotalWeight", "fCentWeight * fEffWeight");
   else
