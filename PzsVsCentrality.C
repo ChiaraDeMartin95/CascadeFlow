@@ -152,8 +152,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6)
   { // for Lambda in OO
     YLow[part] = {-0.0005};
-    //YLow[part] = {-0.0004};
-    // YUp[part] = {0.035};
+    // YLow[part] = {-0.0004};
+    //  YUp[part] = {0.035};
     YUp[part] = {0.0075};
   }
 
@@ -738,7 +738,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary->SetTextAlign(11);
   LegendPreliminary->SetTextSize(0.04);
   LegendPreliminary->AddEntry("", "#bf{ALICE Preliminary}", "");
-  //LegendPreliminary->AddEntry("", "#bf{ALICE Work in Progress}", "");
+  // LegendPreliminary->AddEntry("", "#bf{ALICE Work in Progress}", "");
   LegendPreliminary->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   LegendPreliminary->AddEntry("", "#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.5", "");
   LegendPreliminary->AddEntry("", Form("%1.1f < #it{p}_{T} < %1.1f GeV/#it{c}", MinPt[ChosenPart], 8.), "");
@@ -1160,14 +1160,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendData->SetFillStyle(0);
   legendData->SetTextAlign(12);
   legendData->SetTextSize(0.035);
-  //legendData->AddEntry(fHistPzs, "Data", "pef");
+  // legendData->AddEntry(fHistPzs, "Data", "pef");
   legendData->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
-  //legendData->AddEntry(fHistPzs, "Stat. error", "pe");
-  //legendData->AddEntry(fHistPzsSist, "Syst. error", "f");
+  // legendData->AddEntry(fHistPzs, "Stat. error", "pe");
+  // legendData->AddEntry(fHistPzsSist, "Syst. error", "f");
   legendData->Draw("");
-  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.pdf");
-  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.png");
-  canvasPzsXi->SaveAs("../"+ ParticleName[ChosenPart] + "PolVsCent.eps");
+  canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsCent.pdf");
+  canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsCent.png");
+  canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsCent.eps");
 
   TGraphErrors *gPzsPalermo = new TGraphErrors(9);
   cout << "\n\nSignificance in the 0-50% class" << endl;
@@ -1432,6 +1432,13 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // legendSystem->Draw("");
   //  gPzsVsMultJunleeSist->SetFillStyle(0);
   //  gPzsVsMultJunleeSist->Draw("same e2");
+  TLegend *legendData2 = new TLegend(0.15, 0.557, 0.50, 0.757);
+  legendData2->SetMargin(0.18);
+  legendData2->SetFillStyle(0);
+  legendData2->SetTextAlign(12);
+  legendData2->SetTextSize(0.035);
+  legendData2->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
+  legendData2->Draw("");
   canvasPzsVsMultiplicity->SaveAs("../PzsVsMultiplicity.pdf");
   canvasPzsVsMultiplicity->SaveAs("../PzsVsMultiplicity.png");
   canvasPzsVsMultiplicity->SaveAs("../PzsVsMultiplicity.eps");
@@ -1452,12 +1459,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummyV2vsPzs->Draw("");
   TGraphErrors *gV2vsPzsOO = new TGraphErrors(numCentLambdaOO);
   TGraphErrors *gV2vsPzsOOSyst = new TGraphErrors(numCentLambdaOO);
-  TGraphErrors *gV2VsEccentricityOO = new TGraphErrors(numCentLambdaOO);
-  TGraphErrors *gV2VsEccentricityOOSyst = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gV2vsEccentricityOO = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gV2vsEccentricityOOSyst = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gV2vsMultiplicityOO = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gV2vsMultiplicityOOSyst = new TGraphErrors(numCentLambdaOO);
   TGraphErrors *gPzsVsEccentricityOO = new TGraphErrors(numCentLambdaOO);
   TGraphErrors *gPzsVsEccentricityOOSyst = new TGraphErrors(numCentLambdaOO);
-  TGraphErrors *gPzs2vsEccMinusV2OO = new TGraphErrors(numCentLambdaOO);
-  TGraphErrors *gPzs2vsEccMinusV2OOSyst = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gPzs2VsEccMinusV2OO = new TGraphErrors(numCentLambdaOO);
+  TGraphErrors *gPzs2VsEccMinusV2OOSyst = new TGraphErrors(numCentLambdaOO);
 
   Float_t v2PubOO = 0;
   Float_t v2PubOOErrStat = 0;
@@ -1514,31 +1523,38 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gV2vsPzsOOSyst->SetPoint(b - 1, v2PubOO, fHistPzs->GetBinContent(b));
     gV2vsPzsOOSyst->SetPointError(b - 1, v2PubOOErrSyst, fHistPzsSist->GetBinError(b));
 
-    gV2VsEccentricityOO->SetPoint(b - 1, EccOO[b - 1], v2PubOO);
-    gV2VsEccentricityOO->SetPointError(b - 1, 0, v2PubOOErrStat);
-    gV2VsEccentricityOOSyst->SetPoint(b - 1, EccOO[b - 1], v2PubOO);
-    gV2VsEccentricityOOSyst->SetPointError(b - 1, 0, v2PubOOErrSyst);
+    gV2vsEccentricityOO->SetPoint(b - 1, EccOO[b - 1], v2PubOO);
+    gV2vsEccentricityOO->SetPointError(b - 1, 0, v2PubOOErrStat);
+    gV2vsEccentricityOOSyst->SetPoint(b - 1, EccOO[b - 1], v2PubOO);
+    gV2vsEccentricityOOSyst->SetPointError(b - 1, 0, v2PubOOErrSyst);
 
     gPzsVsEccentricityOO->SetPoint(b - 1, EccOO[b - 1], fHistPzs->GetBinContent(b));
     gPzsVsEccentricityOO->SetPointError(b - 1, 0, fHistPzs->GetBinError(b));
     gPzsVsEccentricityOOSyst->SetPoint(b - 1, EccOO[b - 1], fHistPzsSist->GetBinContent(b));
     gPzsVsEccentricityOOSyst->SetPointError(b - 1, 0, fHistPzsSist->GetBinError(b));
 
-    gPzs2vsEccMinusV2OO->SetPoint(b - 1, EccOO[b - 1] - v2PubOO, fHistPzs->GetBinContent(b));
-    gPzs2vsEccMinusV2OO->SetPointError(b - 1, 0, fHistPzs->GetBinError(b));
-    gPzs2vsEccMinusV2OOSyst->SetPoint(b - 1, EccOO[b - 1] - v2PubOO, fHistPzsSist->GetBinContent(b));
-    gPzs2vsEccMinusV2OOSyst->SetPointError(b - 1, 0, fHistPzsSist->GetBinError(b));
+    gPzs2VsEccMinusV2OO->SetPoint(b - 1, EccOO[b - 1] - v2PubOO, fHistPzs->GetBinContent(b));
+    gPzs2VsEccMinusV2OO->SetPointError(b - 1, 0, fHistPzs->GetBinError(b));
+    gPzs2VsEccMinusV2OOSyst->SetPoint(b - 1, EccOO[b - 1] - v2PubOO, fHistPzsSist->GetBinContent(b));
+    gPzs2VsEccMinusV2OOSyst->SetPointError(b - 1, 0, fHistPzsSist->GetBinError(b));
+
+    gV2vsMultiplicityOO->SetPoint(b - 1, dNdEtaOO[b - 1], v2PubOO);
+    gV2vsMultiplicityOO->SetPointError(b - 1, dNdEtaOOErr[b - 1], v2PubOOErrStat);
+    gV2vsMultiplicityOOSyst->SetPoint(b - 1, dNdEtaOO[b - 1], v2PubOO);
+    gV2vsMultiplicityOOSyst->SetPointError(b - 1, dNdEtaOOErrSyst[b - 1], v2PubOOErrSyst);
 
     // cout << "OO Cent bin " << b << " Pzs " << fHistPzs->GetBinContent(b) << " v2 " << v2PubOO << " +/- " << v2PubOOErrStat << endl;
   }
   TGraphErrors *gV2vsPzsPbPb = new TGraphErrors(numV2PbPbPubCent);
   TGraphErrors *gV2vsPzsPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
-  TGraphErrors *gV2VsEccentricityPbPb = new TGraphErrors(numV2PbPbPubCent);
-  TGraphErrors *gV2VsEccentricityPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gV2vsEccentricityPbPb = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gV2vsEccentricityPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
   TGraphErrors *gPzsVsEccentricityPbPb = new TGraphErrors(numV2PbPbPubCent);
   TGraphErrors *gPzsVsEccentricityPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
-  TGraphErrors *gPzs2vsEccMinusV2PbPb = new TGraphErrors(numV2PbPbPubCent);
-  TGraphErrors *gPzs2vsEccMinusV2PbPbSyst = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gPzs2VsEccMinusV2PbPb = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gPzs2VsEccMinusV2PbPbSyst = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gV2vsMultiplicityPbPb = new TGraphErrors(numV2PbPbPubCent);
+  TGraphErrors *gV2vsMultiplicityPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
   for (Int_t b = 1; b <= numV2PbPbPubCent; b++)
   {
     gV2vsPzsPbPb->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
@@ -1547,20 +1563,25 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gV2vsPzsPbPbSyst->SetPointError(b - 1, V2PbPbPubErrSys[b - 1], fHistPzsLambdaJunleeSist->GetBinError(b));
     // cout << "PbPb Cent bin " << b << " Pzs " << fHistPzsLambdaJunlee->GetBinContent(b) << " v2 " << V2PbPbPub[b - 1] << " +/- " << V2PbPbPubErrStat[b - 1] << endl;
 
-    gV2VsEccentricityPbPb->SetPoint(b - 1, EccPbPb[b - 1], V2PbPbPub[b - 1]);
-    gV2VsEccentricityPbPb->SetPointError(b - 1, 0, V2PbPbPubErrStat[b - 1]);
-    gV2VsEccentricityPbPbSyst->SetPoint(b - 1, EccPbPb[b - 1], V2PbPbPub[b - 1]);
-    gV2VsEccentricityPbPbSyst->SetPointError(b - 1, 0, V2PbPbPubErrSys[b - 1]);
+    gV2vsEccentricityPbPb->SetPoint(b - 1, EccPbPb[b - 1], V2PbPbPub[b - 1]);
+    gV2vsEccentricityPbPb->SetPointError(b - 1, 0, V2PbPbPubErrStat[b - 1]);
+    gV2vsEccentricityPbPbSyst->SetPoint(b - 1, EccPbPb[b - 1], V2PbPbPub[b - 1]);
+    gV2vsEccentricityPbPbSyst->SetPointError(b - 1, 0, V2PbPbPubErrSys[b - 1]);
 
     gPzsVsEccentricityPbPb->SetPoint(b - 1, EccPbPb[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
     gPzsVsEccentricityPbPb->SetPointError(b - 1, 0, fHistPzsLambdaJunlee->GetBinError(b));
     gPzsVsEccentricityPbPbSyst->SetPoint(b - 1, EccPbPb[b - 1], fHistPzsLambdaJunleeSist->GetBinContent(b));
     gPzsVsEccentricityPbPbSyst->SetPointError(b - 1, 0, fHistPzsLambdaJunleeSist->GetBinError(b));
 
-    gPzs2vsEccMinusV2PbPb->SetPoint(b - 1, EccPbPb[b - 1] - V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
-    gPzs2vsEccMinusV2PbPb->SetPointError(b - 1, 0, fHistPzsLambdaJunlee->GetBinError(b));
-    gPzs2vsEccMinusV2PbPbSyst->SetPoint(b - 1, EccPbPb[b - 1] - V2PbPbPub[b - 1], fHistPzsLambdaJunleeSist->GetBinContent(b));
-    gPzs2vsEccMinusV2PbPbSyst->SetPointError(b - 1, 0, fHistPzsLambdaJunleeSist->GetBinError(b));
+    gPzs2VsEccMinusV2PbPb->SetPoint(b - 1, EccPbPb[b - 1] - V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
+    gPzs2VsEccMinusV2PbPb->SetPointError(b - 1, 0, fHistPzsLambdaJunlee->GetBinError(b));
+    gPzs2VsEccMinusV2PbPbSyst->SetPoint(b - 1, EccPbPb[b - 1] - V2PbPbPub[b - 1], fHistPzsLambdaJunleeSist->GetBinContent(b));
+    gPzs2VsEccMinusV2PbPbSyst->SetPointError(b - 1, 0, fHistPzsLambdaJunleeSist->GetBinError(b));
+
+    gV2vsMultiplicityPbPb->SetPoint(b - 1, dNdEtaAbhi[b-1], V2PbPbPub[b - 1]);
+    gV2vsMultiplicityPbPbSyst->SetPoint(b - 1, dNdEtaAbhi[b-1], V2PbPbPub[b - 1]);
+    gV2vsMultiplicityPbPb->SetPointError(b - 1, dNdEtaAbhiErr[b-1], V2PbPbPubErrStat[b - 1]);
+    gV2vsMultiplicityPbPbSyst->SetPointError(b - 1, dNdEtaAbhiErr[b-1], V2PbPbPubErrSys[b - 1]);
   }
   gV2vsPzsOO->SetMarkerStyle(20);
   gV2vsPzsOO->SetMarkerColor(ColorOO);
@@ -1585,42 +1606,42 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasV2vsPzs->SaveAs("../V2vsPzs.png");
   canvasV2vsPzs->SaveAs("../V2vsPzs.eps");
 
-  TCanvas *canvasV2VsEccentricity = new TCanvas("canvasV2VsEccentricity", "canvasV2VsEccentricity", 900, 700);
-  StyleCanvas(canvasV2VsEccentricity, 0.06, 0.15, 0.15, 0.03);
-  canvasV2VsEccentricity->cd();
-  TH1F *hDummyV2VsEccentricity = new TH1F("hDummyV2VsEccentricity", "hDummyV2VsEccentricity", 1000, 0, 1);
-  for (Int_t i = 1; i <= hDummyV2VsEccentricity->GetNbinsX(); i++)
-    hDummyV2VsEccentricity->SetBinContent(i, -1000);
-  canvasV2VsEccentricity->cd();
-  SetFont(hDummyV2VsEccentricity);
-  StyleHistoYield(hDummyV2VsEccentricity, 0.03, 0.12, 1, 1, "<e>", "v_{2}", "", 1, 1.15, 1.6);
-  SetHistoTextSize(hDummyV2VsEccentricity, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
-  SetTickLength(hDummyV2VsEccentricity, tickX, tickY);
-  hDummyV2VsEccentricity->GetXaxis()->SetRangeUser(0, 1);
-  hDummyV2VsEccentricity->GetYaxis()->SetTitleOffset(1.7);
-  hDummyV2VsEccentricity->Draw("");
-  gV2VsEccentricityOO->SetMarkerStyle(20);
-  gV2VsEccentricityOO->SetMarkerColor(ColorOO);
-  gV2VsEccentricityOO->SetLineColor(ColorOO);
-  gV2VsEccentricityOO->Draw("same p");
-  gV2VsEccentricityOOSyst->SetMarkerStyle(20);
-  gV2VsEccentricityOOSyst->SetFillStyle(0);
-  gV2VsEccentricityOOSyst->SetMarkerColor(ColorOO);
-  gV2VsEccentricityOOSyst->SetFillColor(ColorOO);
-  gV2VsEccentricityOOSyst->SetLineColor(ColorOO);
-  gV2VsEccentricityOOSyst->Draw("same p2");
-  gV2VsEccentricityPbPb->SetMarkerStyle(21);
-  gV2VsEccentricityPbPb->SetMarkerColor(colorJunlee);
-  gV2VsEccentricityPbPb->SetLineColor(colorJunlee);
-  gV2VsEccentricityPbPb->Draw("same p");
-  gV2VsEccentricityPbPbSyst->SetMarkerStyle(21);
-  gV2VsEccentricityPbPbSyst->SetFillStyle(0);
-  gV2VsEccentricityPbPbSyst->SetMarkerColor(colorJunlee);
-  gV2VsEccentricityPbPbSyst->SetLineColor(colorJunlee);
-  gV2VsEccentricityPbPbSyst->Draw("same p2");
-  canvasV2VsEccentricity->SaveAs("../V2VsEccentricity.pdf");
-  canvasV2VsEccentricity->SaveAs("../V2VsEccentricity.png");
-  canvasV2VsEccentricity->SaveAs("../V2VsEccentricity.eps");
+  TCanvas *canvasV2vsEccentricity = new TCanvas("canvasV2vsEccentricity", "canvasV2vsEccentricity", 900, 700);
+  StyleCanvas(canvasV2vsEccentricity, 0.06, 0.15, 0.15, 0.03);
+  canvasV2vsEccentricity->cd();
+  TH1F *hDummyV2vsEccentricity = new TH1F("hDummyV2vsEccentricity", "hDummyV2vsEccentricity", 1000, 0, 1);
+  for (Int_t i = 1; i <= hDummyV2vsEccentricity->GetNbinsX(); i++)
+    hDummyV2vsEccentricity->SetBinContent(i, -1000);
+  canvasV2vsEccentricity->cd();
+  SetFont(hDummyV2vsEccentricity);
+  StyleHistoYield(hDummyV2vsEccentricity, 0.03, 0.12, 1, 1, "<e>", "v_{2}", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyV2vsEccentricity, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyV2vsEccentricity, tickX, tickY);
+  hDummyV2vsEccentricity->GetXaxis()->SetRangeUser(0, 1);
+  hDummyV2vsEccentricity->GetYaxis()->SetTitleOffset(1.7);
+  hDummyV2vsEccentricity->Draw("");
+  gV2vsEccentricityOO->SetMarkerStyle(20);
+  gV2vsEccentricityOO->SetMarkerColor(ColorOO);
+  gV2vsEccentricityOO->SetLineColor(ColorOO);
+  gV2vsEccentricityOO->Draw("same p");
+  gV2vsEccentricityOOSyst->SetMarkerStyle(20);
+  gV2vsEccentricityOOSyst->SetFillStyle(0);
+  gV2vsEccentricityOOSyst->SetMarkerColor(ColorOO);
+  gV2vsEccentricityOOSyst->SetFillColor(ColorOO);
+  gV2vsEccentricityOOSyst->SetLineColor(ColorOO);
+  gV2vsEccentricityOOSyst->Draw("same p2");
+  gV2vsEccentricityPbPb->SetMarkerStyle(21);
+  gV2vsEccentricityPbPb->SetMarkerColor(colorJunlee);
+  gV2vsEccentricityPbPb->SetLineColor(colorJunlee);
+  gV2vsEccentricityPbPb->Draw("same p");
+  gV2vsEccentricityPbPbSyst->SetMarkerStyle(21);
+  gV2vsEccentricityPbPbSyst->SetFillStyle(0);
+  gV2vsEccentricityPbPbSyst->SetMarkerColor(colorJunlee);
+  gV2vsEccentricityPbPbSyst->SetLineColor(colorJunlee);
+  gV2vsEccentricityPbPbSyst->Draw("same p2");
+  canvasV2vsEccentricity->SaveAs("../V2vsEccentricity.pdf");
+  canvasV2vsEccentricity->SaveAs("../V2vsEccentricity.png");
+  canvasV2vsEccentricity->SaveAs("../V2vsEccentricity.eps");
 
   TCanvas *canvasPzsVsEccentricity = new TCanvas("canvasPzsVsEccentricity", "canvasPzsVsEccentricity", 900, 700);
   StyleCanvas(canvasPzsVsEccentricity, 0.06, 0.15, 0.15, 0.03);
@@ -1659,6 +1680,45 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsVsEccentricity->SaveAs("../PzsVsEccentricity.png");
   canvasPzsVsEccentricity->SaveAs("../PzsVsEccentricity.eps");
 
+  TCanvas *canvasV2vsMultiplicity = new TCanvas("canvasV2vsMultiplicity", "canvasV2vsMultiplicity", 900, 700);
+  StyleCanvas(canvasV2vsMultiplicity, 0.06, 0.15, 0.12, 0.03);
+  canvasV2vsMultiplicity->cd();
+  gPad->SetLogx();
+  TH1F *hDummyV2vsMultiplicity = new TH1F("hDummyV2vsMultiplicity", "hDummyV2vsMultiplicity", 2000, 0, 10000);
+  for (Int_t i = 1; i <= hDummyV2vsMultiplicity->GetNbinsX(); i++)
+    hDummyV2vsMultiplicity->SetBinContent(i, -1000);
+  hDummyV2vsMultiplicity->GetYaxis()->SetMaxDigits(1);
+  canvasV2vsMultiplicity->cd();
+  SetFont(hDummyV2vsMultiplicity);
+  StyleHistoYield(hDummyV2vsMultiplicity, 0.03, 0.12, 1, 1, titledNdeta, "v_{2}", "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummyV2vsMultiplicity, xTitleMult, xLabelMult, xOffset, xLabelOffsetMult, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyV2vsMultiplicity, tickX, tickY);
+  hDummyV2vsMultiplicity->GetXaxis()->SetRangeUser(25, 2500);
+  hDummyV2vsMultiplicity->GetYaxis()->SetTitleOffset(1.4);
+  hDummyV2vsMultiplicity->Draw("");
+  lineatZeroVsMult->Draw("same");
+  gV2vsMultiplicityPbPb->SetMarkerStyle(21);
+  gV2vsMultiplicityPbPb->SetMarkerColor(colorJunlee);
+  gV2vsMultiplicityPbPb->SetLineColor(colorJunlee);
+  gV2vsMultiplicityPbPb->Draw("same p");
+  gV2vsMultiplicityOO->SetMarkerStyle(20);
+  gV2vsMultiplicityOO->SetMarkerColor(ColorOO);
+  gV2vsMultiplicityOO->SetLineColor(ColorOO);
+  gV2vsMultiplicityOO->Draw("same p");
+  gV2vsMultiplicityPbPbSyst->SetMarkerStyle(21);
+  gV2vsMultiplicityPbPbSyst->SetFillStyle(0);
+  gV2vsMultiplicityPbPbSyst->SetMarkerColor(colorJunlee);
+  gV2vsMultiplicityPbPbSyst->SetLineColor(colorJunlee);
+  gV2vsMultiplicityPbPbSyst->Draw("same p2");
+  gV2vsMultiplicityOOSyst->SetMarkerStyle(20);
+  gV2vsMultiplicityOOSyst->SetFillStyle(0);
+  gV2vsMultiplicityOOSyst->SetMarkerColor(ColorOO);
+  gV2vsMultiplicityOOSyst->SetLineColor(ColorOO);
+  gV2vsMultiplicityOOSyst->Draw("same p2");
+  canvasV2vsMultiplicity->SaveAs("../V2vsMultiplicity.pdf");
+  canvasV2vsMultiplicity->SaveAs("../V2vsMultiplicity.png");
+  canvasV2vsMultiplicity->SaveAs("../V2vsMultiplicity.eps");
+
   TCanvas *canvasPzs2VsEccMinusV2 = new TCanvas("canvasPzs2VsEccMinusV2", "canvasPzs2VsEccMinusV2", 900, 700);
   StyleCanvas(canvasPzs2VsEccMinusV2, 0.06, 0.15, 0.15, 0.03);
   canvasPzs2VsEccMinusV2->cd();
@@ -1673,26 +1733,26 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummyPzs2VsEccMinusV2->GetXaxis()->SetRangeUser(0, 1);
   hDummyPzs2VsEccMinusV2->GetYaxis()->SetTitleOffset(1.7);
   hDummyPzs2VsEccMinusV2->Draw("");
-  gPzs2vsEccMinusV2OO->SetMarkerStyle(20);
-  gPzs2vsEccMinusV2OO->SetMarkerColor(ColorOO);
-  gPzs2vsEccMinusV2OO->SetLineColor(ColorOO);
-  gPzs2vsEccMinusV2OO->Draw("same p");
-  gPzs2vsEccMinusV2OOSyst->SetMarkerStyle(20);
-  gPzs2vsEccMinusV2OOSyst->SetFillStyle(0);
-  gPzs2vsEccMinusV2OOSyst->SetMarkerColor(ColorOO); 
-  gPzs2vsEccMinusV2OOSyst->SetFillColor(ColorOO);
-  gPzs2vsEccMinusV2OOSyst->SetLineColor(ColorOO);
-  gPzs2vsEccMinusV2OOSyst->Draw("same p2");
-  gPzs2vsEccMinusV2PbPb->SetMarkerStyle(21);
-  gPzs2vsEccMinusV2PbPb->SetMarkerColor(colorJunlee);
-  gPzs2vsEccMinusV2PbPb->SetLineColor(colorJunlee);
-  gPzs2vsEccMinusV2PbPb->Draw("same p");
-  gPzs2vsEccMinusV2PbPbSyst->SetMarkerStyle(21);
-  gPzs2vsEccMinusV2PbPbSyst->SetFillStyle(0);
-  gPzs2vsEccMinusV2PbPbSyst->SetMarkerColor(colorJunlee);
-  gPzs2vsEccMinusV2PbPbSyst->SetLineColor(colorJunlee);
-  gPzs2vsEccMinusV2PbPbSyst->Draw("same p2");
-  canvasPzs2VsEccMinusV2->SaveAs("../Pzs2VsEccMinusV2.pdf");  
+  gPzs2VsEccMinusV2OO->SetMarkerStyle(20);
+  gPzs2VsEccMinusV2OO->SetMarkerColor(ColorOO);
+  gPzs2VsEccMinusV2OO->SetLineColor(ColorOO);
+  gPzs2VsEccMinusV2OO->Draw("same p");
+  gPzs2VsEccMinusV2OOSyst->SetMarkerStyle(20);
+  gPzs2VsEccMinusV2OOSyst->SetFillStyle(0);
+  gPzs2VsEccMinusV2OOSyst->SetMarkerColor(ColorOO);
+  gPzs2VsEccMinusV2OOSyst->SetFillColor(ColorOO);
+  gPzs2VsEccMinusV2OOSyst->SetLineColor(ColorOO);
+  gPzs2VsEccMinusV2OOSyst->Draw("same p2");
+  gPzs2VsEccMinusV2PbPb->SetMarkerStyle(21);
+  gPzs2VsEccMinusV2PbPb->SetMarkerColor(colorJunlee);
+  gPzs2VsEccMinusV2PbPb->SetLineColor(colorJunlee);
+  gPzs2VsEccMinusV2PbPb->Draw("same p");
+  gPzs2VsEccMinusV2PbPbSyst->SetMarkerStyle(21);
+  gPzs2VsEccMinusV2PbPbSyst->SetFillStyle(0);
+  gPzs2VsEccMinusV2PbPbSyst->SetMarkerColor(colorJunlee);
+  gPzs2VsEccMinusV2PbPbSyst->SetLineColor(colorJunlee);
+  gPzs2VsEccMinusV2PbPbSyst->Draw("same p2");
+  canvasPzs2VsEccMinusV2->SaveAs("../Pzs2VsEccMinusV2.pdf");
   canvasPzs2VsEccMinusV2->SaveAs("../Pzs2VsEccMinusV2.png");
   canvasPzs2VsEccMinusV2->SaveAs("../Pzs2VsEccMinusV2.eps");
 
