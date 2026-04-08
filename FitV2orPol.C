@@ -2869,7 +2869,7 @@ void FitV2orPol(
     LegendTitle->AddEntry("", Form("OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   else
     LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
-  LegendTitle->AddEntry("", Form("T0C centrality: %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+  LegendTitle->AddEntry("", Form("FT0C centrality: %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else if (ParticleType == 0)
