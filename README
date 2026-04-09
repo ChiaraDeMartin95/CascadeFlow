@@ -39,6 +39,21 @@ Additional useful macros:
 4. PzsLambdaSumALambda.C --> compares Pzs obtained as [Pzs(Lambda) + Pzs(ALambda)]/2 vs Pzs(Lambda + ALambda)
 6. FDFraction.C --> produces FD fraction (i.e. fraction of Lambdas that are not physicl primary, i.e. come from Xi decay) vs centrality. It takes in input the output of cascadeflow.cxx (process function processMCPrimaryLambdaFraction). It can be given in input to PzsVsCentrality.C (not used for Preliminary results)
 
+
+///////////////////////////////////
+How to run the elliptic flow (v2) analysis
+(Info based on updated results on elliptic flow of Xi in April 2026)
+Global variables defined in CommonVar_v2.h
+1. Event QC: QCPlots.C --> produces QC plots
+2. Resolution: Resolution.C --> produces resolution
+3. ProcessTHN.C --> Produces histograms needed to compute v2
+4. ComputeV2.C --> produces histograms
+//ProcessTHN.C and ComputeV2.C have to be run for each BDT selection using the flag ExtrisSysMultTrial = 1 in CommonVar_v2.h
+5. FitV2orPol.C --> produces v2 values for each centrality class and pT interval. It has to be run for each centrality class after setting ExtrisSysMultTrial = 0 in CommonVar_v2.h
+6. MeanSigmaPurityMultRatio.C --> Displays mean, sigma, purity, yield, v2,... vs pT and plots the ratio to the centrality-intergated results
+7. CompareWPublished.C --> Compares the v2 results with the published ones in Run 2. Works if the whole chain above is executed by setting isRun2Binning = 1 in CommonVar_v2.h
+
+
 ///////////////////////////////////
 OLD - How to run the full analysis:
 
