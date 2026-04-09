@@ -15,8 +15,9 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
+#include "CommonVar_v2.h"
 // #include "CommonVar.h"
-#include "CommonVarLambda.h"
+// #include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
 {
@@ -106,10 +107,12 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
   histo->SetTitle(title);
 }
 
-const Float_t UpperLimitLSBOmega = 1.655;  // upper limit of fit of left sidebands for omega
-const Float_t LowerLimitRSBOmega = 1.689;  // lower limit of fit of right sidebands for omega
-const Float_t UpperLimitLSBXi = 1.302;     // upper limit of fit of left sidebands for Xi
-const Float_t LowerLimitRSBXi = 1.34;      // lower limit of fit of right sidebands for Xi
+const Float_t UpperLimitLSBOmega = 1.655; // upper limit of fit of left sidebands for omega
+const Float_t LowerLimitRSBOmega = 1.689; // lower limit of fit of right sidebands for omega
+// const Float_t UpperLimitLSBXi = 1.302;    // upper limit of fit of left sidebands for Xi
+// const Float_t LowerLimitRSBXi = 1.34;     // lower limit of fit of right sidebands for Xi
+const Float_t UpperLimitLSBXi = 1.308;     // upper limit of fit of left sidebands for Xi
+const Float_t LowerLimitRSBXi = 1.335;     // lower limit of fit of right sidebands for Xi
 const Float_t UpperLimitLSBLambda = 1.107; // upper limit of fit of left sidebands for Lambda
 const Float_t LowerLimitRSBLambda = 1.124; // lower limit of fit of right sidebands for Lambda
 const Int_t numBinsEta = 8;
@@ -339,10 +342,10 @@ TString SInvMass = "invariant mass (GeV/c^{2})";
 // fit ranges
 Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11, 1.11, 1.11}; // gauss fit range
 Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12, 1.12, 1.12};
-Float_t liminf[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsup[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13, 1.13, 1.13};
-Float_t liminfBkg[numPart] = {1.29, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsupBkg[numPart] = {1.352, 1.71, 1.352, 1.352, 1.71, 1.71, 1.13, 1.13, 1.13};
+Float_t liminf[numPart] = {1.3, 1.63, 1.3, 1.3, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsup[numPart] = {1.345, 1.71, 1.345, 1.345, 1.71, 1.71, 1.13, 1.13, 1.13};
+Float_t liminfBkg[numPart] = {1.3, 1.63, 1.3, 1.3, 1.63, 1.63, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsupBkg[numPart] = {1.345, 1.71, 1.345, 1.345, 1.71, 1.71, 1.13, 1.13, 1.13};
 Float_t liminfV2[numPart] = {1.308, 1.63, 1.29, 1.29, 1.63, 1.63, 1.1, 1.1, 1.1}; // v2 fit range
 Float_t limsupV2[numPart] = {1.335, 1.71, 1.352, 1.352, 1.71, 1.71, 1.3, 1.3, 1.3};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
@@ -382,6 +385,17 @@ void FitV2orPol(
     Bool_t isMeanFixedPDG = 0,
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
+  if (isV2)
+  {
+    //Xis
+    liminfV2[0] = 1.303;
+    limsupV2[0] = 1.34;
+    liminfV2[2] = 1.303;
+    limsupV2[2] = 1.34;
+    liminfV2[3] = 1.303;
+    limsupV2[3] = 1.34;
+  }
   if (isOOCentrality && commonNumCent != numCentLambdaOO)
   {
     cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
@@ -447,7 +461,7 @@ void FitV2orPol(
   else if (ChosenPart >= 6)
     ParticleType = 2;
   Int_t part = 0;        // Xi
-  if (ParticleType == 1) // Omega
+  if (ParticleType == 0) // Omega
     part = 1;
   else if (ParticleType == 2) // Lambda
     part = 2;
@@ -969,6 +983,17 @@ void FitV2orPol(
       MaxV2 = 0.05;
       MinV2 = -0.05;
     }
+    if (isV2 && part == 0)
+    {
+      MinV2 = 0.01;
+      MaxV2 = 0.08;
+      if (mul == 1)
+        MaxV2 = 0.2;
+      else if (mul == 2)
+        MaxV2 = 0.4;
+      else if (mul >= 3)
+        MaxV2 = 0.6;
+    }
     StyleHisto(hV2[pt], -MinV2, MaxV2, 1, 20, titlePt, "v_{2}", TitleInvMass[ChosenPart] + " " + SInvMass, 1, 0, 100, 1.4, 1.6, 0.7);
     hV2[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
 
@@ -983,12 +1008,12 @@ void FitV2orPol(
 
     if (isYAxisMassZoomed)
     {
-      if (ParticleType == 1)
-        hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.65)));
-      else if (ParticleType == 0)
+      if (ParticleType == 1) // Xi
         hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.29)));
-      else if (ParticleType == 2)
-        hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.55)));
+      else if (ParticleType == 0) // Omega
+        hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.65)));
+      else if (ParticleType == 2) // Lambda
+        hInvMass[pt]->GetYaxis()->SetRangeUser(0, 2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->FindBin(1.115)));
     }
     if (isLogy)
     {
@@ -1281,6 +1306,8 @@ void FitV2orPol(
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.318, 1.324);
+        if (isV2)
+          total[pt]->SetParLimits(1, 1.319, 1.321);
         if (mul == 6)
           total[pt]->SetParLimits(2, 0.0015, 0.010);
         else
@@ -1654,12 +1681,11 @@ void FitV2orPol(
     // linebkgFitLR->Draw("same");
     // linebkgFitRL->Draw("same");
 
-    /*
-        if (BkgType == 1)
-          bkgparab[pt]->Draw("same");
-        else
-          bkgretta[pt]->Draw("same");
-    */
+    if (BkgType == 1)
+      bkgparab[pt]->Draw("same");
+    else
+      bkgretta[pt]->Draw("same");
+
     if (pt < 4)
       canvas[0]->cd(pt + 1);
     else if (pt < 8)
@@ -1678,12 +1704,6 @@ void FitV2orPol(
     }
     if (isTightMassForAcceptancePurity && ChosenPart >= 6)
     {
-      // LowLimit[pt] = 1.112;
-      // UpLimit[pt] = 1.119;
-      //  LowLimit[pt] = 1.1145;
-      //  UpLimit[pt] = 1.1158;
-      // LowLimit[pt] = 1.1145;
-      // UpLimit[pt] = 1.1158;
       LowLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinLowEdge(hInvMass[pt]->GetXaxis()->FindBin(1.1145));
       UpLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinUpEdge(hInvMass[pt]->GetXaxis()->FindBin(1.1158));
     }
@@ -1893,7 +1913,8 @@ void FitV2orPol(
     // hCos2ThetaMassIntegrated[pt]->Rebin(2);
 
     // if (SSB[pt] > LimitForV2woFit || PtBins[pt] > 2.)
-    if (SSB[pt] > LimitForV2woFit || (PtBins[pt] > 2. && CentFT0CMin >= 40 && pt != numPtBinsVar))
+    // if (SSB[pt] > LimitForV2woFit || (PtBins[pt] > 2. && CentFT0CMin >= 40 && pt != numPtBinsVar))
+    if (SSB[pt] > LimitForV2woFit)
       isV2FromFit[pt] = 0;
     else
       isV2FromFit[pt] = 1;
@@ -2097,6 +2118,7 @@ void FitV2orPol(
       bkg2[pt]->SetLineColor(1);
       bkg2[pt]->SetLineStyle(2);
       bkg2[pt]->Draw("same");
+      bkgparab[pt]->Draw("same");
     }
     else if (BkgType == 2)
       bkg3[pt]->Draw("same");
@@ -2276,7 +2298,7 @@ void FitV2orPol(
   }
 
   // scaling by resolution
-  if (!ExtrisApplyResoOnTheFly && isV2 == 0) // reso applied on the fly only for polarization
+  if (!ExtrisApplyResoOnTheFly) 
   {
     histoV2->Scale(1. / ftcReso[mul]);
     histoV2NoFit->Scale(1. / ftcReso[mul]);
@@ -2943,7 +2965,7 @@ void FitV2orPol(
   SetFont(hDummy);
   StyleHistoYield(hDummy, 1e-3, 1.2 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
   if (ChosenPart >= 6)
-    StyleHistoYield(hDummy, 1e-3, 1.08*hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
+    StyleHistoYield(hDummy, 1e-3, 1.08 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -3111,4 +3133,10 @@ void FitV2orPol(
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
   cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1) / histoV2PtIntErr->GetBinContent(1) << endl;
+
+  if (ChosenPart == 0)
+  {
+    cout << "\n\nWarning: UpperLimitLSBXi and LowerLimitLSBXi were changed after paper proposal of Xi polarization! Check the values in the code!\n\n"
+         << endl;
+  }
 }
