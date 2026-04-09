@@ -22,7 +22,8 @@
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
 // #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVar_v2.h"
+// #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -130,7 +131,7 @@ Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
 Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.8, 0.8};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 4, 1, 10, 10, 1.1, 1.1, 1, 1.2, 1.2};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 50, 1, 10, 10, 1.1, 1.1, 1, 1.2, 1.2};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
@@ -190,7 +191,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       YUpRatio[Choice] = 2;
     }
   }
-  //cout << Choice << " " << TypeHisto[Choice] << endl;
+  // cout << Choice << " " << TypeHisto[Choice] << endl;
   if (Choice > (numChoice - 1))
   {
     cout << "Option not implemented" << endl;
@@ -215,6 +216,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     YLow[part] = 1e-9;
     YUp[part] = 100;
+    if (isV2 && ChosenPart==0)
+    {
+      YLow[part] = 1e-6;
+      YUp[part] = 1000;
+    }
   }
   else if (Choice == 4 || Choice == 9)
   {
@@ -382,7 +388,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   // get spectra in multiplicity classes
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
-    if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
+    if ((m == commonNumCent) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
       continue;
@@ -429,7 +435,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_vsPsi";
     if ((Choice == 6 || Choice == 8) && ChosenPart != 6)
       PathIn += "_PolFromLambda";
-    if (Choice <= 3 && ChosenPart != 6)
+    if (Choice <= 3 && ChosenPart != 6 && !isV2)
       PathIn += "_PolFromLambda";
     if (ExtrisApplyEffWeights)
       PathIn += "_EffW";
@@ -478,11 +484,11 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     if (Choice == 2 && isProducedAcceptancePlots)
       PathIn += "_NoMassCutForAcceptance";
     if ((Choice == 10 || Choice == 11) && ChosenParticle == 6)
-      PathIn += "_TightAcceptance"; 
+      PathIn += "_TightAcceptance";
     PathIn += ".root";
     cout << "Path in: " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    //cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
+    // cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
     if (Choice == 10 || Choice == 11)
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get(TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax));
     else if (Choice == 1)
@@ -556,9 +562,9 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
       cout << "bin " << b << " content " << fHistSpectrum[m]->GetBinContent(b) << " error " << fHistSpectrum[m]->GetBinError(b) << endl;
-      if (std::isnan(fHistSpectrum[m]->GetBinError(b)) || fHistSpectrum[m]->GetBinError(b)/fHistSpectrum[m]->GetBinContent(b) > 1)
+      if (std::isnan(fHistSpectrum[m]->GetBinError(b)) || fHistSpectrum[m]->GetBinError(b) / fHistSpectrum[m]->GetBinContent(b) > 1)
       {
-        fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b-1));
+        fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b - 1));
         NFixedBin++;
       }
       if (fHistSpectrum[m]->GetBinError(b) != fHistSpectrum[m]->GetBinError(b))
