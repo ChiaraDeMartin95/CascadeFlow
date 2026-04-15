@@ -12,53 +12,17 @@ Int_t v2type = 2;                   // 0: v2 - old task version before train 224
 Bool_t ExtrisFromTHN = 1;           // 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 0;         // 1 for Lambda in OO
 Bool_t isOOCentrality = 0;          // 1 for Lambda in OO
+Bool_t isRun2Binning = 1;
 
-const Int_t numPart = 9; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda, Lambda, AntiLambda
-bool isRun2Binning = 1;
+const Int_t commonNumCent = 8; 
+
+// Pt bins
 // const Int_t numPtBins = 15;
 //const Int_t numPtBins = 7;
 const Int_t numPtBinsReduced = 7;
 const Int_t numPtBins = 6; // Run2 binning
 const Int_t numPtBinsEff = 15; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
-const Int_t numCent = 8;
-const Int_t numCentLambdaOO = 10;
-const Int_t commonNumCent = 8; // the maximum of the two above (?) (numCent for Xi, numCentLambdaOO for Lambda in OO)
-// const Int_t numCent_PtDiff = 3; // for pt differential measurement
-const Int_t numChoice = 12; // mean, sigma, purity, yield, v2, Pzs2, Pzs2 from lambda, Cos2Theta, Cos2Theta from lambda, V2MixedCorr, Cos2ThetaFromLambdaVsPtLambda
-
-TString sPolFromLambda[2] = {"", "LambdaFromC"};
-TString STHN[2] = {"", "_FromTHN"};
-TString V2FromFit[2] = {"NoFit", ""};
-TString NameAnalysis[2] = {"V2", "Pzs2"};
-TString RapidityCoverage[2] = {"Eta08", "Y05"};
-TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
-TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
-Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245, 1.67245, 1.115683, 1.115683, 1.115683}; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
-TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus", "Lambda", "LambdaPart", "AntiLambda"};
-TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda + #bar{#Lambda}", "#Lambda", "#overline{#Lambda}"};
-TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
-TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta*_{#Lambda})#GT", "#LTcos^{2}(#theta*_{p})#GT", "v2, corr", "#LTcos^{2}(#theta*_{p})#GT", "#LTcos^{2}(#theta*_{p})#GT"};
-TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
-TString TitleXCent = "Centrality (%)";
-TString TitleYPzs = "#it{P}_{z,s2}";
-
-// Centrality
-Double_t CentFT0CMaxLambdaOO = 100;
-Int_t CentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80}; //{0, 30, 50, 80}; // for pt differential measurement
-Double_t fCentFT0C[numCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
-Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-Double_t dNdEtaAbhi[numCent] = {(2080. + 1697.) / 2, 1274, 862, 566, 355, 208, 112, 54}; // values from Abhi
-Double_t dNdEtaAbhiErr[numCent] = {63, 40, 27, 19, 13, 8, 5, 3};
-Double_t dNdEtaOO[numCentLambdaOO] = {(126.95 + 104.16) / 2, 84.30, 63.98, 48.26, 35.99, 26.43, 19.03, 13.22, 8.50};
-Double_t dNdEtaOOErr[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23};
-Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
-Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
-
-Double_t v2PubRun2[numCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881}; // values from Run2 https://arxiv.org/pdf/1602.01119
-
-// Pt bins
 Double_t PtBins[numPtBins + 1] = {0.8, 1.4, 2, 2.5, 3, 4, 6}; // Run 2 binning for v2
 // Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
@@ -66,29 +30,11 @@ Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2
 Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5, 0.5, 0.5};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
-// Colors and markers
-Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange, kOrange - 2, kOrange - 4};
-Int_t MarkerPart[numPart] = {20, 33, 20, 20, 33, 33, 33, 33, 33};
-Float_t MarkerPartSize[numPart] = {1.5, 2., 1.5, 1.5, 2., 2., 2., 2., 2};
-Int_t ColorMult[] = {634, 628, 807, kOrange - 4, 797, 815, 418, 429, 867, 856, 601, kViolet, kPink + 9, kPink + 1, 1};
-Float_t SizeMult[] = {2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8, 2, 2, 2.8, 2.5, 2.8};
-Float_t SizeMultRatio[] = {1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8, 1, 1, 1.8, 1.5, 1.8};
-Int_t MarkerMult[] = {20, 21, 33, 34, 29, 20, 21, 33, 34, 29, 20, 21, 33, 34, 29};
-Float_t ScaleFactor[] = {256, 128, 64, 32, 16, 8, 4, 2, 1};
-
 // Acceptance correction
 const Int_t numEtaBins = 8;
 const Int_t numPtBinsLambda = 9;
 Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8};
 Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
-
-// Decay parameters
-Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1, 1, 1}; // from PDG 2024, for Xi+ and Omega+-, set to 1 as it has no meaning
-// Float_t AlphaHErrors[numPart] = {1, 1, 0.006, sqrt(pow(0.007,2) + pow(0.002,2)), 0.0020, sqrt(pow(0.0028,2) + pow(0.0026,2))};
-Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1, 1, 1};
-Float_t CXiToLambda = 0.925;
-Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1, 1, 1};     // decay parameter for Lambda -> p pi
-Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}; // decay parameter for Lambda -> p pi
 
 // File names
 TString SinputFileName = "LHC23_PbPb_pass5_Train648260";
@@ -136,7 +82,7 @@ const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.5
 // --------------------------- SYST ------------------------------
 const int trialsLambdaTopo = 2;
 // systematic studies on BDT score variation ----------------------
-bool ExtrisSysMultTrial = 1;       // 1 for systematic studies, 0 for default analysis
+bool ExtrisSysMultTrial = 0;       // 1 for systematic studies, 0 for default analysis
 bool ExtrisSysLambdaMultTrial = 0; // 1 for systematic studies, 0 for default analysis
 const int trialsBDT = 20;          // number of trials for the systematic studies related to BDTscore
 const float nsigmaBarlow = 0;
