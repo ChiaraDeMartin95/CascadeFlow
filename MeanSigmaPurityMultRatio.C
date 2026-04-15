@@ -21,8 +21,10 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
-#include "CommonVar_v2.h"
+// #include "CommonVarXi.h"
+// #include "CommonVar_v2.h"
+#include "CommonVarPub.h"
+#include "CommonVarOmega.h"
 // #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
@@ -117,7 +119,7 @@ Float_t YLowMean[numPart] = {1.31, 1.66, 1.1};
 Float_t YUpMean[numPart] = {1.327, 1.68, 1.13};
 Float_t YLowSigma[numPart] = {0.0, 0.0, 0.0};
 Float_t YUpSigma[numPart] = {0.006, 0.006, 0.004};
-Float_t YLowPurity[numPart] = {0.8, 0.8, 0.6};
+Float_t YLowPurity[numPart] = {0.8, 0.5, 0.6};
 Float_t YLowV2[numPart] = {-0.3, -0.4, -0.3};
 Float_t YUpV2[numPart] = {0.5, 0.5, 0.5};
 Float_t YLowPzs2[numPart] = {-0.01, -0.01, -0.01};
@@ -392,15 +394,28 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
       continue;
-    if (m == commonNumCent)
+    if (m == numCent)
     { // 0-80%
       CentFT0CMin = 0;
-      CentFT0CMax = 80;
+      CentFT0CMax = CentFT0CMaxPbPb;
     }
     else
     {
       CentFT0CMin = CentFT0C[m];
       CentFT0CMax = CentFT0C[m + 1];
+    }
+    if (part==1) // Omega in Pb-Pb
+    {
+      if (m == numCentOmega)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxOmega;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0COmega[m];
+        CentFT0CMax = CentFT0COmega[m + 1];
+      }
     }
     if (isOOCentrality)
     {

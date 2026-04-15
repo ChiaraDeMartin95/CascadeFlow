@@ -13,7 +13,10 @@
 #include "TLegend.h"
 #include "TPad.h"
 // #include "CommonVar.h"
-#include "CommonVarLambda.h"
+// #include "CommonVar_v2.h"
+#include "CommonVarPub.h"
+#include "CommonVarOmega.h"
+// #include "CommonVarLambda.h"
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
@@ -30,9 +33,9 @@ void ComputeV2(Int_t indexMultTrial = 0,
     cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
     return;
   }
-  if (!isOOCentrality && commonNumCent != numCent)
+  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega)
   {
-    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent. Please check the settings." << endl;
+    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent or numCentOmega. Please check the settings." << endl;
     return;
   }
   if (isReducedPtBins && numPtBins != numPtBinsReduced)
@@ -40,6 +43,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
     return;
   }
+
   if (isSysMultTrial)
     inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
@@ -50,6 +54,12 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TString SBDT = "";
   if ((BDTscoreCut != DefaultBDTscoreCut || isSysMultTrial) && ChosenPart != 6 && ChosenPart != 7 && ChosenPart != 8)
     SBDT = Form("_BDT%.3f", BDTscoreCut);
+
+  Int_t Part = 0;
+  if ((ChosenPart == 1) || (ChosenPart == 4) || (ChosenPart == 5))
+  {
+    Part = 1; // Omega
+  }
 
   TString SinputFile = "../OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
@@ -203,6 +213,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
           hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0CLambdaOO[cent], CentFT0CLambdaOO[cent + 1]));
           // cout << "Using Lambda centrality bins: " << CentFT0CLambdaOO[cent] << " - " << CentFT0CLambdaOO[cent + 1] << endl;
         }
+        else if (Part == 1) // Omega in Pb-Pb
+          hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0COmega[cent], CentFT0COmega[cent + 1]));
         else
           hPhiCentHisto[cent] = (TH2F *)inputFile->Get(Form("PhiHist_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
         if (!hPhiCentHisto[cent])
@@ -210,7 +222,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
           cout << "Histogram hPhiCentHisto not available" << endl;
           return;
         }
-        hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
+        if (Part == 1)
+          hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0COmega[cent], CentFT0COmega[cent + 1]));
+        else
+          hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]));
         if (isOOCentrality)
           hPhiCentHisto[cent]->SetName(Form("hPhiCentHisto_cent%i-%i", CentFT0CLambdaOO[cent], CentFT0CLambdaOO[cent + 1]));
         if (!weights)
@@ -258,12 +273,25 @@ void ComputeV2(Int_t indexMultTrial = 0,
       if (cent == numCent)
       { // 0-80%
         CentFT0CMin = 0;
-        CentFT0CMax = 80;
+        CentFT0CMax = CentFT0CMaxPbPb;
       }
       else
       {
         CentFT0CMin = CentFT0C[cent];
         CentFT0CMax = CentFT0C[cent + 1];
+      }
+      if (Part == 1) // Omega in Pb-Pb
+      {
+        if (cent == numCentOmega)
+        {
+          CentFT0CMin = 0;
+          CentFT0CMax = CentFT0CMaxOmega;
+        }
+        else
+        {
+          CentFT0CMin = CentFT0COmega[cent];
+          CentFT0CMax = CentFT0COmega[cent + 1];
+        }
       }
       if (isOOCentrality)
       {
@@ -319,12 +347,25 @@ void ComputeV2(Int_t indexMultTrial = 0,
     if (cent == numCent)
     { // 0-80%
       CentFT0CMin = 0;
-      CentFT0CMax = 80;
+      CentFT0CMax = CentFT0CMaxPbPb;
     }
     else
     {
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
+    }
+    if (Part == 1) // Omega in Pb-Pb
+    {
+      if (cent == numCentOmega)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxOmega;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0COmega[cent];
+        CentFT0CMax = CentFT0COmega[cent + 1];
+      }
     }
     if (isOOCentrality)
     {
@@ -708,12 +749,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       hCos2Theta[cent][pt]->Write();
       hCos2ThetaLambdaFromC[cent][pt]->Write();
       hmass[cent][pt]->Write();
-      if (isOOCentrality)
-      {
-        if (cent != numCentLambdaOO && pt != numPtBins && !ExtrisFromTHN)
-          hPhiCentHisto1D[cent][pt]->Write();
-      }
-      else if (cent != numCent && pt != numPtBins && !ExtrisFromTHN)
+      if (cent != commonNumCent && pt != numPtBins && !ExtrisFromTHN)
         hPhiCentHisto1D[cent][pt]->Write();
     }
     for (Int_t psi = 0; psi < numPsiBins; psi++)

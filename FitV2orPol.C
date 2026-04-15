@@ -15,8 +15,9 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
+#include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
-#include "CommonVar_Omega.h"
+#include "CommonVarOmega.h"
 // #include "CommonVar.h"
 // #include "CommonVarLambda.h"
 
@@ -407,20 +408,12 @@ void FitV2orPol(
     cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
     return;
   }
-  if (!isOOCentrality && commonNumCent != numCent)
+  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega)
   {
-    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent. Please check the settings." << endl;
+    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent or numCentOmega. Please check the settings." << endl;
     return;
   }
-  Int_t numCentMax = 0;
-  if (isOOCentrality)
-  {
-    numCentMax = numCentLambdaOO;
-  }
-  else
-  {
-    numCentMax = numCent;
-  }
+
   if (ChosenPart >= 6 && isPolFromLambda)
   {
     cout << "Polarization of lambda cannot be computed from polarization of lambdas :) Set isPolFromLambda = 0" << endl;
@@ -480,14 +473,27 @@ void FitV2orPol(
   Int_t CentFT0CMax = 0;
   Int_t CentFT0CMin = 0;
   if (mul == numCent)
-  { // 0-80%
+  {
     CentFT0CMin = 0;
-    CentFT0CMax = 80;
+    CentFT0CMax = CentFT0CMaxPbPb;
   }
   else
   {
     CentFT0CMin = CentFT0C[mul];
     CentFT0CMax = CentFT0C[mul + 1];
+  }
+  if (part == 1)
+  { // Omega
+    if (mul == numCentOmega)
+    {
+      CentFT0CMin = 0;
+      CentFT0CMax = CentFT0CMaxOmega;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0COmega[mul];
+      CentFT0CMax = CentFT0COmega[mul + 1];
+    }
   }
   if (isOOCentrality)
   {
@@ -585,12 +591,19 @@ void FitV2orPol(
     else
       ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0CLambdaOO[mul] + 0.001));
   }
+  else if (part == 1)
+  {
+    if (mul == numCentOmega)
+      ftcReso[mul] = hReso080->GetBinContent(1);
+    else
+      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+  }
   else
   {
     if (mul == numCent)
       ftcReso[mul] = hReso080->GetBinContent(1);
     else
-      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0C[mul] + 0.001));
+      ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0COmega[mul] + 0.001));
   }
   cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   cout << "Resolution: " << ftcReso[mul] << endl;
@@ -613,7 +626,7 @@ void FitV2orPol(
     LowerLimitRSB = LowerLimitRSBLambda;
   }
 
-  if (mul > numCentMax + 1)
+  if (mul > commonNumCent + 1)
   {
     cout << "Multiplicity out of range" << endl;
     return;
@@ -1755,7 +1768,7 @@ void FitV2orPol(
     TotYield += Yield[pt];
     TotSigBkg += entries_range[pt];
 
-    cout <<"Yield: " << Yield[pt] << " +/- " << ErrYield[pt] << endl;
+    cout << "Yield: " << Yield[pt] << " +/- " << ErrYield[pt] << endl;
     SSB[pt] = (entries_range[pt] - b[pt]) / entries_range[pt];
     errSSB[pt] = SSB[pt] * sqrt(1. / entries_range[pt] + pow(errb[pt] / b[pt], 2));
 
@@ -2378,12 +2391,12 @@ void FitV2orPol(
   TFile *fileV2Correction = new TFile("../V2Corr.root", "READ");
   TH1F *histoV2Corr = (TH1F *)fileV2Correction->Get(Form("v2CorrCent%i", mul));
   // this histogram is already corrected by resolution
-  if (!histoV2Corr && (mul != numCentMax))
+  if (!histoV2Corr && (mul != commonNumCent))
   {
     cout << "Error: histoV2Corr not found" << endl;
     // return;
   }
-  if (ExtrisApplyEffWeights && (mul != numCentMax))
+  if (ExtrisApplyEffWeights && (mul != commonNumCent))
     histoV2MixedCorr->Add(histoV2Corr, 1);
   for (Int_t pt = 0; pt < numPtBinsVar; pt++)
   {
@@ -3125,7 +3138,7 @@ void FitV2orPol(
   cout << "The acceptance correction was applied? " << isApplyAcceptanceCorrection << endl;
   cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
   cout << "\nResult (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << endl;
-  cout << "Result (pt integrated measurement, fit): " << histoV2PtInt->GetBinContent(1) << endl;
+  cout << "Result (pt integrated measurement, fit): " << histoV2PtInt->GetBinContent(1) << " +- " << histoV2PtInt->GetBinError(1) << endl;
   // cout << "Result before application of the resolution: " << hV2MassIntegrated[numPtBins]->GetMean() << " +- " << hV2MassIntegrated[numPtBins]->GetMeanError() << endl;
   cout << "Result before application of the resolution: " << hV2MassIntegrated[ChosenPt]->GetMean() << " +- " << hV2MassIntegrated[ChosenPt]->GetMeanError() << endl;
   cout << "\nError of pt integrated measurement (no fit): " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;

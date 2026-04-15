@@ -19,8 +19,11 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+// #include "CommonVarXi.h"
+// #include "CommonVar_v2.h"
+// #include "CommonVarLambda.h"
+#include "CommonVarPub.h"
+#include "CommonVarOmega.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
@@ -262,12 +265,25 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     if (cent == numCent)
     { // 0-80%
       CentFT0CMin = 0;
-      CentFT0CMax = 80;
+      CentFT0CMax = CentFT0CMaxPbPb;
     }
     else
     {
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
+    }
+    if (Part == 1) // Omega
+    {
+      if (cent == numCentOmega)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxOmega;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0COmega[cent];
+        CentFT0CMax = CentFT0COmega[cent + 1];
+      }
     }
     if (isOOCentrality)
     {
@@ -420,7 +436,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     if (isProducedAcceptancePlots)
     {
       if (ChosenPart == 6)
-        hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(2); //eta
+        hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(2); // eta
       else
         hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
     }
