@@ -8,7 +8,9 @@ from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
 from hipe4ml.analysis_utils import train_test_generator
 from hipe4ml import plot_utils
-from hipe4ml_converter.h4ml_converter import H4MLConverter
+import onnxmltools
+#from onnxconverter_common.data_types import FloatTensorType
+from onnxmltools.convert.common.data_types import FloatTensorType
 
 parser = argparse.ArgumentParser(description='Configure the parameters of the script.')
 parser.add_argument('--isOmega', action='store_true', help="True for Omegas", default=False)
@@ -18,17 +20,11 @@ print("is Omega: ", args.isOmega)
 isXi = not args.isOmega
 print("isIntegratedPt: ", args.isIntegratedPt)
 
-DirName = 'TrainingPlots'
-AdditionalName = '/Pass4'
+DirName = '../TrainingPlots'
+AdditionalName = '/Pass5'
 
-FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train299250.root"
-#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass4_Train268801.root"
-#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_LHC23_PbPb_pass3_Train207099_New_RedFactor10.root"
-#FileBkg="TreeForTrainingBkg/AnalysisResultsTree_Bkg_Train180896.root"
-FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24j2_pass4_Train304890.root"
-#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24g3_pass4_Train270268.root"
-#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC24d2b_pass3_Train208092.root"
-#FileSig="TreeForTrainingSignal/AnalysisResultsTree_Signal_LHC23k6e_Train190322.root"
+FileBkg="../TreeForTrainingBkg/AnalysisResults_trees_LHC23_PbPb_pass5_Train653920.root"
+FileSig="../TreeForTrainingSignal/AnalysisResults_trees_LHC24j2_pass4_Train655683.root"
 bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*') 
 sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
 #sigCandidates= TreeHandler(FileSig,'O2casctraining')
@@ -43,14 +39,19 @@ if not isXi:
     preselection_string_sig = 'abs(fMcPdgCode) == 3334'
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
     preselection_sidebands = 'fMassOmega > 1.656 and fMassOmega < 1.662 or fMassOmega > 1.683 and fMassOmega < 1.689'
+    #competing mass rejection
+    #competing_mass_rejection = 'fMassXi < 1.308 and fMassXi > 1.334' #5sigma window
+    competing_mass_rejection = 'fMassXi < 1.3135 and fMassXi > 1.3285' #3sigma window
     
-#competing mass rejection
 sigCandidates.apply_preselections(preselection_string_sig)
 sigCandidates.apply_preselections(preselection_string_common)
 bkgCandidates.apply_preselections(preselection_string_common)
 bkgCandidates.apply_preselections(preselection_string_mass)
 sigCandidates.apply_preselections(preselection_string_mass)
 bkgCandidates.apply_preselections(preselection_sidebands)
+if not isXi:
+   sigCandidates.apply_preselections(competing_mass_rejection)
+   bkgCandidates.apply_preselections(competing_mass_rejection)
 
 vars_to_draw = sigCandidates.get_var_names()
 features_for_train = vars_to_draw.copy()
@@ -165,8 +166,13 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(DirName+AdditionalName+"/Mass" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
 
+    model_params = {
+        'max_depth':5, 'learning_rate':0.029, 'n_estimators':500, 'min_child_weight':2.7,
+        'subsample':0.90, 'colsample_bytree':0.97, 'n_jobs':1, 'tree_method': 'hist'
+    }
+
     model_clf = xgb.XGBClassifier()
-    model_hdl = ModelHandler(model_clf, features_for_train)
+    model_hdl = ModelHandler(model_clf, features_for_train, model_params)
     
     #optimization of the parameters
     hyper_pars_ranges = {'n_estimators': (200, 1000), 'max_depth': (2, 4), 'learning_rate': (0.01, 0.1)}
@@ -174,7 +180,7 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
      #                                n_jobs=-1, n_trials=100, direction='maximize')
     
     #training of the model
-    model_hdl.train_test_model(train_test_data)
+    model_hdl.train_test_model(train_test_data, multi_class_opt="ovo")
     
     y_pred_train = model_hdl.predict(train_test_data[0], False) #0
     y_pred_test = model_hdl.predict(train_test_data[2], False) #2
@@ -196,27 +202,21 @@ for ptbin, ptbinMax, nsig, nbkg in zip(ptbin, ptbinMax, nsig, nbkg):
     plot_utils.plot_feature_imp(train_test_data[2], train_test_data[3], model_hdl) 
     plt.savefig(DirName+AdditionalName+"/FeatureImportance"+ Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".png")
     
-    #dataCandidates.apply_model_handler(model_hdl, False)
-    #selected_data_hndl = dataCandidates.get_subset('model_output>0.7')
-    ##print('Number of selected candidates: ', selected_data_hndl.get_n_entries())
-    #labels_list = ["after selection","before selection"]
-    #colors_list = ['orangered', 'cornflowerblue']
-    #plot_utils.plot_distr([selected_data_hndl, bkgCandidates], column='fMassXi', bins=200, labels=labels_list, colors=colors_list, density=True,fill=True, histtype='step', alpha=0.5)
-    #ax = plt.gca()
-    #ax.set_xlabel(r'm (GeV/$c^2$)')
-    #ax.margins(x=0)
-    #ax.xaxis.set_label_coords(0.9, -0.075)
-    ##plt.show()
-    #plt.savefig("InvMassBkgXi" + str(pt) +".png")
-    
     #store the trained model
-    model_hdl.dump_model_handler("ModelHandler"+AdditionalName+"/ModelHandler_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
-    model_hdl.dump_original_model("ModelHandler"+AdditionalName+"/XGBoostModel_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_model_handler("../ModelHandler"+AdditionalName+"/ModelHandler_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
+    model_hdl.dump_original_model("../ModelHandler"+AdditionalName+"/XGBoostModel_" + Cascade_string + str(ptbin)+ "_" + str(ptbinMax)+".pickle")
     
     #convert model in ONNX
-    model_converter = H4MLConverter(model_hdl) # create the converter object
-    model_onnx = model_converter.convert_model_onnx(1, len(features_for_train))
-    model_converter.dump_model_onnx("Onnx"+AdditionalName+"/model_onnx"+ Cascade_string + "_" + str(ptbin)+ "_" + str(ptbinMax)+".onnx") # dump the model in ONNX format
+    n_features = len(model_hdl.get_training_columns())
+    model = model_hdl.get_original_model()
+    feature_names = [f"f{i_feat}" for i_feat in range(n_features)]
+    model.get_booster().feature_names = feature_names
+    ## convert to ONNX
+    model_onnx = onnxmltools.convert.convert_xgboost(model, initial_types=[("input", FloatTensorType(shape=[1, n_features]))], target_opset=13)
+    ## restore original names
+    model.get_booster().feature_names = list(model_hdl.get_training_columns())
+    ## save the ONNX model to file
+    onnxmltools.utils.save_model(model_onnx, "../Onnx"+AdditionalName+"/model_onnx"+ Cascade_string + "_" + str(ptbin)+ "_" + str(ptbinMax)+".onnx")
 
     plt.close()
 
