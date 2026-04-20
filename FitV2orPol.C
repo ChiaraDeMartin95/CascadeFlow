@@ -17,8 +17,8 @@
 #include "TLegend.h"
 #include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
-#include "CommonVarOmega.h"
-// #include "CommonVar.h"
+// #include "CommonVarOmega.h"
+#include "CommonVarXi.h"
 // #include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
@@ -2743,8 +2743,11 @@ void FitV2orPol(
   legend->SetTextSize(0.037);
   legend->SetTextAlign(12);
   // legend->AddEntry("", "#bf{ALICE Performance}", "");
-  legend->AddEntry("", "#bf{ALICE Preliminary}", "");
-  legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+  // legend->AddEntry("", "#bf{ALICE Preliminary}", "");
+  //legend->AddEntry("", "ALICE", "");
+  if (ParticleType == 1)
+    legend->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  // legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
   else if (ParticleType == 0)
@@ -2912,16 +2915,18 @@ void FitV2orPol(
   StylePad(pad2, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
   StylePad(padL2, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
 
-  TLegend *LegendTitle = new TLegend(0.24, 0.6, 0.75, 0.95);
+  TLegend *LegendTitle;
+  if (isOOCentrality) LegendTitle = new TLegend(0.24, 0.6, 0.75, 0.95);
+  else LegendTitle = new TLegend(0.24, 0.64, 0.75, 0.92);
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetMargin(0);
   LegendTitle->SetTextSize(0.05);
   LegendTitle->SetTextAlign(12);
-  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  //LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
   if (isOOCentrality)
-    LegendTitle->AddEntry("", Form("OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+    LegendTitle->AddEntry("", "ALICE, OO, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   else
-    LegendTitle->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
+    LegendTitle->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   LegendTitle->AddEntry("", Form("FT0C centrality: %i#minus%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     LegendTitle->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
@@ -2935,11 +2940,10 @@ void FitV2orPol(
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
   else
     LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  if (ChosenPart >= 6)
-    cout << "ok " << endl;
+  // if (ChosenPart >= 6)
   // LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
-  else
-    LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  // else
+  // LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
 
   TLegend *legendCos2 = new TLegend(0.6, 0.37, 0.85, 0.52);
   legendCos2->SetFillStyle(0);
@@ -2972,8 +2976,8 @@ void FitV2orPol(
   Float_t xLabelOffset = 0.05;
   Float_t yLabelOffset = 0.01;
 
-  Float_t tickX = 0.03;
-  Float_t tickY = 0.042;
+  Float_t tickX = 0.035; //0.03
+  Float_t tickY = 0.025; //0.042
 
   TLegend *legendChi2 = new TLegend(0.4, 0.82, 0.65, 0.92);
   legendChi2->SetFillStyle(0);
@@ -3035,8 +3039,8 @@ void FitV2orPol(
   Float_t xLabelOffsetR = 0.02;
   Float_t yLabelOffsetR = 0.014;
 
-  Float_t tickXR = 0.035;
-  Float_t tickYR = 0.042;
+  Float_t tickXR = 0.035;//0.035
+  Float_t tickYR = 0.025; //0.042
 
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 10000, XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
   for (Int_t i = 1; i <= hDummyRatio->GetNbinsX(); i++)
