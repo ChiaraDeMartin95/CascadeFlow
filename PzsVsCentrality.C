@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
+#include "CommonVarXi.h"
 // #include "CommonVarLambda.h"
-#include "CommonVarOmega.h"
+//#include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -1153,6 +1153,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   hDummy->GetYaxis()->SetRangeUser(-0.0004, 0.0065);
   if (part == 1) // Omega
     hDummy->GetYaxis()->SetRangeUser(-0.005, 0.02);
+  else if (part == 0) // Xi
+    hDummy->GetYaxis()->SetRangeUser(-0.001, 0.011);
   hDummy->Draw("");
   lineatZero->Draw("same");
   if (ChosenPart >= 6)
