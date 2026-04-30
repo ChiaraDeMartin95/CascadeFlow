@@ -475,6 +475,10 @@ void FitV2orPol(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (BkgType ==0) {
+    cout <<"The macro crashes with pol1 bkg fit, so please set BkgType to 1 or 2 or 3" << endl;
+    return;
+  }
   Bool_t isCombinedFit = 0;
 
   if (isV2)
@@ -2315,6 +2319,7 @@ void FitV2orPol(
       bkg1[pt]->SetLineColor(1);
       bkg1[pt]->SetLineStyle(2);
       bkg1[pt]->Draw("same");
+      bkgretta[pt]->Draw("same");
     }
     else if (BkgType == 1)
     {
@@ -2324,9 +2329,15 @@ void FitV2orPol(
       bkgparab[pt]->Draw("same");
     }
     else if (BkgType == 2)
+    {
       bkg3[pt]->Draw("same");
+      bkgpol3[pt]->Draw("same");
+    }
     else
+    {
       bkg4[pt]->Draw("same");
+      // bkgexpo[pt]->Draw("same");
+    }
 
     lineP3Sigma[pt]->Draw("same");
     lineM3Sigma[pt]->Draw("same");
@@ -3005,22 +3016,47 @@ void FitV2orPol(
   // lineP3SigmaNorm[ChosenPt]->Draw("same");
   // lineM3SigmaNorm[ChosenPt]->Draw("same");
 
-  TF1 *totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+  TF1 *totalPNorm = nullptr;
+  if (BkgType == 0)
+  {
+    totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol1(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+    totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) / histoIntegral);
+    totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
+  }
+  else if (BkgType == 1)
+  {
+    totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol2(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+    totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) / histoIntegral);
+    totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
+    totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
+  }
+  else if (BkgType == 2)
+  {
+    totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+pol3(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+    totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) / histoIntegral);
+    totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
+    totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
+    totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9) / histoIntegral);
+  }
+  else
+  {
+    totalPNorm = new TF1("totalP", "gaus(0)+gaus(3)+expo(6)", XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+    totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) - std::log(histoIntegral));
+    totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
+  }
+
   totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
   totalPNorm->SetParameter(1, total[ChosenPt]->GetParameter(1));
   totalPNorm->SetParameter(2, total[ChosenPt]->GetParameter(2));
   totalPNorm->SetParameter(3, total[ChosenPt]->GetParameter(3) / histoIntegral);
   totalPNorm->SetParameter(4, total[ChosenPt]->GetParameter(4));
   totalPNorm->SetParameter(5, total[ChosenPt]->GetParameter(5));
-  totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) / histoIntegral);
-  totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) / histoIntegral);
-  totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
 
   legendfit2->AddEntry(histo, "Data", "pl");
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   // legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   legendfit2->AddEntry(totalPNorm, "Total fit", "l");
-  TF1 *bkg;
+  TF1 *bkg = nullptr;
   if (BkgType == 0)
     bkg = bkg1[ChosenPt];
   else if (BkgType == 1)
@@ -3029,14 +3065,26 @@ void FitV2orPol(
     bkg = bkg3[ChosenPt];
   else
     bkg = bkg4[ChosenPt];
-  bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
-  bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
-  if (BkgType == 1)
+  if (BkgType == 0)
+  {
+    bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
+    bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
+  }
+  else if (BkgType == 1)
+  {
+    bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
+    bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
     bkg->SetParameter(2, bkg->GetParameter(2) / histoIntegral);
+  }
   else if (BkgType == 2)
   {
+    bkg->SetParameter(0, bkg->GetParameter(0) / histoIntegral);
+    bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
     bkg->SetParameter(2, bkg->GetParameter(2) / histoIntegral);
     bkg->SetParameter(3, bkg->GetParameter(3) / histoIntegral);
+  } else {
+    bkg->SetParameter(0, bkg->GetParameter(0) - std::log(histoIntegral));
+    bkg->SetParameter(1, bkg->GetParameter(1));
   }
   bkg->SetLineColor(kBlack);
   bkg->SetLineStyle(8);
@@ -3372,6 +3420,7 @@ void FitV2orPol(
   totalPNorm->Draw("same");
   LegendTitle->Draw("");
   legendfit2->Draw("");
+  bkg->Draw("same");
   if (isCombinedFit)
     totalGlobalNorm->Draw("same");
 
@@ -3387,7 +3436,6 @@ void FitV2orPol(
   v2FitFunction[ChosenPt]->Draw("same");
   if (isCombinedFit)
     v2FitGlobal[ChosenPt]->Draw("same");
-  // v2BkgFunction[ChosenPt]->Draw("same");
   if (isCombinedFit)
     v2BkgFunctionGlobal[ChosenPt]->Draw("same");
 
