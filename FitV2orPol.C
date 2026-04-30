@@ -26,6 +26,40 @@
 #include "Math/WrappedMultiTF1.h"
 #include "HFitInterface.h"
 
+// Double sided Crystal ball definition (given by ChatGPT)
+double dscb(double *x, double *p)
+{
+  double t = (x[0] - p[1]) / p[2]; // (x - mean)/sigma
+
+  double N = p[0];
+  double mean = p[1];
+  double sigma = p[2];
+  double alphaL = p[3];
+  double nL = p[4];
+  double alphaR = p[5];
+  double nR = p[6];
+
+  // Left side
+  if (t < -alphaL)
+  {
+    double A = pow(nL / fabs(alphaL), nL) * exp(-0.5 * alphaL * alphaL);
+    double B = nL / fabs(alphaL) - fabs(alphaL);
+    return N * A * pow(B - t, -nL);
+  }
+  // Right side
+  else if (t > alphaR)
+  {
+    double A = pow(nR / fabs(alphaR), nR) * exp(-0.5 * alphaR * alphaR);
+    double B = nR / fabs(alphaR) - fabs(alphaR);
+    return N * A * pow(B + t, -nR);
+  }
+  // Gaussian core
+  else
+  {
+    return N * exp(-0.5 * t * t);
+  }
+}
+
 // definition of shared parameter
 const int nParMass = 9;
 const int nParV2 = 12;    // first three: related to Pz,s2, bkg; pars 3-5: related to bkg modelled with a pol2, pars 6-11: related to signal modelled with a gaussian
@@ -821,6 +855,7 @@ void FitV2orPol(
     TitleCos2Theta_sig = "#LT cos^{2}(#theta_{p}*) #GT_{sig}";
 
   TH1F *histoV2 = new TH1F(ShistoV2, Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2Global = new TH1F(ShistoV2 + "Global", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2MixedCorr = new TH1F(ShistoV2 + "MixedCorr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
@@ -831,6 +866,7 @@ void FitV2orPol(
   TH1F *histoV2MixedErr = new TH1F(ShistoV2 + "MixedErr", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
 
   TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2PtIntGlobal = new TH1F(ShistoV2 + "PtIntGlobal", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2BkgPtInt = new TH1F(ShistoV2 + "BkgPtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
@@ -852,6 +888,8 @@ void FitV2orPol(
 
   histoV2PtInt->SetLineColor(kMagenta);
   histoV2PtInt->SetMarkerColor(kMagenta);
+  histoV2PtIntGlobal->SetLineColor(kMagenta + 2);
+  histoV2PtIntGlobal->SetMarkerColor(kMagenta + 2);
   histoV2PtIntNoFit->SetLineColor(kMagenta);
   histoV2PtIntNoFit->SetMarkerColor(kMagenta);
   histoV2PtIntMixed->SetLineColor(kMagenta);
@@ -2018,6 +2056,11 @@ void FitV2orPol(
     {
       histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
       histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+      if (isCombinedFit)
+      {
+        histoV2Global->SetBinContent(pt + 1, v2FitGlobal[pt]->GetParameter(0));
+        histoV2Global->SetBinError(pt + 1, v2FitGlobal[pt]->GetParError(0));
+      }
       histoV2Bkg->SetBinContent(pt + 1, v2BkgFunction[pt]->Eval(mean[pt]));
       histoV2Bkg->SetBinError(pt + 1, PzBkgError);
     }
@@ -2025,6 +2068,11 @@ void FitV2orPol(
     {
       histoV2PtInt->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
       histoV2PtInt->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+      if (isCombinedFit)
+      {
+        histoV2PtIntGlobal->SetBinContent(1, v2FitGlobal[pt]->GetParameter(0));
+        histoV2PtIntGlobal->SetBinError(1, v2FitGlobal[pt]->GetParError(0));
+      }
       histoV2BkgPtInt->SetBinContent(1, v2BkgFunction[pt]->Eval(mean[pt]));
       histoV2BkgPtInt->SetBinError(1, PzBkgError);
       histoMeanPtInt->SetBinContent(1, mean[pt]);
@@ -2258,9 +2306,10 @@ void FitV2orPol(
     hInvMassDraw[pt]->GetXaxis()->SetRangeUser(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
     hInvMassDraw[pt]->GetYaxis()->SetRangeUser(1, 1.2 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
     hInvMassDraw[pt]->Draw("");
+    total[pt]->Draw("same");
     functions1[pt]->Draw("same");
     functions2[pt]->Draw("same");
-    totalSignal[pt]->Draw("same");
+    // totalSignal[pt]->Draw("same");
     if (BkgType == 0)
     {
       bkg1[pt]->SetLineColor(1);
@@ -2417,9 +2466,11 @@ void FitV2orPol(
   if (!isV2 && isApplyAcceptanceCorrection)
   {
     histoV2->Divide(histoCos2Theta);
+    histoV2Global->Divide(histoCos2Theta);
     histoV2NoFit->Divide(histoCos2ThetaNoFit);
     histoV2Mixed->Divide(histoCos2ThetaMixed);
     histoV2PtInt->Divide(histoCos2ThetaPtInt);
+    histoV2PtIntGlobal->Divide(histoCos2ThetaPtInt);
     histoV2PtIntNoFit->Divide(histoCos2ThetaPtIntNoFit);
     histoV2PtIntMixed->Divide(histoCos2ThetaPtIntMixed);
   }
@@ -2441,9 +2492,11 @@ void FitV2orPol(
       // histoV2PtIntMixed->Scale(1. / AlphaLambda[ChosenPart] / CXiToLambda);
       // NOTE: Alpha already integrated in ProcessTree.C
       histoV2->Scale(1. / CCascToLambda);
+      histoV2Global->Scale(1. / CCascToLambda);
       histoV2NoFit->Scale(1. / CCascToLambda);
       histoV2Mixed->Scale(1. / CCascToLambda);
       histoV2PtInt->Scale(1. / CCascToLambda);
+      histoV2PtIntGlobal->Scale(1. / CCascToLambda);
       histoV2PtIntNoFit->Scale(1. / CCascToLambda);
       histoV2PtIntMixed->Scale(1. / CCascToLambda);
     }
@@ -2463,9 +2516,11 @@ void FitV2orPol(
   if (!ExtrisApplyResoOnTheFly)
   {
     histoV2->Scale(1. / ftcReso[mul]);
+    histoV2Global->Scale(1. / ftcReso[mul]);
     histoV2NoFit->Scale(1. / ftcReso[mul]);
     histoV2Mixed->Scale(1. / ftcReso[mul]);
     histoV2PtInt->Scale(1. / ftcReso[mul]);
+    histoV2PtIntGlobal->Scale(1. / ftcReso[mul]);
     histoV2PtIntNoFit->Scale(1. / ftcReso[mul]);
     histoV2PtIntMixed->Scale(1. / ftcReso[mul]);
   }
@@ -2558,6 +2613,7 @@ void FitV2orPol(
   }
   histoV2->Draw();
   histoV2PtInt->Draw("same");
+  histoV2PtIntGlobal->Draw("same");
 
   cout << "************ Rel error of histoV2 ********" << endl;
   for (Int_t b = 1; b <= histoV2->GetNbinsX(); b++)
@@ -2741,6 +2797,7 @@ void FitV2orPol(
   outputfile->WriteTObject(histoSignificancePtInt);
 
   outputfile->WriteTObject(histoV2);
+  outputfile->WriteTObject(histoV2Global);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
   outputfile->WriteTObject(histoV2MixedCorr);
@@ -2750,6 +2807,7 @@ void FitV2orPol(
   outputfile->WriteTObject(histoV2Bkg);
 
   outputfile->WriteTObject(histoV2PtInt);
+  outputfile->WriteTObject(histoV2PtIntGlobal);
   outputfile->WriteTObject(histoV2PtIntNoFit);
   outputfile->WriteTObject(histoV2PtIntMixed);
   outputfile->WriteTObject(histoV2PtIntErr);
