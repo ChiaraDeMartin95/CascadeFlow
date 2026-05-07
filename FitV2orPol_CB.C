@@ -25,6 +25,7 @@
 #include "Fit/Chi2FCN.h"
 #include "Math/WrappedMultiTF1.h"
 #include "HFitInterface.h"
+#include "TF1Convolution.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
 {
@@ -124,6 +125,28 @@ const Float_t UpperLimitLSBLambda = 1.107; // upper limit of fit of left sideban
 const Float_t LowerLimitRSBLambda = 1.124; // lower limit of fit of right sidebands for Lambda
 const Int_t numBinsEta = 8;
 const Bool_t reject = 1;
+
+// fit ranges
+Float_t min_range_signal[numPart] = {1.31, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11, 1.11, 1.11}; // gauss fit range
+Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12, 1.12, 1.12};
+Float_t liminf[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsup[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t liminfBkg[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
+Float_t limsupBkg[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t liminfV2[numPart] = {1.308, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
+Float_t limsupV2[numPart] = {1.335, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
+Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
+Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
+
+// visualisation ranges
+Float_t LowMassRange[numPart] = {1.31, 1.656, 1.31, 1.31, 1.656, 1.656, 1.1, 1.1, 1.1}; // range to compute approximate yield (signal + bkg)
+Float_t UpMassRange[numPart] = {1.33, 1.686, 1.33, 1.33, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of gauss functions (from total fit)
+Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.69, 1.35, 1.35, 1.69, 1.69, 1.13, 1.13, 1.13};
+Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of bkg function (from total fit)
+Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.686, 1.35, 1.35, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t histoMassRangeLow[numPart] = {1.301, 1.656, 1.301, 1.301, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of mass histograms
+Float_t histoMassRangeUp[numPart] = {1.344, 1.686, 1.344, 1.344, 1.686, 1.686, 1.13, 1.13, 1.13};
 
 Double_t fparab(Double_t *x, Double_t *par)
 {
@@ -467,6 +490,42 @@ struct v2fitCombinedParab
   }
 };
 
+TF1 *f_dscb = nullptr;
+TF1Convolution *conv_dscb = nullptr;
+TF1 *f_conv = nullptr;
+
+void build_convolution()
+{
+  // DSCB: first 7 params
+  f_dscb = new TF1("f_dscb", dscb, liminf[ChosenParticle], limsup[ChosenParticle], 7);
+
+  // Gaussian smearing
+  TF1 *gaus = new TF1(
+      "gaus",
+      "1./(sqrt(2*TMath::Pi())*[0]) * exp(-0.5*(x/[0])^2)",
+      -10, 10);
+
+  // convolution
+  conv_dscb = new TF1Convolution(f_dscb, gaus, true);
+
+  // 7 DSCB params + 1 sigma
+  f_conv = new TF1("f_conv", *conv_dscb, liminf[ChosenParticle], limsup[ChosenParticle], 8);
+}
+double dscb_plus_expo_conv(double *x, double *p)
+{
+  // First 7 params → DSCB
+  // p[7] → Gaussian sigma
+  double conv_signal =
+      f_conv->EvalPar(x, p);
+
+  // Exponential background
+  // p[8], p[9]
+  double background =
+      exp(p[8] + p[9] * x[0]);
+
+  return conv_signal + background;
+}
+
 Double_t v2bkgfit(Double_t *x, Double_t *par)
 {
   return par[0] + par[1] * x[0];
@@ -567,28 +626,6 @@ TString titlePt = "p_{T} (GeV/c)";
 TString TitleInvMass[numPart] = {"(#Lambda, #pi)", "(#Lambda, K)", "(#Lambda, #pi^{-})", "(#overline{#Lambda}, #pi^{+})", "(#Lambda, K^{-})", "(#overline{#Lambda}, K^{+})", "(p, #pi)", "(p, #pi^{-})", "(#overline{p}, #pi^{+})"};
 TString SInvMass = "invariant mass (GeV/c^{2})";
 
-// fit ranges
-Float_t min_range_signal[numPart] = {1.31, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11, 1.11, 1.11}; // gauss fit range
-Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12, 1.12, 1.12};
-Float_t liminf[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsup[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
-Float_t liminfBkg[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsupBkg[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
-Float_t liminfV2[numPart] = {1.308, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
-Float_t limsupV2[numPart] = {1.335, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
-Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
-Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
-
-// visualisation ranges
-Float_t LowMassRange[numPart] = {1.31, 1.656, 1.31, 1.31, 1.656, 1.656, 1.1, 1.1, 1.1}; // range to compute approximate yield (signal + bkg)
-Float_t UpMassRange[numPart] = {1.33, 1.686, 1.33, 1.33, 1.686, 1.686, 1.13, 1.13, 1.13};
-Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of gauss functions (from total fit)
-Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.69, 1.35, 1.35, 1.69, 1.69, 1.13, 1.13, 1.13};
-Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.686, 1.35, 1.35, 1.686, 1.686, 1.13, 1.13, 1.13};
-Float_t histoMassRangeLow[numPart] = {1.301, 1.656, 1.301, 1.301, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of mass histograms
-Float_t histoMassRangeUp[numPart] = {1.344, 1.686, 1.344, 1.344, 1.686, 1.686, 1.13, 1.13, 1.13};
-
 // Event plane resolution
 Float_t ftcReso[commonNumCent + 1] = {0};
 const Bool_t isFitDSCB = ExtrisFitDSCB;
@@ -616,6 +653,16 @@ void FitV2orPol_CB(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isGaussConv && !isFitDSCB)
+  {
+    cout << "Convolution fit only available with DSCB signal fit. Please set isFitDSCB to 1 or isGaussConv to 0" << endl;
+    return;
+  }
+  if (isGaussConv && BkgType != 3 && BkgType != 4)
+  {
+    cout << "Convolution fit only available with expo or Chebyshev background fit" << endl;
+    return;
+  }
   if (isMC)
   {
     inputFileName = SinputFileNameMC;
@@ -974,6 +1021,22 @@ void FitV2orPol_CB(
   TH1F *histoAlphaRDSCBPtInt = new TH1F("histoAlphaRDSCBPtInt", "histoAlphaRDSCBPtInt", 1, MinPt[ChosenPart], BinsVar[numPtBinsVar]);
   TH1F *histoAlphaLDSCB = new TH1F("histoAlphaLDSCB", "histoAlphaLDSCB", numPtBinsVar, BinsVar);
   TH1F *histoAlphaLDSCBPtInt = new TH1F("histoAlphaLDSCBPtInt", "histoAlphaLDSCBPtInt", 1, MinPt[ChosenPart], BinsVar[numPtBinsVar]);
+
+  TFile *fileInputParDSCB = new TFile(inputFileDSCBParam, "READ");
+  if (!fileInputParDSCB || fileInputParDSCB->IsZombie())
+    return;
+  TH1F *histoParMeanDSCB = nullptr;
+  TH1F *histoParSigmaDSCB = nullptr;
+  TH1F *histoParnRDSCB = nullptr;
+  TH1F *histoParnLDSCB = nullptr;
+  TH1F *histoParalphaRDSCB = nullptr;
+  TH1F *histoParalphaLDSCB = nullptr;
+  Float_t meanDSCB = 0;
+  Float_t sigmaDSCB = 0;
+  Float_t nRDSCB = 0;
+  Float_t nLDSCB = 0;
+  Float_t alphaRDSCB = 0;
+  Float_t alphaLDSCB = 0;
 
   TH1F *histoAppliedBDT = new TH1F("histoAppliedBDT", "histoAppliedBDT", numPtBinsVar, BinsVar);
   TH1F *histoAppliedBDTPtInt = new TH1F("histoAppliedBDTPtInt", "histoAppliedBDTPtInt", 1, MinPt[ChosenPart], BinsVar[numPtBinsVar]);
@@ -1978,6 +2041,44 @@ void FitV2orPol_CB(
     {
       cout << "\n\e[35mFit with DSCB \e[39m" << endl;
       cout << "pt interval: " << PtBins[pt] << "-" << PtBins[pt + 1] << endl;
+
+      // get parameters from MC fit
+      if (!isMC)
+      {
+        if (pt < numPtBinsVar)
+        {
+          histoParMeanDSCB = (TH1F *)fileInputParDSCB->Get("histoMeanDSCB");
+          histoParSigmaDSCB = (TH1F *)fileInputParDSCB->Get("histoSigmaDSCB");
+          histoParalphaLDSCB = (TH1F *)fileInputParDSCB->Get("histoAlphaLDSCB");
+          histoParnLDSCB = (TH1F *)fileInputParDSCB->Get("histonLDSCB");
+          histoParalphaRDSCB = (TH1F *)fileInputParDSCB->Get("histoAlphaRDSCB");
+          histoParnRDSCB = (TH1F *)fileInputParDSCB->Get("histonRDSCB");
+          meanDSCB = histoParMeanDSCB->GetBinContent(pt + 1);
+          sigmaDSCB = histoParSigmaDSCB->GetBinContent(pt + 1);
+          alphaLDSCB = histoParalphaLDSCB->GetBinContent(pt + 1);
+          nLDSCB = histoParnLDSCB->GetBinContent(pt + 1);
+          alphaRDSCB = histoParalphaRDSCB->GetBinContent(pt + 1);
+          nRDSCB = histoParnRDSCB->GetBinContent(pt + 1);
+        }
+        else
+        {
+          histoParMeanDSCB = (TH1F *)fileInputParDSCB->Get("histoMeanDSCBPtInt");
+          histoParSigmaDSCB = (TH1F *)fileInputParDSCB->Get("histoSigmaDSCBPtInt");
+          histoParalphaLDSCB = (TH1F *)fileInputParDSCB->Get("histoAlphaLDSCBPtInt");
+          histoParnLDSCB = (TH1F *)fileInputParDSCB->Get("histonLDSCBPtInt");
+          histoParalphaRDSCB = (TH1F *)fileInputParDSCB->Get("histoAlphaRDSCBPtInt");
+          histoParnRDSCB = (TH1F *)fileInputParDSCB->Get("histonRDSCBPtInt");
+          meanDSCB = histoParMeanDSCB->GetBinContent(1);
+          sigmaDSCB = histoParSigmaDSCB->GetBinContent(1);
+          alphaLDSCB = histoParalphaLDSCB->GetBinContent(1);
+          nLDSCB = histoParnLDSCB->GetBinContent(1);
+          alphaRDSCB = histoParalphaRDSCB->GetBinContent(1);
+          nRDSCB = histoParnRDSCB->GetBinContent(1);
+        }
+      }
+
+      build_convolution();
+
       if (BkgType == 0)
         total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_pol1, liminf[ChosenPart], limsup[ChosenPart], 9);
       else if (BkgType == 1)
@@ -1985,12 +2086,18 @@ void FitV2orPol_CB(
       else if (BkgType == 2)
         total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_pol3, liminf[ChosenPart], limsup[ChosenPart], 11);
       else if (BkgType == 3)
-        total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_expo, liminf[ChosenPart], limsup[ChosenPart], 9);
+      {
+        if (isGaussConv)
+          total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_expo_conv, liminf[ChosenPart], limsup[ChosenPart], 10);
+        else
+          total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_expo, liminf[ChosenPart], limsup[ChosenPart], 9);
+      }
       else
         total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_cheb, liminf[ChosenPart], limsup[ChosenPart], 14);
       if (isMC) // no bkg in MCTruth
         total[pt] = new TF1(Form("totalDSCB%i", pt), dscb, liminf[ChosenPart], limsup[ChosenPart], 7);
-      total[pt]->SetLineColor(597);
+
+      total[pt]->SetLineColor(kBlue + 2);
       total[pt]->SetParName(0, "norm");
       total[pt]->SetParName(1, "mean");
       total[pt]->SetParName(2, "sigma");
@@ -1998,6 +2105,7 @@ void FitV2orPol_CB(
       total[pt]->SetParName(4, "nL");
       total[pt]->SetParName(5, "alphaR");
       total[pt]->SetParName(6, "nR");
+
       if (!isMC)
       {
         total[pt]->SetParName(7, "p0");
@@ -2013,6 +2121,15 @@ void FitV2orPol_CB(
           total[pt]->SetParName(9, "p4");
           total[pt]->SetParName(10, "p5");
           total[pt]->SetParName(11, "p6");
+        }
+        if (isGaussConv)
+        {
+          total[pt]->SetParName(7, "gaussSigma");
+          if (BkgType == 3)
+          {
+            total[pt]->SetParName(8, "p0");
+            total[pt]->SetParName(9, "p1");
+          }
         }
       }
 
@@ -2119,7 +2236,19 @@ void FitV2orPol_CB(
         total[pt]->SetParLimits(3, 0, 10); // alphaL
         total[pt]->SetParLimits(5, 0, 10); // alphaR
         if (!isMC)
+        {
           total[pt]->FixParameter(6, 20); // nR
+          if (isFixParamDSCBFromMC)
+          {
+            total[pt]->FixParameter(1, meanDSCB);
+            total[pt]->FixParameter(2, sigmaDSCB);
+            total[pt]->FixParameter(3, alphaLDSCB);
+            total[pt]->FixParameter(4, nLDSCB);
+            total[pt]->FixParameter(5, alphaRDSCB);
+            total[pt]->FixParameter(6, nRDSCB);
+            total[pt]->SetParLimits(7, 0.000001, 0.002);
+          }
+        }
       }
       else
       {
@@ -2147,17 +2276,22 @@ void FitV2orPol_CB(
       totalbis[pt]->FixParameter(4, 0);
       totalbis[pt]->FixParameter(5, 0);
       totalbis[pt]->FixParameter(6, 0);
+      if (isGaussConv)
+        totalbis[pt]->FixParameter(7, 0); // gaussian smearing
 
       if (!isMC)
       {
-        totalSignal[pt]->FixParameter(7, 0);
-        totalSignal[pt]->FixParameter(8, 0);
+        int pIndex = 7;
+        if (isGaussConv)
+          pIndex = 8;
+        totalSignal[pt]->FixParameter(pIndex, 0);
+        totalSignal[pt]->FixParameter(pIndex + 1, 0);
         if (BkgType == 1 || BkgType == 2 || BkgType == 4)
-          totalSignal[pt]->FixParameter(9, 0);
+          totalSignal[pt]->FixParameter(pIndex + 2, 0);
         if (BkgType == 2 || BkgType == 4)
-          totalSignal[pt]->FixParameter(10, 0);
+          totalSignal[pt]->FixParameter(pIndex + 3, 0);
         if (BkgType == 4)
-          totalSignal[pt]->FixParameter(11, 0);
+          totalSignal[pt]->FixParameter(pIndex + 4, 0);
         totalSignal[pt]->SetLineColor(kOrange + 2);
       }
 
@@ -2187,8 +2321,16 @@ void FitV2orPol_CB(
         }
         else if (BkgType == 3)
         {
-          bkg4[pt]->FixParameter(0, total[pt]->GetParameter(7));
-          bkg4[pt]->FixParameter(1, total[pt]->GetParameter(8));
+          if (isGaussConv)
+          {
+            bkg4[pt]->FixParameter(0, total[pt]->GetParameter(8));
+            bkg4[pt]->FixParameter(1, total[pt]->GetParameter(9));
+          }
+          else
+          {
+            bkg4[pt]->FixParameter(0, total[pt]->GetParameter(7));
+            bkg4[pt]->FixParameter(1, total[pt]->GetParameter(8));
+          }
           bkgFunction = (TF1 *)bkg4[pt]->Clone(Form("bkgFunction4_%i", pt));
         }
         else
@@ -3326,13 +3468,13 @@ void FitV2orPol_CB(
     outputfile->WriteTObject(histoMeanDSCBPtInt);
     outputfile->WriteTObject(histoSigmaDSCB);
     outputfile->WriteTObject(histoSigmaDSCBPtInt);
-    outputfile->WriteTObject(histonLDSCB);  
-    outputfile->WriteTObject(histonLDSCBPtInt);  
-    outputfile->WriteTObject(histonRDSCB);  
+    outputfile->WriteTObject(histonLDSCB);
+    outputfile->WriteTObject(histonLDSCBPtInt);
+    outputfile->WriteTObject(histonRDSCB);
     outputfile->WriteTObject(histonRDSCBPtInt);
-    outputfile->WriteTObject(histoAlphaLDSCB);  
+    outputfile->WriteTObject(histoAlphaLDSCB);
     outputfile->WriteTObject(histoAlphaLDSCBPtInt);
-    outputfile->WriteTObject(histoAlphaRDSCB);  
+    outputfile->WriteTObject(histoAlphaRDSCB);
     outputfile->WriteTObject(histoAlphaRDSCBPtInt);
   }
   outputfile->WriteTObject(histoAppliedBDT);
@@ -3604,9 +3746,19 @@ void FitV2orPol_CB(
       }
       else if (BkgType == 3)
       {
-        totalPNorm = new TF1("totalP", dscb_plus_expo, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 10);
-        totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) - std::log(histoIntegral));
-        totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8));
+        if (isGaussConv)
+        {
+          totalPNorm = new TF1("totalP", dscb_plus_expo_conv, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 11);
+          totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
+          totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) - std::log(histoIntegral));
+          totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9));
+        }
+        else
+        {
+          totalPNorm = new TF1("totalP", dscb_plus_expo, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 10);
+          totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7) - std::log(histoIntegral));
+          totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8));
+        }
       }
       else
       {
