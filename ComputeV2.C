@@ -12,14 +12,15 @@
 #include "TF1.h"
 #include "TLegend.h"
 #include "TPad.h"
-// #include "CommonVar.h"
 // #include "CommonVar_v2.h"
 #include "CommonVarPub.h"
-#include "CommonVarOmega.h"
+//#include "CommonVarOmega.h"
+#include "CommonVarXi.h"
 // #include "CommonVarLambda.h"
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
+               Bool_t isMC = 0,
                Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
                Bool_t isRapiditySel = ExtrisRapiditySel,
                TString inputFileName = SinputFileName,
@@ -27,6 +28,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
                Int_t EtaSysChoice = ExtrEtaSysChoice,
                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
+
+  if (isMC)
+  {
+    inputFileName = SinputFileNameMC;
+  }
 
   if (isOOCentrality && commonNumCent != numCentLambdaOO)
   {
@@ -44,7 +50,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     return;
   }
 
-  if (isSysMultTrial)
+  if (isSysMultTrial && !isMC)
     inputFileName = SinputFileNameSyst;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
   if (indexMultTrial > trialsBDT)
@@ -198,7 +204,6 @@ void ComputeV2(Int_t indexMultTrial = 0,
     centBins.push_back(static_cast<double>(CentFT0C[cent]));
   }
 
-  TH2F *hMassVsPt = (TH2F *)inputFile->Get("mass_LambdavPt");
   TH3D *weights{nullptr};
   if (!ExtrisFromTHN)
   {
@@ -719,8 +724,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   SOutputFile += ".root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
-  // hMassVsPt->Write();
-
+  
   for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     hmassVsPtVsV2C[cent]->Write();

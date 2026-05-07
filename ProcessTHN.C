@@ -19,11 +19,11 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
-// #include "CommonVarXi.h"
+#include "CommonVarPub.h"
+#include "CommonVarXi.h"
 // #include "CommonVar_v2.h"
 // #include "CommonVarLambda.h"
-#include "CommonVarPub.h"
-#include "CommonVarOmega.h"
+// #include "CommonVarOmega.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
 
@@ -33,12 +33,17 @@ using namespace std;
 void ProcessTHN(Int_t indexMultTrial = 0,
                 Int_t ChosenPart = ChosenParticle,
                 Int_t isTightAcceptance = 0,
+                Bool_t isMC = 0,
                 Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
                 TString inputFileName = SinputFileName,
                 Int_t EtaSysChoice = ExtrEtaSysChoice,
                 Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (isMC)
+  {
+    inputFileName = SinputFileNameMC;
+  }
   if (!isMassCutForAcceptance && !isProducedAcceptancePlots)
   {
     cout << "Mass cut for acceptance can be removed only when producing acceptance plots, to avoid assigning the wrong names to the output files!" << endl;
@@ -60,7 +65,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     Part = 6; // Lambda
   }
 
-  if (isSysMultTrial)
+  if (isSysMultTrial && !isMC)
   {
     inputFileName = SinputFileNameSyst;
   }
@@ -147,10 +152,15 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     }
     else
     {
-      if (ChosenPart == 6)
+      if (isMC)
         hV2 = (THnF *)hXiPzs2->Clone("hV2");
       else
-        hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
+      {
+        if (ChosenPart == 6)
+          hV2 = (THnF *)hXiPzs2->Clone("hV2");
+        else
+          hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
+      }
     }
   }
   if (!hXiPzs2)
