@@ -525,6 +525,34 @@ double dscb_plus_expo_conv(double *x, double *p)
 
   return conv_signal + background;
 }
+double dscb_plus_cheb_conv(double *x, double *p)
+{
+
+  double conv_signal =
+      f_conv->EvalPar(x, p);
+
+  double xx = x[0];
+
+  // rescale to [xmin,  xmax] if needed
+  double xmin = p[8], xmax = p[9];
+  double t = (2 * xx - (xmax + xmin)) / (xmax - xmin);
+
+  // Chebyshev order 4
+  double T0 = 1;
+  double T1 = t;
+  double T2 = 2 * t * t - 1;
+  double T3 = 4 * t * t * t - 3 * t;
+  double T4 = 8 * t * t * t * t - 8 * t * t + 1;
+
+  double background =
+      p[10] * T0 +
+      p[11] * T1 +
+      p[12] * T2 +
+      p[13] * T3 +
+      p[14] * T4;
+
+  return conv_signal + background;
+}
 
 Double_t v2bkgfit(Double_t *x, Double_t *par)
 {
@@ -2093,7 +2121,12 @@ void FitV2orPol_CB(
           total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_expo, liminf[ChosenPart], limsup[ChosenPart], 9);
       }
       else
-        total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_cheb, liminf[ChosenPart], limsup[ChosenPart], 14);
+      {
+        if (isGaussConv)
+          total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_cheb_conv, liminf[ChosenPart], limsup[ChosenPart], 15);
+        else
+          total[pt] = new TF1(Form("totalDSCB%i", pt), dscb_plus_cheb, liminf[ChosenPart], limsup[ChosenPart], 14);
+      }
       if (isMC) // no bkg in MCTruth
         total[pt] = new TF1(Form("totalDSCB%i", pt), dscb, liminf[ChosenPart], limsup[ChosenPart], 7);
 
@@ -2129,6 +2162,14 @@ void FitV2orPol_CB(
           {
             total[pt]->SetParName(8, "p0");
             total[pt]->SetParName(9, "p1");
+          }
+          else if (BkgType == 4)
+          {
+            total[pt]->SetParName(8, "xmin");
+            total[pt]->SetParName(9, "xmax");
+            total[pt]->SetParName(10, "p4");
+            total[pt]->SetParName(11, "p5");
+            total[pt]->SetParName(12, "p6");
           }
         }
       }
@@ -2225,8 +2266,16 @@ void FitV2orPol_CB(
           functionDSCBPre[pt]->GetParameters(&parDSCBCheb[pt][0]);
           bkgcheb[pt]->GetParameters(&parDSCBCheb[pt][7]);
           total[pt]->SetParameters(parDSCBCheb[pt]);
-          total[pt]->FixParameter(7, liminf[ChosenPart]);
-          total[pt]->FixParameter(8, limsup[ChosenPart]);
+          if (isGaussConv)
+          {
+            total[pt]->FixParameter(8, liminf[ChosenPart]);
+            total[pt]->FixParameter(9, limsup[ChosenPart]);
+          }
+          else
+          {
+            total[pt]->FixParameter(7, liminf[ChosenPart]);
+            total[pt]->FixParameter(8, limsup[ChosenPart]);
+          }
         }
       }
 
@@ -2246,8 +2295,9 @@ void FitV2orPol_CB(
             total[pt]->FixParameter(4, nLDSCB);
             total[pt]->FixParameter(5, alphaRDSCB);
             total[pt]->FixParameter(6, nRDSCB);
-            total[pt]->SetParLimits(7, 0.000001, 0.002);
           }
+          if (isGaussConv)
+            total[pt]->SetParLimits(7, 0.000001, 0.002);
         }
       }
       else
@@ -2335,13 +2385,26 @@ void FitV2orPol_CB(
         }
         else
         {
-          bkg5[pt]->FixParameter(0, total[pt]->GetParameter(7));
-          bkg5[pt]->FixParameter(1, total[pt]->GetParameter(8));
-          bkg5[pt]->FixParameter(2, total[pt]->GetParameter(9));
-          bkg5[pt]->FixParameter(3, total[pt]->GetParameter(10));
-          bkg5[pt]->FixParameter(4, total[pt]->GetParameter(11));
-          bkg5[pt]->FixParameter(5, total[pt]->GetParameter(12));
-          bkg5[pt]->FixParameter(6, total[pt]->GetParameter(13));
+          if (isGaussConv)
+          {
+            bkg5[pt]->FixParameter(0, total[pt]->GetParameter(8));
+            bkg5[pt]->FixParameter(1, total[pt]->GetParameter(9));
+            bkg5[pt]->FixParameter(2, total[pt]->GetParameter(10));
+            bkg5[pt]->FixParameter(3, total[pt]->GetParameter(11));
+            bkg5[pt]->FixParameter(4, total[pt]->GetParameter(12));
+            bkg5[pt]->FixParameter(5, total[pt]->GetParameter(13));
+            bkg5[pt]->FixParameter(6, total[pt]->GetParameter(14));
+          }
+          else
+          {
+            bkg5[pt]->FixParameter(0, total[pt]->GetParameter(7));
+            bkg5[pt]->FixParameter(1, total[pt]->GetParameter(8));
+            bkg5[pt]->FixParameter(2, total[pt]->GetParameter(9));
+            bkg5[pt]->FixParameter(3, total[pt]->GetParameter(10));
+            bkg5[pt]->FixParameter(4, total[pt]->GetParameter(11));
+            bkg5[pt]->FixParameter(5, total[pt]->GetParameter(12));
+            bkg5[pt]->FixParameter(6, total[pt]->GetParameter(13));
+          }
           bkgFunction = (TF1 *)bkg5[pt]->Clone(Form("bkgFunction5_%i", pt));
         }
       }
@@ -3762,14 +3825,29 @@ void FitV2orPol_CB(
       }
       else
       {
-        totalPNorm = new TF1("totalP", dscb_plus_cheb, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 14);
-        totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
-        totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8));
-        totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9) / histoIntegral);
-        totalPNorm->SetParameter(10, total[ChosenPt]->GetParameter(10) / histoIntegral);
-        totalPNorm->SetParameter(11, total[ChosenPt]->GetParameter(11) / histoIntegral);
-        totalPNorm->SetParameter(12, total[ChosenPt]->GetParameter(12) / histoIntegral);
-        totalPNorm->SetParameter(13, total[ChosenPt]->GetParameter(13) / histoIntegral);
+        if (isGaussConv)
+        {
+          totalPNorm = new TF1("totalP", dscb_plus_cheb_conv, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 15);
+          totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
+          totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8));
+          totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9));
+          totalPNorm->SetParameter(10, total[ChosenPt]->GetParameter(10) / histoIntegral);
+          totalPNorm->SetParameter(11, total[ChosenPt]->GetParameter(11) / histoIntegral);
+          totalPNorm->SetParameter(12, total[ChosenPt]->GetParameter(12) / histoIntegral);
+          totalPNorm->SetParameter(13, total[ChosenPt]->GetParameter(13) / histoIntegral);
+          totalPNorm->SetParameter(14, total[ChosenPt]->GetParameter(14) / histoIntegral);
+        }
+        else
+        {
+          totalPNorm = new TF1("totalP", dscb_plus_cheb, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 14);
+          totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
+          totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8));
+          totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9) / histoIntegral);
+          totalPNorm->SetParameter(10, total[ChosenPt]->GetParameter(10) / histoIntegral);
+          totalPNorm->SetParameter(11, total[ChosenPt]->GetParameter(11) / histoIntegral);
+          totalPNorm->SetParameter(12, total[ChosenPt]->GetParameter(12) / histoIntegral);
+          totalPNorm->SetParameter(13, total[ChosenPt]->GetParameter(13) / histoIntegral);
+        }
       }
     }
     totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
