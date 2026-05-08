@@ -694,6 +694,7 @@ void FitV2orPol_CB(
   if (isMC)
   {
     inputFileName = SinputFileNameMC;
+    isLogy = 0;
   }
   if (BkgType == 0)
   {
@@ -1453,7 +1454,9 @@ void FitV2orPol_CB(
   Double_t parDSCBParab[numPtBins + 1][10];
   Double_t parDSCBPol3[numPtBins + 1][11];
   Double_t parDSCBExpo[numPtBins + 1][9];
+  Double_t parDSCBExpoConv[numPtBins + 1][10];
   Double_t parDSCBCheb[numPtBins + 1][14];
+  Double_t parDSCBChebConv[numPtBins + 1][15];
   Double_t parDSCBMC[numPtBins + 1][7];
 
   TFitResultPtr fFitResultPtr0[numPtBins + 1];
@@ -2139,6 +2142,8 @@ void FitV2orPol_CB(
       total[pt]->SetParName(5, "alphaR");
       total[pt]->SetParName(6, "nR");
 
+      total[pt]->SetNpx(10000);
+
       if (!isMC)
       {
         total[pt]->SetParName(7, "p0");
@@ -2257,22 +2262,34 @@ void FitV2orPol_CB(
         }
         else if (BkgType == 3)
         {
-          functionDSCBPre[pt]->GetParameters(&parDSCBExpo[pt][0]);
-          bkgexpo[pt]->GetParameters(&parDSCBExpo[pt][7]);
-          total[pt]->SetParameters(parDSCBExpo[pt]);
+          if (isGaussConv)
+          {
+            functionDSCBPre[pt]->GetParameters(&parDSCBExpoConv[pt][0]);
+            bkgexpo[pt]->GetParameters(&parDSCBExpoConv[pt][8]);
+            total[pt]->SetParameters(parDSCBExpoConv[pt]);
+          }
+          else
+          {
+            functionDSCBPre[pt]->GetParameters(&parDSCBExpo[pt][0]);
+            bkgexpo[pt]->GetParameters(&parDSCBExpo[pt][7]);
+            total[pt]->SetParameters(parDSCBExpo[pt]);
+          }
         }
         else
         {
-          functionDSCBPre[pt]->GetParameters(&parDSCBCheb[pt][0]);
-          bkgcheb[pt]->GetParameters(&parDSCBCheb[pt][7]);
-          total[pt]->SetParameters(parDSCBCheb[pt]);
           if (isGaussConv)
           {
+            functionDSCBPre[pt]->GetParameters(&parDSCBChebConv[pt][0]);
+            bkgcheb[pt]->GetParameters(&parDSCBChebConv[pt][8]);
+            total[pt]->SetParameters(parDSCBChebConv[pt]);
             total[pt]->FixParameter(8, liminf[ChosenPart]);
             total[pt]->FixParameter(9, limsup[ChosenPart]);
           }
           else
           {
+            functionDSCBPre[pt]->GetParameters(&parDSCBCheb[pt][0]);
+            bkgcheb[pt]->GetParameters(&parDSCBCheb[pt][7]);
+            total[pt]->SetParameters(parDSCBCheb[pt]);
             total[pt]->FixParameter(7, liminf[ChosenPart]);
             total[pt]->FixParameter(8, limsup[ChosenPart]);
           }
@@ -2306,10 +2323,16 @@ void FitV2orPol_CB(
         return;
       }
 
+      if (isMC)
+      {
+        if (ChosenPart == 0)
+          total[pt]->SetRange(1.305, 1.335);
+      }
       fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0");
       totalbis[pt] = (TF1 *)total[pt]->Clone(Form("totalbis_pt%i", pt));
       fFitResultPtr1[pt] = fFitResultPtr0[pt];
       totalSignal[pt] = (TF1 *)total[pt]->Clone(Form("totalSignal_pt%i", pt));
+      totalSignal[pt]->SetNpx(10000);
 
       functionDSCBPost[pt]->FixParameter(0, total[pt]->GetParameter(0));
       functionDSCBPost[pt]->FixParameter(1, total[pt]->GetParameter(1));
@@ -2371,40 +2394,25 @@ void FitV2orPol_CB(
         }
         else if (BkgType == 3)
         {
+          int index = 7;
           if (isGaussConv)
-          {
-            bkg4[pt]->FixParameter(0, total[pt]->GetParameter(8));
-            bkg4[pt]->FixParameter(1, total[pt]->GetParameter(9));
-          }
-          else
-          {
-            bkg4[pt]->FixParameter(0, total[pt]->GetParameter(7));
-            bkg4[pt]->FixParameter(1, total[pt]->GetParameter(8));
-          }
+            index = 8;
+          bkg4[pt]->FixParameter(0, total[pt]->GetParameter(index));
+          bkg4[pt]->FixParameter(1, total[pt]->GetParameter(index + 1));
           bkgFunction = (TF1 *)bkg4[pt]->Clone(Form("bkgFunction4_%i", pt));
         }
         else
         {
+          int index = 7;
           if (isGaussConv)
-          {
-            bkg5[pt]->FixParameter(0, total[pt]->GetParameter(8));
-            bkg5[pt]->FixParameter(1, total[pt]->GetParameter(9));
-            bkg5[pt]->FixParameter(2, total[pt]->GetParameter(10));
-            bkg5[pt]->FixParameter(3, total[pt]->GetParameter(11));
-            bkg5[pt]->FixParameter(4, total[pt]->GetParameter(12));
-            bkg5[pt]->FixParameter(5, total[pt]->GetParameter(13));
-            bkg5[pt]->FixParameter(6, total[pt]->GetParameter(14));
-          }
-          else
-          {
-            bkg5[pt]->FixParameter(0, total[pt]->GetParameter(7));
-            bkg5[pt]->FixParameter(1, total[pt]->GetParameter(8));
-            bkg5[pt]->FixParameter(2, total[pt]->GetParameter(9));
-            bkg5[pt]->FixParameter(3, total[pt]->GetParameter(10));
-            bkg5[pt]->FixParameter(4, total[pt]->GetParameter(11));
-            bkg5[pt]->FixParameter(5, total[pt]->GetParameter(12));
-            bkg5[pt]->FixParameter(6, total[pt]->GetParameter(13));
-          }
+            index = 8;
+          bkg5[pt]->FixParameter(0, total[pt]->GetParameter(index));
+          bkg5[pt]->FixParameter(1, total[pt]->GetParameter(index + 1));
+          bkg5[pt]->FixParameter(2, total[pt]->GetParameter(index + 2));
+          bkg5[pt]->FixParameter(3, total[pt]->GetParameter(index + 3));
+          bkg5[pt]->FixParameter(4, total[pt]->GetParameter(index + 4));
+          bkg5[pt]->FixParameter(5, total[pt]->GetParameter(index + 5));
+          bkg5[pt]->FixParameter(6, total[pt]->GetParameter(index + 6));
           bkgFunction = (TF1 *)bkg5[pt]->Clone(Form("bkgFunction5_%i", pt));
         }
       }
@@ -2598,6 +2606,13 @@ void FitV2orPol_CB(
     errSignif[pt] = sqrt(pow(ErrYield[pt] / sqrt(entries_range[pt]), 2) + pow(Yield[pt] / (2 * sqrt(entries_range[pt]) * entries_range[pt]), 2));
 
     cout << "Integral fit function " << endl;
+    if (ExtrisFitDSCB)
+    {
+      ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("Gauss");
+      ROOT::Math::IntegratorOneDimOptions::SetDefaultRelTolerance(1e-6);
+      ROOT::Math::IntegratorOneDimOptions::SetDefaultAbsTolerance(1e-8);
+      ROOT::Math::IntegratorOneDimOptions::SetDefaultNPoints(10000);
+    }
     YieldFromFit[pt] = totalSignal[pt]->Integral(LowLimit[pt], UpLimit[pt]);
     FitIntegral[pt] = totalSignal[pt]->Integral(histoMassRangeLow[ChosenPart], histoMassRangeUp[ChosenPart]);
     cout << "Integral of signal function in range: " << LowLimit[pt] << "-" << UpLimit[pt] << " -> " << YieldFromFit[pt] << endl;
@@ -3422,10 +3437,19 @@ void FitV2orPol_CB(
   Soutputfile = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
   SoutputfileAcceptance = "../AcceptancePlots/Acceptance_" + inputFileName + "_" + ParticleName[ChosenPart];
   if (isFitDSCB)
+  {
     Soutputfile += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      Soutputfile += "_FixParamFromMC";
+  }
   else
     Soutputfile += IsOneOrTwoGauss[UseTwoGauss];
-  Soutputfile += SIsBkgParab[BkgType];
+  if (!isMC)
+    Soutputfile += SIsBkgParab[BkgType];
+  if (isGaussConv)
+    Soutputfile += "_GaussConv";
+  if (isCombinedFit)
+    Soutputfile += "_CombinedFit";
   Soutputfile += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   SoutputfileAcceptance += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   if (isApplyWeights)
@@ -3895,6 +3919,7 @@ void FitV2orPol_CB(
     totalPNorm->SetParameter(5, total[ChosenPt]->GetParameter(5));
   }
 
+  totalPNorm->SetNpx(10000);
   legendfit2->AddEntry(histo, "Data", "pl");
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   // legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
