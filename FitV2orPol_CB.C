@@ -135,6 +135,8 @@ Float_t liminfBkg[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}
 Float_t limsupBkg[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
 Float_t liminfV2[numPart] = {1.308, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
 Float_t limsupV2[numPart] = {1.335, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
+//Float_t liminfV2[numPart] = {1.305, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
+//Float_t limsupV2[numPart] = {1.34, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
 Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
 
@@ -1051,7 +1053,10 @@ void FitV2orPol_CB(
   TH1F *histoAlphaLDSCB = new TH1F("histoAlphaLDSCB", "histoAlphaLDSCB", numPtBinsVar, BinsVar);
   TH1F *histoAlphaLDSCBPtInt = new TH1F("histoAlphaLDSCBPtInt", "histoAlphaLDSCBPtInt", 1, MinPt[ChosenPart], BinsVar[numPtBinsVar]);
 
-  TFile *fileInputParDSCB = new TFile(inputFileDSCBParam, "READ");
+  TString SinputFileDSCBParam = "../OutputAnalysis/FitPzs2_" + inputFileDSCBParam + +"_" + ParticleName[ChosenPart] + "_DSCB";
+  SinputFileDSCBParam += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
+  SinputFileDSCBParam += "_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso.root";
+  TFile *fileInputParDSCB = new TFile(SinputFileDSCBParam, "READ");
   if (!fileInputParDSCB || fileInputParDSCB->IsZombie())
     return;
   TH1F *histoParMeanDSCB = nullptr;
@@ -2299,11 +2304,19 @@ void FitV2orPol_CB(
       cout << "\n\n fit total " << endl;
       if (ParticleType == 1) // Xi
       {
-        total[pt]->SetParLimits(3, 0, 10); // alphaL
-        total[pt]->SetParLimits(5, 0, 10); // alphaR
+        total[pt]->SetParLimits(3, 1, 10); // alphaL
+        total[pt]->SetParLimits(5, 1, 10); // alphaR
+        total[pt]->SetParLimits(4, 5, 50); // nL
+        total[pt]->SetParLimits(6, 5, 50); // nR
+        total[pt]->SetParameter(1, meanDSCB);
+        total[pt]->SetParameter(2, sigmaDSCB);
+        total[pt]->SetParameter(3, alphaLDSCB);
+        total[pt]->SetParameter(4, nLDSCB);
+        total[pt]->SetParameter(5, alphaRDSCB);
+        total[pt]->SetParameter(6, nRDSCB);
         if (!isMC)
         {
-          total[pt]->FixParameter(6, 20); // nR
+          // total[pt]->FixParameter(6, 20); // nR
           if (isFixParamDSCBFromMC)
           {
             total[pt]->FixParameter(1, meanDSCB);
@@ -2312,6 +2325,8 @@ void FitV2orPol_CB(
             total[pt]->FixParameter(4, nLDSCB);
             total[pt]->FixParameter(5, alphaRDSCB);
             total[pt]->FixParameter(6, nRDSCB);
+            // total[pt]->SetParLimits(3, 1., 10); // alphaL
+            // total[pt]->SetParLimits(5, 1., 10); // alphaR
           }
           if (isGaussConv)
             total[pt]->SetParLimits(7, 0.000001, 0.002);
@@ -2325,10 +2340,13 @@ void FitV2orPol_CB(
 
       if (isMC)
       {
-        if (ChosenPart == 0)
+        if (ChosenPart == 0 && mul == 5)
           total[pt]->SetRange(1.305, 1.335);
       }
-      fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0");
+      if (isMC)
+        fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0L");
+      else
+        fFitResultPtr0[pt] = hInvMass[pt]->Fit(total[pt], "SRB0");
       totalbis[pt] = (TF1 *)total[pt]->Clone(Form("totalbis_pt%i", pt));
       fFitResultPtr1[pt] = fFitResultPtr0[pt];
       totalSignal[pt] = (TF1 *)total[pt]->Clone(Form("totalSignal_pt%i", pt));
