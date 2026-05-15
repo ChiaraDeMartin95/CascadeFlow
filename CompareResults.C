@@ -21,7 +21,8 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-#include "CommonVar.h"
+#include "CommonVarPub.h"
+#include "CommonVarXi.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -267,6 +268,8 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 70 --> compare Pzs of Lambda produced in A-side vs C-side
   // TypeComp == 71 --> compare Pzs of Lambda produced in A-side vs C-side (no sel on eta daughters)
   // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
+  // TypeComp == 73 --> Compare New vs Default reco (multiplicity distributions) for sofwtare filter selections
+  // TypeComp == 74 --> Compare Pzs2 of Xi from separate fit and simultaneous fit of mass and v2
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -1937,8 +1940,8 @@ void CompareResults(Int_t TypeComp = 0,
     fileName[2] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     // fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision";
     // fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision";
-    //fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    //fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    // fileName[0] = "_Train598891_EtaPos_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    // fileName[1] = "_Train598892_EtaNeg_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     namehisto[2] = "fHistPzs";
@@ -1964,14 +1967,14 @@ void CompareResults(Int_t TypeComp = 0,
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     // TightMassCut2.1NoFit_ReducedPtBins_ResoOnTheFly_NoPurityDivision.root
     // NoPurityDivision_isBkgPol0
-    //fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    // fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[0] = "_Train598890_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[1] = "_Train598890_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
-    //namehisto[2] = "fHistPzs";
+    // namehisto[2] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    //sleg[0] = "AllEta";
+    // sleg[0] = "AllEta";
     sleg[0] = "EtaPos";
     sleg[1] = "EtaNeg";
     YLowRatio = -0.002;
@@ -1981,7 +1984,7 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 0;
     MaxHistoX = 50;
   }
-   else if (TypeComp == 72)
+  else if (TypeComp == 72)
   {
     // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
     numOptions = 2;
@@ -1991,21 +1994,131 @@ void CompareResults(Int_t TypeComp = 0,
     isFitRatio = 1;
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2";
     fileName[0] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    //fileName[1] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    // fileName[1] = "_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     fileName[1] = "_Train598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
     sleg[0] = "Default";
     sleg[1] = "Eff weighted";
-    //YLowRatio = -0.002;
-    //YUpRatio = 0.002;
+    // YLowRatio = -0.002;
+    // YUpRatio = 0.002;
     YLowRatio = 0.5;
     YUpRatio = 1.5;
     YLow = -0.001;
     YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
+  }
+  else if (TypeComp == 73)
+  {
+    // TypeComp == 73
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 1;
+    isStoreSyst = 0;
+    isFitRatio = 0;
+    CommonFileName = "../../../QAStrangeness/TriggerForRun3/EventFiltering2026/LHC26ac_batch3/AnalysisResults_";
+    // fileName[0] = "fullrun_LHC26ac_batch3_570590";
+    fileName[0] = "570590_tagv6";
+    fileName[1] = "570590_tagv7_timing";
+    namehisto[0] = "AllEventsvsMultiplicityFT0MNorm";
+    namehisto[1] = "AllEventsvsMultiplicityFT0MNorm";
+    // namehisto[0] = "AllEventsvsMultiplicityTracksGlob";
+    // namehisto[1] = "AllEventsvsMultiplicityTracksGlob";
+    hTitleX = "FT0M normalised centrality (%)";
+    // hTitleX = "Global number of tracks";
+    sleg[0] = "tagv6";
+    sleg[1] = "tagv7";
+    // YLowRatio = -0.002;
+    // YUpRatio = 0.002;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 200;
+    // MaxHistoX = 80;
+  }
+  else if (TypeComp == 74)
+  {
+    // TypeComp == 74
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 1;
+    isStoreSyst = 0;
+    isFitRatio = 1;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[0] = "";
+    fileName[1] = "_GlobalFit";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "Default";
+    sleg[1] = "Global fit";
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 75)
+  {
+    // TypeComp == 75
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 1;
+    isStoreSyst = 0;
+    isFitRatio = 1;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi";
+    fileName[0] = "_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[1] = "_DSCB_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "TwoGaussians";
+    sleg[1] = "DSCB";
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
+  else if (TypeComp == 76)
+  {
+    // TypeComp == 76
+    numOptions = 5;
+    isRatio = 0;
+    isFullCorr = 1;
+    isStoreSyst = 0;
+    isFitRatio = 1;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi";
+    fileName[0] = "_BkgParab_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[1] = "_BkgCheb_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[2] = "_DSCB_BkgCheb_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[3] = "_DSCB_BkgCheb_GaussConv_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[4] = "_DSCB_FixParamFromMC_BkgCheb_GaussConv_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    namehisto[2] = "fHistPzs";
+    namehisto[3] = "fHistPzs";
+    namehisto[4] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "TwoGaussians";
+    sleg[1] = "TwoGaussians + Cheb";
+    sleg[2] = "DSCB";
+    sleg[3] = "DSCB + smearing";
+    sleg[4] = "DSCB + smearing + MC";
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLowRatio = -0.0005;
+    YUpRatio = 0.0005;
+    YLow = -0.001;
+    YUp = 0.01;
+    MinHistoX = 0;
+    MaxHistoX = 80;
   }
   else
   {
@@ -2041,6 +2154,11 @@ void CompareResults(Int_t TypeComp = 0,
     if (i == 0)
     {
       hDef = (TH1F *)inputFile->Get(namehisto[i]);
+      if (TypeComp == 73)
+      {
+        TDirectoryFile *dir = (TDirectoryFile *)inputFile->Get("lf-strangeness-filter/EventsvsMultiplicity");
+        hDef = (TH1F *)dir->Get(namehisto[i]);
+      }
       if (!hDef)
       {
         cout << "Histogram not found" << endl;
@@ -2051,6 +2169,11 @@ void CompareResults(Int_t TypeComp = 0,
     else
     {
       h[i] = (TH1F *)inputFile->Get(namehisto[i]);
+      if (TypeComp == 73)
+      {
+        TDirectoryFile *dir = (TDirectoryFile *)inputFile->Get("lf-strangeness-filter/EventsvsMultiplicity");
+        h[i] = (TH1F *)dir->Get(namehisto[i]);
+      }
       if (!h[i])
       {
         cout << "Histogram not found" << endl;
@@ -2203,35 +2326,36 @@ void CompareResults(Int_t TypeComp = 0,
   if (TypeComp == 48)
     cgaus->SaveAs(Form("../CompareResults/GaussianDistribution_TypeComp%i.png", TypeComp));
 
-  TCanvas *cgausVsPt = new TCanvas("cgausVsPt", "cgausVsPt", 700, 500);
-  TH1F *hGaussVsPt = (TH1F *)hDef->Clone("hGaussVsPt");
-  for (Int_t j = 1; j <= hDef->GetNbinsX(); j++)
-  {
-    hgaussPt[j - 1]->Fit(gauss, "R+");
-    hGaussVsPt->SetBinContent(j, gauss->GetParameter(1));
-    // hGaussVsPt->SetBinError(j, gauss->GetParameter(2));
-    hGaussVsPt->SetBinError(j, hgaussPt[j - 1]->GetRMS());
-  }
-  hGaussVsPt->SetTitle("");
-  hGaussVsPt->GetYaxis()->SetTitle("Mean of (hVar - hDef) / #sigma");
-  hGaussVsPt->GetXaxis()->SetTitle(hTitleX);
-  hGaussVsPt->GetYaxis()->SetRangeUser(-3, 3);
-  hGaussVsPt->Draw();
-  TLine *lineZero = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 0, hGaussVsPt->GetXaxis()->GetXmax(), 0);
-  lineZero->SetLineColor(kBlue);
-  lineZero->SetLineStyle(2);
-  lineZero->Draw("same");
-  TLine *linePlus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 1, hGaussVsPt->GetXaxis()->GetXmax(), 1);
-  linePlus->SetLineColor(kGray);
-  linePlus->SetLineStyle(2);
-  linePlus->Draw("same");
-  TLine *lineMinus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), -1, hGaussVsPt->GetXaxis()->GetXmax(), -1);
-  lineMinus->SetLineColor(kGray);
-  lineMinus->SetLineStyle(2);
-  lineMinus->Draw("same");
-  if (TypeComp == 48)
-    cgausVsPt->SaveAs(Form("../CompareResults/GaussianDistributionVsEta_TypeComp%i.png", TypeComp));
-
+  /*
+TCanvas *cgausVsPt = new TCanvas("cgausVsPt", "cgausVsPt", 700, 500);
+TH1F *hGaussVsPt = (TH1F *)hDef->Clone("hGaussVsPt");
+for (Int_t j = 1; j <= hDef->GetNbinsX(); j++)
+{
+  hgaussPt[j - 1]->Fit(gauss, "R+");
+  hGaussVsPt->SetBinContent(j, gauss->GetParameter(1));
+  // hGaussVsPt->SetBinError(j, gauss->GetParameter(2));
+  hGaussVsPt->SetBinError(j, hgaussPt[j - 1]->GetRMS());
+}
+hGaussVsPt->SetTitle("");
+hGaussVsPt->GetYaxis()->SetTitle("Mean of (hVar - hDef) / #sigma");
+hGaussVsPt->GetXaxis()->SetTitle(hTitleX);
+hGaussVsPt->GetYaxis()->SetRangeUser(-3, 3);
+hGaussVsPt->Draw();
+TLine *lineZero = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 0, hGaussVsPt->GetXaxis()->GetXmax(), 0);
+lineZero->SetLineColor(kBlue);
+lineZero->SetLineStyle(2);
+lineZero->Draw("same");
+TLine *linePlus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), 1, hGaussVsPt->GetXaxis()->GetXmax(), 1);
+linePlus->SetLineColor(kGray);
+linePlus->SetLineStyle(2);
+linePlus->Draw("same");
+TLine *lineMinus = new TLine(hGaussVsPt->GetXaxis()->GetXmin(), -1, hGaussVsPt->GetXaxis()->GetXmax(), -1);
+lineMinus->SetLineColor(kGray);
+lineMinus->SetLineStyle(2);
+lineMinus->Draw("same");
+if (TypeComp == 48)
+  cgausVsPt->SaveAs(Form("../CompareResults/GaussianDistributionVsEta_TypeComp%i.png", TypeComp));
+*/
   TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
   Float_t LLUpperPad = 0.33;
   Float_t ULLowerPad = 0.33;
@@ -2294,18 +2418,19 @@ void CompareResults(Int_t TypeComp = 0,
       indexColor = i + 1 - 80;
     else if (i >= 90 && i < 100)
       indexColor = i + 1 - 90;
+    cout << "i: " << i << ", indexColor: " << indexColor << endl;
     h[i]->SetMarkerColor(ColorMult[indexColor]);
     h[i]->SetLineColor(ColorMult[indexColor]);
     h[i]->SetMarkerStyle(MarkerMult[indexColor]);
     h[i]->SetMarkerSize(0.6 * SizeMult[indexColor]);
     h[i]->SetTitle("");
     h[i]->Draw("same");
-    if (TypeComp == 40 && i == 3)
+    if ((TypeComp == 40 || TypeComp == 76) && i == 3)
     {
       h[i]->SetMarkerColor(kBlue + 1);
       h[i]->SetLineColor(kBlue + 1);
     }
-    if (TypeComp == 40 && i == 2)
+    if ((TypeComp == 40 || TypeComp == 76) && i == 4)
     {
       h[i]->SetMarkerColor(kCyan + 1);
       h[i]->SetLineColor(kCyan + 1);
@@ -2400,12 +2525,12 @@ void CompareResults(Int_t TypeComp = 0,
     hRatio[i]->SetMarkerSize(0.6 * SizeMult[indexColor]);
     hRatio[i]->GetYaxis()->SetRangeUser(YLowRatio, YUpRatio);
     hRatio[i]->Draw("same");
-    if (TypeComp == 40 && i == 3)
+    if ((TypeComp == 40  || TypeComp == 76) && i == 3)
     {
       hRatio[i]->SetMarkerColor(kBlue + 1);
       hRatio[i]->SetLineColor(kBlue + 1);
     }
-    if (TypeComp == 40 && i == 2)
+    if ((TypeComp == 40 || TypeComp == 76) && i == 4)
     {
       hRatio[i]->SetMarkerColor(kCyan + 1);
       hRatio[i]->SetLineColor(kCyan + 1);
@@ -2413,7 +2538,8 @@ void CompareResults(Int_t TypeComp = 0,
     if (isFitRatio)
     {
       hRatio[i]->Fit(FitPol0[i], "R+");
-      legFit->AddEntry(FitPol0[i], Form("p0 = %.5f #pm %.5f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
+      if (isRatio) legFit->AddEntry(FitPol0[i], Form("p0 = %.5f #pm %.5f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
+      else legFit->AddEntry(FitPol0[i], Form("p0 = %.7f #pm %.7f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
     }
   }
   if (isFitRatio)
