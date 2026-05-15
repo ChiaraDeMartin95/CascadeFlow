@@ -1,9 +1,18 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
-Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
-Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+
+//Fit characteristics
+Int_t ExtrBkgType = 4;    // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
+Bool_t ExtrisFitDSCB = 1; //Use a DSCB instead of 2 gaussians
+Bool_t isGaussConv = 1;   //DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
+Bool_t isFixParamDSCBFromMC = 1; //Get DSCB parameters from MC and fix them in the fit of data
 Bool_t ExtrUseTwoGauss = 1;
+Bool_t isCombinedFit = 0; //Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
+//New def for analysis : ExtrisFitDSCB = 1; isGaussConv = 1; ExtrBkgType = 4; 
+//Old default (still used for Systematics): ExtrisFitDSCB = 0; isGaussConv = 0; ExtrUseTwoGauss = 1; BkgType = 1;
+
+Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 0;       // 1 for OO
 Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
@@ -27,8 +36,6 @@ const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization)
 // Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.5, 2, 2.5, 3, 4, 8};
-Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5, 0.5, 0.5};
-Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
 // Acceptance correction
 const Int_t numEtaBins = 8;
@@ -45,9 +52,16 @@ TString SinputFileName = "LHC23_PbPb_pass5_Train540301"; // PAPER PROPOSAL: Pzs2
 // TString SinputFileName = "LHC23_PbPb_pass5_Train541065"; // Pzs2 of Xi from Lambda, proton acceptance vs pt and eta of Lambda from PASS5, event plane FLAT in phi (shift corrected), |z|< 8 cm
 // TString SinputFileName = "LHC23_PbPb_pass5_Train563856"; // same settings as Train540301 but histograms for EP resolutions stored (to be used for resolution!)
 // TString SinputFileName = "LHC23_PbPb_pass5_Train566502"; // acceptance for run by run studies
-//TString SinputFileName = "LHC23_PbPb_pass5_Train567157_OccupancyCut"; // systematic associated with occupancy; FT0COccupancy < 3000 (cuts a lot of events)
-//TString SinputFileName = "LHC23_PbPb_pass5_Train568468_OccupancySel20000";
-//TString SinputFileName = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
+// TString SinputFileName = "LHC23_PbPb_pass5_Train567157_OccupancyCut"; // systematic associated with occupancy; FT0COccupancy < 3000 (cuts a lot of events)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train568468_OccupancySel20000";
+// TString SinputFileName = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
+
+TString SinputFileNameMC = "LHC25f3_gp_pass5_Train673644";
+//TString SinputFileNameMC = "TestMC";
+
+//File where DSCB parameters from MC truth are stored (needed to fit the data)
+//TString inputFileDSCBParam = "../OutputAnalysis/FitPzs2_TestMC_Xi_DSCB_BkgExpo_Cent0-10_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso.root";
+TString inputFileDSCBParam = "LHC25f3_gp_pass5_Train673644";
 
 // Reso tests in OO
 // TString SinputFileName = "LHC25_OO_pass2_Train510678"; // Pzs2 of Lambda
@@ -79,21 +93,24 @@ TString SinputFileName = "LHC23_PbPb_pass5_Train540301"; // PAPER PROPOSAL: Pzs2
 // TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; // secondary proton acceptance for Lambda pol in OO (possibly used to evaluate systematics)
 // TString SinputFileName = "LHC25_OO_pass2_Train510677"; // resolution in 1% centrality bins
 
-TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856"; //used for PAPER PROPOSAL
-//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
+TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856"; // used for PAPER PROPOSAL
+// TString SinputFileNameReso = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
 TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; //these systematics are DONE and to be USED for PAPER
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
-// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; // these systematics are DONE and to be USED for PAPER
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
+//  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
+//  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
 TString SinputFileNameEff = "LHC24g3_pass4_Train331315";
 TString SinputFileNameEffSyst = "LHC24g3_pass4_Train331315";
+
+// MC file for Lambda feed-down fraction
+TString SinputFileNameFDFraction = "LHC25h3b_pass2_Train591313";
 
 // BDT selections---------------------------------------------------------
 const float DefaultBDTscoreCut = 0.96;
@@ -107,10 +124,10 @@ const float BDTscoreCutAcceptance[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 
 //---------------------------------------------------------
 
 // Variabls used in FitV2OrPol.C macro ----------------------
-const bool isApplyAcceptanceCorrection = 0;                     // for recent files, acceptance correction is applied on the fly
-const bool isAcceptanceFromExternalFile = 0;                    // 1 for acceptance from external file, 0 for acceptance from the same file
-TString SAcceptanceFile = "AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
-const bool useMixedBDTValueInFitMacro = 1;                      // variable used in FitV2OrPol.C macro
+const bool isApplyAcceptanceCorrection = 0;                        // for recent files, acceptance correction is applied on the fly
+const bool isAcceptanceFromExternalFile = 0;                       // 1 for acceptance from external file, 0 for acceptance from the same file
+TString SAcceptanceFile = "../AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
+const bool useMixedBDTValueInFitMacro = 1;                         // variable used in FitV2OrPol.C macro
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)

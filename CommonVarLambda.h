@@ -14,9 +14,6 @@ Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2),
 Bool_t ExtrisPartialEta = 0;  // 1: select only 0 < eta < 0.8 (opposite to FT0C)
-Int_t ExtrBkgType = 1;        // 0: pol1, 1:pol2, 2:pol3, 3:expo
-Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
-Bool_t ExtrUseTwoGauss = 1;
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 1;       // 0 for acceptance
 Bool_t ExtrisApplyEffWeights = 1;   
@@ -27,6 +24,15 @@ Bool_t isReducedPtBins = 1;         //0 for acceptance
 Bool_t isOOCentrality = 1;
 Bool_t isRun2Binning = 0;
 
+//Fit characteristics
+Int_t ExtrBkgType = 1;        // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
+Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+Bool_t ExtrisFitDSCB = 0; //Use a DSCB instead of 2 gaussians
+Bool_t isGaussConv = 0;   //DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
+Bool_t isFixParamDSCBFromMC = 0; //Get DSCB parameters from MC and fix them in the fit of data
+Bool_t ExtrUseTwoGauss = 1;
+Bool_t isCombinedFit = 0; //Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
+
 const Int_t commonNumCent = 10; //= numCentLambdaOO for Lambda in OO
 
 // Pt bins
@@ -36,8 +42,6 @@ const Int_t numPtBins = 7;
 const Int_t numPtBinsReduced = 7;
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 8};
-Float_t MinPt[numPart] = {0.8, 1., 0.8, 0.8, 1., 1., 0.5, 0.5, 0.5};
-Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
@@ -72,6 +76,9 @@ TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; //for PRELIMINARIES
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; //Also -0.8 < etaDau < 0
+
+//Analysis of MC mass peaks
+TString SinputFileNameMC = "";
 
 //To get number of analyzed events
 TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";

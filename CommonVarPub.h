@@ -8,7 +8,7 @@ TString V2FromFit[2] = {"NoFit", ""};
 TString NameAnalysis[2] = {"V2", "Pzs2"};
 TString RapidityCoverage[2] = {"Eta08", "Y05"};
 TString IsOneOrTwoGauss[2] = {"_OneGaussFit", ""};
-TString SIsBkgParab[4] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo"};
+TString SIsBkgParab[5] = {"_BkgRetta", "_BkgParab", "_BkgPol3", "_BkgExpo", "_BkgCheb"};
 Float_t ParticleMassPDG[numPart] = {1.32171, 1.67245, 1.32171, 1.32171, 1.67245, 1.67245, 1.115683, 1.115683, 1.115683}; // Xi+-, Omega+-, Xi-, Xi+, Omega-, Omega+, Lambda + ALambda
 TString ParticleName[numPart] = {"Xi", "Omega", "XiMinus", "XiPlus", "OmegaMinus", "OmegaPlus", "Lambda", "LambdaPart", "AntiLambda"};
 TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "#Xi^{+}", "#Omega^{-}", "#Omega^{+}", "#Lambda + #bar{#Lambda}", "#Lambda", "#overline{#Lambda}"};
@@ -33,6 +33,7 @@ Float_t AlphaH[numPart] = {1, 1, -0.390, 0.371, 0.0154, -0.018, 1, 1, 1}; // fro
 Float_t AlphaHErrors[numPart] = {1, 1, 0.007, 0.007, 0.0020, 0.004, 1, 1, 1};
 Float_t CXiToLambda = 0.925;
 Float_t COmegaToLambda = 1;
+//Float_t COmegaToLambda = -0.6;
 Float_t AlphaLambda[numPart] = {1, 1, 0.746, -0.758, 0.746, -0.758, 1, 1, 1};     // decay parameter for Lambda -> p pi
 Float_t AlphaLambdaErrors[numPart] = {1, 1, 0.008, 0.005, 0.008, 0.005, 1, 1, 1}; // decay parameter for Lambda -> p pi
 
@@ -51,6 +52,10 @@ const Int_t numCentOmega = 8;
 Double_t CentFT0CMaxOmega = 80;
 Int_t CentFT0COmega[numCentOmega + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
 Double_t fCentFT0COmega[numCentOmega + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
+
+//min and max pt
+Float_t MinPt[numPart] = {0.8, 1.4, 0.8, 0.8, 1.4, 1.4, 0.5, 0.5, 0.5};
+Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
 //Centrality OO (Lambda)
 const Int_t numCentLambdaOO = 10;

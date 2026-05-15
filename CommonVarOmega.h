@@ -1,9 +1,16 @@
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 1;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
-Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
-Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+
+//Fit characteristics
+Bool_t ExtrisFitDSCB = 0; //Use a DSCB instead of 2 gaussians
+Bool_t isGaussConv = 0;   //DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
+Bool_t isFixParamDSCBFromMC = 0; //Get DSCB parameters from MC and fix them in the fit of data
 Bool_t ExtrUseTwoGauss = 1;
+Bool_t isCombinedFit = 0; //Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
+Int_t ExtrBkgType = 1;       // 0: pol1, 1:pol2, 2:pol3, 3:expo
+
+Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 0;       // 1 for OO
 Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
@@ -26,8 +33,6 @@ const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization)
 // Double_t PtBins[numPtBins + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
 Double_t PtBins[numPtBins + 1] = {1.4, 2.0, 2.5, 3., 4, 8};
-Float_t MinPt[numPart] = {0.8, 1.4, 0.8, 0.8, 1.4, 1.4, 0.5, 0.5, 0.5};
-Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 
 // Acceptance correction
 const Int_t numEtaBins = 8;
@@ -36,15 +41,22 @@ Double_t EtaBins[numEtaBins + 1] = {-0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.
 Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
 
 // File names
-TString SinputFileName = "LHC23_PbPb_pass5_Train648261";
+//TString SinputFileName = "LHC23_PbPb_pass5_Train648261"; //non flat event plane, pass4 training
+//TString SinputFileName = "LHC23_PbPb_pass5_Train653834"; //flat event plane, pass4 training
+//TString SinputFileName = "LHC24ar_pass3_Train658233"; //first test on 2024 pass3 data (small sample) - no event plane shift correction applied in my task
+TString SinputFileName = "Test2024";
+
+//Analysis of MC mass peaks
+TString SinputFileNameMC = "";
 
 //Reso
 TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856"; 
+//TString SinputFileNameReso = "LHC24ar_pass3_Train658233";
 TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train648261"; 
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train653834"; 
 
 // MC file for Lambda feed-down fraction
 TString SinputFileNameFDFraction = "LHC25h3b_pass2_Train591313";
@@ -80,7 +92,7 @@ bool isTightMassCut = 1;                                                        
 float Extrsigmacentral[2] = {4.2, 2.1};                                                        // 2.1
 //const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 //const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
-const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.96, 0.96, 0.88, 0.88, 0.88, 0.88, 0.84, 0.96};
+const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1] for Xi;
 
 // --------------------------- SYST ------------------------------
