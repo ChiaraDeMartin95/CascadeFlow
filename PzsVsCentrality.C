@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-#include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
-//#include "CommonVarOmega.h"
+// #include "CommonVarXi.h"
+//  #include "CommonVarLambda.h"
+#include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -120,6 +120,8 @@ Int_t ColorOO = kMagenta + 1;
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isPolFromLambda = 0,
                      Bool_t isFromFit = 1,
+                     Bool_t isGlobalFit = 0,
+                     Bool_t isFitDSCB = ExtrisFitDSCB,
                      Bool_t isFDCorrected = 0,
                      Bool_t isBkgPol = 1,
                      Bool_t isTighterPzFitRange = 0,
@@ -227,8 +229,19 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   stringout = "../Pzs2VsCentrality/" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
   stringout += "_" + ParticleName[ChosenPart];
-  stringout += IsOneOrTwoGauss[UseTwoGauss];
+  if (isFitDSCB)
+  {
+    stringout += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      stringout += "_FixParamFromMC";
+  }
+  else
+    stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
+  if (isGaussConv)
+    stringout += "_GaussConv";
+  if (isCombinedFit)
+    stringout += "_CombinedFit";
   stringout += "_Pzs2";
   if (isApplyWeights)
     stringout += "_Weighted";
@@ -278,6 +291,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ExtrisApplyEffWeights)
     stringout += "_EffW";
   // stringout += "_TestMoreBins";
+  if (isGlobalFit)
+    stringout += "_GlobalFit";
+  //stringout += "_NegativeC";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -432,8 +448,19 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathIn = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
     PathIn += "_" + ParticleName[ChosenPart];
-    PathIn += IsOneOrTwoGauss[UseTwoGauss];
+    if (isFitDSCB)
+    {
+      PathIn += "_DSCB";
+      if (isFixParamDSCBFromMC)
+        PathIn += "_FixParamFromMC";
+    }
+    else
+      PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
+    if (isGaussConv)
+      PathIn += "_GaussConv";
+    if (isCombinedFit)
+      PathIn += "_CombinedFit";
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
     SmoltBis[m] += Form("%i#minus%i", CentFT0CMin, CentFT0CMax);
     PathIn += Smolt[m];
@@ -479,12 +506,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     // PathIn += "_SystReso";
     if (isTighterPzFitRange)
       PathIn += "_TighterPzFitRange";
+    //PathIn += "_NegativeC";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
     if (ChosenPt == 100)
     {
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt" + V2FromFit[isFromFit]);
+      if (isGlobalFit)
+        fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntGlobal" + V2FromFit[isFromFit]);
       fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "BkgPtInt" + V2FromFit[isFromFit]);
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
@@ -498,6 +528,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     else
     {
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
+      if (isGlobalFit)
+        fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
       fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg" + V2FromFit[isFromFit]);
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
@@ -672,6 +704,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_ReducedPtBins";
   if (ExtrisApplyResoOnTheFly || ChosenPart >= 6)
     PathInSyst += "_ResoOnTheFly";
+  if (ChosenPart == 0)
+    PathInSyst += "_New";
   PathInSyst += ".root";
   // if (ChosenPart == 6)
   if (part == 1) // Omega does not have syst uncertainty yet

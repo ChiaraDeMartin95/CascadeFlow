@@ -135,8 +135,8 @@ Float_t liminfBkg[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}
 Float_t limsupBkg[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
 Float_t liminfV2[numPart] = {1.308, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
 Float_t limsupV2[numPart] = {1.335, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
-//Float_t liminfV2[numPart] = {1.305, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
-//Float_t limsupV2[numPart] = {1.34, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
+// Float_t liminfV2[numPart] = {1.305, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
+// Float_t limsupV2[numPart] = {1.34, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
 Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
 
@@ -428,6 +428,60 @@ double dscb_plus_cheb(double *x, double *p)
       p[11] * T2 +
       p[12] * T3 +
       p[13] * T4;
+
+  return signal + background;
+}
+double twoGauss_plus_cheb(double *x, double *p)
+{
+
+  double signal = p[0] * exp(-0.5 * ((x[0] - p[1]) / p[2]) * ((x[0] - p[1]) / p[2])) + p[3] * exp(-0.5 * ((x[0] - p[4]) / p[5]) * ((x[0] - p[4]) / p[5]));
+
+  double xx = x[0];
+
+  // rescale to [xmin,  xmax] if needed
+  double xmin = p[6], xmax = p[7];
+  double t = (2 * xx - (xmax + xmin)) / (xmax - xmin);
+
+  // Chebyshev order 4
+  double T0 = 1;
+  double T1 = t;
+  double T2 = 2 * t * t - 1;
+  double T3 = 4 * t * t * t - 3 * t;
+  double T4 = 8 * t * t * t * t - 8 * t * t + 1;
+
+  double background =
+      p[8] * T0 +
+      p[9] * T1 +
+      p[10] * T2 +
+      p[11] * T3 +
+      p[12] * T4;
+
+  return signal + background;
+}
+double oneGauss_plus_cheb(double *x, double *p)
+{
+
+  double signal = p[0] * exp(-0.5 * ((x[0] - p[1]) / p[2]) * ((x[0] - p[1]) / p[2]));
+
+  double xx = x[0];
+
+  // rescale to [xmin,  xmax] if needed
+  double xmin = p[3], xmax = p[4];
+  double t = (2 * xx - (xmax + xmin)) / (xmax - xmin);
+
+  // Chebyshev order 4
+  double T0 = 1;
+  double T1 = t;
+  double T2 = 2 * t * t - 1;
+  double T3 = 4 * t * t * t - 3 * t;
+  double T4 = 8 * t * t * t * t - 8 * t * t + 1;
+
+  double background =
+      p[5] * T0 +
+      p[6] * T1 +
+      p[7] * T2 +
+      p[8] * T3 +
+      p[9] * T4;
 
   return signal + background;
 }
@@ -1451,10 +1505,12 @@ void FitV2orPol_CB(
   Double_t parTwoGaussParab[numPtBins + 1][9];
   Double_t parTwoGaussPol3[numPtBins + 1][10];
   Double_t parTwoGaussExpo[numPtBins + 1][8];
+  Double_t parTwoGaussCheb[numPtBins + 1][8];
   Double_t parOneGaussRetta[numPtBins + 1][5];
   Double_t parOneGaussParab[numPtBins + 1][6];
   Double_t parOneGaussPol3[numPtBins + 1][7];
   Double_t parOneGaussExpo[numPtBins + 1][5];
+  Double_t parOneGaussCheb[numPtBins + 1][5];
   Double_t parDSCBRetta[numPtBins + 1][9];
   Double_t parDSCBParab[numPtBins + 1][10];
   Double_t parDSCBPol3[numPtBins + 1][11];
@@ -1659,8 +1715,10 @@ void FitV2orPol_CB(
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol2(6)", liminf[ChosenPart], limsup[ChosenPart]);
       else if (BkgType == 2)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+pol3(6)", liminf[ChosenPart], limsup[ChosenPart]);
-      else
+      else if (BkgType == 3)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+gaus(3)+expo(6)", liminf[ChosenPart], limsup[ChosenPart]);
+      else if (BkgType == 4)
+        total[pt] = new TF1(Form("total%i", pt), twoGauss_plus_cheb, liminf[ChosenPart], limsup[ChosenPart], 13);
       total[pt]->SetLineColor(597);
       total[pt]->SetParName(0, "norm");
       total[pt]->SetParName(1, "mean");
@@ -1678,10 +1736,16 @@ void FitV2orPol_CB(
       bkg2[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkg3[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkg4[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg5[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkgparab[pt]->SetRange(liminfBkg[ChosenPart], limsupBkg[ChosenPart]);
       bkgretta[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       bkgexpo[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       bkgpol3[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgcheb[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgcheb[pt]->FixParameter(0, liminf[ChosenPart]);
+      bkgcheb[pt]->FixParameter(1, limsup[ChosenPart]);
+      bkg5[pt]->FixParameter(0, bkgDisplayRangeLow[ChosenPart]);
+      bkg5[pt]->FixParameter(1, bkgDisplayRangeUp[ChosenPart]);
       total[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
 
       cout << "\n\n fit bkg " << endl;
@@ -1691,8 +1755,10 @@ void FitV2orPol_CB(
         hInvMass[pt]->Fit(bkgparab[pt], "RB0");
       else if (BkgType == 2)
         hInvMass[pt]->Fit(bkgpol3[pt], "RB0");
-      else
+      else if (BkgType == 3)
         hInvMass[pt]->Fit(bkgexpo[pt], "RB");
+      else if (BkgType == 4)
+        hInvMass[pt]->Fit(bkgcheb[pt], "RB0");
 
       if (BkgType == 0)
       {
@@ -1715,12 +1781,21 @@ void FitV2orPol_CB(
         bkgpol3[pt]->GetParameters(&parTwoGaussPol3[pt][6]);
         total[pt]->SetParameters(parTwoGaussPol3[pt]);
       }
-      else
+      else if (BkgType == 3)
       {
         functionsFirst[pt]->GetParameters(&parTwoGaussExpo[pt][0]);
         functionsSecond[pt]->GetParameters(&parTwoGaussExpo[pt][3]);
         bkgexpo[pt]->GetParameters(&parTwoGaussExpo[pt][6]);
         total[pt]->SetParameters(parTwoGaussExpo[pt]);
+      }
+      else
+      {
+        functionsFirst[pt]->GetParameters(&parTwoGaussCheb[pt][0]);
+        functionsSecond[pt]->GetParameters(&parTwoGaussCheb[pt][3]);
+        bkgcheb[pt]->GetParameters(&parTwoGaussCheb[pt][6]);
+        total[pt]->SetParameters(parTwoGaussCheb[pt]);
+        total[pt]->FixParameter(6, liminf[ChosenPart]);
+        total[pt]->FixParameter(7, limsup[ChosenPart]);
       }
 
       cout << "\n\n fit total " << endl;
@@ -1824,6 +1899,14 @@ void FitV2orPol_CB(
         totalSignal[pt]->FixParameter(8, 0);
         totalSignal[pt]->FixParameter(9, 0);
       }
+      else if (BkgType == 4)
+      {
+        totalSignal[pt]->FixParameter(8, 0);
+        totalSignal[pt]->FixParameter(9, 0);
+        totalSignal[pt]->FixParameter(10, 0);
+        totalSignal[pt]->FixParameter(11, 0);
+        totalSignal[pt]->FixParameter(12, 0);
+      }
       totalSignal[pt]->SetLineColor(kOrange + 2);
 
       totalFunction = (TF1 *)total[pt]->Clone(Form("totalFunction_%i", pt));
@@ -1848,11 +1931,22 @@ void FitV2orPol_CB(
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(9));
         bkgFunction = (TF1 *)bkg3[pt]->Clone(Form("bkgFunction3_%i", pt));
       }
-      else
+      else if (BkgType == 3)
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(6));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(7));
         bkgFunction = (TF1 *)bkg4[pt]->Clone(Form("bkgFunction4_%i", pt));
+      }
+      else
+      {
+        bkg5[pt]->FixParameter(0, total[pt]->GetParameter(6));
+        bkg5[pt]->FixParameter(1, total[pt]->GetParameter(7));
+        bkg5[pt]->FixParameter(2, total[pt]->GetParameter(8));
+        bkg5[pt]->FixParameter(3, total[pt]->GetParameter(9));
+        bkg5[pt]->FixParameter(4, total[pt]->GetParameter(10));
+        bkg5[pt]->FixParameter(5, total[pt]->GetParameter(11));
+        bkg5[pt]->FixParameter(6, total[pt]->GetParameter(12));
+        bkgFunction = (TF1 *)bkg5[pt]->Clone(Form("bkgFunction5_%i", pt));
       }
 
       if (UseTwoGaussUpdated)
@@ -1877,8 +1971,10 @@ void FitV2orPol_CB(
           bkg2[pt]->Draw("same");
         else if (BkgType == 2)
           bkg3[pt]->Draw("same");
-        else
+        else if (BkgType == 3)
           bkg4[pt]->Draw("same");
+        else
+          bkg5[pt]->Draw("same");
 
         TMatrixDSym cov = fFitResultPtr0[pt]->GetCovarianceMatrix();
         Double_t cov_mean = cov[1][4];
@@ -1906,8 +2002,10 @@ void FitV2orPol_CB(
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol2(3)", liminf[ChosenPart], limsup[ChosenPart]);
       else if (BkgType == 2)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+pol3(3)", liminf[ChosenPart], limsup[ChosenPart]);
-      else
+      else if (BkgType == 3)
         total[pt] = new TF1(Form("total%i", pt), "gaus(0)+expo(3)", liminf[ChosenPart], limsup[ChosenPart]);
+      else if (BkgType == 4)
+        total[pt] = new TF1(Form("total%i", pt), oneGauss_plus_cheb, liminf[ChosenPart], limsup[ChosenPart], 10);
 
       total[pt]->SetLineColor(7);
       total[pt]->SetParName(0, "norm");
@@ -1921,11 +2019,17 @@ void FitV2orPol_CB(
       bkg2[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkg3[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkg4[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
+      bkg5[pt]->SetRange(bkgDisplayRangeLow[ChosenPart], bkgDisplayRangeUp[ChosenPart]);
       bkgparab[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       bkgretta[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       bkgpol3[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       bkgexpo[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgcheb[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
       total[pt]->SetRange(liminf[ChosenPart], limsup[ChosenPart]);
+      bkgcheb[pt]->FixParameter(0, liminf[ChosenPart]);
+      bkgcheb[pt]->FixParameter(1, limsup[ChosenPart]);
+      bkg5[pt]->FixParameter(0, bkgDisplayRangeLow[ChosenPart]);
+      bkg5[pt]->FixParameter(1, bkgDisplayRangeUp[ChosenPart]);
 
       cout << "\n\n fit bkg " << endl;
       if (BkgType == 0)
@@ -1934,8 +2038,10 @@ void FitV2orPol_CB(
         hInvMass[pt]->Fit(bkgparab[pt], "RB0");
       else if (BkgType == 2)
         hInvMass[pt]->Fit(bkgpol3[pt], "RB0");
-      else
+      else if (BkgType == 3)
         hInvMass[pt]->Fit(bkgexpo[pt], "RB0");
+      else if (BkgType == 4)
+        hInvMass[pt]->Fit(bkgcheb[pt], "RB0");
 
       if (BkgType == 0)
       {
@@ -1955,11 +2061,19 @@ void FitV2orPol_CB(
         bkgpol3[pt]->GetParameters(&parOneGaussPol3[pt][3]);
         total[pt]->SetParameters(parOneGaussPol3[pt]);
       }
-      else
+      else if (BkgType == 3)
       {
         functionsFirst[pt]->GetParameters(&parOneGaussExpo[pt][0]);
         bkgexpo[pt]->GetParameters(&parOneGaussExpo[pt][3]);
         total[pt]->SetParameters(parOneGaussExpo[pt]);
+      }
+      else if (BkgType == 4)
+      {
+        functionsFirst[pt]->GetParameters(&parOneGaussCheb[pt][0]);
+        bkgcheb[pt]->GetParameters(&parOneGaussCheb[pt][3]);
+        total[pt]->SetParameters(parOneGaussCheb[pt]);
+        total[pt]->FixParameter(3, liminf[ChosenPart]);
+        total[pt]->FixParameter(4, limsup[ChosenPart]);
       }
 
       cout << "\n\n fit total " << endl;
@@ -2024,6 +2138,14 @@ void FitV2orPol_CB(
         totalSignal[pt]->FixParameter(5, 0);
         totalSignal[pt]->FixParameter(6, 0);
       }
+      else if (BkgType == 4)
+      {
+        totalSignal[pt]->FixParameter(5, 0);
+        totalSignal[pt]->FixParameter(6, 0);
+        totalSignal[pt]->FixParameter(7, 0);
+        totalSignal[pt]->FixParameter(8, 0);
+        totalSignal[pt]->FixParameter(9, 0);
+      }
       totalSignal[pt]->SetLineColor(kOrange + 2);
 
       totalFunction = (TF1 *)total[pt]->Clone(Form("totalFunction_%i", pt));
@@ -2048,12 +2170,23 @@ void FitV2orPol_CB(
         bkg3[pt]->FixParameter(3, total[pt]->GetParameter(6));
         bkgFunction = (TF1 *)bkg3[pt]->Clone(Form("bkgFunction3_%i", pt));
       }
-      else
+      else if (BkgType == 3)
       {
         bkg4[pt]->FixParameter(0, total[pt]->GetParameter(3));
         bkg4[pt]->FixParameter(1, total[pt]->GetParameter(4));
         // bkg4[pt]->FixParameter(2, total[pt]->GetParameter(5));
         bkgFunction = (TF1 *)bkg4[pt]->Clone(Form("bkgFunction4_%i", pt));
+      }
+      else
+      {
+        bkg5[pt]->FixParameter(0, total[pt]->GetParameter(3));
+        bkg5[pt]->FixParameter(1, total[pt]->GetParameter(4));
+        bkg5[pt]->FixParameter(2, total[pt]->GetParameter(5));
+        bkg5[pt]->FixParameter(3, total[pt]->GetParameter(6));
+        bkg5[pt]->FixParameter(4, total[pt]->GetParameter(7));
+        bkg5[pt]->FixParameter(5, total[pt]->GetParameter(8));
+        bkg5[pt]->FixParameter(6, total[pt]->GetParameter(9));
+        bkgFunction = (TF1 *)bkg5[pt]->Clone(Form("bkgFunction5_%i", pt));
       }
       if (pt < 4)
         canvas[0]->cd(pt + 1);
@@ -3556,6 +3689,7 @@ void FitV2orPol_CB(
   canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
   canvasMass->SaveAs(Soutputfile + "_MassPlot.png");
 
+  cout << "Salut " << endl;
   TFile *outputfile = new TFile(Soutputfile + ".root", "RECREATE");
   for (Int_t i = 0; i < numCanvas; i++)
   {
@@ -3567,7 +3701,7 @@ void FitV2orPol_CB(
     // outputfile->WriteTObject(hV2[pt]);
     // outputfile->WriteTObject(hCos2Theta[pt]);
   }
-  if (isMC)
+  if (isMC && isFitDSCB)
   {
     outputfile->WriteTObject(histoMeanDSCB);
     outputfile->WriteTObject(histoMeanDSCBPtInt);
@@ -3640,6 +3774,7 @@ void FitV2orPol_CB(
   outputfile->Close();
 
   TFile *outputfile2;
+  cout << "Salut " << endl;
 
   if (isProducedAcceptancePlots)
   {
@@ -3653,6 +3788,7 @@ void FitV2orPol_CB(
     cout << "I stored the acceptance plots in the file: " << SoutputfileAcceptance << ".root" << endl;
   }
 
+  cout << "Salut " << endl;
   // Acceptance plots - comparison
   Float_t LLUpperPad = 0.44;
   Float_t ULLowerPad = 0.44;
@@ -3730,6 +3866,7 @@ void FitV2orPol_CB(
     canvasAcc->SaveAs(Form("../AcceptanceComparison_%i-%i.png", CentFT0C[mul], CentFT0C[mul + 1]));
   }
 
+  cout << "Salut " << endl;
   // Performance plot
   Int_t ChosenPt = 8; // 8
   if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
@@ -3790,7 +3927,7 @@ void FitV2orPol_CB(
   legendfit2->SetMargin(0.1);
   legendfit2->SetTextSize(0.042);
   legendfit2->SetTextAlign(12);
-
+  cout << "Salut " << endl;
   TH1F *histo = hInvMass[ChosenPt];
   Float_t histoIntegral = histo->Integral("width");
   histo->Scale(1. / histoIntegral);
@@ -3818,7 +3955,7 @@ void FitV2orPol_CB(
   lineM3SigmaNorm[ChosenPt]->SetLineStyle(2);
   // lineP3SigmaNorm[ChosenPt]->Draw("same");
   // lineM3SigmaNorm[ChosenPt]->Draw("same");
-
+  cout << "Salut " << endl;
   TF1 *totalPNorm = nullptr;
   if (isFitDSCB)
   {
@@ -3929,6 +4066,17 @@ void FitV2orPol_CB(
       totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6) - std::log(histoIntegral));
       totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
     }
+    else if (BkgType == 4)
+    {
+      totalPNorm = new TF1("totalP", twoGauss_plus_cheb, XRangeMin[ChosenPart], XRangeMax[ChosenPart], 13);
+      totalPNorm->SetParameter(6, total[ChosenPt]->GetParameter(6));
+      totalPNorm->SetParameter(7, total[ChosenPt]->GetParameter(7));
+      totalPNorm->SetParameter(8, total[ChosenPt]->GetParameter(8) / histoIntegral);
+      totalPNorm->SetParameter(9, total[ChosenPt]->GetParameter(9) / histoIntegral);
+      totalPNorm->SetParameter(10, total[ChosenPt]->GetParameter(10) / histoIntegral);
+      totalPNorm->SetParameter(11, total[ChosenPt]->GetParameter(11) / histoIntegral);
+      totalPNorm->SetParameter(12, total[ChosenPt]->GetParameter(12) / histoIntegral);
+    }
     totalPNorm->SetParameter(0, total[ChosenPt]->GetParameter(0) / histoIntegral);
     totalPNorm->SetParameter(1, total[ChosenPt]->GetParameter(1));
     totalPNorm->SetParameter(2, total[ChosenPt]->GetParameter(2));
@@ -3936,7 +4084,7 @@ void FitV2orPol_CB(
     totalPNorm->SetParameter(4, total[ChosenPt]->GetParameter(4));
     totalPNorm->SetParameter(5, total[ChosenPt]->GetParameter(5));
   }
-
+  cout << "Salut " << endl;
   totalPNorm->SetNpx(10000);
   legendfit2->AddEntry(histo, "Data", "pl");
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
@@ -4006,7 +4154,7 @@ void FitV2orPol_CB(
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
-
+  cout << "Salut " << endl;
   if (isProducedAcceptancePlots)
   {
     TCanvas *canvasCos2P = new TCanvas("canvasCos2P", "canvasCos2P", 800, 800);
@@ -4059,7 +4207,7 @@ void FitV2orPol_CB(
     canvasCosSinP->SaveAs("../PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
     canvasCosSinP->SaveAs("../PerformancePlots/CosSinTheta" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
   }
-
+  cout << "Salut " << endl;
   TCanvas *canvasP = new TCanvas("canvasP", "canvasP", 800, 1100);
   TCanvas *canvasP2 = new TCanvas("canvasP2", "canvasP2", 800, 1100);
   TCanvas *canvasCos2 = new TCanvas("canvasCos2", "canvasCos2", 800, 1100);
@@ -4126,7 +4274,7 @@ void FitV2orPol_CB(
     ErrCos2Signal = histoCos2Theta->GetBinError(ChosenPt + 1);
   }
   legendCos2->AddEntry("", TitleCos2Theta_sig + Form(" = %.3f", Cos2Signal), "");
-
+  cout << "Salut " << endl;
   Float_t LimSupSpectra = 9.99;
   Float_t LimInfSpectra = 0.2 * 1e-5;
   Float_t xTitle = 15;

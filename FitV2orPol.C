@@ -17,48 +17,14 @@
 #include "TLegend.h"
 #include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
-// #include "CommonVarOmega.h"
-#include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
+#include "CommonVarOmega.h"
+// #include "CommonVarXi.h"
+//  #include "CommonVarLambda.h"
 #include "Fit/Fitter.h"
 #include "Fit/BinData.h"
 #include "Fit/Chi2FCN.h"
 #include "Math/WrappedMultiTF1.h"
 #include "HFitInterface.h"
-
-// Double sided Crystal ball definition (given by ChatGPT)
-double dscb(double *x, double *p)
-{
-  double t = (x[0] - p[1]) / p[2]; // (x - mean)/sigma
-
-  double N = p[0];
-  double mean = p[1];
-  double sigma = p[2];
-  double alphaL = p[3];
-  double nL = p[4];
-  double alphaR = p[5];
-  double nR = p[6];
-
-  // Left side
-  if (t < -alphaL)
-  {
-    double A = pow(nL / fabs(alphaL), nL) * exp(-0.5 * alphaL * alphaL);
-    double B = nL / fabs(alphaL) - fabs(alphaL);
-    return N * A * pow(B - t, -nL);
-  }
-  // Right side
-  else if (t > alphaR)
-  {
-    double A = pow(nR / fabs(alphaR), nR) * exp(-0.5 * alphaR * alphaR);
-    double B = nR / fabs(alphaR) - fabs(alphaR);
-    return N * A * pow(B + t, -nR);
-  }
-  // Gaussian core
-  else
-  {
-    return N * exp(-0.5 * t * t);
-  }
-}
 
 // definition of shared parameter
 const int nParMass = 9;
@@ -200,7 +166,10 @@ struct v2fit
   }
   void setBkgFraction(TF1 *bkg, TF1 *total, float min, float max)
   {
+    bkgfraction.Reset();
     bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 2000, min, max);
+    bkgfraction.SetTitle("");
+    bkgfraction.SetDirectory(nullptr);
     bkgfraction.Add(bkg);
     bkgfraction.Divide(total);
   }
@@ -432,11 +401,11 @@ TString SInvMass = "invariant mass (GeV/c^{2})";
 Float_t min_range_signal[numPart] = {1.3, 1.65, 1.3, 1.3, 1.65, 1.65, 1.11, 1.11, 1.11}; // gauss fit range
 Float_t max_range_signal[numPart] = {1.335, 1.69, 1.335, 1.335, 1.69, 1.69, 1.12, 1.12, 1.12};
 Float_t liminf[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsup[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t limsup[numPart] = {1.345, 1.688, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
 Float_t liminfBkg[numPart] = {1.3, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1}; // bkg and total fit range
-Float_t limsupBkg[numPart] = {1.345, 1.686, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
-Float_t liminfV2[numPart] = {1.308, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
-Float_t limsupV2[numPart] = {1.335, 1.686, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
+Float_t limsupBkg[numPart] = {1.345, 1.688, 1.345, 1.345, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t liminfV2[numPart] = {1.308, 1.658, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // v2 fit range
+Float_t limsupV2[numPart] = {1.335, 1.688, 1.352, 1.352, 1.686, 1.686, 1.3, 1.3, 1.3};
 Float_t XRangeMin[numPart] = {1.301, 1.656, 1.3, 1.3, 1.656, 1.656, 1.1, 1.1, 1.1};
 Float_t XRangeMax[numPart] = {1.344, 1.688, 1.343, 1.343, 1.688, 1.688, 1.13, 1.13, 1.13};
 
@@ -446,7 +415,7 @@ Float_t UpMassRange[numPart] = {1.33, 1.686, 1.33, 1.33, 1.686, 1.686, 1.13, 1.1
 Float_t gaussDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of gauss functions (from total fit)
 Float_t gaussDisplayRangeUp[numPart] = {1.35, 1.69, 1.35, 1.35, 1.69, 1.69, 1.13, 1.13, 1.13};
 Float_t bkgDisplayRangeLow[numPart] = {1.29, 1.656, 1.29, 1.29, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of bkg function (from total fit)
-Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.686, 1.35, 1.35, 1.686, 1.686, 1.13, 1.13, 1.13};
+Float_t bkgDisplayRangeUp[numPart] = {1.35, 1.69, 1.35, 1.35, 1.686, 1.686, 1.13, 1.13, 1.13};
 Float_t histoMassRangeLow[numPart] = {1.301, 1.656, 1.301, 1.301, 1.656, 1.656, 1.1, 1.1, 1.1}; // display range of mass histograms
 Float_t histoMassRangeUp[numPart] = {1.344, 1.686, 1.344, 1.344, 1.686, 1.686, 1.13, 1.13, 1.13};
 
@@ -459,6 +428,7 @@ void FitV2orPol(
     Bool_t isBkgPol = 1,
     Int_t indexMultTrial = 0,
     Int_t mul = 0,
+    Bool_t isMC = 0,
     Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
     Bool_t isTighterPzFitRange = 0,
     Int_t isTightMassForAcceptancePurity = 0,
@@ -475,8 +445,13 @@ void FitV2orPol(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
-  if (BkgType ==0) {
-    cout <<"The macro crashes with pol1 bkg fit, so please set BkgType to 1 or 2 or 3" << endl;
+  if (isMC)
+  {
+    inputFileName = SinputFileNameMC;
+  }
+  if (BkgType == 0)
+  {
+    cout << "The macro crashes with pol1 bkg fit, so please set BkgType to 1 or 2 or 3" << endl;
     return;
   }
   Bool_t isCombinedFit = 0;
@@ -1927,8 +1902,12 @@ void FitV2orPol(
     }
 
     if (!bkgFunction || !totalFunction)
+    {
+      cout << "No function " << endl;
       continue;
+    }
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
+
     if (ChosenPart >= 6 && !isTighterPzFitRange)
     {
       if (mul == 8)
@@ -1937,6 +1916,7 @@ void FitV2orPol(
         limsupV2[ChosenPart] = 1.129;
       }
     }
+
     v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminfV2[ChosenPart], limsupV2[ChosenPart], 3);
     v2FitFunction[pt]->SetLineColor(kRed + 1);
     if (pt < 4)
@@ -1973,9 +1953,9 @@ void FitV2orPol(
     cout << "Pz,s2 / v2: " << v2FitFunction[pt]->GetParameter(0) << " +- " << v2FitFunction[pt]->GetParError(0) << " (rel error = " << v2FitFunction[pt]->GetParError(0) / v2FitFunction[pt]->GetParameter(0) << ")" << endl;
 
     std::cout << "\n\n\033[31mCombined fit: \033[0m" << std::endl;
-    if (!UseTwoGaussUpdated || !UseTwoGauss || BkgType != 1)
+    if (!UseTwoGaussUpdated || !UseTwoGauss || BkgType != 1 || ChosenPart != 0)
     {
-      cout << "\e[36mCombined fit only works with two gaussians and a 2nd degree polynomial. It will be skipped \e[39m" << endl;
+      cout << "\e[36mCombined fit only works with two gaussians and a 2nd degree polynomial, and only for Xi. It will be skipped \e[39m" << endl;
     }
     else
     {
@@ -2038,6 +2018,15 @@ void FitV2orPol(
         fitter.Config().ParSettings(3).SetLimits(0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
         fitter.Config().ParSettings(4).SetLimits(1.318, 1.324);
         fitter.Config().ParSettings(5).SetLimits(0.001, 0.01);
+      }
+      else if (ParticleType == 0) // Omega
+      {
+        fitter.Config().ParSettings(0).SetLimits(0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+        fitter.Config().ParSettings(1).SetLimits(1.66, 1.68);
+        fitter.Config().ParSettings(2).SetLimits(0.001, 0.02);
+        fitter.Config().ParSettings(3).SetLimits(0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+        fitter.Config().ParSettings(4).SetLimits(1.66, 1.68);
+        fitter.Config().ParSettings(5).SetLimits(0.001, 0.02);
       }
 
       fitter.Config().MinimizerOptions().SetPrintLevel(0);
@@ -2757,6 +2746,7 @@ void FitV2orPol(
     Soutputfile += "_NoMassCutForAcceptance";
     SoutputfileAcceptance += "_NoMassCutForAcceptance";
   }
+  //Soutputfile += "_NegativeC";
   // Soutputfile += "_TestMoreBins";
 
   // save canvases
@@ -3082,7 +3072,9 @@ void FitV2orPol(
     bkg->SetParameter(1, bkg->GetParameter(1) / histoIntegral);
     bkg->SetParameter(2, bkg->GetParameter(2) / histoIntegral);
     bkg->SetParameter(3, bkg->GetParameter(3) / histoIntegral);
-  } else {
+  }
+  else
+  {
     bkg->SetParameter(0, bkg->GetParameter(0) - std::log(histoIntegral));
     bkg->SetParameter(1, bkg->GetParameter(1));
   }
@@ -3338,6 +3330,11 @@ void FitV2orPol(
       hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
     if (mul > 7)
       hDummyRatio->GetYaxis()->SetRangeUser(-0.005, 0.005);
+    if (ChosenPart == 1)
+    {
+      if (mul > 5)
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
+    }
     if (ChosenPart >= 6)
     {
       hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
