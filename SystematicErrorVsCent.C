@@ -8,7 +8,8 @@
 #include "TPad.h"
 #include "TF1.h"
 #include "TLegend.h"
-#include "CommonVarLambda.h"
+#include "CommonVarPub.h"
+#include "CommonVarXi.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
 {
@@ -177,6 +178,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     stringout += "_ReducedPtBins";
   if (ExtrisApplyResoOnTheFly)
     stringout += "_ResoOnTheFly";
+  if (ChosenPart == 0)
+    stringout += "_New";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -262,8 +265,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistPolBkg0Error->SetName("hPolBkg0SystError");
 
-  TFile* fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_BkgFit.root");
-  TH1F* fHistBkgExpoError = (TH1F*)fileInBkgExpo->Get("hRatioClone_1");
+  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_BkgFit.root");
+  TH1F *fHistBkgExpoError = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
   if (!fHistBkgExpoError)
   {
     cout << "Error: histogram BkgExpo not found" << endl;
@@ -342,7 +345,13 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       // PathIn += "_isSysLambdaMultTrial_";
       PathIn += "_ResoOnTheFly";
     }
-
+    if (ChosenPart == 0)
+    {
+      if (!isV2)
+        PathIn += "_EPReso";
+      else if (isV2 && v2type == 2)
+        PathIn += "_EPReso";
+    }
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -394,7 +403,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       PathInMassCutAndBDT += "LambdaTopo";
     else
       PathInMassCutAndBDT += "MassAndBDTCut";
-    PathInMassCutAndBDT += PathIn2 + ".root";
+    PathInMassCutAndBDT += PathIn2;
+    if (ChosenParticle ==0) PathInMassCutAndBDT += "_New";
+    PathInMassCutAndBDT += ".root";
     cout << "Path in MassCutAndBDT: " << PathInMassCutAndBDT << endl;
     fileInMassCutAndBDT[m] = TFile::Open(PathInMassCutAndBDT);
 
@@ -450,7 +461,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistBDTErrorVsCent->SetBinError(m + 1, 0);
     fHistMassCutErrorVsCent->SetBinContent(m + 1, fHistMassCutError[m]->GetBinContent(1));
     fHistMassCutErrorVsCent->SetBinError(m + 1, 0);
-    //cout << "fHistMassCutAndBDTError[m]->GetBinContent(1): " << fHistMassCutAndBDTError[m]->GetBinContent(1) << endl;
+    // cout << "fHistMassCutAndBDTError[m]->GetBinContent(1): " << fHistMassCutAndBDTError[m]->GetBinContent(1) << endl;
     fHistMassCutAndBDTErrorVsCent->SetBinContent(m + 1, fHistMassCutAndBDTError[m]->GetBinContent(1));
     fHistMassCutAndBDTErrorVsCent->SetBinError(m + 1, 0);
     fHistMeanVsCent->SetBinContent(m + 1, fHistMeanSystMultiTrialMean[m]->GetBinContent(1));
@@ -460,9 +471,9 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistAccErrorVsCent->SetBinError(m + 1, 0);
       fHistResoErrorVsCent->SetBinContent(m + 1, abs(fHistResoError->GetBinContent(m + 1)));
-      //cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
-      //cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
-      //cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
+      // cout << " Reso error cent " << m << " : " << ResoRelError[m] * fHistPzs2[m]->GetBinContent(1) << endl;
+      // cout << " Reso rel error cent " << m << " : " << ResoRelError[m] << endl;
+      // cout << " Pzs2 cent " << m << " : " << fHistPzs2[m]->GetBinContent(1) << endl;
       fHistResoErrorVsCent->SetBinError(m + 1, 0);
       fHistDecayParErrorVsCent->SetBinContent(m + 1, std::abs(LambdaDecayParameterRelError * fHistPzs2[m]->GetBinContent(1)));
       fHistDecayParErrorVsCent->SetBinError(m + 1, 0);
@@ -471,7 +482,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
       fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, abs(fHistPolBkg0Error->GetBinContent(m + 1)));
-      //fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0); // not significant
+      // fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0); // not significant
       fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
       fHistPzFitRangeErrorVsCent->SetBinContent(m + 1, abs(fHistPzFitRangeError->GetBinContent(m + 1)));
       fHistPzFitRangeErrorVsCent->SetBinError(m + 1, 0);
@@ -506,10 +517,10 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistBDTErrorVsCent->Smooth();
   fHistMassCutErrorVsCent->Smooth();
   fHistMassCutAndBDTErrorVsCent->Smooth();
-  //fHistBkgExpoErrorVsCent->Smooth();
-  //fHistPzFitRangeErrorVsCent->Smooth();
-  //fHistPolBkg0ErrorVsCent->Smooth();
-  // fHistResoErrorVsCent->Smooth();
+  // fHistBkgExpoErrorVsCent->Smooth();
+  // fHistPzFitRangeErrorVsCent->Smooth();
+  // fHistPolBkg0ErrorVsCent->Smooth();
+  //  fHistResoErrorVsCent->Smooth();
 
   for (Int_t m = 0; m < commonNumCent; m++)
   {
@@ -697,7 +708,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistBDTRelErrorVsCent->Draw("same");
   fHistMassCutRelErrorVsCent->Draw("same");
   fHistAccRelErrorVsCent->Draw("same");
-  fHistMassCutAndBDTRelErrorVsCent->Draw("same"); 
+  fHistMassCutAndBDTRelErrorVsCent->Draw("same");
   fHistPrimaryLambdaRelErrorVsCent->Draw("same");
   fHistDecayParRelErrorVsCent->Draw("same");
   if (ChosenPart != 6)
@@ -706,7 +717,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistRunByRunAccRelErrorVsCent->Draw("same");
   }
   if (ChosenPart == 6)
-  {    
+  {
     fHistResoRelErrorVsCent->Draw("same");
     fHistPolBkg0RelErrorVsCent->Draw("same");
     fHistPzFitRangeRelErrorVsCent->Draw("same");
@@ -714,7 +725,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistZVertexRelErrorVsCent->Draw("same");
   }
   fHistTotalRelErrorVsCent->Draw("same");
-  //legend->Draw("same");
+  // legend->Draw("same");
   canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s.png", ParticleName[ChosenPart].Data()));
   canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s.pdf", ParticleName[ChosenPart].Data()));
 
