@@ -21,8 +21,11 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVarPub.h"
+// #include "CommonVarXi.h"
+// #include "CommonVar_v2.h"
+#include "CommonVarOmega.h"
+// #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -108,7 +111,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetTopMargin(TMargin);
   pad->SetBottomMargin(BMargin);
 }
-void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
+void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 {
 
   TString inputFileName = SinputFileName;
@@ -130,7 +133,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   cout << "Input file: " << SinputFile << endl;
   // TString SinputFile = "TreeForTrainingSignal/AnalysisResults_" + SinputFileName + ".root";
   // TString SinputFile = "TreeForAnalysis/AnalysisResults_3004.root";
-  //  TString SinputFile = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_DerivedStrangeness_Train205658_Test.root";
+  // TString SinputFile = "TreeForAnalysis/AnalysisResults_LHC23zzh_pass3_DerivedStrangeness_Train205658_Test.root";
   TFile *file = new TFile(SinputFile, "READ");
   if (!file)
   {
@@ -165,28 +168,44 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   TH2F *hPsiT0CvsFT0C = (TH2F *)dirHistos->Get("hPsiT0CvsCentFT0C");
 
   // event planes after shift correction (only available in recent files)
-  TH2F *hPsiV0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FV0A_shifted");
+  TH2F *hPsiV0AvsFT0C_Shifted = nullptr;
+  if (isShifted)
+    hPsiV0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FV0A_shifted");
+  else
+    hPsiV0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FV0A_notshifted");
   if (!hPsiV0AvsFT0C_Shifted)
   {
     cout << "No shifted EP histos found, taking in input a random histo" << endl;
     hPsiV0AvsFT0C_Shifted = (TH2F *)hPsiT0CvsFT0C->Clone("hPsiT0CvsCentFT0C_dummy1");
     // return;
   }
-  TH2F *hPsiT0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FT0A_shifted");
+  TH2F *hPsiT0AvsFT0C_Shifted = nullptr;
+  if (isShifted)
+    hPsiT0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FT0A_shifted");
+  else
+    hPsiT0AvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_FT0A_notshifted");
   if (!hPsiT0AvsFT0C_Shifted)
   {
     cout << "No shifted EP histos found, taking in input a random histo" << endl;
     hPsiT0AvsFT0C_Shifted = (TH2F *)hPsiT0CvsFT0C->Clone("hPsiT0CvsCentFT0C_dummy1");
     // return;
   }
-  TH2F *hPsiTPCLvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCA_shifted");
+  TH2F *hPsiTPCLvsFT0C_Shifted = nullptr;
+  if (isShifted)
+    hPsiTPCLvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCA_shifted");
+  else
+    hPsiTPCLvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCA_notshifted");
   if (!hPsiTPCLvsFT0C_Shifted)
   {
     cout << "No shifted EP histos found, taking in input a random histo" << endl;
     hPsiTPCLvsFT0C_Shifted = (TH2F *)hPsiT0CvsFT0C->Clone("hPsiT0CvsCentFT0C_dummy2");
     // return;
   }
-  TH2F *hPsiTPCRvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCC_shifted");
+  TH2F *hPsiTPCRvsFT0C_Shifted = nullptr;
+  if (isShifted)
+    hPsiTPCRvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCC_shifted");
+  else
+    hPsiTPCRvsFT0C_Shifted = (TH2F *)dirHistos->Get("Psi_EP_TPCC_notshifted");
   if (!hPsiTPCRvsFT0C_Shifted)
   {
     cout << "No shifted EP histos found, taking in input a random histo" << endl;
@@ -536,9 +555,9 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   cCentWeight->SaveAs("../QCPlots/hCentWeight_" + inputFileName + ".pdf");
 
   ///
-  TH2D *h2 = (TH2D *)hGlobalTrkvsPVContrib->Clone("h2");                // your 2D histogram
-  TF1 *fpol1 = new TF1("fpol1", "pol1", 0, 700); // fit function (linear in this case)
-  fpol1->SetParameters(40, 0.65);              // initial parameters for the fit (intercept, slope)
+  TH2D *h2 = (TH2D *)hGlobalTrkvsPVContrib->Clone("h2"); // your 2D histogram
+  TF1 *fpol1 = new TF1("fpol1", "pol1", 0, 700);         // fit function (linear in this case)
+  fpol1->SetParameters(40, 0.65);                        // initial parameters for the fit (intercept, slope)
 
   double entriesAbove = 0;
 
@@ -564,7 +583,7 @@ void QCPlots(Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   }
 
   std::cout << "Entries above pol1 = " << entriesAbove << std::endl;
-  cout <<"Farction over the total = " << entriesAbove/h2->GetEntries() << endl;
+  cout << "Farction over the total = " << entriesAbove / h2->GetEntries() << endl;
 
   cout << "\nStarting from the files (for the different mult): " << SinputFile << endl;
 }
