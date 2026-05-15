@@ -15,8 +15,11 @@
 #include <TLegend.h>
 #include <TLegendEntry.h>
 #include <TFile.h>
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVarPub.h"
+// #include "CommonVarXi.h"
+//#include "CommonVarLambda.h"
+//#include "CommonVar_v2.h"
+#include "CommonVarOmega.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t TopMargin, Float_t BottomMargin, Float_t LeftMargin, Float_t RightMargin)
 {
@@ -69,6 +72,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     // nameQT0CV0A = "QVectorsNormT0CV0A";
     // nameQV0ATPCA = "QVectorsNormV0ATPCA";
     // nameQV0ATPCC = "QVectorsNormV0ATPCC";
+
     // the following names are to compute resolution AFTER shift correction (the right thing to do!)
     nameQT0CTPCA = "QVectorsT0CTPCA_Shifted";
     nameQT0CTPCC = "QVectorsT0CTPCC_Shifted";
@@ -79,13 +83,14 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     nameQT0CT0A = "QVectorsT0CT0A_Shifted";
     nameQT0ATPCA = "QVectorsT0ATPCA_Shifted";
     nameQT0ATPCC = "QVectorsT0ATPCC_Shifted";
-    // the following names are to compute resolution BEFORE shift correction (not ideal)
-    // nameQT0CTPCA = "EP_T0CTPCA";
-    // nameQT0CTPCC = "EP_T0CTPCC";
-    // nameQTPCAC = "EP_TPCAC";
-    // nameQT0CV0A = "EP_T0CV0A";
-    // nameQV0ATPCA = "EP_V0ATPCA";
-    // nameQV0ATPCC = "EP_V0ATPCC";
+    
+    // the following names are to compute resolution BEFORE shift correction (not ideal unless shift correction is not needed!)
+    //nameQT0CTPCA = "EP_T0CTPCA";
+    //nameQT0CTPCC = "EP_T0CTPCC";
+    //nameQTPCAC = "EP_TPCAC";
+    //nameQT0CV0A = "EP_T0CV0A";
+    //nameQV0ATPCA = "EP_V0ATPCA";
+    //nameQV0ATPCC = "EP_V0ATPCC";
   }
 
   cout << "InputFile: " << ComputeResoFileName << endl;
@@ -516,7 +521,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
-  TString Soutputfile = "../";
+  //TString Soutputfile = "../";
+  TString Soutputfile = "";
   if (!isSPReso)
   { // event plane method
     if (isLFReso)
