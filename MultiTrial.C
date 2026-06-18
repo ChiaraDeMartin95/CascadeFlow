@@ -19,8 +19,9 @@
 #include "TLegend.h"
 #include "TPad.h"
 #include "StyleFile.h"
-// #include "CommonVar.h"
-#include "CommonVarLambda.h"
+#include "CommonVarPub.h"
+// #include "CommonVarLambda.h"
+#include "CommonVarXi.h"
 
 double ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Berr)
 {
@@ -157,7 +158,7 @@ void MultiTrial(
     Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed, 3 = Pzs2
     Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = "LambdaTopo" /*"MassAndBDTCut"*/,
+    TString SisSyst = "BDT",   /*"MassAndBDTCut", //forLambda: "LambdaTopo" ,*/
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
@@ -219,12 +220,11 @@ void MultiTrial(
   }
   TypeHisto += SisPtIntegrated[isPtIntegrated];
   // TypeHisto += "Mixed";
-  if (ChosenPart != 6)
-    TypeHisto += "NoFit";
   TypeCos2Theta += SisPtIntegrated[isPtIntegrated];
   TypeCos2Theta += "NoFit";
 
   TString histoName = "histo" + TypeHisto;
+  cout << "Histo name: " << histoName << endl;
 
   TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + "_" + SisPtIntegrated[isPtIntegrated];
 
@@ -270,8 +270,17 @@ void MultiTrial(
   TString Sroot1 = Sroot + "_" + inputFileName;
   TString Sroot2 = Sroot + "_" + inputFileName + "Bis";
   TString Sdef = "_" + ParticleName[ChosenPart];
-  Sdef += IsOneOrTwoGauss[UseTwoGauss];
+  if (ExtrisFitDSCB)
+  {
+    Sdef += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      Sdef += "_FixParamFromMC";
+  }
+  else
+    Sdef += IsOneOrTwoGauss[UseTwoGauss];
   Sdef += SIsBkgParab[BkgType];
+  if (isGaussConv)
+    Sdef += "_GaussConv";
   Sdef += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   if (isApplyWeights)
     Sdef += "_Weighted";
@@ -302,6 +311,8 @@ void MultiTrial(
     SdefFinal += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   if (isReducedPtBins)
     SdefFinal += "_ReducedPtBins";
+  if (ChosenPart == 0)
+    SdefFinal += "_EPReso";
 
   if (SisSyst == "LambdaTopo")
   {
@@ -446,6 +457,7 @@ void MultiTrial(
 
   std::vector<TH1F *> h(trials);
   std::vector<TH1F *> hVariedCut(trials);
+  std::vector<TH1F *> hVariedChi2NDF(trials);
   std::vector<TH1F *> hAbsoluteSyst(trials);
   std::vector<TH1F *> hNSigmaBarlow(trials);
   std::vector<TH1F *> hRatio(trials);
@@ -494,6 +506,8 @@ void MultiTrial(
       Svaried = Sroot1 + Sdef + SBDT + Sdef1;
       if (isTightMassCut)
         Svaried += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+      if (ChosenPart == 0)
+        Svaried += "_EPReso";
     }
     else if (SisSyst == "eta")
       Svaried = Sroot1 + Sdef + SEtaSysChoice[i + 1];
@@ -546,6 +560,15 @@ void MultiTrial(
       cout << "File not found: " << Svaried << ".root" << endl;
       return;
     }
+
+    // get Chi2 and NDF of fit to Pzs2
+    hVariedChi2NDF[i] = (TH1F *)fvaried[i]->Get("histoChi2NDFPtInt");
+    if (!hVariedChi2NDF[i])
+    {
+      cout << "histoChi2NDFPtInt not found in " << Svaried << endl;
+      return;
+    }
+
     hVariedCut[i] = (TH1F *)fvaried[i]->Get(histoName);
     if (!hVariedCut[i])
     {
@@ -637,12 +660,17 @@ void MultiTrial(
     {
       if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
         continue;
+      if (hVariedChi2NDF[i]->GetBinContent(1) / hVariedChi2NDF[i]->GetBinError(1) > MaxChi2NDF[mul])
+        continue;
     }
     NumberOfActualTrials++;
     ColorIndex += 1;
-    hVariedCut[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hVariedCut[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hVariedCut[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hVariedCut[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hVariedCut[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hVariedCut[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hVariedCut[i]->SetMarkerStyle(25);
     if (SisSyst == "BDT")
     {
       legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f", BDTscoreCut[i]), "pl");
@@ -656,9 +684,9 @@ void MultiTrial(
       legTrial->AddEntry(hVariedCut[i], Form("Mass cut: %.3f - %.3f", ExtrLowLimitSysXi[i], ExtrUpLimitSysXi[i]), "pl");
     else if (SisSyst == "MassAndBDTCut")
       legTrial->AddEntry(hVariedCut[i], Form("BDT score > %.3f, Mass cut: %.3f - %.3f", BDTscoreCut[i], LowLimitSysXi[i], UpLimitSysXi[i]), "pl");
-    hVariedCut[i]->Draw("same");
+    hVariedCut[i]->Draw("same p");
   }
-  hDefault->Draw("same");
+  hDefault->Draw("same p");
   legTrial->Draw();
   if (isV2)
   {
@@ -703,11 +731,15 @@ void MultiTrial(
       if (!kTRUE && BDTscoreCut[i] == DefaultBDTscoreCut)
         continue;
     }
-    hNSigmaBarlow[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hNSigmaBarlow[i]->SetLineColor(ColorMult[ColorIndex % 10]);
     hNSigmaBarlow[i]->SetLineWidth(2);
-    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
-    hNSigmaBarlow[i]->Draw("same");
+    hNSigmaBarlow[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hNSigmaBarlow[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hNSigmaBarlow[i]->SetMarkerStyle(25);
+    hNSigmaBarlow[i]->Draw("same hist");
+    hNSigmaBarlow[i]->Draw("same p");
     if (hNSigmaBarlow[i]->GetBinContent(1) > 1)
     {
       NumberOfTrialsBarlowgt1++;
@@ -734,13 +766,16 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hRatio[i]->SetMarkerStyle(25);
     hRatio[i]->SetTitle("");
     hRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hRatio[i]->GetYaxis()->SetRangeUser(0, 2);
-    hRatio[i]->Draw("same");
+    hRatio[i]->Draw("same p");
   }
 
   TF1 *lineat1 = new TF1("lineat1", "1", 0, 8);
@@ -780,10 +815,13 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hRawYield[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hRawYield[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hRawYield[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
-    hRawYield[i]->Draw("same");
+    hRawYield[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hRawYield[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hRawYield[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hRawYield[i]->SetMarkerStyle(25);
+    hRawYield[i]->Draw("same p");
   }
   legTrial->Draw();
   cYield->SaveAs("../Systematics/YieldMultTrial" + Suffix + ".pdf");
@@ -804,13 +842,16 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hRawYieldRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hRawYieldRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hRawYieldRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hRawYieldRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hRawYieldRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hRawYieldRatio[i]->SetMarkerStyle(25);
     hRawYieldRatio[i]->SetTitle("");
     hRawYieldRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hRawYieldRatio[i]->GetYaxis()->SetRangeUser(0, 2.5);
-    hRawYieldRatio[i]->Draw("same");
+    hRawYieldRatio[i]->Draw("same p");
   }
   legTrial->Draw();
   lineat1->Draw("same");
@@ -832,16 +873,19 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hRawYieldRatioToTighter[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hRawYieldRatioToTighter[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hRawYieldRatioToTighter[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hRawYieldRatioToTighter[i]->SetMarkerStyle(25);
     hRawYieldRatioToTighter[i]->SetTitle("");
     if (ChosenPart == 6)
       hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to last but one selection");
     else
       hRawYieldRatioToTighter[i]->GetYaxis()->SetTitle("Ratio to tighter cut");
     hRawYieldRatioToTighter[i]->GetYaxis()->SetRangeUser(0.9, 1.5);
-    hRawYieldRatioToTighter[i]->Draw("same");
+    hRawYieldRatioToTighter[i]->Draw("same p");
   }
   // legTrial->Draw();
   lineat1->Draw("same");
@@ -868,10 +912,13 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hPurity[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hPurity[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hPurity[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
-    hPurity[i]->Draw("same");
+    hPurity[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hPurity[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hPurity[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hPurity[i]->SetMarkerStyle(25);
+    hPurity[i]->Draw("same p");
   }
   legTrialReduced->Draw();
   cPurity->SaveAs("../Systematics/PurityMultTrial" + inputFileName + Suffix + ".pdf");
@@ -884,7 +931,7 @@ void MultiTrial(
   ColorIndex = -1;
   TH1F *hDummyPurityRatio = (TH1F *)hDefaultPurity->Clone("hDummyPurityRatio");
   hDummyPurityRatio->Reset();
-  hDummyPurityRatio->GetYaxis()->SetRangeUser(0.8, 1.2);
+  hDummyPurityRatio->GetYaxis()->SetRangeUser(0.6, 1.2);
   hDummyPurityRatio->Draw();
   for (int i = 0; i < trials; i++)
   {
@@ -896,13 +943,16 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hPurityRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hPurityRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hPurityRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hPurityRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hPurityRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hPurityRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hPurityRatio[i]->SetMarkerStyle(25);
     hPurityRatio[i]->SetTitle("");
     hPurityRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hPurityRatio[i]->GetYaxis()->SetRangeUser(0, 1.1);
-    hPurityRatio[i]->Draw("same");
+    hPurityRatio[i]->Draw("same p");
   }
   lineat1->Draw("same");
   legTrialReduced->Draw();
@@ -924,11 +974,15 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hSignificance[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hSignificance[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hSignificance[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hSignificance[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hSignificance[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hSignificance[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hSignificance[i]->SetMarkerStyle(25);
     hSignificance[i]->SetTitle("");
-    hSignificance[i]->Draw("same");
+    hSignificance[i]->Draw("same hist");
+    hSignificance[i]->Draw("same p");
   }
   legTrial->Draw();
   cSignificance->SaveAs("../Systematics/SignificanceMultTrial" + Suffix + ".pdf");
@@ -949,13 +1003,17 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hSignificanceRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hSignificanceRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hSignificanceRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hSignificanceRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hSignificanceRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hSignificanceRatio[i]->SetMarkerStyle(25);
     hSignificanceRatio[i]->SetTitle("");
     hSignificanceRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hSignificanceRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
-    hSignificanceRatio[i]->Draw("same");
+    hSignificanceRatio[i]->Draw("same hist");
+    hSignificanceRatio[i]->Draw("same p");
   }
   legTrial->Draw();
   lineat1->Draw("same");
@@ -977,12 +1035,15 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hCos2Theta[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hCos2Theta[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hCos2Theta[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hCos2Theta[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hCos2Theta[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hCos2Theta[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hCos2Theta[i]->SetMarkerStyle(25);
     hCos2Theta[i]->GetYaxis()->SetRangeUser(0.31, 0.33);
     hCos2Theta[i]->SetTitle("");
-    hCos2Theta[i]->Draw("same");
+    hCos2Theta[i]->Draw("same p");
   }
   legTrial->Draw();
   cAcceptance->SaveAs("../Systematics/AcceptanceMultTrial" + Suffix + ".pdf");
@@ -1003,13 +1064,16 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hCos2ThetaRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hCos2ThetaRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hCos2ThetaRatio[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hCos2ThetaRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hCos2ThetaRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hCos2ThetaRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hCos2ThetaRatio[i]->SetMarkerStyle(25);
     hCos2ThetaRatio[i]->SetTitle("");
     hCos2ThetaRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hCos2ThetaRatio[i]->GetYaxis()->SetRangeUser(0.5, 1.5);
-    // hCos2ThetaRatio[i]->Draw("same");
+    hCos2ThetaRatio[i]->Draw("same p");
   }
   legTrialReduced->Draw();
   lineat1->Draw("same");
@@ -1041,6 +1105,10 @@ void MultiTrial(
       {
         if (BDTscoreCut[i] < MinBDTscorePtInt[mul] || BDTscoreCut[i] > (MaxBDTscorePtInt[mul] + 0.001))
           continue;
+        if (hVariedChi2NDF[i]->GetBinContent(1) / hVariedChi2NDF[i]->GetBinError(1) > MaxChi2NDF[mul])
+          continue;
+        //if (hRawYieldRatio[i]->GetBinContent(1) < 0.7 || hRawYieldRatio[i]->GetBinContent(1) > 1.3)
+        //  continue;
       }
       NumberOfActualTrialsBis++;
       if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
@@ -1175,10 +1243,13 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hAbsoluteSyst[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
+    hAbsoluteSyst[i]->SetLineColor(ColorMult[ColorIndex % 10]);
     hAbsoluteSyst[i]->SetLineWidth(2);
-    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
+    hAbsoluteSyst[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hAbsoluteSyst[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hAbsoluteSyst[i]->SetMarkerStyle(25);
     hAbsoluteSyst[i]->GetYaxis()->SetTitle("Absolute deviation from default");
     hAbsoluteSyst[i]->GetYaxis()->SetRangeUser(-1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     hAbsoluteSyst[i]->Draw("same");
@@ -1195,7 +1266,13 @@ void MultiTrial(
     cgaus->cd(pt + 1);
     fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-    hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    if (mul == 4 || mul ==7)
+      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    if (mul == 6)
+      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+      
     for (int i = 0; i < trials; i++)
     {
       if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
@@ -1307,10 +1384,14 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hError[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hError[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hError[i]->SetMarkerStyle(MarkerMult[ColorIndex % numCent]);
-    hError[i]->Draw("same");
+    hError[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hError[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hError[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hError[i]->SetMarkerStyle(25);
+    hError[i]->Draw("same hist");
+    hError[i]->Draw("same p");
   }
   // hAbsoluteMaxDev->Draw("same");
   // hRMS->Draw("same");
@@ -1336,13 +1417,17 @@ void MultiTrial(
         continue;
     }
     ColorIndex += 1;
-    hErrorRatio[i]->SetLineColor(ColorMult[ColorIndex % numCent]);
-    hErrorRatio[i]->SetMarkerColor(ColorMult[ColorIndex % numCent]);
-    hErrorRatio[i]->SetMarkerStyle(MarkerMult[i]);
+    hErrorRatio[i]->SetLineColor(ColorMult[ColorIndex % 10]);
+    hErrorRatio[i]->SetMarkerColor(ColorMult[ColorIndex % 10]);
+    if (ColorIndex < 10)
+      hErrorRatio[i]->SetMarkerStyle(MarkerMult[0]);
+    else
+      hErrorRatio[i]->SetMarkerStyle(25);
     hErrorRatio[i]->SetTitle("");
     hErrorRatio[i]->GetYaxis()->SetTitle("Ratio to default");
     hErrorRatio[i]->GetYaxis()->SetRangeUser(0.2, 1.8);
-    hErrorRatio[i]->Draw("same");
+    hErrorRatio[i]->Draw("same hist");
+    hErrorRatio[i]->Draw("same p");
   }
   lineat1->Draw("same");
   legTrialReduced->Draw();
@@ -1378,7 +1463,6 @@ void MultiTrial(
     if (ExtrisApplyResoOnTheFly)
       OutputFile += "_ResoOnTheFly";
   }
-  // OutputFile += "_NewTest";
   OutputFile += ".root";
 
   TFile *Write = new TFile(OutputFile, "RECREATE");
