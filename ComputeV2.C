@@ -14,9 +14,9 @@
 #include "TPad.h"
 // #include "CommonVar_v2.h"
 #include "CommonVarPub.h"
-//#include "CommonVarOmega.h"
+// #include "CommonVarOmega.h"
 #include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
+//  #include "CommonVarLambda.h"
 
 void ComputeV2(Int_t indexMultTrial = 0,
                Int_t ChosenPart = ChosenParticle,
@@ -39,7 +39,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
     return;
   }
-  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega)
+  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega && commonNumCent != numCentOmegaRed && commonNumCent != numCentXiRed)
   {
     cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent or numCentOmega. Please check the settings." << endl;
     return;
@@ -100,6 +100,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
   // SinputFile += "_Nvar1_TestMoreBins";
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SinputFile += "_NoMassCutForAcceptance";
+  if (ExtrisCentOmegaRed && Part == 1)
+    SinputFile += "_OmegaRedCent";
+  if (ExtrisCentXiRed && Part == 0)
+    SinputFile += "_XiRedCent";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -285,6 +289,19 @@ void ComputeV2(Int_t indexMultTrial = 0,
         CentFT0CMin = CentFT0C[cent];
         CentFT0CMax = CentFT0C[cent + 1];
       }
+      if (ExtrisCentXiRed)
+      {
+        if (cent == numCentXiRed)
+        {
+          CentFT0CMin = 0;
+          CentFT0CMax = CentFT0CMaxXiRed;
+        }
+        else
+        {
+          CentFT0CMin = CentFT0CXiRed[cent];
+          CentFT0CMax = CentFT0CXiRed[cent + 1];
+        }
+      }
       if (Part == 1) // Omega in Pb-Pb
       {
         if (cent == numCentOmega)
@@ -296,6 +313,19 @@ void ComputeV2(Int_t indexMultTrial = 0,
         {
           CentFT0CMin = CentFT0COmega[cent];
           CentFT0CMax = CentFT0COmega[cent + 1];
+        }
+        if (ExtrisCentOmegaRed)
+        {
+          if (cent == numCentOmegaRed)
+          {
+            CentFT0CMin = 0;
+            CentFT0CMax = CentFT0CMaxOmegaRed;
+          }
+          else
+          {
+            CentFT0CMin = CentFT0COmegaRed[cent];
+            CentFT0CMax = CentFT0COmegaRed[cent + 1];
+          }
         }
       }
       if (isOOCentrality)
@@ -359,6 +389,19 @@ void ComputeV2(Int_t indexMultTrial = 0,
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
     }
+    if (ExtrisCentXiRed)
+    {
+      if (cent == numCentXiRed)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxXiRed;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CXiRed[cent];
+        CentFT0CMax = CentFT0CXiRed[cent + 1];
+      }
+    }
     if (Part == 1) // Omega in Pb-Pb
     {
       if (cent == numCentOmega)
@@ -370,6 +413,19 @@ void ComputeV2(Int_t indexMultTrial = 0,
       {
         CentFT0CMin = CentFT0COmega[cent];
         CentFT0CMax = CentFT0COmega[cent + 1];
+      }
+      if (ExtrisCentOmegaRed)
+      {
+        if (cent == numCentOmegaRed)
+        {
+          CentFT0CMin = 0;
+          CentFT0CMax = CentFT0CMaxOmegaRed;
+        }
+        else
+        {
+          CentFT0CMin = CentFT0COmegaRed[cent];
+          CentFT0CMax = CentFT0COmegaRed[cent + 1];
+        }
       }
     }
     if (isOOCentrality)
@@ -721,10 +777,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SOutputFile += "_NoMassCutForAcceptance";
   // SOutputFile += "_TestMoreBins";
+  if (ExtrisCentOmegaRed && Part == 1)
+    SOutputFile += "_OmegaRedCent";
+  if (ExtrisCentXiRed && Part == 0)
+    SOutputFile += "_XiRedCent";
   SOutputFile += ".root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
-  
+
   for (Int_t cent = 0; cent < commonNumCent + 1; cent++)
   {
     hmassVsPtVsV2C[cent]->Write();

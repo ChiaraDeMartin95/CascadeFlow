@@ -21,8 +21,8 @@
 #include "StyleFile.h"
 #include "CommonVarPub.h"
 #include "CommonVarXi.h"
-// #include "CommonVar_v2.h"
-// #include "CommonVarLambda.h"
+//  #include "CommonVar_v2.h"
+//  #include "CommonVarLambda.h"
 // #include "CommonVarOmega.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
@@ -282,6 +282,19 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       CentFT0CMin = CentFT0C[cent];
       CentFT0CMax = CentFT0C[cent + 1];
     }
+    if (ExtrisCentXiRed)
+    {
+      if (cent == numCentXiRed)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxXiRed;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0CXiRed[cent];
+        CentFT0CMax = CentFT0CXiRed[cent + 1];
+      }
+    }
     if (Part == 1) // Omega
     {
       if (cent == numCentOmega)
@@ -293,6 +306,19 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       {
         CentFT0CMin = CentFT0COmega[cent];
         CentFT0CMax = CentFT0COmega[cent + 1];
+      }
+      if (ExtrisCentOmegaRed)
+      {
+        if (cent == numCentOmegaRed)
+        {
+          CentFT0CMin = 0;
+          CentFT0CMax = CentFT0CMaxOmegaRed;
+        }
+        else
+        {
+          CentFT0CMin = CentFT0COmegaRed[cent];
+          CentFT0CMax = CentFT0COmegaRed[cent + 1];
+        }
       }
     }
     if (isOOCentrality)
@@ -562,6 +588,10 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_TighterAcceptance2";
   if (ChosenPart == 6 && !isMassCutForAcceptance)
     OutputFileName += "_NoMassCutForAcceptance";
+  if (ExtrisCentOmegaRed && Part == 1)
+    OutputFileName += "_OmegaRedCent";
+  if (ExtrisCentXiRed && Part == 0)
+    OutputFileName += "_XiRedCent";
 
   OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
