@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
-//  #include "CommonVarLambda.h"
-#include "CommonVarOmega.h"
+#include "CommonVarXi.h"
+// #include "CommonVarLambda.h"
+// #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -293,7 +293,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // stringout += "_TestMoreBins";
   if (isGlobalFit)
     stringout += "_GlobalFit";
-  //stringout += "_NegativeC";
+  // stringout += "_NegativeC";
+  if (ExtrisCentOmegaRed && part == 1)
+    stringout += "_OmegaRedCent";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -332,6 +334,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   { // Omega in Pb-Pb
     nBinsCent = numCentOmega;
     binsCent = fCentFT0COmega;
+    if (ExtrisCentOmegaRed)
+    {
+      nBinsCent = numCentOmegaRed;
+      binsCent = fCentFT0COmegaRed;
+    }
   }
   else
   {
@@ -431,6 +438,19 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
         CentFT0CMin = CentFT0COmega[m];
         CentFT0CMax = CentFT0COmega[m + 1];
       }
+      if (ExtrisCentOmegaRed)
+      {
+        if (m == numCentOmegaRed)
+        {
+          CentFT0CMin = 0;
+          CentFT0CMax = CentFT0CMaxOmegaRed;
+        }
+        else
+        {
+          CentFT0CMin = CentFT0COmegaRed[m];
+          CentFT0CMax = CentFT0COmegaRed[m + 1];
+        }
+      }
     }
     if (isOOCentrality)
     {
@@ -506,7 +526,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     // PathIn += "_SystReso";
     if (isTighterPzFitRange)
       PathIn += "_TighterPzFitRange";
-    //PathIn += "_NegativeC";
+    // PathIn += "_NegativeC";
+    if (ExtrisCentOmegaRed && part == 1)
+      PathIn += "_OmegaRedCent";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -668,6 +690,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistMeanPlus2Sigma->SetBinContent(m + 1, fHistMean[m]->GetBinContent(1) + 2 * fHistSigma[m]->GetBinContent(1));
     fHistMeanPlus2Sigma->SetBinError(m + 1, 0);
 
+    if (ExtrisFitDSCB)
+    {
+      fHistMeanMinus2Sigma->SetBinContent(m + 1, ExtrLowLimitDSCB[ChosenPart]);
+      fHistMeanPlus2Sigma->SetBinContent(m + 1, ExtrUpLimitDSCB[ChosenPart]);
+    }
+
     // cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << " Pzs2: " << fHistSpectrum[m]->GetBinContent(1) << endl;
   } // end loop on mult
 
@@ -678,7 +706,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_" + ParticleName[6];
   else
     PathInSyst += "_" + ParticleName[ChosenPart];
-  PathInSyst += IsOneOrTwoGauss[UseTwoGauss];
+  if (ExtrisFitDSCB)
+  {
+    PathInSyst += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      PathInSyst += "_FixParamFromMC";
+  }
+  else
+    PathInSyst += IsOneOrTwoGauss[UseTwoGauss];
   PathInSyst += SIsBkgParab[ExtrBkgTypeSyst];
   PathInSyst += "_Pzs2";
   if (isApplyWeights)
@@ -724,7 +759,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
-    fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
+    //fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
     fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
     fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
   }
@@ -966,7 +1001,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsSignifUpTo50->Draw("same");
   fHistPzsSignifStatUpTo50->Draw("same");
 
-  // fHistPzsSignifLambda->Draw("same e0x0");
+  fHistPzsSignifLambda->Draw("same e0x0");
   //  LegendTitle->Draw("");
 
   TString titleLambda = "#Lambda + #bar{#Lambda}";
@@ -1100,7 +1135,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6)
     hDummySigma->GetYaxis()->SetRangeUser(1.1, 1.13);
   else if (part == 0)
+  {
     hDummySigma->GetYaxis()->SetRangeUser(1.31, 1.33);
+    if (ExtrisFitDSCB)
+      hDummySigma->GetYaxis()->SetRangeUser(ExtrLowLimitDSCB[ChosenPart] - 0.004, ExtrUpLimitDSCB[ChosenPart] + 0.004);
+  }
   else if (part == 1)
     hDummySigma->GetYaxis()->SetRangeUser(1.66, 1.685);
   hDummySigma->GetYaxis()->SetTitle("#mu");
