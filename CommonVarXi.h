@@ -2,17 +2,17 @@ Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 0;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2)
 
-//Fit characteristics
-Int_t ExtrBkgType = 4;    // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
-Bool_t ExtrisFitDSCB = 1; //Use a DSCB instead of 2 gaussians
-Bool_t isGaussConv = 1;   //DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
-Bool_t isFixParamDSCBFromMC = 1; //Get DSCB parameters from MC and fix them in the fit of data
+// Fit characteristics
+Int_t ExtrBkgType = 4;           // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
+Bool_t ExtrisFitDSCB = 1;        // Use a DSCB instead of 2 gaussians
+Bool_t isGaussConv = 1;          // DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
+Bool_t isFixParamDSCBFromMC = 0; // Get DSCB parameters from MC and fix them in the fit of data
 Bool_t ExtrUseTwoGauss = 1;
-Bool_t isCombinedFit = 0; //Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
-//New def for analysis : ExtrisFitDSCB = 1; isGaussConv = 1; ExtrBkgType = 4; 
-//Old default (still used for Systematics): ExtrisFitDSCB = 0; isGaussConv = 0; ExtrUseTwoGauss = 1; BkgType = 1;
+Bool_t isCombinedFit = 0; // Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
+// New def for analysis : ExtrisFitDSCB = 1; isGaussConv = 1; ExtrBkgType = 4;
+// Old default (still used for Systematics): ExtrisFitDSCB = 0; isGaussConv = 0; ExtrUseTwoGauss = 1; BkgType = 1;
 
-Int_t ExtrBkgTypeSyst = 1; // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+Int_t ExtrBkgTypeSyst = 4;          // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
 Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 0;       // 1 for OO
 Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
@@ -24,6 +24,8 @@ Bool_t isOOCentrality = 0;          // 1 for Lambda in OO
 Bool_t isRun2Binning = 0;
 
 const Int_t commonNumCent = 8; // = numCent for Xi
+// const Int_t commonNumCent = 3; // = numCent for Xi
+const double BDTscoreCutPtIntCentRed[numCentXiRed + 1] = {0.96, 0.96, 0.96, 0.96};
 
 // Pt bins
 // const Int_t numPtBins = 15;
@@ -57,10 +59,10 @@ TString SinputFileName = "LHC23_PbPb_pass5_Train540301"; // PAPER PROPOSAL: Pzs2
 // TString SinputFileName = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
 
 TString SinputFileNameMC = "LHC25f3_gp_pass5_Train673644";
-//TString SinputFileNameMC = "TestMC";
+// TString SinputFileNameMC = "TestMC";
 
-//File where DSCB parameters from MC truth are stored (needed to fit the data)
-//TString inputFileDSCBParam = "../OutputAnalysis/FitPzs2_TestMC_Xi_DSCB_BkgExpo_Cent0-10_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso.root";
+// File where DSCB parameters from MC truth are stored (needed to fit the data)
+// TString inputFileDSCBParam = "../OutputAnalysis/FitPzs2_TestMC_Xi_DSCB_BkgExpo_Cent0-10_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso.root";
 TString inputFileDSCBParam = "LHC25f3_gp_pass5_Train673644";
 
 // Reso tests in OO
@@ -99,10 +101,10 @@ TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; // these systematics are DONE and to be USED for PAPER
+//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; // these systematics are DONE and to be USED for PAPER
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
-//  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
 //  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
@@ -128,6 +130,7 @@ const bool isApplyAcceptanceCorrection = 0;                        // for recent
 const bool isAcceptanceFromExternalFile = 0;                       // 1 for acceptance from external file, 0 for acceptance from the same file
 TString SAcceptanceFile = "../AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
 const bool useMixedBDTValueInFitMacro = 1;                         // variable used in FitV2OrPol.C macro
+const bool useBDTCutPtIntMaxSignif = 0; //use BDT values defined in BDTscoreCutPtIntMaxSignif for the integrated pt measurement (to maximize significance)
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)
@@ -138,6 +141,7 @@ const float LimitForV2woFit = 0.97;                                             
 bool isTightMassCut = 1;                                                                       // 1 for tight mass cut, 0 for loose mass cut
 float Extrsigmacentral[2] = {4.2, 2.1};                                                        // 2.1
 const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
+const double BDTscoreCutPtIntMaxSignif[numCent + 1] = {0.72, 0.6, 0.52, 0.44, 0.32, 0.24, 0.2, 0.2, 0.6};
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
 // --------------------------- SYST ------------------------------
@@ -151,11 +155,13 @@ const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
 // const double MinBDTscorePtInt[numCent + 1] = {0.959, 0.92, 0.879, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 // const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
-const double MinBDTscorePtInt[numCent + 1] = {0.84, 0.8, 0.6, 0.4, 0.4, 0.2, 0.2, 0.2, 0.6};
-const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
+//const double MinBDTscorePtInt[numCent + 1] = {0.84, 0.8, 0.6, 0.4, 0.4, 0.2, 0.2, 0.2, 0.6};
+const double MinBDTscorePtInt[numCent + 1] = {0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
+const double MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
 // const double MaxBDTscorePtInt[numCent + 1] = {0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72};
 const bool isLoosest = 0;
 const bool isTightest = 0;
+float MaxChi2NDF[numCent + 1] = {1.3, 1.3, 1.3, 1.3, 1.5, 1.3, 1.3, 1.3, 1.3};
 
 // systematics for Lambda
 const float DefaultV0RadiusCut = 1.0;
