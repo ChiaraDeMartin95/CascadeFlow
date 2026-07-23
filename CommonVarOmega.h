@@ -49,16 +49,25 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 //TString SinputFileName = "LHC24ar_pass3_small_Train679749"; //full tree in output for topological selections studies (can be used to study Pz after applying BDT selections and/or topological selections)
 //TString SinputFileName = "LHC24ar_pass3_small_Train679750"; //regular tree in output (can be used to study Pz after applying BDT selections)
 // TString SinputFileName = "Test2024";
-//TString SinputFileName = "LHC24ar_pass3_small_Train694586"; //THN, vs inva mass Lambda (no inv mass Omega)
-//TString SinputFileName = "LHC24ar_pass3_small_Train697139"; //THN, vs inva mass Lambda (no inv mass Omega)
-TString SinputFileName = "LHC25_PbPb_pass1_Train697137"; //THN, vs inv mass Lambda (no inv mass Omega)
+//TString SinputFileName = "LHC24ar_pass3_small_Train694586"; //THN, vs inv mass Lambda (no inv mass Omega)
+//TString SinputFileName = "LHC24ar_pass3_small_Train697139"; //THN, vs inv mass Lambda (no inv mass Omega)
+//TString SinputFileName = "LHC25_PbPb_pass1_Train697137"; //THN, vs inv mass Lambda (no inv mass Omega)
+//TString SinputFileName = "LHC25_PbPb_pass1_Train714874"; //Pzs2 on full 2025 sample, acceptance and ML training from 2023
+//TString SinputFileName = "LHC23_PbPb_pass5_Train718809"; //Pzs2 on full 2023 sample, acceptance and ML training from 2023
+//TString SinputFileName = "LHC24ar_pass3_Train719178"; //Pzs2 on full 2024 sample, acceptance from 2024, ML training from 2023
+TString SinputFileName = "LHC25_PbPb_pass1_Train719001"; //Pzs2 on full 2025 sample, acceptance from 2025, ML training from 2023
+
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
 
 // Reso
-TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
+//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
+//TString SinputFileNameReso = "LHC25_PbPb_pass1_Train714874";
 // TString SinputFileNameReso = "LHC24ar_pass3_Train658233";
+//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train718809";
+//TString SinputFileNameReso = "LHC24ar_pass3_Train719178";
+TString SinputFileNameReso = "LHC25_PbPb_pass1_Train719001"; 
 TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
