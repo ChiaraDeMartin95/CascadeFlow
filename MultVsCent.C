@@ -9,6 +9,7 @@
 #include "TPad.h"
 #include "TF1.h"
 #include "TLegend.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "TFitResult.h"
 
@@ -109,7 +110,7 @@ void MultVsCent()
     CentFT0CMax = CentFT0CLambdaOO[mul + 1];
 
     hMultVsCent->SetBinContent(mul + 1, dNdEtaOOPrel[mul]);
-    hMultVsCent->SetBinError(mul + 1, dNdEtaOOErrPrel[mul]);
+    hMultVsCent->SetBinError(mul + 1, sqrt(pow(dNdEtaOOErrPrel[mul], 2) + pow(dNdEtaOOErrPrelSyst[mul], 2)));
 
     if (CentFT0CMax > 60)
     {
@@ -181,15 +182,28 @@ void MultVsCent()
     cout << "Centrality " << CentFT0CLambdaOO[mul] << "-" << CentFT0CLambdaOO[mul + 1]
          << "%: Fit Value = " << fitValueLow << " to " << fitValueUp
          << endl;
-    cout << "----------------------------------------" << endl;
-    for (Int_t mul = 0; mul < 20; mul++)
-    {
-      Float_t centValue = (mul*5) +5 + 2.5;
-      Float_t fitValue = fitExpoFinal->Eval(centValue);
-      Float_t fitError = fitValue * TMath::Sqrt(pow(fitExpo->GetParError(0), 2) + pow(centValue * fitExpo->GetParError(1), 2) + 2 * centValue * covFit);
-      cout << "Centrality " << (mul*5) +5 << "-" << (mul*5) + 10
-           << "%: Fit Value = " << fitValue << " +- " << fitError
-            << endl;
-    }
+  }
+  cout << "----------------------------------------" << endl;
+  Float_t fitValueArray[numV2OOPubCent];
+  Float_t fitValueErrorArray[numV2OOPubCent];
+  for (Int_t mul = 0; mul < numV2OOPubCent; mul++)
+  {
+    Float_t centValue = V2OOPubCent[mul] + (V2OOPubCent[mul + 1] - V2OOPubCent[mul]) / 2.;
+    Float_t fitValue = fitExpoFinal->Eval(centValue);
+    fitValueArray[mul] = fitValue;
+    Float_t fitError = fitValue * TMath::Sqrt(pow(fitExpo->GetParError(0), 2) + pow(centValue * fitExpo->GetParError(1), 2) + 2 * centValue * covFit);
+    fitValueErrorArray[mul] = fitError;
+    cout << "Centrality " << V2OOPubCent[mul] << "-" << V2OOPubCent[mul + 1] << " mid point " << centValue
+         << "%: Fit Value = " << fitValue << " +- " << fitError
+         << endl;
+  }
+  for (Int_t mul = 0; mul < numV2OOPubCent; mul++)
+  {
+    // cout << fitValueArray[mul] << ", ";
+  }
+  cout << endl;
+  for (Int_t mul = 0; mul < numV2OOPubCent; mul++)
+  {
+    // cout << fitValueErrorArray[mul] << ", ";
   }
 }

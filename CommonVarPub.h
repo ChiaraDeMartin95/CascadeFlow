@@ -17,10 +17,14 @@ TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", 
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
 TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "#it{P}_{z,s2}";
+TString TitleYPzsLambda = "#it{P}_{z,s2} (#Lambda + #bar{#Lambda})";
 
-//Mass ranges were puity is calculatedin case of DSCB fit
+// Mass ranges were puity is calculatedin case of DSCB fit
 Float_t ExtrLowLimitDSCB[numPart] = {1.312, 1.672, 1.312, 1.312, 1.672, 1.672, 1.1145, 1.1145, 1.1145};
 Float_t ExtrUpLimitDSCB[numPart] = {1.33, 1.672, 1.33, 1.33, 1.672, 1.672, 1.1145, 1.1145, 1.1145};
+// 2sigma range approximately
+// Float_t ExtrLowLimitDSCB[numPart] = {1.316, 1.672, 1.316, 1.316, 1.672, 1.672, 1.1145, 1.1145, 1.1145};
+// Float_t ExtrUpLimitDSCB[numPart] = {1.326, 1.672, 1.326, 1.326, 1.672, 1.672, 1.1145, 1.1145, 1.1145};
 
 // Colors and markers
 Int_t ColorPart[numPart] = {kPink + 9, kAzure + 7, kPink + 1, kPink - 9, kAzure + 3, kAzure - 3, kOrange, kOrange - 2, kOrange - 4};
@@ -76,13 +80,16 @@ const Int_t numCentLambdaOO = 10;
 Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t CentFT0CMaxLambdaOO = 100;
-Double_t dNdEtaOOPrel[numCentLambdaOO] = {(126.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 19.03, 13.22, 8.50, 0}; // approved up to 60%
-Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(4.23 + 3.44) / 2, 2.76, 2.08, 1.55, 1.13, 0.81, 0.57, 0.39, 0.23, 0};                       // approved up to 60%
-Double_t dNdEtaOOErrPrelSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0.57, 0.39, 0.23, 0};     // approved up to 60%
-Double_t dNdEtaOO[numCentLambdaOO] = {(126.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 19.91, 14.87, 11.11, 0};    // from 60% to 90%, extrapolated with MultVsCent.C macro
-Double_t dNdEtaOOErr[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 0.0099, 0.0084, 0.0069, 0.58, 0.54, 0.48, 0};             // from 60% to 90%, extrapolated with MultVsCent.C macro
-Double_t dNdEtaOOErrSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0.58, 0.54, 0.48, 0};         // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOPrel[numCentLambdaOO] = {(129.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 0, 0, 0, 0};               // approved up to 60% (version 3 of Marta AN)
+Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 0.0099, 0.0084, 0.0069, 0, 0, 0, 0};                     // approved up to 60% (version 3 of Marta AN)
+Double_t dNdEtaOOErrPrelSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0, 0, 0, 0};                 // approved up to 60% (version 3 of Marta AN)
+Double_t dNdEtaOO[numCentLambdaOO] = {(129.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 21.0754, 15.8103, 11.8605, 0}; // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOErr[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 0.0099, 0.0084, 0.0069, 0, 0, 0, 0};                         // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOErrSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0.868578, 0.793424, 0.70358, 0}; // from 60% to 90%, extrapolated with MultVsCent.C macro
 Double_t EccOO[numCentLambdaOO] = {(0.302 + 0.323) / 2, 0.364, 0.421, 0.479, 0.532, 0.577, 0.614, 0.644, 0.672, 0.699};
+Double_t dNdEtaOOPrel6090 = 11.6993;
+Double_t dNdEtaOOErrPrel6090 = 0.0024;
+Double_t dNdEtaOOErrPrelSyst6090 = 1.2348;
 
 // NeNe dNdeta
 Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages computed from analysis note (0-40%, 40-90% even if polarization uses 40-100%; multiplicity available only up to 90%)
@@ -97,10 +104,10 @@ Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05,
 // Published V2 of charged particles in OO collisions (arxiv.org/pdf/2509.06428)
 const Int_t numV2OOPubCent = 16;
 Double_t V2OOPubCent[numV2OOPubCent + 1] = {0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60};
-Double_t V2OOPubCentMid[numV2OOPubCent] = {130.785, 127.023, 123.37, 119.822, 116.376, 106.621, 92.1451, 79.6348,
-                                           68.8231, 59.4792, 51.4039, 44.425, 38.3936, 33.181, 28.6761, 24.7829};
-Double_t V2OOPubCentMidErr[numV2OOPubCent] = {3.47982, 3.29583, 3.12024, 2.95276, 2.79311, 2.35845, 1.76754, 1.32212,
-                                              1.0029, 0.793745, 0.675824, 0.622972, 0.606406, 0.60396, 0.603009, 0.597924};
+Double_t V2OOPubCentMid[numV2OOPubCent] = {134.579, 130.765, 127.06, 123.46, 119.961, 110.05, 95.3172, 82.5568, 71.5046, 61.9321, 53.641, 46.4599, 40.2402, 34.8531, 30.1872, 26.1459};
+// these values are extracted from a fit to dNdeta (preliminary) vs centrality in the MultVsCent.C macro, and then used to compute the weighted average of v2 in each centrality bin
+Double_t V2OOPubCentMidErr[numV2OOPubCent] = {3.68493, 3.4772, 3.27966, 3.09199, 2.91387, 2.43402, 1.80162, 1.35779, 1.08181, 0.944225, 0.899436, 0.899721, 0.912353, 0.920963, 0.919386, 0.906505};
+// these values are extracted from a fit to dNdeta (preliminary) vs centrality in the MultVsCent.C macro, and then used to compute the weighted average of v2 in each centrality bin
 Double_t V2OOPub[numV2OOPubCent] = {0.058265, 0.059672, 0.060794, 0.062044, 0.062179, 0.063781, 0.065495, 0.066987,
                                     0.067843, 0.068207, 0.068403, 0.068001, 0.067598, 0.066635, 0.066261, 0.064535};
 Double_t V2OOPubErrStat[numV2OOPubCent] = {0.000070, 0.000162, 0.000165, 0.000134, 0.000126, 0.000072, 0.000070, 0.000069,
@@ -111,6 +118,9 @@ Double_t V2OOPubErrSyst[numV2OOPubCent] = {0.000226, 0.000232, 0.000236, 0.00024
 // Published V2 of charged particles in PbPb collisions (arxiv.org/pdf/1602.01119)
 const Int_t numV2PbPbPubCent = 8;
 Double_t V2PbPbPubCent[numV2PbPbPubCent + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};
-Double_t V2PbPbPub[numV2PbPbPubCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881};
-Double_t V2PbPbPubErrStat[numV2PbPbPubCent] = {(0.00057 + 0.00064) / 2, 0.00037, 0.00044, 0.00055, 0.00073, 0.00107, 0.00186, 0.00438};
-Double_t V2PbPbPubErrSys[numV2PbPbPubCent] = {(0.00043 + 0.00069) / 2, 0.00098, 0.00131, 0.00149, 0.00156, 0.00154, 0.00146, 0.00133};
+// Double_t V2PbPbPub[numV2PbPbPubCent] = {(0.02839 + 0.04566) / 2, 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881};
+Double_t V2PbPbPub[numV2PbPbPubCent] = {(2047. * 0.02839 + 1668. * 0.04566) / (2047. + 1668.), 0.06551, 0.08707, 0.0991, 0.10414, 0.10286, 0.09746, 0.08881};
+// Double_t V2PbPbPubErrStat[numV2PbPbPubCent] = {(0.00057 + 0.00064) / 2, 0.00037, 0.00044, 0.00055, 0.00073, 0.00107, 0.00186, 0.00438};
+Double_t V2PbPbPubErrStat[numV2PbPbPubCent] = {(2047. * 0.00057 + 1668. * 0.00064) / (2047. + 1668.), 0.00037, 0.00044, 0.00055, 0.00073, 0.00107, 0.00186, 0.00438};
+// Double_t V2PbPbPubErrSys[numV2PbPbPubCent] = {(0.00043 + 0.00069) / 2, 0.00098, 0.00131, 0.00149, 0.00156, 0.00154, 0.00146, 0.00133};
+Double_t V2PbPbPubErrSys[numV2PbPbPubCent] = {(2047. * 0.00043 + 1668. * 0.00069) / (2047. + 1668.), 0.00098, 0.00131, 0.00149, 0.00156, 0.00154, 0.00146, 0.00133};
