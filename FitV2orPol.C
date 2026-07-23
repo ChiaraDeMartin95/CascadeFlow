@@ -471,9 +471,9 @@ void FitV2orPol(
     cout << "O-O centrality is selected, but commonNumCent is not set to numCentLambdaOO. Please check the settings." << endl;
     return;
   }
-  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega)
+  if (!isOOCentrality && commonNumCent != numCent && commonNumCent != numCentOmega && commonNumCent != numCentOmegaRed && commonNumCent != numCentXiRed)
   {
-    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent or numCentOmega. Please check the settings." << endl;
+    cout << "Pb-Pb centrality is selected, but commonNumCent is not set to numCent or numCentOmega or numCentOmegaRed or numCentXiRed. Please check the settings." << endl;
     return;
   }
 
@@ -545,6 +545,19 @@ void FitV2orPol(
     CentFT0CMin = CentFT0C[mul];
     CentFT0CMax = CentFT0C[mul + 1];
   }
+  if (ExtrisCentXiRed)
+  {
+    if (mul == numCentXiRed)
+    {
+      CentFT0CMin = 0;
+      CentFT0CMax = CentFT0CMaxXiRed;
+    }
+    else
+    {
+      CentFT0CMin = CentFT0CXiRed[mul];
+      CentFT0CMax = CentFT0CXiRed[mul + 1];
+    }
+  }
   if (part == 1)
   { // Omega
     if (mul == numCentOmega)
@@ -556,6 +569,19 @@ void FitV2orPol(
     {
       CentFT0CMin = CentFT0COmega[mul];
       CentFT0CMax = CentFT0COmega[mul + 1];
+    }
+    if (ExtrisCentOmegaRed)
+    {
+      if (mul == numCentOmegaRed)
+      {
+        CentFT0CMin = 0;
+        CentFT0CMax = CentFT0CMaxOmegaRed;
+      }
+      else
+      {
+        CentFT0CMin = CentFT0COmegaRed[mul];
+        CentFT0CMax = CentFT0COmegaRed[mul + 1];
+      }
     }
   }
   if (isOOCentrality)
@@ -957,6 +983,10 @@ void FitV2orPol(
     if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
       SPathIn += "_NoMassCutForAcceptance";
     // SPathIn += "_TestMoreBins";
+    if (ExtrisCentOmegaRed && part == 1)
+      SPathIn += "_OmegaRedCent";
+    if (ExtrisCentXiRed && part == 0)
+      SPathIn += "_XiRedCent";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -2746,8 +2776,13 @@ void FitV2orPol(
     Soutputfile += "_NoMassCutForAcceptance";
     SoutputfileAcceptance += "_NoMassCutForAcceptance";
   }
-  //Soutputfile += "_NegativeC";
-  // Soutputfile += "_TestMoreBins";
+  if (ExtrisCentOmegaRed && part == 1)
+    Soutputfile += "_OmegaRedCent";
+  if (ExtrisCentXiRed && part == 0)
+    Soutputfile += "_XiRedCent";
+
+  // Soutputfile += "_NegativeC";
+  //  Soutputfile += "_TestMoreBins";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -3249,11 +3284,13 @@ void FitV2orPol(
   canvasP->cd();
   SetFont(hDummy);
   StyleHistoYield(hDummy, 1e-3, 1.2 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.6);
-  if (ChosenPart >= 6 || ParticleType == 0)
+  if (ChosenPart >= 6)
     StyleHistoYield(hDummy, 1e-3, 1.08 * hInvMass[ChosenPt]->GetMaximum(), 1, 1, TitleXMass, titleyNorm, "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
+  if (ParticleType == 0)
+    hDummy->GetYaxis()->SetRangeUser(0, 239);
   pad1->Draw();
   pad1->cd();
   // gPad->SetLogy();
@@ -3332,7 +3369,10 @@ void FitV2orPol(
       hDummyRatio->GetYaxis()->SetRangeUser(-0.005, 0.005);
     if (ChosenPart == 1)
     {
+      hDummyRatio->GetYaxis()->SetRangeUser(-0.03, 0.03);
       if (mul > 5)
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.06, 0.06);
+      if (ExtrisCentOmegaRed)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.04, 0.04);
     }
     if (ChosenPart >= 6)
