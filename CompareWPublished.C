@@ -14,7 +14,7 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-#include "CommonVar.h"
+#include "CommonVar_v2.h"
 #include "TGraphErrors.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString titleX, TString titleY, TString title, Bool_t XRange,
@@ -70,6 +70,8 @@ Int_t MarkerRun3[12] = {20, 21, 29, 33, 20, 21, 29, 33, 20, 21, 29, 33};
 Float_t MarkerSize[] = {1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2., 1.5, 1.5, 1.5, 2.};
 
 void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 for Run2 comparison
+                       Bool_t isRapiditySel = ExtrisRapiditySel,
+                       Int_t EtaSysChoice = ExtrEtaSysChoice,
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Bool_t UseTwoGauss = ExtrUseTwoGauss,
@@ -82,7 +84,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   if (isRun2Comparison && numPtBins != 6)
   {
     cout << "The pt binning you chose is not the one used in Run 2, please change in CommonVar.h file" << endl;
-    //return;
+    // return;
   }
   TString SinputFile = "";
   TFile *inputFile;
@@ -92,7 +94,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   TH1F *histoDummy = new TH1F("histoDummy", "histoDummy", 100, 0, 6);
   StyleHisto(histoDummy, -0.2 + 1e-4, 0.8 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "v_{2}", "", kFALSE, 0, 100, 1, 1, 0.05);
   TH1F *hDummyRatio = new TH1F("hDummyRatio", "hDummyRatio", 100, 0, 6);
-  StyleHisto(hDummyRatio, 0 + 1e-4, 2 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "", "", kFALSE, 0, 100, 1, 1, 0.05);
+  StyleHisto(hDummyRatio, 0.7 + 1e-4, 1.3 - 1e-4, 1, 20, "#it{p}_{T} (GeV/#it{c})", "", "", kFALSE, 0, 100, 1, 1, 0.05);
   hDummyRatio->GetXaxis()->SetLabelSize(0.1);
   hDummyRatio->GetYaxis()->SetLabelSize(0.1);
   hDummyRatio->GetXaxis()->SetTitleSize(0.1);
@@ -102,7 +104,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   for (Int_t cent = 0; cent < numCent; cent++)
   // for (Int_t cent = 0; cent < 4; cent++)
   {
-    SinputFile = "OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
+    SinputFile = "../OutputAnalysis/FitV2_" + inputFileName + "_" + ParticleName[!isXi];
     SinputFile += IsOneOrTwoGauss[UseTwoGauss];
     SinputFile += SIsBkgParab[BkgType];
     SinputFile += Form("_Cent%i-%i", CentFT0C[cent], CentFT0C[cent + 1]);
@@ -116,6 +118,14 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
       SinputFile += "_Run2Binning";
     if (ExtrisApplyEffWeights)
       SinputFile += "_EffW";
+    SinputFile += SEtaSysChoice[EtaSysChoice];
+    if (!isRapiditySel)
+      SinputFile += "_Eta08";
+    SinputFile += STHN[ExtrisFromTHN];
+    if (useMixedBDTValueInFitMacro)
+      SinputFile += "_MixedBDT";
+    if (v2type == 2)
+      SinputFile += "_EPReso";
     SinputFile += ".root";
     inputFile = new TFile(SinputFile);
     cout << "Input file with Run 3 v2: " << SinputFile << endl;
@@ -130,8 +140,8 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
     hV2CRatio[cent] = (TH1F *)hV2C[cent]->Clone(Form("hV2CRatio_%i", cent));
   }
 
-  TString SPublishedFileRun2 = "Run2Results/HEPData-ins2093750-v1-root.root";
-  TString SPublishedFileRun1 = "Run1Results/HEPData-ins1297103-v1-root.root";
+  TString SPublishedFileRun2 = "../Run2Results/HEPData-ins2093750-v1-root.root";
+  TString SPublishedFileRun1 = "../Run1Results/HEPData-ins1297103-v1-root.root";
   // in classes 10-20%, 20-30%, 30-40%, 40-50%
   // TString TablesRun2[4] = {"Table 8", "Table 17", "Table 26", "Table 35"}; // v2 measured with 2-particle correlations
   TString TablesRun2[4] = {"Table 79", "Table 87", "Table 95", "Table 103"}; // mean value of v2
@@ -206,7 +216,7 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   legendRun2->SetTextSize(0.03);
   legendRun2->SetHeader("PbPb, #sqrt{#it{s}_{NN}} = 5.02 TeV, JHEP 05 (2023) 243");
 
-  TString SfileComp = "OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi];
+  TString SfileComp = "../OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi];
   if (ExtrisApplyEffWeights)
     SfileComp += "_EffW";
   SfileComp += ".root";
@@ -250,8 +260,8 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   legendRun3->Draw();
   legendRun2->Draw();
 
-  canvasvsRun2->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
-  canvasvsRun2->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".png");
+  canvasvsRun2->SaveAs("../OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".pdf");
+  canvasvsRun2->SaveAs("../OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + ".png");
   //--------------------------------------
   if (!isXi)
   {
@@ -349,8 +359,8 @@ void CompareWPublished(Bool_t isRun2Comparison = 1, // 0 for Run1 comparison, 1 
   f1->SetLineColor(kBlack);
   f1->SetLineStyle(2);
   f1->Draw("same");
-  canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.pdf");
-  canvaswRatio->SaveAs("OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.png");
+  canvaswRatio->SaveAs("../OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.pdf");
+  canvaswRatio->SaveAs("../OutputAnalysis/CompareWPublished_" + inputFileName + "_" + ParticleName[!isXi] + "_Ratio.png");
   canvasvsRun2->Write();
   file->Close();
   cout << "I created the file " << file->GetName() << endl;
