@@ -23,6 +23,7 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 // #include "CommonVar.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
