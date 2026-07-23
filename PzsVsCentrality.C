@@ -22,8 +22,8 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-#include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVarXi.h"
+#include "CommonVarLambda.h"
 // #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
@@ -759,7 +759,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
-    //fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
+    // fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
     fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
     fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
   }
@@ -1525,21 +1525,29 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     canvasPzsVsMultiplicity->SaveAs("../PzsVsMultiplicity.eps");
 
     TCanvas *canvasV2vsPzs = new TCanvas("canvasV2vsPzs", "canvasV2vsPzs", 900, 700);
-    StyleCanvas(canvasV2vsPzs, 0.06, 0.15, 0.15, 0.03);
+    StyleCanvas(canvasV2vsPzs, 0.06, 0.15, 0.1, 0.03);
     canvasV2vsPzs->cd();
     TH1F *hDummyV2vsPzs = new TH1F("hDummyV2vsPzs", "hDummyV2vsPzs", 100, 0, 0.12);
     for (Int_t i = 1; i <= hDummyV2vsPzs->GetNbinsX(); i++)
       hDummyV2vsPzs->SetBinContent(i, -1000);
     canvasV2vsPzs->cd();
     SetFont(hDummyV2vsPzs);
-    StyleHistoYield(hDummyV2vsPzs, -0.001, 0.006, 1, 1, "v_{2}", "P_{z,s2}", "", 1, 1.15, 1.6);
+    hDummyV2vsPzs->GetYaxis()->SetMaxDigits(1);
+    StyleHistoYield(hDummyV2vsPzs, -0.001, 0.006, 1, 1, "#nu_{2} (h^{#pm})", TitleYPzsLambda, "", 1, 1.15, 1.6);
     SetHistoTextSize(hDummyV2vsPzs, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
     SetTickLength(hDummyV2vsPzs, tickX, tickY);
-    hDummyV2vsPzs->GetXaxis()->SetRangeUser(0.03, 0.117);
-    hDummyV2vsPzs->GetYaxis()->SetTitleOffset(1.7);
+    hDummyV2vsPzs->GetXaxis()->SetRangeUser(0.03, 0.114);
+    hDummyV2vsPzs->GetYaxis()->SetRangeUser(-0.0004, 0.0094); // 0.0095
+    TF1 *lineatZeroVsV2 = new TF1("lineatZeroVsV2", "0", 0, 1);
+    lineatZeroVsV2->SetLineColor(kBlack);
+    lineatZeroVsV2->SetLineStyle(2);
     hDummyV2vsPzs->Draw("");
+    // lineatZeroVsV2->Draw("same");
     TGraphErrors *gV2vsPzsOO = new TGraphErrors(numCentLambdaOO);
+    TGraphErrors *gV2NoWeightvsPzsOO = new TGraphErrors(numCentLambdaOO);
     TGraphErrors *gV2vsPzsOOSyst = new TGraphErrors(numCentLambdaOO);
+    TGraphErrors *gV2NWeightvsPzsOO = new TGraphErrors(numCentLambdaOO);
+    TGraphErrors *gV2NWeightvsPzsOOSyst = new TGraphErrors(numCentLambdaOO);
     TGraphErrors *gV2vsEccentricityOO = new TGraphErrors(numCentLambdaOO);
     TGraphErrors *gV2vsEccentricityOOSyst = new TGraphErrors(numCentLambdaOO);
     TGraphErrors *gV2vsMultiplicityOO = new TGraphErrors(numCentLambdaOO);
@@ -1550,59 +1558,149 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     TGraphErrors *gPzs2VsEccMinusV2OOSyst = new TGraphErrors(numCentLambdaOO);
 
     Float_t v2PubOO = 0;
+    Float_t v2PubOONoWeight = 0;
+    Float_t v2PubOONWeight = 0;
     Float_t v2PubOOErrStat = 0;
+    Float_t v2PubOONWeightErrStat = 0;
+    Float_t v2PubOONWeightErrSyst = 0;
+    Float_t v2PubOONoWeightErrStat = 0;
     Float_t v2PubOOErrSyst = 0;
+    Float_t V2OOPubWeighted[numV2OOPubCent];
+    Float_t SigmaV2PubWeighted[numV2OOPubCent];
+    Float_t SigmaV2PubStat[numV2OOPubCent];
+    Float_t SigmaV2PubSyst[numV2OOPubCent];
+    for (Int_t b = 0; b < numV2OOPubCent; b++)
+    {
+      V2OOPubWeighted[b] = V2OOPub[b] / (V2OOPubErrStat[b] * V2OOPubErrStat[b] + V2OOPubErrSyst[b] * V2OOPubErrSyst[b]);
+      SigmaV2PubWeighted[b] = 1. / (V2OOPubErrStat[b] * V2OOPubErrStat[b] + V2OOPubErrSyst[b] * V2OOPubErrSyst[b]);
+      SigmaV2PubStat[b] = 1. / (V2OOPubErrStat[b] * V2OOPubErrStat[b]);
+      SigmaV2PubSyst[b] = 1. / (V2OOPubErrSyst[b] * V2OOPubErrSyst[b]);
+    }
     for (Int_t b = 1; b <= 5; b++)
     {
       if (b == 1)
       {
-        v2PubOO = (V2OOPub[0] + V2OOPub[1] + V2OOPub[2] + V2OOPub[3] + V2OOPub[4]) / 5.0; // average 0-5%
-        v2PubOO = (v2PubOO + V2OOPub[5]) / 2.0;                                           // average 0-10%
+        v2PubOONoWeight = (V2OOPub[0] + V2OOPub[1] + V2OOPub[2] + V2OOPub[3] + V2OOPub[4]) / 5.0; // average 0-5%
+        v2PubOONoWeight = (v2PubOONoWeight + V2OOPub[5]) / 2.0;
+        v2PubOONWeight = (V2OOPub[0] * V2OOPubCentMid[0] + V2OOPub[1] * V2OOPubCentMid[1] + V2OOPub[2] * V2OOPubCentMid[2] + V2OOPub[3] * V2OOPubCentMid[3] + V2OOPub[4] * V2OOPubCentMid[4] + V2OOPub[5] * V2OOPubCentMid[5]) / (V2OOPubCentMid[0] + V2OOPubCentMid[1] + V2OOPubCentMid[2] + V2OOPubCentMid[3] + V2OOPubCentMid[4] + V2OOPubCentMid[5]); // average 0-10%
+        v2PubOO = (V2OOPubWeighted[0] + V2OOPubWeighted[1] + V2OOPubWeighted[2] + V2OOPubWeighted[3] + V2OOPubWeighted[4] + V2OOPubWeighted[5]) / (SigmaV2PubWeighted[0] + SigmaV2PubWeighted[1] + SigmaV2PubWeighted[2] + SigmaV2PubWeighted[3] + SigmaV2PubWeighted[4] + SigmaV2PubWeighted[5]);                                                        // average 0-10%
       }
       if (b == 2)
-        v2PubOO = (V2OOPub[6] + V2OOPub[7]) / 2.0; // average 10-20%
+      {
+        v2PubOONoWeight = (V2OOPub[6] + V2OOPub[7]) / 2.0;                                                                            // average 10-20%
+        v2PubOONWeight = (V2OOPub[6] * V2OOPubCentMid[6] + V2OOPub[7] * V2OOPubCentMid[7]) / (V2OOPubCentMid[6] + V2OOPubCentMid[7]); // average 10-20%
+        v2PubOO = (V2OOPubWeighted[6] + V2OOPubWeighted[7]) / (SigmaV2PubWeighted[6] + SigmaV2PubWeighted[7]);                        // average 10-20%
+      }
       if (b == 3)
-        v2PubOO = (V2OOPub[8] + V2OOPub[9]) / 2.0; // average 20-30%
+      {
+        v2PubOONoWeight = (V2OOPub[8] + V2OOPub[9]) / 2.0;                                                                            // average 20-30%
+        v2PubOONWeight = (V2OOPub[8] * V2OOPubCentMid[8] + V2OOPub[9] * V2OOPubCentMid[9]) / (V2OOPubCentMid[8] + V2OOPubCentMid[9]); // average 20-30%
+        v2PubOO = (V2OOPubWeighted[8] + V2OOPubWeighted[9]) / (SigmaV2PubWeighted[8] + SigmaV2PubWeighted[9]);                        // average 20-30%
+      }
       if (b == 4)
-        v2PubOO = (V2OOPub[10] + V2OOPub[11]) / 2.0; // average 30-40%
+      {
+        v2PubOONoWeight = (V2OOPub[10] + V2OOPub[11]) / 2.0;                                                                                // average 30-40%
+        v2PubOONWeight = (V2OOPub[10] * V2OOPubCentMid[10] + V2OOPub[11] * V2OOPubCentMid[11]) / (V2OOPubCentMid[10] + V2OOPubCentMid[11]); // average 30-40%
+        v2PubOO = (V2OOPubWeighted[10] + V2OOPubWeighted[11]) / (SigmaV2PubWeighted[10] + SigmaV2PubWeighted[11]);                          // average 30-40%
+      }
       if (b == 5)
-        v2PubOO = (V2OOPub[12] + V2OOPub[13]) / 2.0; // average 40-50%
+      {
+        v2PubOONoWeight = (V2OOPub[12] + V2OOPub[13]) / 2.0;                                                                                // average 40-50%
+        v2PubOONWeight = (V2OOPub[12] * V2OOPubCentMid[12] + V2OOPub[13] * V2OOPubCentMid[13]) / (V2OOPubCentMid[12] + V2OOPubCentMid[13]); // average 40-50%
+        v2PubOO = (V2OOPubWeighted[12] + V2OOPubWeighted[13]) / (SigmaV2PubWeighted[12] + SigmaV2PubWeighted[13]);                          // average 40-50%
+      }
       if (b == 6)
-        v2PubOO = (V2OOPub[14] + V2OOPub[15]) / 2.0; // average 50-60%
+      {
+        v2PubOONoWeight = (V2OOPub[14] + V2OOPub[15]) / 2.0;                                                                                // average 50-60%
+        v2PubOONWeight = (V2OOPub[14] * V2OOPubCentMid[14] + V2OOPub[15] * V2OOPubCentMid[15]) / (V2OOPubCentMid[14] + V2OOPubCentMid[15]); // average 50-60%
+        v2PubOO = (V2OOPubWeighted[14] + V2OOPubWeighted[15]) / (SigmaV2PubWeighted[14] + SigmaV2PubWeighted[15]);                          // average 50-60%
+      }
       if (b == 1)
       {
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[0] * V2OOPubErrStat[0] + V2OOPubErrStat[1] * V2OOPubErrStat[1] + V2OOPubErrStat[2] * V2OOPubErrStat[2] + V2OOPubErrStat[3] * V2OOPubErrStat[3] + V2OOPubErrStat[4] * V2OOPubErrStat[4]) / 5.0; // average 0-5%
-        v2PubOOErrStat = TMath::Sqrt(v2PubOOErrStat * v2PubOOErrStat + V2OOPubErrStat[5] * V2OOPubErrStat[5]) / 2.0;                                                                                                                               // average 0-10%
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[0] * V2OOPubErrStat[0] + V2OOPubErrStat[1] * V2OOPubErrStat[1] + V2OOPubErrStat[2] * V2OOPubErrStat[2] + V2OOPubErrStat[3] * V2OOPubErrStat[3] + V2OOPubErrStat[4] * V2OOPubErrStat[4]) / 5.0;                                                                                                                                                                                                          // average 0-5%
+        v2PubOONoWeightErrStat = TMath::Sqrt(v2PubOOErrStat * v2PubOOErrStat + V2OOPubErrStat[5] * V2OOPubErrStat[5]) / 2.0;                                                                                                                                                                                                                                                                                                                                        // average 0-10%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[0] + SigmaV2PubStat[1] + SigmaV2PubStat[2] + SigmaV2PubStat[3] + SigmaV2PubStat[4] + SigmaV2PubStat[5]);                                                                                                                                                                                                                                                                                                          // average 0-10%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[0] + V2OOPubCentMid[1] + V2OOPubCentMid[2] + V2OOPubCentMid[3] + V2OOPubCentMid[4] + V2OOPubCentMid[5]) * sqrt(pow(V2OOPubErrStat[0] * V2OOPubCentMid[0], 2) + pow(V2OOPubErrStat[1] * V2OOPubCentMid[1], 2) + pow(V2OOPubErrStat[2] * V2OOPubCentMid[2], 2) + pow(V2OOPubErrStat[3] * V2OOPubCentMid[3], 2) + pow(V2OOPubErrStat[4] * V2OOPubCentMid[4], 2) + pow(V2OOPubErrStat[5] * V2OOPubCentMid[5], 2)); // average 0-10%
       }
       if (b == 2)
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[6] * V2OOPubErrStat[6] + V2OOPubErrStat[7] * V2OOPubErrStat[7]) / 2.0; // average 10-20%
+      {
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[6] * V2OOPubErrStat[6] + V2OOPubErrStat[7] * V2OOPubErrStat[7]) / 2.0;                                                  // average 10-20%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[6] + SigmaV2PubStat[7]);                                                                                                          // average 10-20%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[6] + V2OOPubCentMid[7]) * sqrt(pow(V2OOPubErrStat[6] * V2OOPubCentMid[6], 2) + pow(V2OOPubErrStat[7] * V2OOPubCentMid[7], 2)); // average 10-20%
+      }
       if (b == 3)
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[8] * V2OOPubErrStat[8] + V2OOPubErrStat[9] * V2OOPubErrStat[9]) / 2.0; // average 20-30%
+      {
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[8] * V2OOPubErrStat[8] + V2OOPubErrStat[9] * V2OOPubErrStat[9]) / 2.0;                                                  // average 20-30%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[8] + SigmaV2PubStat[9]);                                                                                                          // average 20-30%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[8] + V2OOPubCentMid[9]) * sqrt(pow(V2OOPubErrStat[8] * V2OOPubCentMid[8], 2) + pow(V2OOPubErrStat[9] * V2OOPubCentMid[9], 2)); // average 20-30%
+      }
       if (b == 4)
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[10] * V2OOPubErrStat[10] + V2OOPubErrStat[11] * V2OOPubErrStat[11]) / 2.0; // average 30-40%
+      {
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[10] * V2OOPubErrStat[10] + V2OOPubErrStat[11] * V2OOPubErrStat[11]) / 2.0;                                                    // average 30-40%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[10] + SigmaV2PubStat[11]);                                                                                                              // average 30-40%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[10] + V2OOPubCentMid[11]) * sqrt(pow(V2OOPubErrStat[10] * V2OOPubCentMid[10], 2) + pow(V2OOPubErrStat[11] * V2OOPubCentMid[11], 2)); // average 30-40%
+      }
       if (b == 5)
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[12] * V2OOPubErrStat[12] + V2OOPubErrStat[13] * V2OOPubErrStat[13]) / 2.0; // average 40-50%
+      {
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[12] * V2OOPubErrStat[12] + V2OOPubErrStat[13] * V2OOPubErrStat[13]) / 2.0;                                                    // average 40-50%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[12] + SigmaV2PubStat[13]);                                                                                                              // average 40-50%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[12] + V2OOPubCentMid[13]) * sqrt(pow(V2OOPubErrStat[12] * V2OOPubCentMid[12], 2) + pow(V2OOPubErrStat[13] * V2OOPubCentMid[13], 2)); // average 40-50%
+      }
       if (b == 6)
-        v2PubOOErrStat = TMath::Sqrt(V2OOPubErrStat[14] * V2OOPubErrStat[14] + V2OOPubErrStat[15] * V2OOPubErrStat[15]) / 2.0; // average 50-60%
+      {
+        v2PubOONoWeightErrStat = TMath::Sqrt(V2OOPubErrStat[14] * V2OOPubErrStat[14] + V2OOPubErrStat[15] * V2OOPubErrStat[15]) / 2.0;                                                    // average 50-60%
+        v2PubOOErrStat = 1. / sqrt(SigmaV2PubStat[14] + SigmaV2PubStat[15]);                                                                                                              // average 50-60%
+        v2PubOONWeightErrStat = 1. / (V2OOPubCentMid[14] + V2OOPubCentMid[15]) * sqrt(pow(V2OOPubErrStat[14] * V2OOPubCentMid[14], 2) + pow(V2OOPubErrStat[15] * V2OOPubCentMid[15], 2)); // average 50-60%
+      }
       if (b == 1)
       {
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[0] * V2OOPubErrSyst[0] + V2OOPubErrSyst[1] * V2OOPubErrSyst[1] + V2OOPubErrSyst[2] * V2OOPubErrSyst[2] + V2OOPubErrSyst[3] * V2OOPubErrSyst[3] + V2OOPubErrSyst[4] * V2OOPubErrSyst[4]) / 5.0; // average 0-5%
-        v2PubOOErrSyst = TMath::Sqrt(v2PubOOErrSyst * v2PubOOErrSyst + V2OOPubErrSyst[5] * V2OOPubErrSyst[5]) / 2.0;                                                                                                                               // average 0-10%
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[0] * V2OOPubErrSyst[0] + V2OOPubErrSyst[1] * V2OOPubErrSyst[1] + V2OOPubErrSyst[2] * V2OOPubErrSyst[2] + V2OOPubErrSyst[3] * V2OOPubErrSyst[3] + V2OOPubErrSyst[4] * V2OOPubErrSyst[4]) / 5.0; // average 0-5%
+        // v2PubOOErrSyst = TMath::Sqrt(v2PubOOErrSyst * v2PubOOErrSyst + V2OOPubErrSyst[5] * V2OOPubErrSyst[5]) / 2.0;                                                                                                                               // average 0-10%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[0] + SigmaV2PubSyst[1] + SigmaV2PubSyst[2] + SigmaV2PubSyst[3] + SigmaV2PubSyst[4] + SigmaV2PubSyst[5]);                                                                                                                                                                                                                                                                                                          // average 0-10%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[0] + V2OOPubCentMid[1] + V2OOPubCentMid[2] + V2OOPubCentMid[3] + V2OOPubCentMid[4] + V2OOPubCentMid[5]) * sqrt(pow(V2OOPubErrSyst[0] * V2OOPubCentMid[0], 2) + pow(V2OOPubErrSyst[1] * V2OOPubCentMid[1], 2) + pow(V2OOPubErrSyst[2] * V2OOPubCentMid[2], 2) + pow(V2OOPubErrSyst[3] * V2OOPubCentMid[3], 2) + pow(V2OOPubErrSyst[4] * V2OOPubCentMid[4], 2) + pow(V2OOPubErrSyst[5] * V2OOPubCentMid[5], 2)); // average 0-10%
       }
       if (b == 2)
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[6] * V2OOPubErrSyst[6] + V2OOPubErrSyst[7] * V2OOPubErrSyst[7]) / 2.0; // average 10-20%
+      {
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[6] * V2OOPubErrSyst[6] + V2OOPubErrSyst[7] * V2OOPubErrSyst[7]) / 2.0; // average 10-20%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[6] + SigmaV2PubSyst[7]);                                                                                                          // average 10-20%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[6] + V2OOPubCentMid[7]) * sqrt(pow(V2OOPubErrSyst[6] * V2OOPubCentMid[6], 2) + pow(V2OOPubErrSyst[7] * V2OOPubCentMid[7], 2)); // average 10-20%
+      }
       if (b == 3)
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[8] * V2OOPubErrSyst[8] + V2OOPubErrSyst[9] * V2OOPubErrSyst[9]) / 2.0; // average 20-30%
+      {
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[8] * V2OOPubErrSyst[8] + V2OOPubErrSyst[9] * V2OOPubErrSyst[9]) / 2.0; // average 20-30%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[8] + SigmaV2PubSyst[9]);                                                                                                          // average 20-30%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[8] + V2OOPubCentMid[9]) * sqrt(pow(V2OOPubErrSyst[8] * V2OOPubCentMid[8], 2) + pow(V2OOPubErrSyst[9] * V2OOPubCentMid[9], 2)); // average 20-30%
+      }
       if (b == 4)
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[10] * V2OOPubErrSyst[10] + V2OOPubErrSyst[11] * V2OOPubErrSyst[11]) / 2.0; // average 30-40%
+      {
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[10] * V2OOPubErrSyst[10] + V2OOPubErrSyst[11] * V2OOPubErrSyst[11]) / 2.0; // average 30-40%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[10] + SigmaV2PubSyst[11]);                                                                                                              // average 30-40%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[10] + V2OOPubCentMid[11]) * sqrt(pow(V2OOPubErrSyst[10] * V2OOPubCentMid[10], 2) + pow(V2OOPubErrSyst[11] * V2OOPubCentMid[11], 2)); // average 30-40%
+      }
       if (b == 5)
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[12] * V2OOPubErrSyst[12] + V2OOPubErrSyst[13] * V2OOPubErrSyst[13]) / 2.0; // average 40-50%
+      {
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[12] * V2OOPubErrSyst[12] + V2OOPubErrSyst[13] * V2OOPubErrSyst[13]) / 2.0; // average 40-50%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[12] + SigmaV2PubSyst[13]);                                                                                                              // average 40-50%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[12] + V2OOPubCentMid[13]) * sqrt(pow(V2OOPubErrSyst[12] * V2OOPubCentMid[12], 2) + pow(V2OOPubErrSyst[13] * V2OOPubCentMid[13], 2)); // average 40-50%
+      }
       if (b == 6)
-        v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[14] * V2OOPubErrSyst[14] + V2OOPubErrSyst[15] * V2OOPubErrSyst[15]) / 2.0; // average 50-60%
+      {
+        // v2PubOOErrSyst = TMath::Sqrt(V2OOPubErrSyst[14] * V2OOPubErrSyst[14] + V2OOPubErrSyst[15] * V2OOPubErrSyst[15]) / 2.0; // average 50-60%
+        v2PubOOErrSyst = 1. / sqrt(SigmaV2PubSyst[14] + SigmaV2PubSyst[15]);                                                                                                              // average 50-60%
+        v2PubOONWeightErrSyst = 1. / (V2OOPubCentMid[14] + V2OOPubCentMid[15]) * sqrt(pow(V2OOPubErrSyst[14] * V2OOPubCentMid[14], 2) + pow(V2OOPubErrSyst[15] * V2OOPubCentMid[15], 2)); // average 50-60%
+      }
       gV2vsPzsOO->SetPoint(b - 1, v2PubOO, fHistPzs->GetBinContent(b));
       gV2vsPzsOO->SetPointError(b - 1, v2PubOOErrStat, fHistPzs->GetBinError(b));
       gV2vsPzsOOSyst->SetPoint(b - 1, v2PubOO, fHistPzs->GetBinContent(b));
       gV2vsPzsOOSyst->SetPointError(b - 1, v2PubOOErrSyst, fHistPzsSist->GetBinError(b));
+
+      gV2NoWeightvsPzsOO->SetPoint(b - 1, v2PubOONoWeight, fHistPzs->GetBinContent(b));
+      gV2NoWeightvsPzsOO->SetPointError(b - 1, v2PubOONoWeightErrStat, fHistPzs->GetBinError(b));
+
+      gV2NWeightvsPzsOO->SetPoint(b - 1, v2PubOONWeight, fHistPzs->GetBinContent(b));
+      gV2NWeightvsPzsOO->SetPointError(b - 1, v2PubOONWeightErrStat, fHistPzs->GetBinError(b));
+      gV2NWeightvsPzsOOSyst->SetPoint(b - 1, v2PubOONWeight, fHistPzs->GetBinContent(b));
+      gV2NWeightvsPzsOOSyst->SetPointError(b - 1, v2PubOONWeightErrSyst, fHistPzsSist->GetBinError(b));
 
       gV2vsEccentricityOO->SetPoint(b - 1, EccOO[b - 1], v2PubOO);
       gV2vsEccentricityOO->SetPointError(b - 1, 0, v2PubOOErrStat);
@@ -1638,10 +1736,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     TGraphErrors *gV2vsMultiplicityPbPbSyst = new TGraphErrors(numV2PbPbPubCent);
     for (Int_t b = 1; b <= numV2PbPbPubCent; b++)
     {
-      gV2vsPzsPbPb->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
-      gV2vsPzsPbPb->SetPointError(b - 1, V2PbPbPubErrStat[b - 1], fHistPzsLambdaJunlee->GetBinError(b));
-      gV2vsPzsPbPbSyst->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
-      gV2vsPzsPbPbSyst->SetPointError(b - 1, V2PbPbPubErrSys[b - 1], fHistPzsLambdaJunleeSist->GetBinError(b));
+      // gV2vsPzsPbPb->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
+      // gV2vsPzsPbPb->SetPointError(b - 1, V2PbPbPubErrStat[b - 1], fHistPzsLambdaJunlee->GetBinError(b));
+      // gV2vsPzsPbPbSyst->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambdaJunlee->GetBinContent(b));
+      // gV2vsPzsPbPbSyst->SetPointError(b - 1, V2PbPbPubErrSys[b - 1], fHistPzsLambdaJunleeSist->GetBinError(b));
+      gV2vsPzsPbPb->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambda->GetBinContent(b));
+      gV2vsPzsPbPb->SetPointError(b - 1, V2PbPbPubErrStat[b - 1], fHistPzsLambda->GetBinError(b));
+      gV2vsPzsPbPbSyst->SetPoint(b - 1, V2PbPbPub[b - 1], fHistPzsLambda->GetBinContent(b));
+      gV2vsPzsPbPbSyst->SetPointError(b - 1, V2PbPbPubErrSys[b - 1], fHistPzsLambdaSist->GetBinError(b));
       // cout << "PbPb Cent bin " << b << " Pzs " << fHistPzsLambdaJunlee->GetBinContent(b) << " v2 " << V2PbPbPub[b - 1] << " +/- " << V2PbPbPubErrStat[b - 1] << endl;
 
       gV2vsEccentricityPbPb->SetPoint(b - 1, EccPbPb[b - 1], V2PbPbPub[b - 1]);
@@ -1665,24 +1767,67 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       gV2vsMultiplicityPbPbSyst->SetPointError(b - 1, dNdEtaAbhiErr[b - 1], V2PbPbPubErrSys[b - 1]);
     }
     gV2vsPzsOO->SetMarkerStyle(20);
+    gV2vsPzsOO->SetMarkerSize(1.45);
     gV2vsPzsOO->SetMarkerColor(ColorOO);
     gV2vsPzsOO->SetLineColor(ColorOO);
-    gV2vsPzsOO->Draw("same p");
+    // gV2vsPzsOO->Draw("same p");
+    //  gV2NoWeightvsPzsOO->Draw("same p");
+    gV2NWeightvsPzsOO->SetMarkerStyle(20);
+    gV2NWeightvsPzsOO->SetMarkerSize(1.45);
+    gV2NWeightvsPzsOO->SetMarkerColor(ColorOO);
+    gV2NWeightvsPzsOO->SetLineColor(ColorOO);
+    gV2NWeightvsPzsOO->Draw("same p");
     gV2vsPzsOOSyst->SetMarkerStyle(20);
     gV2vsPzsOOSyst->SetFillStyle(0);
     gV2vsPzsOOSyst->SetMarkerColor(ColorOO);
     gV2vsPzsOOSyst->SetFillColor(ColorOO);
     gV2vsPzsOOSyst->SetLineColor(ColorOO);
-    gV2vsPzsOOSyst->Draw("same p2");
-    gV2vsPzsPbPb->SetMarkerStyle(21);
+    // gV2vsPzsOOSyst->Draw("same p2");
+    gV2NWeightvsPzsOOSyst->SetMarkerStyle(20);
+    gV2NWeightvsPzsOOSyst->SetMarkerSize(1.45);
+    gV2NWeightvsPzsOOSyst->SetFillStyle(0);
+    gV2NWeightvsPzsOOSyst->SetMarkerColor(ColorOO);
+    gV2NWeightvsPzsOOSyst->SetFillColor(ColorOO);
+    gV2NWeightvsPzsOOSyst->SetLineColor(ColorOO);
+    gV2NWeightvsPzsOOSyst->Draw("same p2");
+    gV2vsPzsPbPb->SetMarkerStyle(47);
+    gV2vsPzsPbPb->SetMarkerSize(1.7);
     gV2vsPzsPbPb->SetMarkerColor(colorJunlee);
     gV2vsPzsPbPb->SetLineColor(colorJunlee);
     gV2vsPzsPbPb->Draw("same p");
-    gV2vsPzsPbPbSyst->SetMarkerStyle(21);
+    gV2vsPzsPbPbSyst->SetMarkerStyle(47);
+    gV2vsPzsPbPbSyst->SetMarkerSize(1.7);
     gV2vsPzsPbPbSyst->SetFillStyle(0);
     gV2vsPzsPbPbSyst->SetMarkerColor(colorJunlee);
     gV2vsPzsPbPbSyst->SetLineColor(colorJunlee);
     gV2vsPzsPbPbSyst->Draw("same p2");
+    LegendPreliminary3->Draw("");
+    // TLegend *legendPzsV2 = new TLegend(0.14, 0.7, 0.51, 0.83); //1 column
+    TLegend *legendPzsV2 = new TLegend(0.14, 0.75, 0.8, 0.83);
+    legendPzsV2->SetNColumns(2);
+    legendPzsV2->SetFillStyle(0);
+    legendPzsV2->SetTextAlign(12);
+    legendPzsV2->SetTextSize(0.035);
+    legendPzsV2->SetMargin(0.18);
+    // legendPzsV2->AddEntry(fHistPzs, Form("OO #sqrt{#it{s}_{NN}} = 5.36 TeV, #it{P}_{z,s2}: %s, |#it{#eta}| < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", titleLambda.Data(), MinPt[ChosenPart]), "pef");
+    // legendPzsV2->AddEntry("", Form("#nu_{2} {2, |#Delta#eta| > 1.4} arXiv:2509.06428"), "");
+    // legendPzsV2->AddEntry(fHistPzsLambda, Form("Pb#minusPb #sqrt{#it{s}_{NN}} = 5.02 TeV"), "pef");
+    // legendPzsV2->AddEntry("", Form("#it{P}_{z,s2}: %s, |#it{y}| < 0.5, #it{p}_{T} > 0.5 GeV/#it{c}, Phys.Rev.Lett. 128 (2022) 172005", titleLambda.Data()), "");
+    // legendPzsV2->AddEntry("", Form("#nu_{2} {2, |#Delta#eta| > 1}: 	Phys. Rev. Lett. 116 (2016) 132302"), "");
+    // legendPzsV2->AddEntry(fHistPzs, Form("OO #sqrt{#it{s}_{NN}} = 5.36 TeV, arXiv:2509.06428"), "pef");
+    legendPzsV2->AddEntry(fHistPzs, Form("OO #sqrt{#it{s}_{NN}} = 5.36 TeV"), "pef");
+    // legendPzsV2->AddEntry(fHistPzsLambda, Form("Pb#minusPb #sqrt{#it{s}_{NN}} = 5.02 TeV, Phys. Rev. Lett. 116 (2016) 132302"), "pef");
+    legendPzsV2->AddEntry(gV2vsPzsPbPb, Form("Pb#minusPb #sqrt{#it{s}_{NN}} = 5.02 TeV"), "pef");
+    // legendPzsV2->AddEntry("", Form("Phys.Rev.Lett. 128 (2022) 172005"), "");
+    legendPzsV2->Draw("");
+    // TLegend *legendData3 = new TLegend(0.08, 0.557, 0.43, 0.757);
+    TLegend *legendData3 = new TLegend(0.08, 0.61, 0.43, 0.81);
+    legendData3->SetMargin(0.18);
+    legendData3->SetFillStyle(0);
+    legendData3->SetTextAlign(12);
+    legendData3->SetTextSize(0.035);
+    legendData3->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
+    legendData3->Draw("");
     canvasV2vsPzs->SaveAs("../V2vsPzs.pdf");
     canvasV2vsPzs->SaveAs("../V2vsPzs.png");
     canvasV2vsPzs->SaveAs("../V2vsPzs.eps");
