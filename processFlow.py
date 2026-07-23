@@ -40,8 +40,8 @@ if not isXi:
     preselection_string_mass = 'fMassOmega > 1.63 and fMassOmega < 1.73'
     preselection_sidebands = 'fMassOmega > 1.656 and fMassOmega < 1.662 or fMassOmega > 1.683 and fMassOmega < 1.689'
     #competing mass rejection
-    #competing_mass_rejection = 'fMassXi < 1.308 and fMassXi > 1.334' #5sigma window
-    competing_mass_rejection = 'fMassXi < 1.3135 and fMassXi > 1.3285' #3sigma window
+    #competing_mass_rejection = 'fMassXi < 1.308 or fMassXi > 1.334' #5sigma window
+    competing_mass_rejection = 'fMassXi < 1.3135 or fMassXi > 1.3285' #3sigma window
     
 sigCandidates.apply_preselections(preselection_string_sig)
 sigCandidates.apply_preselections(preselection_string_common)
