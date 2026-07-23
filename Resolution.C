@@ -17,8 +17,8 @@
 #include <TFile.h>
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
-//#include "CommonVarLambda.h"
-//#include "CommonVar_v2.h"
+// #include "CommonVarLambda.h"
+// #include "CommonVar_v2.h"
 #include "CommonVarOmega.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t TopMargin, Float_t BottomMargin, Float_t LeftMargin, Float_t RightMargin)
@@ -39,7 +39,7 @@ void StyleCanvas(TCanvas *canvas, Float_t TopMargin, Float_t BottomMargin, Float
 // 1 --> resolution for SP method
 // 0 --> resolution for EP method
 
-void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
+void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrected = 1)
 {
 
   TString ComputeResoFileName = "../TreeForAnalysis/AnalysisResults_";
@@ -73,24 +73,28 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
     // nameQV0ATPCA = "QVectorsNormV0ATPCA";
     // nameQV0ATPCC = "QVectorsNormV0ATPCC";
 
-    // the following names are to compute resolution AFTER shift correction (the right thing to do!)
-    nameQT0CTPCA = "QVectorsT0CTPCA_Shifted";
-    nameQT0CTPCC = "QVectorsT0CTPCC_Shifted";
-    nameQTPCAC = "QVectorsTPCAC_Shifted";
-    nameQT0CV0A = "QVectorsT0CV0A_Shifted";
-    nameQV0ATPCA = "QVectorsV0ATPCA_Shifted";
-    nameQV0ATPCC = "QVectorsV0ATPCC_Shifted";
-    nameQT0CT0A = "QVectorsT0CT0A_Shifted";
-    nameQT0ATPCA = "QVectorsT0ATPCA_Shifted";
-    nameQT0ATPCC = "QVectorsT0ATPCC_Shifted";
-    
-    // the following names are to compute resolution BEFORE shift correction (not ideal unless shift correction is not needed!)
-    //nameQT0CTPCA = "EP_T0CTPCA";
-    //nameQT0CTPCC = "EP_T0CTPCC";
-    //nameQTPCAC = "EP_TPCAC";
-    //nameQT0CV0A = "EP_T0CV0A";
-    //nameQV0ATPCA = "EP_V0ATPCA";
-    //nameQV0ATPCC = "EP_V0ATPCC";
+    if (isShiftCorrected) // the following names are to compute resolution AFTER shift correction (the right thing to do!)
+    {
+      nameQT0CTPCA = "QVectorsT0CTPCA_Shifted";
+      nameQT0CTPCC = "QVectorsT0CTPCC_Shifted";
+      nameQTPCAC = "QVectorsTPCAC_Shifted";
+      nameQT0CV0A = "QVectorsT0CV0A_Shifted";
+      nameQV0ATPCA = "QVectorsV0ATPCA_Shifted";
+      nameQV0ATPCC = "QVectorsV0ATPCC_Shifted";
+      nameQT0CT0A = "QVectorsT0CT0A_Shifted";
+      nameQT0ATPCA = "QVectorsT0ATPCA_Shifted";
+      nameQT0ATPCC = "QVectorsT0ATPCC_Shifted";
+    }
+    else
+    {
+      // the following names are to compute resolution BEFORE shift correction (not ideal unless shift correction is not needed!)
+      nameQT0CTPCA = "EP_T0CTPCA";
+      nameQT0CTPCC = "EP_T0CTPCC";
+      nameQTPCAC = "EP_TPCAC";
+      nameQT0CV0A = "EP_T0CV0A";
+      nameQV0ATPCA = "EP_V0ATPCA";
+      nameQV0ATPCC = "EP_V0ATPCC";
+    }
   }
 
   cout << "InputFile: " << ComputeResoFileName << endl;
@@ -521,7 +525,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1)
   legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
-  //TString Soutputfile = "../";
+  // TString Soutputfile = "../";
   TString Soutputfile = "";
   if (!isSPReso)
   { // event plane method
