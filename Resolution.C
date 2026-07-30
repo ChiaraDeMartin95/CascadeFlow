@@ -158,6 +158,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   TH1D *hReso = new TH1D("hReso", "hReso", numCent, fCentFT0C);
   if (isOOCentrality)
     hReso = new TH1D("hReso", "hReso", numCentLambdaOO, fCentFT0CLambdaOO);
+  if (ExtrisCentOmegaRed)
+    hReso = new TH1D("hReso", "hReso", numCentOmegaRed, fCentFT0COmegaRed);
   TH1D *hResoV0ATPCA = (TH1D *)hReso->Clone("hResoV0ATPCA");
   TH1D *hResoV0ATPCC = (TH1D *)hReso->Clone("hResoV0ATPCC");
   TH1D *hResoT0ATPCA = (TH1D *)hReso->Clone("hResoT0ATPCA");
@@ -181,6 +183,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   Int_t commonnumCent = numCent;
   if (isOOCentrality)
     commonnumCent = numCentLambdaOO;
+  if (ExtrisCentOmegaRed)
+    commonnumCent = numCentOmegaRed;
   for (Int_t cent = 0; cent < commonnumCent + 1; cent++)
   {
 
@@ -202,6 +206,11 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
       {
         CentFT0CMin = CentFT0CLambdaOO[cent];
         CentFT0CMax = CentFT0CLambdaOO[cent + 1];
+      }
+      if (ExtrisCentOmegaRed)
+      {
+        CentFT0CMin = CentFT0COmegaRed[cent];
+        CentFT0CMax = CentFT0COmegaRed[cent + 1];
       }
     }
     cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << "%" << endl;
@@ -541,6 +550,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     else
       Soutputfile += ResoFileName_SPCFW;
   }
+  if (ExtrisCentOmegaRed)
+    Soutputfile += "_RedCentralityForOmega";
   canvas->SaveAs(Soutputfile + ".pdf");
   canvas->SaveAs(Soutputfile + ".png");
   canvas->SaveAs(Soutputfile + ".eps");
