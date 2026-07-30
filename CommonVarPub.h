@@ -61,7 +61,7 @@ Int_t CentFT0CXiRed[numCentXiRed + 1] = {0, 30, 50, 70};
 Double_t fCentFT0CXiRed[numCentXiRed + 1] = {0, 30, 50, 70};
 
 // Centrality Pb-Pb (Omega)
-Bool_t ExtrisCentOmegaRed = 0; // 1 for reduced centrality bins for Omega in Pb-Pb
+Bool_t ExtrisCentOmegaRed = 1; // 1 for reduced centrality bins for Omega in Pb-Pb
 const Int_t numCentOmega = 8;
 Double_t CentFT0CMaxOmega = 80;
 Int_t CentFT0COmega[numCentOmega + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80};

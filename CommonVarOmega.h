@@ -21,8 +21,8 @@ Bool_t isReducedPtBins = 0;         // 1 for Lambda in OO
 Bool_t isOOCentrality = 0;          // 1 for Lambda in OO
 Bool_t isRun2Binning = 0;
 
-const Int_t commonNumCent = 8; //numCentOmega for Omega in Pb-Pb
-//const Int_t commonNumCent = 3; // numCentOmega for Omega in Pb-Pb (reduced binning)
+// const Int_t commonNumCent = 8; //numCentOmega for Omega in Pb-Pb
+const Int_t commonNumCent = 3; // numCentOmega for Omega in Pb-Pb (reduced binning)
 
 // Pt bins
 const Int_t numPtBins = 5;
@@ -43,36 +43,36 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 
 // File names
 // TString SinputFileName = "LHC23_PbPb_pass5_Train648261"; //non flat event plane, pass4 training
-//TString SinputFileName = "LHC23_PbPb_pass5_Train653834"; // flat event plane, pass4 training
-//TString SinputFileName = "LHC24ar_pass3_Train658233"; //first test on 2024 pass3 data (small sample) - no event plane shift correction applied in my task
-//TString SinputFileName = "LHC24ar_pass3_Train679350"; //first test on 2024 pass3 data (small sample) - no event plane shift correction applied in my task
-//TString SinputFileName = "LHC24ar_pass3_small_Train679749"; //full tree in output for topological selections studies (can be used to study Pz after applying BDT selections and/or topological selections)
-//TString SinputFileName = "LHC24ar_pass3_small_Train679750"; //regular tree in output (can be used to study Pz after applying BDT selections)
+// TString SinputFileName = "LHC23_PbPb_pass5_Train653834"; // flat event plane, pass4 training
+// TString SinputFileName = "LHC24ar_pass3_Train658233"; //first test on 2024 pass3 data (small sample) - no event plane shift correction applied in my task
+// TString SinputFileName = "LHC24ar_pass3_Train679350"; //first test on 2024 pass3 data (small sample) - no event plane shift correction applied in my task
+// TString SinputFileName = "LHC24ar_pass3_small_Train679749"; //full tree in output for topological selections studies (can be used to study Pz after applying BDT selections and/or topological selections)
+// TString SinputFileName = "LHC24ar_pass3_small_Train679750"; //regular tree in output (can be used to study Pz after applying BDT selections)
 // TString SinputFileName = "Test2024";
-//TString SinputFileName = "LHC24ar_pass3_small_Train694586"; //THN, vs inv mass Lambda (no inv mass Omega)
-//TString SinputFileName = "LHC24ar_pass3_small_Train697139"; //THN, vs inv mass Lambda (no inv mass Omega)
-//TString SinputFileName = "LHC25_PbPb_pass1_Train697137"; //THN, vs inv mass Lambda (no inv mass Omega)
-//TString SinputFileName = "LHC25_PbPb_pass1_Train714874"; //Pzs2 on full 2025 sample, acceptance and ML training from 2023
-//TString SinputFileName = "LHC23_PbPb_pass5_Train718809"; //Pzs2 on full 2023 sample, acceptance and ML training from 2023
-//TString SinputFileName = "LHC24ar_pass3_Train719178"; //Pzs2 on full 2024 sample, acceptance from 2024, ML training from 2023
-TString SinputFileName = "LHC25_PbPb_pass1_Train719001"; //Pzs2 on full 2025 sample, acceptance from 2025, ML training from 2023
-
+// TString SinputFileName = "LHC24ar_pass3_small_Train694586"; //THN, vs inv mass Lambda (no inv mass Omega)
+// TString SinputFileName = "LHC24ar_pass3_small_Train697139"; //THN, vs inv mass Lambda (no inv mass Omega)
+// TString SinputFileName = "LHC25_PbPb_pass1_Train697137"; //THN, vs inv mass Lambda (no inv mass Omega)
+// TString SinputFileName = "LHC25_PbPb_pass1_Train714874"; //Pzs2 on full 2025 sample, acceptance and ML training from 2023
+TString SinputFileName = "LHC23_PbPb_pass5_Train718809"; // Pzs2 on full 2023 sample, acceptance and ML training from 2023
+// TString SinputFileName = "LHC24ar_pass3_Train719178"; //Pzs2 on full 2024 sample, acceptance from 2024, ML training from 2023, never run
+// TString SinputFileName = "LHC25_PbPb_pass1_Train719001"; //Pzs2 on full 2025 sample, acceptance from 2025, ML training from 2023, never run
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
 
 // Reso
-//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
-//TString SinputFileNameReso = "LHC25_PbPb_pass1_Train714874";
+// TString SinputFileNameReso = "LHC23_PbPb_pass5_Train563856";
+// TString SinputFileNameReso = "LHC25_PbPb_pass1_Train714874";
 // TString SinputFileNameReso = "LHC24ar_pass3_Train658233";
-//TString SinputFileNameReso = "LHC23_PbPb_pass5_Train718809";
-//TString SinputFileNameReso = "LHC24ar_pass3_Train719178";
-TString SinputFileNameReso = "LHC25_PbPb_pass1_Train719001"; 
+TString SinputFileNameReso = "LHC23_PbPb_pass5_Train718809";
+// TString SinputFileNameReso = "LHC24ar_pass3_Train719178";
+// TString SinputFileNameReso = "LHC25_PbPb_pass1_Train719001";
 TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train653834";
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train653834";
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train718809";
 
 // MC file for Lambda feed-down fraction
 TString SinputFileNameFDFraction = "LHC25h3b_pass2_Train591313";
@@ -107,7 +107,7 @@ const float LimitForV2woFit = 0.97;                                             
 bool isTightMassCut = 1;                                                                       // 1 for tight mass cut, 0 for loose mass cut
 float Extrsigmacentral[2] = {4.2, 2.1};                                                        // 2.1
 // const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
-// const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
+// const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8};
 const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1] for Xi;
 
