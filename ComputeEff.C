@@ -15,7 +15,7 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-// #include "CommonVar.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "StyleFile.h"
 #include "TGraphErrors.h"
