@@ -19,6 +19,7 @@
 #include "TString.h"
 #include "TPad.h"
 #include "StyleFile.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "TRandom3.h"
 #include "TKey.h"
@@ -52,20 +53,22 @@ Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
-Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-20, -23, -30, -35, -40, -60, -70, -120, -180, -400, -600};
+Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-30, -35, -40, -45, -60, -70, -100, -140, -200, -1000, -60}; //600 for 0-100%
 Float_t MinPzs2WithAlphaXi = -2.8;
 Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
-Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {20, 23, 30, 35, 40, 60, 70, 120, 180, 400, 600};
+Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {30, 35, 40, 45, 60, 70, 100, 140, 200, 1000, 60}; //600 for 0-100%
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
 const Int_t NPzs2 = 400;
 Double_t PzsBinsLambda[NPzs2 + 1];
 
-Float_t MinPz = -1;
+Float_t MinPz = -10;
+Float_t MaxPz = 10;
+Float_t MinPzReso[numCentLambdaOO +1] = {-32, -36, -40, -50, -60, -80, -120, -150, -250, -800, -60};
 Float_t MinPzWithAlphaXi = -2.8;
 Float_t MinPzWithAlphaOmega = -65;
-Float_t MaxPz = 1;
+Float_t MaxPzReso[numCentLambdaOO +1] = {32, 36, 40, 50, 60, 80, 120, 150, 250, 800, 60};
 Float_t MaxPzWithAlphaXi = 2.8;
 Float_t MaxPzWithAlphaOmega = 65;
 Int_t NPz = 200;
@@ -85,6 +88,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   auto start = std::chrono::high_resolution_clock::now();
   ROOT::EnableImplicitMT(50);
+  TH1::SetDefaultSumw2();
 
   string v2Chosen = "fV2CEP";
 
@@ -111,7 +115,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   }
 
   std::vector<std::string> name;
-  TString filename = "input_" + inputFileName + ".txt";
+  TString filename = "input_" + inputFileName + "_New.txt";
   std::ifstream fileIn(Form("%s", filename.Data()));
 
   cout << filename.Data() << endl;
@@ -435,6 +439,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   // OutputFileName += "_CorrectReso";
   if (isSystReso)
     OutputFileName += "_SystReso";
+  OutputFileName += "_050";  
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -454,10 +459,9 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   std::vector<ROOT::RDF::RResultPtr<TH2D>> massvsptVector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsV2CVector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2Vector;
+  std::vector<ROOT::RDF::RResultPtr<TH2D>> massVsPzs2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVector;
-
-  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsPzs2VectorWithAlpha; // decay parameter included in the calculation
-  std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsPzVectorWithAlpha;  // decay parameter included in the calculation
+  std::vector<ROOT::RDF::RResultPtr<TH2D>> massVsPzVector;
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsCos2Vector;
@@ -515,11 +519,16 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight";
   df_selected = df_selected.Define("fPzs2LambdaFinal", SPzs2LambdaFinal);
 
+  string SPzLambdaFinal = "fCosThetaLambda";
+  if (isApplyResoOnTheFly)
+    SPzLambdaFinal = "fCosThetaLambda/fResoWeight";
+  df_selected = df_selected.Define("fPzLambdaFinal", SPzLambdaFinal);
+
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
     if (cent == numCentLambdaOO)
-    { // 0-100%
+    { // 0-50%
       CentFT0CMin = 0;
       CentFT0CMax = CentFT0CMaxLambdaOO;
     }
@@ -537,6 +546,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
       {
         MinPzs2 = MinPzs2Reso[cent];
         MaxPzs2 = MaxPzs2Reso[cent];
+        MinPz = MinPzReso[cent];
+        MaxPz = MaxPzReso[cent];
       }
     }
 
@@ -592,12 +603,18 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.09, 1.14, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassLambda", "fPt", v2Chosen);
     massVsPtVsV2CVector.push_back(massVsPtVsV2C);
 
-    auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 20, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fCosThetaLambda");
+    auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
     massVsPsiVsPzVector.push_back(massVsPsiVsPz);
+
+    auto massVsPz = dcent.Histo2D({Form("massVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pz", 80, 1.09, 1.14, NPz, MinPz, MaxPz}, "fMassLambda", "fPzLambdaFinal", "fTotalWeight");
+    massVsPzVector.push_back(massVsPz);
+
+    auto massVsPzs2 = dcent.Histo2D({Form("massVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pzs2", numLambdaMassBins, LambdaMassBins, NPzs2, PzsBinsLambda}, "fMassLambda", "fPzs2LambdaFinal", "fTotalWeight");
+    massVsPzs2Vector.push_back(massVsPzs2);
 
     auto massVsPtVsCos2 = dcent.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.09, 1.14, 100, 0, 10, 100, 0, 1}, "fMassLambda", "fPt", "fCos2ThetaLambda");
     massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
-    auto massVsPsiVsCos2 = dcent.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.09, 1.14, 20, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassLambda", "f2PsiDiffCorr", "fCos2ThetaLambda");
+    auto massVsPsiVsCos2 = dcent.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassLambda", "f2PsiDiffCorr", "fCos2ThetaLambda");
     massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
   }
 
@@ -734,8 +751,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     */
     massvsptVector[cent]->Write();
     massVsPtVsPzs2Vector[cent]->Write();
+    massVsPzs2Vector[cent]->Write();
     massVsPtVsV2CVector[cent]->Write();
     massVsPsiVsPzVector[cent]->Write();
+    massVsPzVector[cent]->Write();
     massVsPtVsCos2Vector[cent]->Write();
     massVsPsiVsCos2Vector[cent]->Write();
     PsiDiffVector[cent]->Write();
