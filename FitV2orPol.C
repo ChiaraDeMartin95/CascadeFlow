@@ -17,9 +17,9 @@
 #include "TLegend.h"
 #include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
-#include "CommonVarOmega.h"
+// #include "CommonVarOmega.h"
 // #include "CommonVarXi.h"
-//  #include "CommonVarLambda.h"
+#include "CommonVarLambda.h"
 #include "Fit/Fitter.h"
 #include "Fit/BinData.h"
 #include "Fit/Chi2FCN.h"
@@ -655,6 +655,8 @@ void FitV2orPol(
       fileResoName = "../" + ResoFileName_EPLF;
   }
   fileResoName = ResoFileName_EPCFW;
+  if (ExtrisCentOmegaRed)
+    fileResoName += "_RedCentralityForOmega";
   fileResoName += ".root";
   if (ChosenPart >= 6)
     fileResoName = "../Resolution/" + SinputFileNameResoWeight;
@@ -692,7 +694,13 @@ void FitV2orPol(
     if (mul == numCent)
       ftcReso[mul] = hReso080->GetBinContent(1);
     else
+    {
+      if (ExtrisCentOmegaRed)
+      {
+        ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0COmegaRed[mul] + 0.001));
+      }
       ftcReso[mul] = hReso->GetBinContent(hReso->FindBin(CentFT0COmega[mul] + 0.001));
+    }
   }
   cout << "Centrality: " << CentFT0CMin << "-" << CentFT0CMax << endl;
   cout << "Resolution: " << ftcReso[mul] << endl;
@@ -987,6 +995,8 @@ void FitV2orPol(
       SPathIn += "_OmegaRedCent";
     if (ExtrisCentXiRed && part == 0)
       SPathIn += "_XiRedCent";
+    if (ChosenPart >= 6)
+      SPathIn += "_050";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -1444,10 +1454,11 @@ void FitV2orPol(
       {
         total[pt]->SetParLimits(0, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
         total[pt]->SetParLimits(1, 1.66, 1.68);
-        total[pt]->SetParLimits(2, 0.002, 0.01);
-        total[pt]->SetParLimits(3, 0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
+        // total[pt]->SetParLimits(2, 0.002, 0.01);
+        total[pt]->SetParLimits(2, 0.0001, 0.01);
+        total[pt]->SetParLimits(3, 0.02 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
         total[pt]->SetParLimits(4, 1.66, 1.68);
-        total[pt]->SetParLimits(5, 0.001, 0.01);
+        total[pt]->SetParLimits(5, 0.001, 0.007); // 0.01
         if (isMeanFixedPDG)
         {
           total[pt]->FixParameter(1, ParticleMassPDG[ChosenPart]);
@@ -1568,6 +1579,7 @@ void FitV2orPol(
         hInvMass[pt]->Draw("same e");
         functions1[pt]->Draw("same");
         functions2[pt]->Draw("same");
+        total[pt]->Draw("same");
         if (BkgType == 0)
           bkg1[pt]->Draw("same");
         else if (BkgType == 1)
@@ -2144,17 +2156,24 @@ void FitV2orPol(
       isV2FromFit[pt] = 1;
     if (isTightMassCut)
       isV2FromFit[pt] = 0;
+
+    isV2FromFit[pt] = 1;
+    if (pt < 4)
+      hV2[pt]->GetYaxis()->SetRangeUser(-0.04, 0.04);
+    else
+      hV2[pt]->GetYaxis()->SetRangeUser(-0.08, 0.08);
     if (isV2FromFit[pt])
     {
       hV2[pt]->Draw("e");
       v2FitFunction[pt]->Draw("same");
+      v2BkgFunction[pt]->Draw("same");
     }
     if (!isV2FromFit[pt])
       hV2MassIntegrated[pt]->Draw("");
 
-    TLegend *legendV2 = new TLegend(0.2, 0.8, 0.4, 0.9);
+    TLegend *legendV2 = new TLegend(0.2, 0.75, 0.4, 0.85);
     legendV2->SetTextSize(0.055);
-    legendV2->AddEntry("", Form("Mean = %.3f +- %.3f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
+    legendV2->AddEntry("", Form("Mean = %.4f +- %.4f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
     legendV2->Draw("same");
 
     // canvas for cos2theta
@@ -2193,7 +2212,6 @@ void FitV2orPol(
     Cos2ThetaFitFunction[pt]->Draw("same");
     Float_t BinMax = hInvMass[pt]->GetMaximumBin();
     // Float_t BinMax = hCos2Theta[pt]->FindBin(mean[pt]);
-
     if (pt < numPtBinsVar)
     {
       histoCos2Theta->SetBinContent(pt + 1, Cos2ThetaFitFunction[pt]->GetParameter(0));
@@ -2693,6 +2711,15 @@ void FitV2orPol(
   histoYieldFraction->Draw("");
   histoYieldFractionPtInt->Draw("same");
 
+  canvasSummary->cd(14);
+  gPad->SetBottomMargin(0.14);
+  gPad->SetLeftMargin(0.14);
+  histoSignificance->Draw("");
+  histoSignificancePtInt->Draw("same");
+
+  canvasSummary->Modified();
+  canvasSummary->Update();
+
   TString Soutputfile;
   TString SoutputfileAcceptance;
   Soutputfile = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
@@ -2781,15 +2808,31 @@ void FitV2orPol(
   if (ExtrisCentXiRed && part == 0)
     Soutputfile += "_XiRedCent";
 
+  if (ChosenPart >= 6)
+    Soutputfile += "_050";
+
   // Soutputfile += "_NegativeC";
   //  Soutputfile += "_TestMoreBins";
 
   // save canvases
+  canvas[0]->Modified();
+  canvas[0]->Update();
+  canvas[1]->Modified();
+  canvas[1]->Update();
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
   canvas[1]->SaveAs(Soutputfile + ".pdf");
   canvas[2]->SaveAs(Soutputfile + ".pdf");
   canvas[3]->SaveAs(Soutputfile + ".pdf");
+
+  canvas[2]->Close();
+  canvas[3]->Close();
+  canvasCos2Theta[0]->Close();
+  canvasCos2Theta[1]->Close();
+  canvasCos2Theta[2]->Close();
+  canvasCos2Theta[3]->Close();
   canvasSummary->SaveAs(Soutputfile + ".pdf)");
+  canvasMass->Modified();
+  canvasMass->Update();
   canvasMass->SaveAs(Soutputfile + "_MassPlot.pdf");
   canvasMass->SaveAs(Soutputfile + "_MassPlot.png");
 
@@ -2956,6 +2999,8 @@ void FitV2orPol(
   Int_t ChosenPt = 8; // 8
   if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
     ChosenPt = numPtBinsVar;
+
+  ChosenPt = 0;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
@@ -3127,6 +3172,7 @@ void FitV2orPol(
   totalPNorm->Draw("same");
   legend->Draw("");
   legendfit->Draw("");
+
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasMassP->SaveAs("../PerformancePlots/MassFit" + ParticleName[ChosenPart] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
@@ -3403,6 +3449,8 @@ void FitV2orPol(
   //  hV2MassIntegrated[ChosenPt]->Draw("");
   legendChi2->Draw("");
   TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
+  canvasP->Modified();
+  canvasP->Update();
   canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
   canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
@@ -3522,11 +3570,24 @@ void FitV2orPol(
   else
     cout << "The resolution is: " << ftcReso[mul] << endl;
   cout << "The acceptance correction was applied? " << isApplyAcceptanceCorrection << endl;
-  cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
-  cout << "Result (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << " +- " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
-  cout << "Result (pt integrated measurement, fit): " << histoV2PtInt->GetBinContent(1) << " +- " << histoV2PtInt->GetBinError(1) << endl;
-  cout << "Result before application of the resolution: " << hV2MassIntegrated[ChosenPt]->GetMean() << " +- " << hV2MassIntegrated[ChosenPt]->GetMeanError() << endl;
-  cout << "Pz,bkg in correspondence of mass peak " << histoV2BkgPtInt->GetBinContent(1) << " +- " << histoV2BkgPtInt->GetBinError(1) << " nsigma from zero = " << abs(histoV2BkgPtInt->GetBinContent(1)) / histoV2BkgPtInt->GetBinError(1) << endl;
+
+  if (ChosenPt != numPtBinsVar)
+  {
+    cout << "Bin center " << histoPurity->GetBinCenter(ChosenPt + 1) << " GeV/c" << endl;
+    cout << "The purity of the pt integrated sample is: " << histoPurity->GetBinContent(ChosenPt + 1) << endl;
+    cout << "Result (pt integrated measurement, no fit): " << histoV2NoFit->GetBinContent(ChosenPt + 1) << " +- " << histoV2NoFitErr->GetBinContent(ChosenPt + 1) << endl;
+    cout << "Result (pt integrated measurement, fit): " << histoV2->GetBinContent(ChosenPt + 1) << " +- " << histoV2->GetBinError(1) << endl;
+    cout << "Result before application of the resolution: " << hV2MassIntegrated[ChosenPt]->GetMean() << " +- " << hV2MassIntegrated[ChosenPt]->GetMeanError() << endl;
+    cout << "Pz,bkg in correspondence of mass peak " << histoV2Bkg->GetBinContent(ChosenPt + 1) << " +- " << histoV2Bkg->GetBinError(ChosenPt + 1) << " nsigma from zero = " << abs(histoV2Bkg->GetBinContent(ChosenPt + 1)) / histoV2Bkg->GetBinError(ChosenPt + 1) << endl;
+  }
+  else
+  {
+    cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
+    cout << "Result (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << " +- " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;
+    cout << "Result (pt integrated measurement, fit): " << histoV2PtInt->GetBinContent(1) << " +- " << histoV2PtInt->GetBinError(1) << endl;
+    cout << "Result before application of the resolution: " << hV2MassIntegrated[ChosenPt]->GetMean() << " +- " << hV2MassIntegrated[ChosenPt]->GetMeanError() << endl;
+    cout << "Pz,bkg in correspondence of mass peak " << histoV2BkgPtInt->GetBinContent(1) << " +- " << histoV2BkgPtInt->GetBinError(1) << " nsigma from zero = " << abs(histoV2BkgPtInt->GetBinContent(1)) / histoV2BkgPtInt->GetBinError(1) << endl;
+  }
 
   if (!ExtrisSysMassCut)
     cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
@@ -3544,5 +3605,8 @@ void FitV2orPol(
     cout << "The acceptance is computed without invariant mass fit " << endl;
     cout << "The acceptance value is : " << histoCos2ThetaPtIntNoFit->GetBinContent(1) << endl;
   }
-  cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1) / histoV2PtIntErr->GetBinContent(1) << endl;
+  if (ChosenPt != numPtBinsVar)
+    cout << "\nSignificance of the Pz,s2 measurement: " << histoV2->GetBinContent(ChosenPt + 1) / histoV2Err->GetBinContent(ChosenPt + 1) << endl;
+  else
+    cout << "\nSignificance of the Pz,s2 measurement: " << histoV2PtInt->GetBinContent(1) / histoV2PtIntErr->GetBinContent(1) << endl;
 }
