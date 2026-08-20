@@ -15,8 +15,10 @@ TString ParticleNameLegend[numPart] = {"#Xi^{#pm}", "#Omega^{#pm}", "#Xi^{-}", "
 TString TypeHisto[numChoice] = {"Mean", "SigmaWeighted", "Purity", "Yield", "V2Mixed", "Pzs2Mixed", "Pzs2LambdaFromCMixed", "Cos2ThetaNoFit", "Cos2ThetaLambdaFromC", "V2MixedCorr", "Cos2ThetaLambdaFromCVsPt", "Cos2ThetaLambdaFromCVsEta"};
 TString TitleY[numChoice] = {"Mean (GeV/#it{c}^{2})", "Sigma (GeV/#it{c}^{2})", "S/(S+B)", "1/#it{N}_{evt} d#it{N}/d#it{p}_{T} (GeV/#it{c})^{-1}", "v2", "Pz,s2", "Pz,s2", "#LTcos^{2}(#theta*_{#Lambda})#GT", "#LTcos^{2}(#theta*_{p})#GT", "v2, corr", "#LTcos^{2}(#theta*_{p})#GT", "#LTcos^{2}(#theta*_{p})#GT"};
 TString TitleXPt = "#it{p}_{T} (GeV/#it{c})";
+TString TitleXPsi = "2(#varphi - #Psi_{2})";
 TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "#it{P}_{z,s2}";
+TString TitleYPz = "#it{P}_{z}";
 TString TitleYPzsLambda = "#it{P}_{z,s2} (#Lambda + #bar{#Lambda})";
 
 // Mass ranges were puity is calculatedin case of DSCB fit
@@ -79,7 +81,7 @@ Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 8, 8, 8};
 const Int_t numCentLambdaOO = 10;
 Int_t CentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
 Double_t fCentFT0CLambdaOO[numCentLambdaOO + 1] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-Double_t CentFT0CMaxLambdaOO = 100;
+Double_t CentFT0CMaxLambdaOO = 50;
 Double_t dNdEtaOOPrel[numCentLambdaOO] = {(129.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 0, 0, 0, 0};               // approved up to 60% (version 3 of Marta AN)
 Double_t dNdEtaOOErrPrel[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 0.0099, 0.0084, 0.0069, 0, 0, 0, 0};                     // approved up to 60% (version 3 of Marta AN)
 Double_t dNdEtaOOErrPrelSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0, 0, 0, 0};                 // approved up to 60% (version 3 of Marta AN)
