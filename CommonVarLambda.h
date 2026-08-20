@@ -1,37 +1,37 @@
-//To be changed according to the following instructions to produce acceptance
-//isApplyCentWeight = 0
-//ExtrisApplyResoOnTheFly = 0
-//ExtrisFromTHN = 1
-//isProducedAcceptancePlots = 1
-//SinputFileName --> take the proper input for acceptance calculation
+// To be changed according to the following instructions to produce acceptance
+// isApplyCentWeight = 0
+// ExtrisApplyResoOnTheFly = 0
+// ExtrisFromTHN = 1
+// isProducedAcceptancePlots = 1
+// SinputFileName --> take the proper input for acceptance calculation
 
-//To be changed according to the following instructions to produce systematic variations in input of MultiTrial.C
-//ExtrisSysLambdaMultTrial = 1
-//trialsLambdaTopo --> actual number of variations
-//SinputFileName --> take the proper input for systematic variations
+// To be changed according to the following instructions to produce systematic variations in input of MultiTrial.C
+// ExtrisSysLambdaMultTrial = 1
+// trialsLambdaTopo --> actual number of variations
+// SinputFileName --> take the proper input for systematic variations
 
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
 Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2),
 Bool_t ExtrisPartialEta = 0;  // 1: select only 0 < eta < 0.8 (opposite to FT0C)
-Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1;       // 0 for acceptance
-Bool_t ExtrisApplyEffWeights = 1;   
+Bool_t isApplyWeights = 0;    // weights to flatten the phi distribution of cascades
+Bool_t isApplyCentWeight = 1; // 0 for acceptance
+Bool_t ExtrisApplyEffWeights = 1;
 Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0;           // 1 for acceptance; 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 1;         //0 for acceptance
+Bool_t isReducedPtBins = 1;         // 0 for acceptance
 Bool_t isOOCentrality = 1;
 Bool_t isRun2Binning = 0;
 
-//Fit characteristics
-Int_t ExtrBkgType = 1;        // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
-Int_t ExtrBkgTypeSyst = 1;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
-Bool_t ExtrisFitDSCB = 0; //Use a DSCB instead of 2 gaussians
-Bool_t isGaussConv = 0;   //DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
-Bool_t isFixParamDSCBFromMC = 0; //Get DSCB parameters from MC and fix them in the fit of data
+// Fit characteristics
+Int_t ExtrBkgType = 1;           // 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
+Int_t ExtrBkgTypeSyst = 1;       // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo
+Bool_t ExtrisFitDSCB = 0;        // Use a DSCB instead of 2 gaussians
+Bool_t isGaussConv = 0;          // DSCB convoluted with a gaussian - defined only for bkg = expo or Chebyshev
+Bool_t isFixParamDSCBFromMC = 0; // Get DSCB parameters from MC and fix them in the fit of data
 Bool_t ExtrUseTwoGauss = 1;
-Bool_t isCombinedFit = 0; //Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
+Bool_t isCombinedFit = 0; // Fit simultaneously mass and V2 (now implemented only for 2 gaussians + pol2)
 
 const Int_t commonNumCent = 10; //= numCentLambdaOO for Lambda in OO
 
@@ -41,7 +41,7 @@ const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization)
 const Int_t numPtBins = 7;
 const Int_t numPtBinsReduced = 7;
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
-Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 8};
+Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6};
 
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
@@ -61,7 +61,7 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train562850"; //latest
 // TString SinputFileName = "LHC25_OO_pass2_Train562132_wTHN";
 // TString SinputFileName = "LHC25_OO_pass2_SecondaryProtonAcc_Train508938"; //used for acceptance
-// TString SinputFileName = "LHC25_OO_pass2_Train576495"; //tree with |eta| < 0.8 
+// TString SinputFileName = "LHC25_OO_pass2_Train576495"; //tree with |eta| < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_Train575744"; //THN
 // TString SinputFileName = "LHC25_OO_pass2_Train576496"; //tree with |eta| < 0.8 and |z| < 8 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train589559"; //THN larger range pzs2
@@ -70,27 +70,29 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597527_NewAcc_EtaPos"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
-//TString SinputFileName = "LHC25_OO_pass2_Train598890"; 
-TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; //for PRELIMINARIES 2026
-// TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8 
-// TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
-// TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
-// TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; //Also -0.8 < etaDau < 0
+// TString SinputFileName = "LHC25_OO_pass2_Train598890";
+TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; // for PRELIMINARIES 2026
+// TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly
+//  TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
+//  TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
+//  TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
+//  TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; //Also -0.8 < etaDau < 0
 
-//Analysis of MC mass peaks
+// Analysis of MC mass peaks
 TString SinputFileNameMC = "";
 
-//To get number of analyzed events
+// To get number of analyzed events
 TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train742311";
 
 // File name for centrality weights
 // TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
 TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
-//File name for efficiency weights
-//TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
+// File name for efficiency weights
+// TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
 TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
-//TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; //Romain efficiency
+// TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; //Romain efficiency
 TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_Lambda_Eta08.root";
 TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_AntiLambda_Eta08.root";
 
@@ -183,7 +185,7 @@ TString SIRValue[6] = {"", "6 kHz", "12 kHz", "18 kHz", "23 kHz", "33 kHz"};
 TString inputFileNameIR = "Train207098";
 
 // -------- Event plane resolution (not for Pzs of Lambda) ------------------------------
-TString inputFileResoCFW = SinputFileNameAR; 
+TString inputFileResoCFW = SinputFileNameAR;
 TString inputFileResoLF = SinputFileNameAR;
 
 // Files with stored resolution
