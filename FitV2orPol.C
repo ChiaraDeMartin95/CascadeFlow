@@ -762,11 +762,13 @@ void FitV2orPol(
   TH1F *hInvMass[numPtBins + 1];
   TH1F *hInvMassDraw[numPtBins + 1];
   TH1F *hV2[numPtBins + 1];
+  TH1F *hV2Corr[numPtBins + 1];
   TH2F *hmassVsV2C[numPtBins + 1];
   TH1F *hV2MassIntegrated[numPtBins + 1];
   TF1 *fitV2SP[numPtBins + 1];
 
   TH1F *hCos2Theta[numPtBins + 1];
+  TH1F *hCos2[numPtBins + 1];
   TH2F *hmassVsCos2Theta[numPtBins + 1];
   TH1F *hCos2ThetaMassIntegrated[numPtBins + 1];
 
@@ -956,7 +958,8 @@ void FitV2orPol(
       SPathIn += SBDT;
     if (isApplyWeights)
       SPathIn += "_Weighted";
-    if (isApplyCentWeight && !isProducedAcceptancePlots)
+    // if (isApplyCentWeight && !isProducedAcceptancePlots)
+    if (isApplyCentWeight)
       SPathIn += "_CentWeighted";
     if (v2type == 1)
       SPathIn += "_SP";
@@ -983,7 +986,8 @@ void FitV2orPol(
       SPathIn += "_isSysLambdaMultTrial";
     }
     SPathIn += STHN[ExtrisFromTHN];
-    if (ExtrisApplyResoOnTheFly && !isProducedAcceptancePlots)
+    // if (ExtrisApplyResoOnTheFly && !isProducedAcceptancePlots)
+    if (ExtrisApplyResoOnTheFly)
       SPathIn += "_ResoOnTheFly";
     // if (ChosenPart >= 6)
     // SPathIn += "_CorrectReso_TestLeassPtBins";
@@ -1009,19 +1013,23 @@ void FitV2orPol(
       return;
     }
 
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
     PhiBins[pt] = pt * 2 * TMath::Pi() / numPsiBins;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     if (pt == numPtBinsVar)
     { // integrated
       SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
     }
-    if (!isPtAnalysis) // psi bins
+    if (!isPtAnalysis)
+    { // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
+      if (pt == numPtBinsVar)
+        SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[0], PhiBins[numPsiBins] - 0.0001);
+    }
 
     if (ChosenPart < 6)
       cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
@@ -1067,7 +1075,7 @@ void FitV2orPol(
       if (!isPtAnalysis)
       {
         histoNameMassvsV2 = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
-        ProfileV2 = Form("Pz_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        ProfileV2 = Form("Pz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         histoNameMassvsCos2Theta = Form("MassvsCos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         AcceptanceHisto = Form("Cos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         if (isPolFromLambda)
@@ -1100,6 +1108,30 @@ void FitV2orPol(
     {
       cout << "Histogram hV2 not available" << endl;
       return;
+    }
+    if (!isPtAnalysis)
+    { // correct for acceptance vs mass in phi-Psi bins
+      TH1F *hV2PsiInt = (TH1F *)filein->Get(Form("Pz_cent%i-%i_psi6", CentFT0CMin, CentFT0CMax));
+      if (!hV2PsiInt)
+      {
+        cout << "Histogram hV2PsiInt not available" << endl;
+        return;
+      }
+      TH1F *hCos2PsiInt = (TH1F *)filein->Get(Form("Cos2Theta_cent%i-%i_psi6", CentFT0CMin, CentFT0CMax));
+      if (!hCos2PsiInt)
+      {
+        cout << "Histogram hCos2PsiInt not available" << endl;
+        return;
+      }
+      if (SinputFileName == "LHC25_OO_pass2_Train742311") hV2PsiInt->Divide(hCos2PsiInt); 
+      hCos2[pt] = (TH1F *)filein->Get(AcceptanceHisto);
+      if (!hCos2[pt])
+      {
+        cout << "Histogram hCos2 not available" << endl;
+        return;
+      }
+      if (SinputFileName == "LHC25_OO_pass2_Train742311") hV2[pt]->Divide(hCos2[pt]);
+      hV2[pt]->Add(hV2PsiInt, -1);
     }
 
     Float_t MaxV2 = 0.02;
@@ -1271,11 +1303,11 @@ void FitV2orPol(
 
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
 
     if (pt < 4)
       canvas[0]->cd(pt + 1);
@@ -2310,6 +2342,50 @@ void FitV2orPol(
     }
   }
 
+  TCanvas *canvasCos2ThetaAll = new TCanvas("canvasCos2ThetaAll", "canvasCos2ThetaAll", 800, 800);
+  TLegend *legendCos2ThetaAll = new TLegend(0.52, 0.3, 0.82, 0.87);
+  legendCos2ThetaAll->SetTextSize(0.04);
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
+  {
+    hCos2ThetaMassIntegrated[pt]->SetMarkerColor(ColorPart[pt]);
+    hCos2ThetaMassIntegrated[pt]->SetLineColor(ColorPart[pt]);
+    hCos2ThetaMassIntegrated[pt]->SetMarkerStyle(20);
+    hCos2ThetaMassIntegrated[pt]->Scale(1. / hCos2ThetaMassIntegrated[pt]->Integral());
+    hCos2ThetaMassIntegrated[pt]->Draw("same e");
+    legendCos2ThetaAll->AddEntry(hCos2ThetaMassIntegrated[pt], SPt[pt] + " GeV/#it{c}", "lep");
+    legendCos2ThetaAll->AddEntry("", Form("Mean = %.4f +- %.4f", hCos2ThetaMassIntegrated[pt]->GetMean(), hCos2ThetaMassIntegrated[pt]->GetMeanError()), "");
+  }
+  legendCos2ThetaAll->Draw();
+
+  TCanvas *canvasV2All = new TCanvas("canvasV2All", "canvasV2All", 800, 800);
+  TLegend *legendV2All = new TLegend(0.52, 0.3, 0.82, 0.87);
+  legendV2All->SetTextSize(0.04);
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
+  {
+    hV2MassIntegrated[pt]->SetMarkerColor(ColorPart[pt]);
+    hV2MassIntegrated[pt]->SetLineColor(ColorPart[pt]);
+    hV2MassIntegrated[pt]->SetMarkerStyle(20);
+    // hV2MassIntegrated[pt]->Rebin(10);
+    hV2MassIntegrated[pt]->Scale(1. / hV2MassIntegrated[pt]->Integral());
+    hV2MassIntegrated[pt]->Draw("same e");
+    legendV2All->AddEntry(hV2MassIntegrated[pt], SPt[pt] + " GeV/#it{c}", "lep");
+    legendV2All->AddEntry("", Form("Mean = %.5f +- %.5f", hV2MassIntegrated[pt]->GetMean(), hV2MassIntegrated[pt]->GetMeanError()), "");
+  }
+  legendV2All->Draw();
+
+  TCanvas *canvasV2AllRatio = new TCanvas("canvasV2AllRatio", "canvasV2AllRatio", 800, 800);
+  TLegend *legendV2AllRatio = new TLegend(0.52, 0.3, 0.82, 0.87);
+  legendV2AllRatio->SetTextSize(0.04);
+  TH1F *hV2MassIntegratedRatio[numPtBins + 1];
+  for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
+  {
+    hV2MassIntegratedRatio[pt] = (TH1F *)hV2MassIntegrated[pt]->Clone(Form("hV2MassIntegratedRatio%i", pt));
+    hV2MassIntegratedRatio[pt]->Divide(hV2MassIntegrated[numPtBinsVar]);
+    hV2MassIntegratedRatio[pt]->Draw("same e");
+    legendV2AllRatio->AddEntry(hV2MassIntegratedRatio[pt], SPt[pt] + " GeV/#it{c}", "lep");
+  }
+  legendV2AllRatio->Draw();
+
   TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
   canvasMass->Divide(2, 3);
   StyleCanvas(canvasMass, 0.15, 0.05, 0.05, 0.15);
@@ -2317,11 +2393,11 @@ void FitV2orPol(
   Int_t index = 0;
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
 
     if (pt == 0)
       index = 1;
@@ -2449,39 +2525,6 @@ void FitV2orPol(
       histoV2MixedErr->SetTitle("Error of Pz mixed");
       histoV2Err->SetTitle("Error of Pz");
     }
-  }
-
-  // return;
-  //  subtract baseline
-  Float_t baseline = 0;
-  Float_t baselineNoFit = 0;
-  Float_t baselineMixed = 0;
-  TH1F *histobaseline = (TH1F *)histoV2->Clone("histobaseline");
-  TH1F *histobaselineNoFit = (TH1F *)histoV2NoFit->Clone("histobaselineNoFit");
-  TH1F *histobaselineMixed = (TH1F *)histoV2Mixed->Clone("histobaselineMixed");
-  histobaseline->Reset();
-  histobaselineNoFit->Reset();
-  histobaselineMixed->Reset();
-  if (!isPtAnalysis)
-  {
-    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
-    {
-      baseline += histoV2->GetBinContent(pt);
-      baselineNoFit += histoV2NoFit->GetBinContent(pt);
-      baselineMixed += histoV2Mixed->GetBinContent(pt);
-    }
-    baseline /= histoV2->GetNbinsX();
-    baselineNoFit /= histoV2->GetNbinsX();
-    baselineMixed /= histoV2->GetNbinsX();
-    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
-    {
-      histobaseline->SetBinContent(pt, baseline);
-      histobaselineNoFit->SetBinContent(pt, baselineNoFit);
-      histobaselineMixed->SetBinContent(pt, baselineMixed);
-    }
-    histoV2->Add(histobaseline, -1);
-    histoV2NoFit->Add(histobaselineNoFit, -1);
-    histoV2Mixed->Add(histobaselineMixed, -1);
   }
 
   // acceptance correction for polarization
@@ -2826,8 +2869,8 @@ void FitV2orPol(
 
   canvas[2]->Close();
   canvas[3]->Close();
-  canvasCos2Theta[0]->Close();
-  canvasCos2Theta[1]->Close();
+  // canvasCos2Theta[0]->Close();
+  // canvasCos2Theta[1]->Close();
   canvasCos2Theta[2]->Close();
   canvasCos2Theta[3]->Close();
   canvasSummary->SaveAs(Soutputfile + ".pdf)");
@@ -3000,7 +3043,9 @@ void FitV2orPol(
   if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
     ChosenPt = numPtBinsVar;
 
-  ChosenPt = 0;
+  // ChosenPt = 0;
+  if (!isPtAnalysis)
+    ChosenPt = numPsiBins;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
@@ -3498,8 +3543,6 @@ void FitV2orPol(
   pad3->Draw();
   pad3->cd();
   hDummy->Draw("same");
-  hInvMassDraw[ChosenPt]->Draw("hist same pe");
-  cout << "Integral of the histogram drawn: " << hInvMassDraw[ChosenPt]->Integral() << endl;
   cout << "Integral of the histogram drawn: " << hInvMass[ChosenPt]->Integral() << endl;
   hInvMass[ChosenPt]->Draw("hist same pe");
   totalPNorm->Draw("same");
@@ -3590,8 +3633,10 @@ void FitV2orPol(
   }
 
   if (!ExtrisSysMassCut)
+  {
     cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
-  // cout << "This interval is: " << LowLimit[ChosenPt] << " - " << UpLimit[ChosenPt] << " GeV/c^2" << endl;
+    cout << "This interval is: " << LowLimit[ChosenPt] << " - " << UpLimit[ChosenPt] << " GeV/c^2" << endl;
+  }
   // cout << "In this interval, the integral of the signal function is:" << endl;
   // cout << histoYieldFractionPtInt->GetBinContent(1) << " of the total integral" << endl;
 
