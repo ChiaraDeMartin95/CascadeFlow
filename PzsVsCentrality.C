@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
-#include "CommonVarLambda.h"
-// #include "CommonVarOmega.h"
+#include "CommonVarXi.h"
+//#include "CommonVarLambda.h"
+//#include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -529,6 +529,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     // PathIn += "_NegativeC";
     if (ExtrisCentOmegaRed && part == 1)
       PathIn += "_OmegaRedCent";
+    if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+      PathIn += "_050PtCut";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -1223,11 +1225,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
-  hDummy->GetYaxis()->SetRangeUser(-0.0004, 0.0065);
   if (part == 1) // Omega
     hDummy->GetYaxis()->SetRangeUser(-0.005, 0.02);
   else if (part == 0) // Xi
     hDummy->GetYaxis()->SetRangeUser(-0.001, 0.011);
+  hDummy->GetYaxis()->SetRangeUser(-0.0005, 0.0075); //Lambda
   hDummy->Draw("");
   lineatZero->Draw("same");
   if (ChosenPart >= 6)
@@ -1256,6 +1258,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsCent.eps");
 
   TGraphErrors *gPzsPalermo = new TGraphErrors(9);
+  TGraphErrors *gPzsPalliXi = new TGraphErrors(8);
   cout << "\n\nSignificance in the 0-50% class" << endl;
   Float_t Pzs0To50 = 0;
   Float_t ErrPzs0To50 = 0;
@@ -1294,6 +1297,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     // cout << "Palermo: i " << i << " " << dNdEtaPalermo[gPzsPalermo->GetN() - i - 1] << " " << gPzsPalermo->GetY()[gPzsPalermo->GetN() - i - 1] << endl;
     gPzsPalermo->SetPoint(i, CentPalermo[i], Pzs2Palermo[i]);
     gPzsPalermo->SetPointError(i, 0, 0);
+  }
+  for (Int_t i = 0; i < gPzsPalliXi->GetN(); i++)
+  {
+    gPzsPalliXi->SetPoint(i, CentPalli[i], Pzs2XiPalli[i]);
+    gPzsPalliXi->SetPointError(i, 0, 0);
   }
   TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
   legendPalermo->SetFillStyle(0);
@@ -1347,10 +1355,16 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsPalermo->SetLineColor(kBlue + 1);
   gPzsPalermo->SetMarkerColor(kBlue + 1);
   gPzsPalermo->SetLineWidth(3);
+  gPzsPalliXi->SetLineColor(kRed + 1);
+  gPzsPalliXi->SetMarkerColor(kRed + 1);
+  gPzsPalliXi->SetLineWidth(3);
   legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
-  if (ChosenPart < 6)
+  legendPalermo->AddEntry(gPzsPalliXi, "#Xi + #bar{#Xi}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  if (ChosenPart < 6){
     gPzsPalermo->Draw("same l");
+    gPzsPalliXi->Draw("same l");
+  }
   // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
   // gPzsLambdaJunlee->Draw("same p");
   // gPzsLambdaJunleeSist->Draw("same e2");

@@ -98,10 +98,14 @@ Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages comput
 Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
 
 // theory predictions
-// A.Palermo, Pzs2 of Lambda vs centrality with bulk viscosity
+// A.Palermo, Pzs2 of Lambda vs centrality in Pb-Pb with bulk viscosity
 Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
 Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
                            2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};
+//F. Palli, private communication, Pzs2 of Xi vs centrality in Pb-Pb                           
+Double_t CentPalli[8] = {7.5, 15.0, 25.0, 35.0, 45.0, 55.0, 65.0, 75.0};
+Double_t Pzs2XiPalli[8] = {-1.4642602745797088e-04, -1.6763874513772128e-04, -2.9672229329811725e-05, 3.8733710974043475e-04, 1.3010776439712512e-03,
+                           2.6517590694028694e-03, 4.4283658019485198e-03, 6.6317705027505005e-03};
 
 // Published V2 of charged particles in OO collisions (arxiv.org/pdf/2509.06428)
 const Int_t numV2OOPubCent = 16;
