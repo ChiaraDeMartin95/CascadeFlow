@@ -9,6 +9,7 @@
 #include "TPad.h"
 #include "TF1.h"
 #include "TLegend.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -116,12 +117,23 @@ void FDFraction()
   TH1F *hFDFractionLambdavsCent = new TH1F("hFDFractionLambdavsCent", "hFDFractionLambdavsCent", numCentLambdaOO, 0, 100);
   TH1F *hFDFractionALambdavsCent = new TH1F("hFDFractionALambdavsCent", "hFDFractionALambdavsCent", numCentLambdaOO, 0, 100);
   TH1F *hFDFractionAllLambdavsCent = new TH1F("hFDFractionAllLambdavsCent", "hFDFractionAllLambdavsCent", numCentLambdaOO, 0, 100);
+
+  TH1F *hFDFractionLambdavsPt = new TH1F("hFDFractionLambdavsPt", "hFDFractionLambdavsPt", numPtBins, PtBins);
+  TH1F *hFDFractionALambdavsPt = new TH1F("hFDFractionALambdavsPt", "hFDFractionALambdavsPt", numPtBins, PtBins);
+  TH1F *hFDFractionAllLambdavsPt = new TH1F("hFDFractionAllLambdavsPt", "hFDFractionAllLambdavsPt", numPtBins, PtBins);
+
   TCanvas *canvasFDLambda = new TCanvas("canvasFDLambda", "canvasFDLambda", 900, 700);
   gStyle->SetOptStat(0);
+
+  TH3F *hFDLambdaClone = (TH3F *)hFDLambda->Clone("hFDLambdaClone");
 
   hFDLambda->GetYaxis()->SetRangeUser(MinPt[ChosenParticle], MaxPt[ChosenParticle]); // pt range
   TH2F *hFDLambdaProj2D = (TH2F *)hFDLambda->Project3D("zxe");                       // particle vs centrality
   hFDLambdaProj2D->SetName("FDFraction2D");
+
+  hFDLambdaClone->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);     // centrality range
+  TH2F *hFDLambdaProj2DvsPt = (TH2F *)hFDLambdaClone->Project3D("zye"); // particle vs pt
+  hFDLambdaProj2DvsPt->SetName("FDFraction2DvsPt");
 
   for (Int_t mul = 0; mul < numCentLambdaOO; mul++)
   {
@@ -154,6 +166,21 @@ void FDFraction()
     hFDLambdaProj2D->Draw("same");
     // canvasFDLambda->SaveAs(Form("../FDFraction/Canvas_FDFraction_Lambda_CentBin%d.png", mul));
     // canvasFDLambda->SaveAs(Form("../FDFraction/Canvas_FDFraction_Lambda_CentBin%d.pdf", mul));
+  }
+
+  for (Int_t pt = 0; pt < numPtBins; pt++)
+  {
+    Float_t PtMin = PtBins[pt];
+    Float_t PtMax = PtBins[pt + 1];
+    hFDLambdaProj2DvsPt->GetXaxis()->SetRange(hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMin + 0.01), hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMax - 0.01));
+    TH1F *hFDLambdaProjPt = (TH1F *)hFDLambdaProj2DvsPt->ProjectionY(Form("FDFraction_Pt_%d_%d", Int_t(PtMin * 10), Int_t(PtMax * 10)));
+    hFDFractionLambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(2) / hFDLambdaProjPt->GetBinContent(1));
+    hFDFractionALambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(4) / hFDLambdaProjPt->GetBinContent(3));
+    hFDFractionAllLambdavsPt->SetBinContent(pt + 1, (hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)) / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(3)));
+    cout << "Pt " << PtMin << "-" << PtMax << " GeV/c: FD Lambda Fraction = " << hFDFractionLambdavsPt->GetBinContent(pt + 1) << ", FD Anti-Lambda Fraction = " << hFDFractionALambdavsPt->GetBinContent(pt + 1) << endl;
+    hFDFractionLambdavsPt->SetBinError(pt + 1, sqrt(1. / hFDLambdaProjPt->GetBinContent(2) + 1. / hFDLambdaProjPt->GetBinContent(1)) * hFDFractionLambdavsPt->GetBinContent(pt + 1));
+    hFDFractionALambdavsPt->SetBinError(pt + 1, sqrt(1. / hFDLambdaProjPt->GetBinContent(4) + 1. / hFDLambdaProjPt->GetBinContent(3)) * hFDFractionALambdavsPt->GetBinContent(pt + 1));
+    hFDFractionAllLambdavsPt->SetBinError(pt + 1, sqrt(1. / (hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)) + 1. / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(3))) * hFDFractionAllLambdavsPt->GetBinContent(pt + 1));
   }
 
   Float_t xTitle = 30;
@@ -202,6 +229,27 @@ void FDFraction()
 
   canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent.pdf");
   canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent.png");
+
+  TH1F *hDummyPt = new TH1F("hDummyPt", "hDummyPt", 10000, 0, 10);
+  for (Int_t i = 1; i <= hDummyPt->GetNbinsX(); i++)
+    hDummyPt->SetBinContent(i, -1000);
+  SetFont(hDummyPt);
+  StyleHistoYield(hDummyPt, 0.08, 0.12, 1, 1, TitleXPt, "Fraction of secondary #Lambda", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyPt, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyPt, tickX, tickY);
+  StyleHistoYield(hFDFractionLambdavsPt, 0, 1, kBlue + 1, 20, TitleXPt, "Fraction of secondary #Lambda", "", 1.5, 1.5, 1.7);
+  StyleHistoYield(hFDFractionALambdavsPt, 0, 1, kGreen + 1, 20, TitleXPt, "Fraction of secondary #Lambda", "", 1.5, 1.5, 1.7);
+  StyleHistoYield(hFDFractionAllLambdavsPt, 0, 1, kRed + 1, 20, TitleXPt, "Fraction of secondary #Lambda", "", 1.5, 1.5, 1.7);
+  TCanvas *canvasFDFractionVsPt = new TCanvas("canvasFDFractionVsPt", "canvasFDFractionVsPt", 900, 700);
+  StyleCanvas(canvasFDFractionVsPt, 0.06, 0.12, 0.15, 0.03);
+  canvasFDFractionVsPt->cd();
+  hDummyPt->Draw("");
+  hFDFractionLambdavsPt->Draw("same");
+  hFDFractionALambdavsPt->Draw("same");
+  hFDFractionAllLambdavsPt->Draw("same");
+  legendFDFraction->Draw("");
+  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt.pdf");
+  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt.png");
 
   Float_t FDFraction[numCentLambdaOO] = {0};
   Float_t FDFractionLambda[numCentLambdaOO] = {0};
