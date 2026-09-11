@@ -53,11 +53,11 @@ Float_t Maxv2 = 1;
 Int_t Nv2 = 200;
 
 Float_t MinPzs2 = -1;
-Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-30, -35, -40, -45, -60, -70, -100, -140, -200, -1000, -60}; //600 for 0-100%
+Float_t MinPzs2Reso[numCentLambdaOO + 1] = {-30, -35, -40, -45, -60, -70, -100, -140, -200, -1000, -60}; // 600 for 0-100%
 Float_t MinPzs2WithAlphaXi = -2.8;
 Float_t MinPzs2WithAlphaOmega = -65;
 Float_t MaxPzs2 = 1;
-Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {30, 35, 40, 45, 60, 70, 100, 140, 200, 1000, 60}; //600 for 0-100%
+Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {30, 35, 40, 45, 60, 70, 100, 140, 200, 1000, 60}; // 600 for 0-100%
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
 const Int_t NPzs2 = 400;
@@ -65,13 +65,13 @@ Double_t PzsBinsLambda[NPzs2 + 1];
 
 Float_t MinPz = -10;
 Float_t MaxPz = 10;
-Float_t MinPzReso[numCentLambdaOO +1] = {-32, -36, -40, -50, -60, -80, -120, -150, -250, -800, -60};
+Float_t MinPzReso[numCentLambdaOO + 1] = {-32, -36, -40, -50, -60, -80, -120, -150, -250, -800, -60};
 Float_t MinPzWithAlphaXi = -2.8;
 Float_t MinPzWithAlphaOmega = -65;
-Float_t MaxPzReso[numCentLambdaOO +1] = {32, 36, 40, 50, 60, 80, 120, 150, 250, 800, 60};
+Float_t MaxPzReso[numCentLambdaOO + 1] = {32, 36, 40, 50, 60, 80, 120, 150, 250, 800, 60};
 Float_t MaxPzWithAlphaXi = 2.8;
 Float_t MaxPzWithAlphaOmega = 65;
-Int_t NPz = 200;
+Int_t NPz = 1000;
 
 const Int_t numLambdaMassBins = 48;
 Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
@@ -116,6 +116,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   std::vector<std::string> name;
   TString filename = "input_" + inputFileName + "_New.txt";
+  //TString filename = "input_" + inputFileName + ".txt";
   std::ifstream fileIn(Form("%s", filename.Data()));
 
   cout << filename.Data() << endl;
@@ -143,7 +144,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   std::vector<TFile *> inputFile(nfiles);
   TChain chainDataMB("O2lambdaanalysis");
   for (Int_t i = 0; i < nfiles; i++)
-  //for (Int_t i = 0; i < 2; i++)
+  // for (Int_t i = 0; i < 2; i++)
   {
     cout << "name " << name[i].c_str() << endl;
     inputFile[i] = TFile::Open(name[i].c_str());
@@ -169,7 +170,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TString weightEffFileNameAL = SinputFileNameEfficiencyWeightAntiLambda;
   TFile *weightEffFileAL = new TFile(weightEffFileNameAL, "READ");
   TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
-  
+
   auto h = d1.Histo1D("fPt");
 
   // invariant mass histograms
@@ -188,6 +189,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     d2 = d2.Filter("fEta < 0");
   else if (isAllEta == 2)
     d2 = d2.Filter("fEta > 0");
+
+  // pt selection
+  d2 = d2.Filter("fPt > 0.5");
+  d2 = d2.Filter("fPt < 10");
 
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -439,7 +444,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   // OutputFileName += "_CorrectReso";
   if (isSystReso)
     OutputFileName += "_SystReso";
-  OutputFileName += "_050";  
+  OutputFileName += "_050";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -507,8 +512,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                                        {
     if (sign==(short)0) return hEffWeightL->GetBinContent(hEffWeightL->FindBin(pt, cent+0.001));
     else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
-    else return 0.;}, {"fPt", "fCentFT0C", "fSign"});
-  
+    else return 0.; }, {"fPt", "fCentFT0C", "fSign"});
+
   if (ExtrisApplyEffWeights)
     df_selected = df_selected.Define("fTotalWeight", "fCentWeight * fEffWeight");
   else
@@ -548,6 +553,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
         MaxPzs2 = MaxPzs2Reso[cent];
         MinPz = MinPzReso[cent];
         MaxPz = MaxPzReso[cent];
+      }
+      if (SinputFileName == "LHC25_OO_pass2_Train742311"){
+        MinPz = -10;
+        MaxPz = 10;
       }
     }
 
