@@ -22,8 +22,8 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-#include "CommonVarXi.h"
-//#include "CommonVarLambda.h"
+//#include "CommonVarXi.h"
+#include "CommonVarLambda.h"
 //#include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
@@ -1259,6 +1259,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   TGraphErrors *gPzsPalermo = new TGraphErrors(9);
   TGraphErrors *gPzsPalliXi = new TGraphErrors(8);
+  TGraphErrors *gPzsPalliOmega = new TGraphErrors(8);
+  TGraphErrors *gPzsPalliLambda = new TGraphErrors(8);
   cout << "\n\nSignificance in the 0-50% class" << endl;
   Float_t Pzs0To50 = 0;
   Float_t ErrPzs0To50 = 0;
@@ -1303,7 +1305,18 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gPzsPalliXi->SetPoint(i, CentPalli[i], Pzs2XiPalli[i]);
     gPzsPalliXi->SetPointError(i, 0, 0);
   }
-  TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
+  for (Int_t i = 0; i < gPzsPalliOmega->GetN(); i++)
+  {
+    gPzsPalliOmega->SetPoint(i, CentPalli[i], Pzs2OmegaPalli[i]);
+    gPzsPalliOmega->SetPointError(i, 0, 0);
+  }
+  for (Int_t i = 0; i < gPzsPalliLambda->GetN(); i++)
+  {
+    gPzsPalliLambda->SetPoint(i, CentPalli[i], Pzs2LambdaPalli[i]);
+    gPzsPalliLambda->SetPointError(i, 0, 0);
+  }
+  //TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
+  TLegend *legendPalermo = new TLegend(0.14, 0.43, 0.5, 0.68);
   legendPalermo->SetFillStyle(0);
   legendPalermo->SetTextAlign(12);
   legendPalermo->SetTextSize(0.048);
@@ -1318,7 +1331,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6) // Lambda
     legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pef");
   else if (part == 0) // Xi
-    legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+    //legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+    cout << "ok" << endl;
   else if (part == 1) // Omega
     legendParticles->AddEntry(fHistPzs, Form("#Omega^{#minus} + #bar{#Omega}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   if (ChosenPart >= 6)
@@ -1345,9 +1359,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistPzsSistUpTo50->SetBinError(b, 0);
     }
   }
-  fHistPzsUpTo50->Draw("same ex0");
-  fHistPzsSistUpTo50->SetFillStyle(0);
-  fHistPzsSistUpTo50->Draw("same e2");
+  //fHistPzsUpTo50->Draw("same ex0");
+  //fHistPzsSistUpTo50->SetFillStyle(0);
+  //fHistPzsSistUpTo50->Draw("same e2");
   fHistPzsLambdaNeNeJunlee->SetLineColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerStyle(29);
@@ -1358,12 +1372,22 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsPalliXi->SetLineColor(kRed + 1);
   gPzsPalliXi->SetMarkerColor(kRed + 1);
   gPzsPalliXi->SetLineWidth(3);
+  gPzsPalliOmega->SetLineColor(kMagenta + 1);
+  gPzsPalliOmega->SetMarkerColor(kMagenta + 1);
+  gPzsPalliOmega->SetLineWidth(3);
+  gPzsPalliLambda->SetLineColor(kCyan + 1);
+  gPzsPalliLambda->SetMarkerColor(kCyan + 1);
+  gPzsPalliLambda->SetLineWidth(3);
   legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
   legendPalermo->AddEntry(gPzsPalliXi, "#Xi + #bar{#Xi}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendPalermo->AddEntry(gPzsPalliOmega, "#Omega + #bar{#Omega}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendPalermo->AddEntry(gPzsPalliLambda, "#Lambda + #bar{#Lambda}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
   if (ChosenPart < 6){
     gPzsPalermo->Draw("same l");
     gPzsPalliXi->Draw("same l");
+    gPzsPalliOmega->Draw("same l");
+    gPzsPalliLambda->Draw("same l");
   }
   // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
   // gPzsLambdaJunlee->Draw("same p");
@@ -1395,7 +1419,6 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     hDummyVsMultiplicity->GetYaxis()->SetMaxDigits(1);
     canvasPzsVsMultiplicity->cd();
     SetFont(hDummyVsMultiplicity);
-    TString titledNdeta = "#LTd#it{N}_{ch}/d#it{#eta}#GT_{|#it{#eta}|<0.5}";
     StyleHistoYield(hDummyVsMultiplicity, YLow[part], YUp[part], 1, 1, titledNdeta, TitleYPzs, "", 1, 1.15, 1.8);
     SetHistoTextSize(hDummyVsMultiplicity, xTitleMult, xLabelMult, xOffset, xLabelOffsetMult, yTitle, yLabel, yOffset, yLabelOffset);
     SetTickLength(hDummyVsMultiplicity, tickX, tickY);
