@@ -114,7 +114,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLow[numPart] = {-0.001};
 Float_t YUp[numPart] = {0.011};
 
-Int_t colorJunlee = kAzure - 3;
+// Int_t ColorJunlee = kAzure - 3;
+Int_t ColorJunlee = kGreen + 1;
 Int_t ColorOO = kMagenta + 1;
 
 void PzsVsPt(Int_t ChosenPart = ChosenParticle,
@@ -136,7 +137,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     part = 1; // Omega
   }
 
-  Float_t UpperRangeParticle = PtBins[numPtBins];
+  Float_t UpperRangeParticle = PtBins[numPtBins - 1];
   Float_t LowerRangeParticle = PtBins[0];
 
   // fileinLambda
@@ -188,6 +189,19 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda_StatErr->SetMarkerSize(1.5);
   fHistPzsLambda_StatErr->SetMarkerColor(kBlue);
   fHistPzsLambda_StatErr->SetLineColor(kBlue);
+
+  TString SfilePbPbJunlee = "../LambdaJunlee/PolIntgOut.root";
+  TFile *fileJunlee = new TFile(SfilePbPbJunlee);
+  TGraphErrors *gPzsJunlee = (TGraphErrors *)fileJunlee->Get("PtPolRun3_stat");
+  TGraphErrors *gPzsJunleeSyst = (TGraphErrors *)fileJunlee->Get("PtPolRun3_syst");
+  gPzsJunlee->SetMarkerStyle(20);
+  gPzsJunlee->SetMarkerSize(1.5);
+  gPzsJunlee->SetMarkerColor(ColorJunlee);
+  gPzsJunlee->SetLineColor(ColorJunlee);
+  gPzsJunleeSyst->SetMarkerStyle(20);
+  gPzsJunleeSyst->SetMarkerSize(1.5);
+  gPzsJunleeSyst->SetMarkerColor(ColorJunlee);
+  gPzsJunleeSyst->SetLineColor(ColorJunlee);
 
   // fileout name
   TString stringout;
@@ -266,16 +280,14 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TCanvas *canvasPzs = new TCanvas("canvasPzs", "canvasPzs", 900, 700);
   StyleCanvas(canvasPzs, 0.05, 0.15, 0.15, 0.05);
 
-  int nBinsPt = numPtBins;
-  double *binsPt = PtBins;
-
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
-  TLegend *legendLambda = new TLegend(0.5, 0.53, 0.9, 0.73);
+  TLegend *legendLambda = new TLegend(0.2, 0.7, 0.6, 0.9);
   legendLambda->SetFillStyle(0);
   legendLambda->SetTextSize(0.03);
-  legendLambda->AddEntry(fHistPzsLambda, "#Lambda + #bar{#Lambda}, Phys. Rev. Lett. 128.17 (2022)", "pl");
+  // legendLambda->AddEntry(fHistPzsLambda, "#Lambda + #bar{#Lambda}, Phys. Rev. Lett. 128.17 (2022)", "pl");
+  legendLambda->AddEntry(fHistPzsLambda, "Pb-Pb 5.02, 30-50\%, |y| < 0.5", "pl");
 
   TLegend *LegendTitle;
   LegendTitle = new TLegend(0.54, 0.72, 0.93, 0.9);
@@ -283,6 +295,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
   LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  /*
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
   {
@@ -300,6 +313,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
       LegendTitle->AddEntry("", ParticleNameLegend[ChosenPart] + " |#it{#eta}| < 0.8", "");
     }
   }
+    */
 
   TH1F *fHistPzs;
   TH1F *fHistPzsBkg;
@@ -374,8 +388,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   // PathIn += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     PathIn += "_OmegaRedPt";
-  if (ChosenPart >= 6)
-    PathIn += "_050";
+  if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+    PathIn += "_050PtCut";
   PathIn += ".root";
   cout << "Path in : " << PathIn << endl;
 
@@ -522,6 +536,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
+  hDummy->GetYaxis()->SetTitleOffset(1.4);
   hDummy->Draw("");
   fHistPzs->Draw("same");
   // fHistPzsSist->SetFillStyle(0);
@@ -529,7 +544,11 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda->Draw("same e0x0");
   fHistPzsLambdaSist->SetFillStyle(0);
   fHistPzsLambdaSist->Draw("same e2");
+  gPzsJunlee->Draw("same p");
+  gPzsJunleeSyst->Draw("same e2");
   LegendTitle->Draw("");
+  legendLambda->AddEntry(gPzsJunlee, "Pb-Pb 5.36, 30-50\%, |y| < 0.5", "pl");
+  legendLambda->AddEntry(fHistPzs, "OO 5.36, 0-50\%, |#eta| < 0.8", "pl");
   legendLambda->Draw("");
   canvasPzs->SaveAs(stringoutpdf + ".pdf");
   canvasPzs->SaveAs(stringoutpdf + ".png");
@@ -784,8 +803,9 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistPzsTotError = (TH1F *)fHistPzs->Clone("fHistPzsTotError");
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
-    fHistPzsTotError->SetBinError(b, TMath::Sqrt(fHistPzs->GetBinError(b) * fHistPzs->GetBinError(b) +
-                                                 fHistPzsSistError->GetBinContent(b) * fHistPzsSistError->GetBinContent(b)));
+    // fHistPzsTotError->SetBinError(b, TMath::Sqrt(fHistPzs->GetBinError(b) * fHistPzs->GetBinError(b) +
+    //                                              fHistPzsSistError->GetBinContent(b) * fHistPzsSistError->GetBinContent(b)));
+    fHistPzsTotError->SetBinError(b, fHistPzs->GetBinError(b));
   }
   canvasfitPol0->cd();
   hDummy->GetYaxis()->SetMaxDigits(1);
@@ -795,8 +815,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TF1 *fpol0;
   if (ChosenPart >= 6)
   {
-    fpol1 = new TF1("fpol1", "pol1", 0, 90);
-    fpol0 = new TF1("fpol0", "pol0", 0, 90);
+    fpol1 = new TF1("fpol1", "pol1", 0, 6);
+    fpol0 = new TF1("fpol0", "pol0", 0, 6);
   }
   else
   {
@@ -812,7 +832,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   legendMainFit->SetFillStyle(0);
   legendMainFit->SetTextSize(0.05);
   if (ChosenPart >= 6)
-    legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. " + titleLambda + " Run 3", "p");
+    //legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. " + titleLambda + " Run 3", "p");
+    legendMainFit->AddEntry(fHistPzsTotError, "stat. " + titleLambda + " Run 3", "p");
   else if (part == 0)
     legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "p");
   else if (part == 1)
@@ -863,8 +884,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     fHistPzsSist->SetMarkerColor(ColorOO);
   }
   fHistPzs->DrawClone("same ex0");
-  //fHistPzsSist->SetFillStyle(0);
-  //fHistPzsSist->DrawClone("same e2");
+  // fHistPzsSist->SetFillStyle(0);
+  // fHistPzsSist->DrawClone("same e2");
   LegendPreliminary2->Draw("");
   legendXi->Draw("");
   TLegend *legendData = new TLegend(0.06, 0.536, 0.42, 0.736);
@@ -958,8 +979,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     }
   }
   fHistPzsUpTo50->Draw("same ex0");
-  //fHistPzsSistUpTo50->SetFillStyle(0);
-  //fHistPzsSistUpTo50->Draw("same e2");
+  // fHistPzsSistUpTo50->SetFillStyle(0);
+  // fHistPzsSistUpTo50->Draw("same e2");
   legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
   if (ChosenPart < 6)
