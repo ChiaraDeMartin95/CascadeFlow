@@ -16,6 +16,7 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t LMargin, Float_t RMargin, Float_t TMargin, Float_t BMargin)
@@ -107,7 +108,7 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
 }
 
 void Acceptance(Int_t indexMultTrial = 0,
-                Int_t isTightAcceptance = 0,
+                Int_t isTightAcceptance = 1,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
                 Bool_t isRapiditySel = ExtrisRapiditySel,
@@ -129,6 +130,8 @@ void Acceptance(Int_t indexMultTrial = 0,
   TString SinputFile = "../OutputAnalysis/Output" + STHN[ExtrisFromTHN] + "_" + inputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[EtaSysChoice]; // + SBDT;
   if (isApplyWeights)
     SinputFile += "_Weighted";
+  if (isApplyCentWeight)
+    SinputFile += "_CentWeighted";
   if (v2type == 1)
     SinputFile += "_SP";
   if (!useCommonBDTValue)
@@ -140,10 +143,18 @@ void Acceptance(Int_t indexMultTrial = 0,
   SinputFile += SBDT;
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
-  if (isTightAcceptance == 1)
-    SinputFile += "_TightAcceptance";
-  else if (isTightAcceptance == 2)
-    SinputFile += "_TighterAcceptance2";
+  if (ExtrisApplyResoOnTheFly)
+    SinputFile += "_ResoOnTheFly";
+  if (ExtrisApplyEffWeights && ChosenPart >= 6)
+    SinputFile += "_EffWeighted";
+  if (ExtrisFromTHN == 1)
+  {
+    if (isTightAcceptance == 1)
+      SinputFile += "_TightAcceptance";
+    else if (isTightAcceptance == 2)
+      SinputFile += "_TighterAcceptance2";
+    SinputFile += "_Acceptance";
+  }
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -203,6 +214,8 @@ void Acceptance(Int_t indexMultTrial = 0,
       }
     }
     hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (!ExtrisFromTHN)
+      hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
     hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)inputFile->Get(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
     pNameCos2ThetaLambdaFromC[cent] = Form("pCos2ThetaLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (!hEtaVsPtVsCos2ThetaLambdaFromC[cent])
@@ -238,8 +251,8 @@ void Acceptance(Int_t indexMultTrial = 0,
       hCos2ThetaLambdaFromCVsEta[cent][pt]->Reset();
       for (Int_t bin = 0; bin < hEta[cent][pt]->GetNbinsX(); bin++)
       {
-       // TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
-        TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin]+0.0001), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin+1]-0.0001));
+        // TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), bin + 1, bin + 1);
+        TH1D *htemp = (TH1D *)hEtaVsCos2ThetaLambdaFromC[cent][pt]->ProjectionX(Form("_htemp_%i", bin), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin] + 0.0001), hEtaVsCos2ThetaLambdaFromC[cent][pt]->GetYaxis()->FindBin(EtaBins[bin + 1] - 0.0001));
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinContent(bin + 1, htemp->GetMean());
         hCos2ThetaLambdaFromCVsEta[cent][pt]->SetBinError(bin + 1, htemp->GetMeanError());
         hCos2ThetaLambdaFromC2D[cent]->SetBinContent(pt + 1, bin + 1, htemp->GetMean());
@@ -305,8 +318,10 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetMarkerColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->SetLineColor(ColorMult[pt]);
     hCos2ThetaLambdaFromCVsEta[cent][pt]->Draw("same");
-    if (pt == numPtBinsLambda) legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]), "pl");
-    else legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt + 1]), "pl");
+    if (pt == numPtBinsLambda)
+      legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[0], PtBinsLambda[numPtBinsLambda]), "pl");
+    else
+      legendPt->AddEntry(hCos2ThetaLambdaFromCVsEta[cent][pt], Form("%.1f < p_{T} = %.1f GeV/c", PtBinsLambda[pt], PtBinsLambda[pt + 1]), "pl");
   }
   legendPt->Draw("same");
   canvasAcceptance->cd(2);
@@ -321,8 +336,10 @@ void Acceptance(Int_t indexMultTrial = 0,
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetMarkerColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->SetLineColor(ColorMult[eta]);
     hCos2ThetaLambdaFromCVsPt[cent][eta]->Draw("same");
-    if (eta == numEtaBins) legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[0], EtaBins[numEtaBins]), "pl");
-    else legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[eta], EtaBins[eta + 1]), "pl");
+    if (eta == numEtaBins)
+      legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[0], EtaBins[numEtaBins]), "pl");
+    else
+      legendEta->AddEntry(hCos2ThetaLambdaFromCVsPt[cent][eta], Form("%.1f < #eta = %.1f", EtaBins[eta], EtaBins[eta + 1]), "pl");
   }
   legendEta->Draw("same");
   canvasAcceptance->cd(3);

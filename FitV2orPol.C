@@ -999,8 +999,8 @@ void FitV2orPol(
       SPathIn += "_OmegaRedCent";
     if (ExtrisCentXiRed && part == 0)
       SPathIn += "_XiRedCent";
-    if (ChosenPart >= 6)
-      SPathIn += "_050";
+    if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+      SPathIn += "_050PtCut";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -1123,14 +1123,16 @@ void FitV2orPol(
         cout << "Histogram hCos2PsiInt not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311") hV2PsiInt->Divide(hCos2PsiInt); 
+      if (SinputFileName == "LHC25_OO_pass2_Train742311")
+        hV2PsiInt->Divide(hCos2PsiInt);
       hCos2[pt] = (TH1F *)filein->Get(AcceptanceHisto);
       if (!hCos2[pt])
       {
         cout << "Histogram hCos2 not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311") hV2[pt]->Divide(hCos2[pt]);
+      if (SinputFileName == "LHC25_OO_pass2_Train742311")
+        hV2[pt]->Divide(hCos2[pt]);
       hV2[pt]->Add(hV2PsiInt, -1);
     }
 
@@ -2851,8 +2853,8 @@ void FitV2orPol(
   if (ExtrisCentXiRed && part == 0)
     Soutputfile += "_XiRedCent";
 
-  if (ChosenPart >= 6)
-    Soutputfile += "_050";
+  if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+    Soutputfile += "_050PtCut";
 
   // Soutputfile += "_NegativeC";
   //  Soutputfile += "_TestMoreBins";
@@ -3045,7 +3047,8 @@ void FitV2orPol(
 
   // ChosenPt = 0;
   if (!isPtAnalysis)
-    ChosenPt = numPsiBins;
+    // ChosenPt = numPsiBins;
+    ChosenPt = 0;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
@@ -3311,11 +3314,22 @@ void FitV2orPol(
   else if (ParticleType == 2)
     LegendTitle->AddEntry("", "#Lambda #rightarrow p #pi^{#minus} + c.c.", "");
 
-  if (ChosenPt == numPtBinsVar)
-    // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
-    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
+  if (isPtAnalysis)
+  {
+    if (ChosenPt == numPtBinsVar)
+      // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
+    else
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  }
   else
-    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  {
+    if (ChosenPt == numPsiBins)
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}, %s < 2(#varphi - #Psi_{2}) < %s", PtBins[0], SPsiBin[0].Data(), SPsiBin[numPsiBins].Data()), "");
+    else
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}, %s < 2(#varphi - #Psi_{2}) < %s", PtBins[0], SPsiBin[ChosenPt].Data(), SPsiBin[ChosenPt + 1].Data()), "");
+  }
+
   // if (ChosenPart >= 6)
   // LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
   // else
@@ -3437,6 +3451,7 @@ void FitV2orPol(
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
     TitleDummyRatio = "#it{P}_{z, s2}";
+    if (!isPtAnalysis) TitleDummyRatio = "#it{P}_{z}";
   }
   StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, TitleDummyRatio, "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -3481,6 +3496,8 @@ void FitV2orPol(
         hDummyRatio->GetYaxis()->SetRangeUser(-0.2, 0.2);
       if (mul == 8)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.5, 0.5);
+      if (!isPtAnalysis)
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.08, 0.08);  
     }
   }
   hDummyRatio->Draw("same");

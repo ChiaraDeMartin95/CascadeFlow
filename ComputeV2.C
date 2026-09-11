@@ -95,8 +95,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_ResoOnTheFly";
   if (ExtrisApplyEffWeights && ChosenPart >= 6)
     SinputFile += "_EffWeighted";
-  if (ChosenPart >= 6 && !ExtrisFromTHN)
-    SinputFile += "_Nvar1_050";
+  if (ChosenPart >= 6 && !ExtrisFromTHN){ 
+    SinputFile += "_Nvar1";
+    if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff") SinputFile += "_050PtCut";
+  }
   // SinputFile += "_Nvar1_TestMoreBins";
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SinputFile += "_NoMassCutForAcceptance";
@@ -503,7 +505,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       cout << "Taking the histogram: " << hNamePzs2_3D[cent] << endl;
     }
 
-    if (ChosenParticle >= 6)
+    if (ChosenPart >= 6)
     {
       hmassVsPt[cent] = (TH2F *)hmassVsPtVsPzs2[cent]->Project3D("yx");
     }
@@ -556,7 +558,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
       return;
     }
 
-    if (ChosenParticle >= 6 && isProducedAcceptancePlots)
+    if (ChosenPart >= 6 && isProducedAcceptancePlots)
     {
       hmassVsPt[cent] = (TH2F *)hmassVsPtVsCos2Theta[cent]->Project3D("yx");
       hmassVsPt[cent]->SetName(Form("massVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax));
@@ -794,8 +796,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SOutputFile += "_NoMassCutForAcceptance";
   // SOutputFile += "_TestMoreBins";
-  if (ChosenPart >= 6)
-    SOutputFile += "_050";
+  if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+    SOutputFile += "_050PtCut";
   if (ExtrisCentOmegaRed && Part == 1)
     SOutputFile += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
