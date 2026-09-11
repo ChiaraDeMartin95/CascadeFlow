@@ -20,6 +20,8 @@ TString TitleXCent = "Centrality (%)";
 TString TitleYPzs = "#it{P}_{z,s2}";
 TString TitleYPz = "#it{P}_{z}";
 TString TitleYPzsLambda = "#it{P}_{z,s2} (#Lambda + #bar{#Lambda})";
+TString SPsiBin[6] = {"0", "#pi/6", "#pi/3", "#pi/2", "2#pi/3", "5#pi/6"};
+TString titledNdeta = "#LTd#it{N}_{ch}/d#it{#eta}#GT_{|#it{#eta}|<0.5}";
 
 // Mass ranges were puity is calculatedin case of DSCB fit
 Float_t ExtrLowLimitDSCB[numPart] = {1.312, 1.672, 1.312, 1.312, 1.672, 1.672, 1.1145, 1.1145, 1.1145};
@@ -98,14 +100,34 @@ Double_t dNdEtaNeNe[2] = {105.59, 20.63}; // for Junlee results. Averages comput
 Double_t dNdEtaNeNeErr[2] = {3.52, 0.69}; // random reasonable errors assigned
 
 // theory predictions
-// A.Palermo, Pzs2 of Lambda vs centrality in Pb-Pb with bulk viscosity
+// A.Palermo, Pzs2 of Lambda vs centrality in Pb-Pb with bulk viscosity, |y| < 0.5, 0.5 < pT < 6 GeV/c, 5.02 TeV
 Double_t CentPalermo[9] = {2.5e+00, 7.5e+00, 1.5e+01, 2.5e+01, 3.5e+01, 4.5e+01, 5.5e+01, 6.5e+01, 7.5e+01};
 Double_t Pzs2Palermo[9] = {-3.050173509930762550e-05, -7.858818176538021343e-05, -8.719012066015866002e-05, 7.493273322344973971e-06,
                            2.665266717715395481e-04, 7.819382729092881927e-04, 1.527638672979295988e-03, 2.227462747363428888e-03, 2.583982606087120888e-03};
-//F. Palli, private communication, Pzs2 of Xi vs centrality in Pb-Pb                           
+// F.Palli, Pzs2 of Lambda vs centrality in Pb-Pb with bulk viscosity, |y| < 0.5, 0.5 < pT < 6 GeV/c, 5.36 TeV
 Double_t CentPalli[8] = {7.5, 15.0, 25.0, 35.0, 45.0, 55.0, 65.0, 75.0};
+Double_t Pzs2LambdaPalli[8] = {
+    -1.4252953668198690e-04,
+    -1.3461327775511904e-04,
+    7.9000038592944835e-05,
+    6.3806758950807070e-04,
+    1.8328038171703225e-03,
+    3.5339559790689714e-03,
+    5.7621834324306370e-03,
+    8.4857718773528618e-03};
+// F. Palli, private communication, Pzs2 of Xi vs centrality in Pb-Pb, |eta| < 0.8, 0.5 < pT < 6 GeV/c, 5.36 TeV
 Double_t Pzs2XiPalli[8] = {-1.4642602745797088e-04, -1.6763874513772128e-04, -2.9672229329811725e-05, 3.8733710974043475e-04, 1.3010776439712512e-03,
                            2.6517590694028694e-03, 4.4283658019485198e-03, 6.6317705027505005e-03};
+// F.Palli, private communication, Pzs2 of Omega vs centrality in Pb-Pb; |eta| < 0.8, pT > 1 GeV/c, 5.36 TeV
+Double_t Pzs2OmegaPalli[8] = {
+    -2.3667426082432005e-04,
+    -3.1155607911287749e-04,
+    -1.9569920072841243e-04,
+    2.6111632729877471e-04,
+    1.2880922577036831e-03,
+    2.8906028567708152e-03,
+    4.9933777304999689e-03,
+    7.7014343877189083e-03};
 
 // Published V2 of charged particles in OO collisions (arxiv.org/pdf/2509.06428)
 const Int_t numV2OOPubCent = 16;
