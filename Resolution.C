@@ -17,9 +17,9 @@
 #include <TFile.h>
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
+#include "CommonVarLambda.h"
 // #include "CommonVar_v2.h"
-#include "CommonVarOmega.h"
+// #include "CommonVarOmega.h"
 
 void StyleCanvas(TCanvas *canvas, Float_t TopMargin, Float_t BottomMargin, Float_t LeftMargin, Float_t RightMargin)
 {
@@ -158,7 +158,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   TH1D *hReso = new TH1D("hReso", "hReso", numCent, fCentFT0C);
   if (isOOCentrality)
     hReso = new TH1D("hReso", "hReso", numCentLambdaOO, fCentFT0CLambdaOO);
-  if (ExtrisCentOmegaRed)
+  else if (ExtrisCentOmegaRed)
     hReso = new TH1D("hReso", "hReso", numCentOmegaRed, fCentFT0COmegaRed);
   TH1D *hResoV0ATPCA = (TH1D *)hReso->Clone("hResoV0ATPCA");
   TH1D *hResoV0ATPCC = (TH1D *)hReso->Clone("hResoV0ATPCC");
@@ -173,8 +173,10 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   TH1D *hReso2V0ATPCC = (TH1D *)hReso->Clone("hReso2V0ATPCC");
   TH1D *hReso2T0ATPCA = (TH1D *)hReso->Clone("hReso2T0ATPCA");
   TH1D *hReso2T0ATPCC = (TH1D *)hReso->Clone("hReso2T0ATPCC");
+  TH1D *hResoT0AT0CTPCa = (TH1D *)hReso->Clone("hResoT0AT0CTPCa");
   TH1D *hResoPerCentBins = new TH1D("hResoPerCentBins", "hResoPerCentBins", 100, 0, 100);
   TH1D *hResoPerCentBinsV0A = new TH1D("hResoPerCentBinsV0A", "hResoPerCentBinsV0A", 100, 0, 100);
+  TH1D *hResoPerCentBinsT0A = new TH1D("hResoPerCentBinsT0A", "hResoPerCentBinsT0A", 100, 0, 100);
   TH1D *hResoPerCentBinsT0ATPCC = new TH1D("hResoPerCentBinsT0ATPCC", "hResoPerCentBinsT0ATPCC", 100, 0, 100);
   TH1D *hReso080 = new TH1D("hReso080", "hReso080", 1, 0, 1);
   TH1D *hResoV0ATPCA080 = new TH1D("hResoV0ATPCA080", "hResoV0ATPCA080", 1, 0, 1);
@@ -183,7 +185,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   Int_t commonnumCent = numCent;
   if (isOOCentrality)
     commonnumCent = numCentLambdaOO;
-  if (ExtrisCentOmegaRed)
+  else if (ExtrisCentOmegaRed)
     commonnumCent = numCentOmegaRed;
   for (Int_t cent = 0; cent < commonnumCent + 1; cent++)
   {
@@ -207,7 +209,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
         CentFT0CMin = CentFT0CLambdaOO[cent];
         CentFT0CMax = CentFT0CLambdaOO[cent + 1];
       }
-      if (ExtrisCentOmegaRed)
+      else if (ExtrisCentOmegaRed)
       {
         CentFT0CMin = CentFT0COmegaRed[cent];
         CentFT0CMax = CentFT0COmegaRed[cent + 1];
@@ -261,10 +263,12 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     Float_t RelErr2V0ATPCC = pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
     Float_t RelErr2T0ATPCA = pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
     Float_t RelErr2T0ATPCC = pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
+    Float_t RelErr2T0AT0CTPCa = pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2);
     Float_t ErrResoV0ATPCA = sqrt(RelErr2V0ATPCA * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     Float_t ErrResoV0ATPCC = sqrt(RelErr2V0ATPCC * (MeanT0CV0A * MeanT0CTPCC / MeanV0ATPCC));
     Float_t ErrResoT0ATPCA = sqrt(RelErr2T0ATPCA * (MeanT0CT0A * MeanT0CTPCA / MeanT0ATPCA));
     Float_t ErrResoT0ATPCC = sqrt(RelErr2T0ATPCC * (MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
+    Float_t ErrResoT0AT0CTPCa = sqrt(RelErr2T0AT0CTPCa * (MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
 
     if (cent == commonnumCent)
     {
@@ -282,6 +286,9 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
 
       hReso2SubEventsT0A->SetBinContent(cent + 1, sqrt(MeanT0CT0A));
       hReso2SubEventsT0A->SetBinError(cent + 1, ErrMeanT0CT0A / 2 / sqrt(MeanT0CT0A));
+
+      hResoT0AT0CTPCa->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
+      hResoT0AT0CTPCa->SetBinError(cent + 1, ErrResoT0AT0CTPCa);
 
       hResoV0ATPCA->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
       hResoV0ATPCA->SetBinError(cent + 1, ErrResoV0ATPCA);
@@ -354,10 +361,14 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     Float_t RelErr2T0ATPCC = pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
     Float_t ErrResoT0ATPCC = sqrt(RelErr2T0ATPCC * (MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
+    Float_t RelErr2T0AT0CTPCa = pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2);
+    Float_t ErrResoT0AT0CTPCa = sqrt(RelErr2T0AT0CTPCa * (MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
 
     hResoPerCentBins->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     hResoPerCentBinsT0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
+    hResoPerCentBinsT0A->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
+  
     cout << "Cent: " << cent << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << MeanT0CTPCA << " " << MeanT0CTPCC << " " << MeanTPCAC << " " << ErrMeanT0CTPCA << " " << ErrMeanT0CTPCC << " " << ErrMeanTPCAC << endl;
     cout << "hResoPerCentBinsV0A: " << hResoPerCentBinsV0A->GetBinContent(cent + 1) << endl;
@@ -371,6 +382,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     hResoPerCentBins->SetBinError(cent + 1, ErrReso);
     hResoPerCentBinsV0A->SetBinError(cent + 1, ErrResoV0A);
     hResoPerCentBinsT0ATPCC->SetBinError(cent + 1, ErrResoT0ATPCC);
+    hResoPerCentBinsT0A->SetBinError(cent + 1, ErrResoT0AT0CTPCa);
   }
 
   gStyle->SetOptStat(0);
@@ -430,7 +442,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoV0ATPCA->SetMarkerColor(kGreen + 2);
   hResoV0ATPCA->SetMarkerStyle(23);
   hResoV0ATPCA->SetMarkerSize(1.5);
-  // hResoV0ATPCA->Draw("same");
+  //hResoV0ATPCA->Draw("same");
   hResoV0ATPCC->SetLineColor(kGreen + 3);
   hResoV0ATPCC->SetMarkerColor(kGreen + 3);
   hResoV0ATPCC->SetMarkerStyle(24);
@@ -455,7 +467,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoPerCentBinsV0A->SetMarkerColor(kRed);
   hResoPerCentBinsV0A->SetMarkerStyle(22);
   hResoPerCentBinsV0A->SetMarkerSize(0.8);
-  // hResoPerCentBinsV0A->Draw("same");
+  hResoPerCentBinsV0A->Draw("same");
   hReso2T0CTPCA->SetLineColor(kCyan + 2);
   hReso2T0CTPCA->SetMarkerColor(kCyan + 2);
   hReso2T0CTPCA->SetMarkerStyle(26);
@@ -491,6 +503,16 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hReso2T0ATPCC->SetMarkerStyle(30);
   hReso2T0ATPCC->SetMarkerSize(1.5);
   // hReso2T0ATPCC->Draw("same");
+  hResoT0AT0CTPCa->SetLineColor(kMagenta + 4);
+  hResoT0AT0CTPCa->SetMarkerColor(kMagenta + 4);
+  hResoT0AT0CTPCa->SetMarkerStyle(31);
+  hResoT0AT0CTPCa->SetMarkerSize(1.5);
+  //hResoT0AT0CTPCa->Draw("same");
+  hResoPerCentBinsT0A->SetLineColor(kGreen + 2);
+  hResoPerCentBinsT0A->SetMarkerColor(kGreen + 2);
+  hResoPerCentBinsT0A->SetMarkerStyle(32);
+  hResoPerCentBinsT0A->SetMarkerSize(0.8);
+  hResoPerCentBinsT0A->Draw("same");
 
   TLegend *legendRes = new TLegend(0.6, 0.6, 0.9, 0.93);
   legendRes->SetFillStyle(0);
@@ -534,8 +556,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
   legend->Draw();
 
-  // TString Soutputfile = "../";
-  TString Soutputfile = "";
+  TString Soutputfile = "../";
+  //TString Soutputfile = "";
   if (!isSPReso)
   { // event plane method
     if (isLFReso)
@@ -550,7 +572,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     else
       Soutputfile += ResoFileName_SPCFW;
   }
-  if (ExtrisCentOmegaRed)
+  if (!isOOCentrality && ExtrisCentOmegaRed)
     Soutputfile += "_RedCentralityForOmega";
   canvas->SaveAs(Soutputfile + ".pdf");
   canvas->SaveAs(Soutputfile + ".png");
@@ -566,9 +588,11 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoT0ATPCC->Write();
   hResoPerCentBinsV0A->Write();
   hResoPerCentBinsT0ATPCC->Write();
+  hResoPerCentBinsT0A->Write();
   TList *listReso = new TList();
   listReso->Add(hResoPerCentBinsV0A);
   listReso->Add(hResoPerCentBinsT0ATPCC);
+  listReso->Add(hResoPerCentBinsT0A);
   listReso->Write("ccdb_object", TObject::kSingleKey);
   outputfile->Close();
   cout << "\nOutputFile: " << Soutputfile << endl;
