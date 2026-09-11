@@ -20,9 +20,9 @@
 #include "TPad.h"
 #include "StyleFile.h"
 #include "CommonVarPub.h"
-#include "CommonVarXi.h"
-//  #include "CommonVar_v2.h"
-//  #include "CommonVarLambda.h"
+// #include "CommonVarXi.h"
+//   #include "CommonVar_v2.h"
+#include "CommonVarLambda.h"
 // #include "CommonVarOmega.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
@@ -60,7 +60,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   {
     Part = 1; // Omega
   }
-  else if (ChosenPart == 6)
+  else if (ChosenPart == 6 || ChosenPart == 7 || ChosenPart == 8)
   {
     Part = 6; // Lambda
   }
@@ -145,7 +145,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     // hV2 = (THnF *)hXiPzs2->Clone("hV2");
     if (isProducedAcceptancePlots)
     {
-      if (ChosenPart == 6)
+      if (ChosenPart >= 6)
         hV2 = (THnF *)hXiCos2Theta->Clone("hV2");
       else
         hV2 = (THnF *)hXiCos2ThetaFromLambdaL->Clone("hV2");
@@ -156,7 +156,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
         hV2 = (THnF *)hXiPzs2->Clone("hV2");
       else
       {
-        if (ChosenPart == 6)
+        if (ChosenPart >= 6)
           hV2 = (THnF *)hXiPzs2->Clone("hV2");
         else
           hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
@@ -243,11 +243,12 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   TH1F *hDummyMass;
   TH1F *hDummyBDT;
   TH1F *hDummyMassLambda = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
-  if (ChosenParticle == 6 && isProducedAcceptancePlots)
+  if (ChosenParticle >= 6 && isProducedAcceptancePlots)
   {
     hDummyBDT = (TH1F *)hV2->Projection(2); // eta
     hDummyPt = (TH1F *)hV2->Projection(3);
-    hDummyMass = (TH1F *)hV2->Projection(4); // lambda mass
+    hDummyMass = (TH1F *)hV2->Projection(4);       // lambda mass
+    hDummyMassLambda = (TH1F *)hV2->Projection(5); // cos2Theta
   }
   else
   {
@@ -262,10 +263,12 @@ void ProcessTHN(Int_t indexMultTrial = 0,
   hDummyBDT->Reset();
   hDummyMassLambda->Reset();
   hDummyCentrality->GetYaxis()->SetRangeUser(0, 1.2);
-  hDummyCharge->GetYaxis()->SetRangeUser(0, 1);
+  hDummyCharge->GetYaxis()->SetRangeUser(0, 2);
   hDummyPt->GetYaxis()->SetRangeUser(0, 0.25);
   hDummyMass->GetYaxis()->SetRangeUser(0, 0.3);
   hDummyBDT->GetYaxis()->SetRangeUser(0, 1.2);
+  if (isProducedAcceptancePlots)
+    hDummyBDT->GetYaxis()->SetRangeUser(0, 0.15);
   hDummyMassLambda->GetYaxis()->SetRangeUser(0, 0.1);
 
   TH1F *hBDTSelection = new TH1F("hBDTSelection", "BDT selection", 8, 0, 80);
@@ -344,18 +347,18 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hXiCos2ThetaFromLambdaL->GetAxis(0)->SetRange(hXiCos2ThetaFromLambda->GetAxis(0)->FindBin(CentFT0CMin + 0.001), hXiCos2ThetaFromLambda->GetAxis(0)->FindBin(CentFT0CMax - 0.001));
 
     // Selection of charge
-    if (ChosenParticle == 2 || ChosenParticle == 4)
+    if (ChosenParticle == 2 || ChosenParticle == 4 || ChosenParticle == 7)
     {
-      hV2->GetAxis(1)->SetRange(1, 1);          // Charge < 0
+      hV2->GetAxis(1)->SetRange(1, 1);          // Charge < 0 or Lambda
       hXiPzs2->GetAxis(1)->SetRange(1, 1);      // Charge < 0
       hXiCos2Theta->GetAxis(1)->SetRange(1, 1); // Charge < 0
       hXiPzs2FromLambda->GetAxis(1)->SetRange(1, 1);
       hXiCos2ThetaFromLambda->GetAxis(1)->SetRange(1, 1);
       hXiCos2ThetaFromLambdaL->GetAxis(1)->SetRange(1, 1);
     }
-    else if (ChosenParticle == 3 || ChosenParticle == 5)
+    else if (ChosenParticle == 3 || ChosenParticle == 5 || ChosenParticle == 8)
     {
-      hV2->GetAxis(1)->SetRange(2, 2);          // Charge > 0
+      hV2->GetAxis(1)->SetRange(2, 2);          // Charge > 0 or AntiLambda
       hXiPzs2->GetAxis(1)->SetRange(2, 2);      // Charge > 0
       hXiCos2Theta->GetAxis(1)->SetRange(2, 2); // Charge > 0
       hXiPzs2FromLambda->GetAxis(1)->SetRange(2, 2);
@@ -375,9 +378,9 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     // Selection on BDT score -- be careful, in the 0-80% case, the BDT score is not defined and I apply the same cut as in the 0-10% case
     if (!useCommonBDTValue && !isSysMultTrial)
       BDTscoreCut = bdtCut[cent];
-    if (ChosenPart != 6)
+    if (ChosenPart < 6)
       cout << "BDTscoreCut: " << BDTscoreCut << endl;
-    if (ChosenPart != 6)
+    if (ChosenPart < 6)
     { // No BDT axis for Lambda
       hV2->GetAxis(4)->SetRange(hV2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hV2->GetAxis(4)->FindBin(1 - 0.001));
       hXiPzs2->GetAxis(4)->SetRange(hXiPzs2->GetAxis(4)->FindBin(BDTscoreCut + 0.001), hXiPzs2->GetAxis(4)->FindBin(1 - 0.001));
@@ -406,7 +409,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     // Lambda Eta selection
     hXiCos2ThetaFromLambdaL->GetAxis(2)->SetRange(hXiCos2ThetaFromLambdaL->GetAxis(2)->FindBin(-0.8 + 0.00001), hXiCos2ThetaFromLambdaL->GetAxis(2)->FindBin(0.8 - 0.00001));
 
-    if (ChosenPart == 6)
+    if (ChosenPart >= 6)
     {
       if (isMassCutForAcceptance)
         hXiCos2Theta->GetAxis(4)->SetRange(hXiCos2Theta->GetAxis(4)->FindBin(1.112 + 0.00001), hXiCos2Theta->GetAxis(4)->FindBin(1.119 - 0.00001));
@@ -420,6 +423,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     gStyle->SetOptStat(0);
     canvasQC->cd(1);
     hCentrality[cent] = (TH1F *)hV2->Projection(0);
+    cout << "Centrality integral " << hCentrality[cent]->Integral() << endl;
     hCentrality[cent]->Scale(1. / hCentrality[cent]->Integral());
     hCentrality[cent]->SetLineColor(ColorMult[cent]);
     hCentrality[cent]->SetMarkerColor(ColorMult[cent]);
@@ -429,7 +433,11 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hCentrality[cent]->Draw("same");
 
     canvasQC->cd(2);
-    hCharge[cent] = (TH1F *)hV2->Projection(1);
+    if (isProducedAcceptancePlots)
+      hCharge[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(1);
+    else
+      hCharge[cent] = (TH1F *)hV2->Projection(1);
+    cout << hCharge[cent]->Integral() << endl;
     hCharge[cent]->Scale(1. / hCharge[cent]->Integral());
     hCharge[cent]->SetLineColor(ColorMult[cent]);
     hCharge[cent]->SetMarkerColor(ColorMult[cent]);
@@ -443,6 +451,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
       hPt[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
     else
       hPt[cent] = (TH1F *)hV2->Projection(2);
+    cout << "pt integral " << hPt[cent]->Integral() << endl;
     hPt[cent]->Scale(1. / hPt[cent]->Integral());
     hPt[cent]->SetLineColor(ColorMult[cent]);
     hPt[cent]->SetMarkerColor(ColorMult[cent]);
@@ -454,13 +463,14 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     canvasQC->cd(4);
     if (isProducedAcceptancePlots)
     {
-      if (ChosenParticle == 6)
+      if (ChosenParticle >= 6)
         hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
       else
         hMass[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(3);
     }
     else
       hMass[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
+    cout << "mass integral " << hMass[cent]->Integral() << endl;
     hMass[cent]->Scale(1. / hMass[cent]->Integral());
     hMass[cent]->SetLineColor(ColorMult[cent]);
     hMass[cent]->SetMarkerColor(ColorMult[cent]);
@@ -471,25 +481,29 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     canvasQC->cd(5);
     if (isProducedAcceptancePlots)
     {
-      if (ChosenPart == 6)
+      if (ChosenParticle >= 6)
         hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(2); // eta
       else
         hBDT[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5);
     }
     else
       hBDT[cent] = (TH1F *)hXiPzs2FromLambda->Projection(4);
+    cout << "BDT integral " << hBDT[cent]->Integral() << endl;
     hBDT[cent]->Scale(1. / hBDT[cent]->Integral());
     hBDT[cent]->SetLineColor(ColorMult[cent]);
     hBDT[cent]->SetMarkerColor(ColorMult[cent]);
     hBDT[cent]->GetXaxis()->SetRangeUser(-1, 1);
-    hBDT[cent]->GetYaxis()->SetRangeUser(0, 0.4);
+    hBDT[cent]->GetYaxis()->SetRangeUser(0, 0.15);
     if (cent == 0)
       hDummyBDT->Draw();
     hBDT[cent]->Draw("same");
 
     canvasQC->cd(6);
-    // hMassLambda[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(4);
-    hMassLambda[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
+    if (isProducedAcceptancePlots)
+      hMassLambda[cent] = (TH1F *)hXiCos2ThetaFromLambdaL->Projection(5); // cos2Theta
+    else
+      hMassLambda[cent] = (TH1F *)hXiPzs2FromLambda->Projection(3);
+    cout << "MassLambda integral " << hMassLambda[cent]->Integral() << endl;
     hMassLambda[cent]->Scale(1. / hMassLambda[cent]->Integral());
     hMassLambda[cent]->SetLineColor(ColorMult[cent]);
     hMassLambda[cent]->SetMarkerColor(ColorMult[cent]);
@@ -514,7 +528,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     hNameCos2ThetaVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     // Projections
     Int_t AxisNumber = 5;
-    if (ChosenPart == 6) // Lambda
+    if (ChosenPart >= 6) // Lambda
       AxisNumber = 4;    // no BDT axis for Lambda
 
     hmassVsPtVsV2C[cent] = (TH3D *)hV2->Projection(3, 2, AxisNumber); // mass, pt, v2
@@ -574,7 +588,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_Run2Binning";
   if (!ExtrisRapiditySel)
     OutputFileName += "_Eta08";
-  if (ChosenPart != 6)
+  if (ChosenPart < 6)
     OutputFileName += SBDT;
   if (isOOCentrality)
     OutputFileName += "_isOOCentrality";
@@ -586,14 +600,13 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_TightAcceptance";
   else if (isTightAcceptance == 2)
     OutputFileName += "_TighterAcceptance2";
-  if (ChosenPart == 6 && !isMassCutForAcceptance)
+  if (ChosenPart >= 6 && !isMassCutForAcceptance)
     OutputFileName += "_NoMassCutForAcceptance";
   if (ExtrisCentOmegaRed && Part == 1)
     OutputFileName += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     OutputFileName += "_XiRedCent";
 
-  OutputFileName += ".root";
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
   hBDTSelection->Write();
