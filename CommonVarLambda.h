@@ -11,15 +11,15 @@
 // SinputFileName --> take the proper input for systematic variations
 
 Bool_t isV2 = 0;              // 0 for polarization, 1 for v2
-Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda
+Int_t ChosenParticle = 6;     // 0: Xi, 1: Omega, 2: Xi-, 3: Xi+, 4: Omega-, 5: Omega+, 6: Lambda + ALambda, 7: Lambda, 8: ALambda
 Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2),
 Bool_t ExtrisPartialEta = 0;  // 1: select only 0 < eta < 0.8 (opposite to FT0C)
 Bool_t isApplyWeights = 0;    // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 1; // 0 for acceptance
+Bool_t isApplyCentWeight = 1; // 0 for acceptance from THN
 Bool_t ExtrisApplyEffWeights = 1;
-Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance
+Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance from THN
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0;           // 1 for acceptance; 0: process the tree, 1: process the THnSparse
+Bool_t ExtrisFromTHN = 0;           // 1 for acceptance from THN, 0 for acceptance from tree, 0 for analysis; 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 1;         // 0 for acceptance
 Bool_t isOOCentrality = 1;
 Bool_t isRun2Binning = 0;
@@ -38,10 +38,10 @@ const Int_t commonNumCent = 10; //= numCentLambdaOO for Lambda in OO
 // Pt bins
 const Int_t numPtBinsEff = 17; // for efficiency
 const Int_t numPsiBins = 6;    // bins into which Pz (longitudinal polarization) is computed
-const Int_t numPtBins = 7;
-const Int_t numPtBinsReduced = 7;
+const Int_t numPtBins = 8;
+const Int_t numPtBinsReduced = 8;
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8};
-Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6};
+Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
 
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
@@ -67,22 +67,28 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train589559"; //THN larger range pzs2
 // TString SinputFileName = "LHC25_OO_pass2_Train589711"; // tree with new acceptance
 // TString SinputFileName = "LHC25_OO_pass2_Train589711Bis"; // tree with new acceptance
-// TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
+//TString SinputFileName = "LHC25_OO_pass2_Train597528_NewAcc"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597527_NewAcc_EtaPos"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
-// TString SinputFileName = "LHC25_OO_pass2_Train598890";
-TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; // for PRELIMINARIES 2026
+//TString SinputFileName = "LHC25_OO_pass2_Train598890";
+// TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; // for PRELIMINARIES 2026 and paper proposal
 // TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly
-//  TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
-//  TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
+//TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
+//TString SinputFileName = "LHC25_OO_pass2_T0ATest2";
+//TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
 //  TString SinputFileName = "LHC25_OO_pass2_Train598891_EtaPos"; //Also 0 < etaDau < 0.8
 //  TString SinputFileName = "LHC25_OO_pass2_Train598892_EtaNeg"; //Also -0.8 < etaDau < 0
+//TString SinputFileName = "LHC25_OO_pass2_Train743624_PositiveEta"; //Event plane defined with T0A
+//TString SinputFileName = "LHC25_OO_pass2_Train743624_NegativeEta"; //Event plane defined with T0A
+//TString SinputFileName = "LHC25_OO_pass2_Train743624"; //Event plane defined with T0A
+TString SinputFileName = "LHC25_OO_pass2_Train751984"; //|eta| < 0.8 and |y| < 0.5
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
 
 // To get number of analyzed events
 TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
+//TString SinputFileNameAR = "LHC25_OO_pass2_T0ATest2";
 // TString SinputFileNameAR = "LHC25_OO_pass2_Train742311";
 
 // File name for centrality weights
