@@ -24,8 +24,8 @@
 // #include "CommonVarXi.h"
 // #include "CommonVar_v2.h"
 #include "CommonVarPub.h"
-#include "CommonVarOmega.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVarOmega.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -132,14 +132,14 @@ Float_t YUpCos2ThetaLambda[numPart] = {0.5, 0.5, 0.5};
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0};
 
-Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.8, 0.8};
-Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 50, 1, 10, 10, 1.1, 1.1, 1, 1.2, 1.2};
+Float_t YLowRatio[numChoice] = {0.99, 0.2, 0.8, 0.1, 0, -10, -10, 0.9, 0.9, 0, 0.99, 0.8};
+Float_t YUpRatio[numChoice] = {1.01, 1.8, 1.2, 50, 1, 10, 10, 1.1, 1.1, 1, 1.01, 1.2};
 
 void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
                               Int_t ChosenPart = ChosenParticle,
                               Int_t Choice = 0,
                               Bool_t isTightMassForAcceptancePurity = 0,
-                              Int_t ChosenMult = 7 /*commonNumCent*/ /*- 3*/,
+                              Int_t ChosenMult = 10 /*commonNumCent*/ /*- 3*/,
                               Bool_t isRapiditySel = ExtrisRapiditySel,
                               TString OutputDir = "../MeanSigmaPurityMultClasses/",
                               Int_t BkgType = ExtrBkgType,
@@ -218,7 +218,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   {
     YLow[part] = 1e-9;
     YUp[part] = 100;
-    if (isV2 && ChosenPart==0)
+    if (isV2 && ChosenPart == 0)
     {
       YLow[part] = 1e-6;
       YUp[part] = 1000;
@@ -295,7 +295,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     stringout += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   if (isReducedPtBins)
     stringout += "_ReducedPtBins";
-  if (ExtrisApplyResoOnTheFly)
+  if (ExtrisApplyResoOnTheFly && (Choice != 10 && Choice != 11))
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
     stringout += "_EPReso";
@@ -404,7 +404,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       CentFT0CMin = CentFT0C[m];
       CentFT0CMax = CentFT0C[m + 1];
     }
-    if (part==1) // Omega in Pb-Pb
+    if (part == 1) // Omega in Pb-Pb
     {
       if (m == numCentOmega)
       {
@@ -422,7 +422,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       if (m == numCentLambdaOO)
       {
         CentFT0CMin = 0;
-        CentFT0CMax = 100;
+        CentFT0CMax = CentFT0CMaxLambdaOO;
       }
       else
       {
@@ -490,7 +490,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_ReducedPtBins";
     if ((isOOCentrality) && (Choice == 10 || Choice == 11))
       PathIn += "_isOOCentrality";
-    if (ExtrisApplyResoOnTheFly)
+    if (ExtrisApplyResoOnTheFly && (Choice != 10 && Choice != 11))
       PathIn += "_ResoOnTheFly";
     if (ChosenPart == 0)
       PathIn += "_EPReso";
@@ -503,7 +503,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     PathIn += ".root";
     cout << "Path in: " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
-    // cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
+    cout << TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax) << endl;
     if (Choice == 10 || Choice == 11)
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get(TypeHisto[Choice] + Form("_cent%i-%i", CentFT0CMin, CentFT0CMax));
     else if (Choice == 1)
@@ -572,7 +572,6 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
       continue;
-
     ScaleFactorFinal[m] = ScaleFactor[m];
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
@@ -608,6 +607,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   } // end loop on mult
   LegendTitle->Draw("");
   legendAllMult->Draw("");
+  canvasPtSpectra->Modified();
+  canvasPtSpectra->Update();
 
   // PDG mass
   TF1 *fMassPDG = new TF1("fMassPDG", Form("%f", ParticleMassPDG[ChosenPart]), MinPt[ChosenPart], MaxPt[ChosenPart]);
@@ -694,6 +695,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     lineat1Mult->Draw("same");
 
   } // end loop on mult
+  canvasPtSpectra->Modified();
+  canvasPtSpectra->Update();
 
   TCanvas *canvas = new TCanvas("canvas", "canvas", 700, 900);
   StyleCanvas(canvas, 0.03, 0.1, 0.15, 0.02);
