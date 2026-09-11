@@ -270,6 +270,18 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp == 72 --> compare Pzs of Lambda with and without efficiency weighting
   // TypeComp == 73 --> Compare New vs Default reco (multiplicity distributions) for sofwtare filter selections
   // TypeComp == 74 --> Compare Pzs2 of Xi from separate fit and simultaneous fit of mass and v2
+  // TypeComp == 75 --> Compare Pzs2 of Xi with different signal functions to describe mass peak
+  // TypeComp == 76 --> Compare Pzs2 of Xi with different signal and background functions to describe mass peak
+  // TypeComp == 77 --> Compare Pzs2 of Lambda with 0 < Eta < 0.8 and -0.8 < Eta < 0 (vs centrality)
+  // TypeComp == 78 --> Compare Pzs2 of Lambda with 0 < Eta < 0.8 and -0.8 < Eta < 0 (vs pT)
+  // TypeComp == 79 --> Compare Pzs2 of Lambda with allEta vs 0 < Eta < 0.8 and -0.8 < Eta < 0
+  // TypeComp == 80 --> Compare polarization calculated using event plane from T0C vs T0A (vs centrality)
+  // TypeComp == 81 --> Compare polarization calculated using event plane from T0C vs T0A (vs pT)
+  // TypeComp == 82 --> Compare acceptance of Lambda vs anti-Lambda (THNs)
+  // TypeComp == 83 --> Compare acceptance from THN vs acceptance from Tree
+  // TypeComp == 84 --> Compare acceptance Lambda vs AntiLambda (from tree)
+  // TypeComp == 85 --> Lambda polarization in |eta| < 0.8 vs |y| < 0.5 (+ |eta| < 0.8) (vs centrality)
+  // TypeComp == 86 --> Lambda polarization in |eta| < 0.8 vs |y| < 0.5 (+ |eta| < 0.8) (vs pT)
 
   // TypeComp = 0 --> weighted vs unweighted v2
   if (TypeComp == 0)
@@ -2065,6 +2077,7 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 75)
   {
+    //Compare Pzs2 of Xi with differen signal functions to describe mass peak
     // TypeComp == 75
     numOptions = 2;
     isRatio = 1;
@@ -2088,7 +2101,7 @@ void CompareResults(Int_t TypeComp = 0,
   }
   else if (TypeComp == 76)
   {
-    // TypeComp == 76
+    // TypeComp == 76 --> Compare Pzs2 of Xi with different signal and background functions to describe mass peak
     numOptions = 5;
     isRatio = 0;
     isFullCorr = 1;
@@ -2119,6 +2132,301 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 80;
+  }
+  else if (TypeComp == 77)
+  {
+    // Compare Pzs2 of Lambda with 0 < Eta < 0.8 and -0.8 < Eta < 0
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890";
+    fileName[0] = "_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "0 < #eta < 0.8";
+    sleg[1] = "-0.8 < #eta < 0";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = -0.006;
+    YUpRatio = 0.006;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+  }
+  else if (TypeComp == 78)
+  {
+    // Compare Pzs2 of Lambda with 0 < Eta < 0.8 and -0.8 < Eta < 0
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 2; // uncorrelated results
+    // isFullCorr = 0; // partial correlation
+    isStoreSyst = 0;
+    TypeSyst = "";
+    // CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train598890";
+    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train743624";
+    // fileName[0] = "_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[0] = "_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "histoPzs2";
+    namehisto[1] = "histoPzs2";
+    // namehisto[2] = "histoPzs2";
+    hTitleX = "p_{T} (GeV/c)";
+    // sleg[0] = "Inclusive";
+    sleg[0] = "0 < #eta < 0.8";
+    sleg[1] = "-0.8 < #eta < 0";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = -0.01;
+    YUpRatio = 0.01;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0.5;
+    MaxHistoX = 6;
+  }
+  else if (TypeComp == 79)
+  {
+    // Compare Pzs2 of Lambda with 0 < Eta < 0.8 and -0.8 < Eta < 0 and allEta
+    numOptions = 3;
+    isRatio = 0;
+    // isFullCorr = 2; // uncorrelated results
+    isFullCorr = 0; // partial correlation
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train743624";
+    fileName[0] = "_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[2] = "_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    namehisto[2] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "Inclusive";
+    sleg[1] = "0 < #eta < 0.8";
+    sleg[2] = "-0.8 < #eta < 0";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = -0.006;
+    YUpRatio = 0.006;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+  }
+  else if (TypeComp == 80)
+  {
+    // Compare polarization calculated using event plane from T0C vs T0A
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "T0C";
+    sleg[1] = "T0A";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = -0.006;
+    YUpRatio = 0.006;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+  }
+  else if (TypeComp == 81)
+  {
+    // Compare polarization calculated using event plane from T0C vs T0A
+    numOptions = 2;
+    isRatio = 0;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    // fileName[0] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "histoPzs2";
+    namehisto[1] = "histoPzs2";
+    hTitleX = "p_{T} (GeV/c)";
+    sleg[0] = "T0C";
+    sleg[1] = "T0A";
+    // YLow = 0.;
+    // YUp = 0.5;
+    YLowRatio = -0.01;
+    YUpRatio = 0.01;
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0.5;
+    MaxHistoX = 6;
+  }
+  else if (TypeComp == 82)
+  {
+    // TypeComp == 82 --> Compare acceptance of Lambda vs anti-Lambda (THNs)
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/Acceptance_LHC25_OO_pass2";
+    fileName[0] = "_Train597528_NewAcc_Lambda_EffW_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    fileName[1] = "_Train597528_NewAcc_AntiLambda_EffW_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    // namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    // namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "#eta";
+    // hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.8;
+    YUpRatio = 1.2;
+    sleg[0] = "#Lambda";
+    sleg[1] = "#bar{#Lambda}";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    // MinHistoX = 0.5;
+    // MaxHistoX = 10;
+    yOffset = 6;
+  }
+  else if (TypeComp == 83)
+  {
+    // TypeComp == 83 --> Compare acceptance from THN vs acceptance from Tree
+    numOptions = 2;
+    isRatio = 1;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/";
+    fileName[0] = "Acceptance_LHC25_OO_pass2_Train597528_NewAcc_Lambda_EffW_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance";
+    fileName[1] = "Acceptance_LHC25_OO_pass2_Train598890_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    // namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    // namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    // hTitleX = "#eta";
+    hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.8;
+    YUpRatio = 1.2;
+    sleg[0] = "THN";
+    sleg[1] = "Tree";
+    // MinHistoX = -0.8;
+    // MaxHistoX = 0.8;
+    MinHistoX = 0.5;
+    MaxHistoX = 10;
+    yOffset = 6;
+  }
+  else if (TypeComp == 84)
+  {
+    // TypeComp == 84 --> Compare acceptance Lambda vs AntiLambda (from tree)
+    numOptions = 3;
+    isRatio = 1;
+    isFullCorr = 0; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/";
+    fileName[0] = "Acceptance_LHC25_OO_pass2_Train598890_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
+    fileName[1] = "Acceptance_LHC25_OO_pass2_Train598890_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
+    fileName[2] = "Acceptance_LHC25_OO_pass2_Train598890_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    hTitleX = "#eta";
+    // hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
+    sleg[0] = "#Lambda + #bar{#Lambda}";
+    sleg[1] = "#Lambda";
+    sleg[2] = "#bar{#Lambda}";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    // MinHistoX = 0.5;
+    // MaxHistoX = 10;
+    yOffset = 6;
+  }
+  else if (TypeComp == 85)
+  {
+    // TypeComp == 85 --> Lambda polarization in |eta| < 0.8 vs |y| < 0.5 (+ |eta| < 0.8)
+    numOptions = 2;
+    isRatio = 1;
+    isFitRatio = 1;
+    isFullCorr = 0; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "751984_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
+    sleg[0] = "|#eta| < 0.8";
+    sleg[1] = "|y| < 0.5";
+    // YLow = 0.;
+    // YUp = 0.5;
+    // YLowRatio = -0.006;
+    // YUpRatio = 0.006;
+    YLowRatio = 0.5;
+    YUpRatio = 1.5;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+  }
+  else if (TypeComp == 86)
+  {
+    // TypeComp == 86 --> Lambda polarization in |eta| < 0.8 vs |y| < 0.5 (+ |eta| < 0.8)
+    numOptions = 2;
+    isRatio = 1;
+    isFitRatio = 1;
+    isFullCorr = 0; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "";
+    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "751984_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    sleg[0] = "|#eta| < 0.8";
+    sleg[1] = "|y| < 0.5";
+    namehisto[0] = "histoPzs2";
+    namehisto[1] = "histoPzs2";
+    hTitleX = "p_{T} (GeV/c)";
+    // YLow = 0.;
+    // YUp = 0.5;
+    // YLowRatio = -0.006;
+    // YUpRatio = 0.006;
+    YLowRatio = 0.5;
+    YUpRatio = 2;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0.5;
+    MaxHistoX = 6;
   }
   else
   {
@@ -2203,6 +2511,8 @@ void CompareResults(Int_t TypeComp = 0,
       for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
       {
         cout << "Bin center: " << hRatio[i]->GetBinCenter(j) << endl;
+        cout << "def: " << hDef->GetBinContent(j) << " +/- " << hDef->GetBinError(j) << endl;
+        cout << "var: " << h[i]->GetBinContent(j) << " +/- " << h[i]->GetBinError(j) << endl;
         if (isRatio)
           cout << "Ratio = " << hRatio[i]->GetBinContent(j) << " +/- " << hRatio[i]->GetBinError(j) << ", |ratio -1|/sigma " << abs(hRatio[i]->GetBinContent(j) - 1) / hRatio[i]->GetBinError(j) << endl;
         else
@@ -2525,7 +2835,7 @@ if (TypeComp == 48)
     hRatio[i]->SetMarkerSize(0.6 * SizeMult[indexColor]);
     hRatio[i]->GetYaxis()->SetRangeUser(YLowRatio, YUpRatio);
     hRatio[i]->Draw("same");
-    if ((TypeComp == 40  || TypeComp == 76) && i == 3)
+    if ((TypeComp == 40 || TypeComp == 76) && i == 3)
     {
       hRatio[i]->SetMarkerColor(kBlue + 1);
       hRatio[i]->SetLineColor(kBlue + 1);
@@ -2538,8 +2848,10 @@ if (TypeComp == 48)
     if (isFitRatio)
     {
       hRatio[i]->Fit(FitPol0[i], "R+");
-      if (isRatio) legFit->AddEntry(FitPol0[i], Form("p0 = %.5f #pm %.5f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
-      else legFit->AddEntry(FitPol0[i], Form("p0 = %.7f #pm %.7f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
+      if (isRatio)
+        legFit->AddEntry(FitPol0[i], Form("p0 = %.5f #pm %.5f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
+      else
+        legFit->AddEntry(FitPol0[i], Form("p0 = %.7f #pm %.7f", FitPol0[i]->GetParameter(0), FitPol0[i]->GetParError(0)), "l");
     }
   }
   if (isFitRatio)
