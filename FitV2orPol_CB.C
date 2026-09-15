@@ -18,8 +18,8 @@
 #include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
 // #include "CommonVarOmega.h"
-#include "CommonVarXi.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVarXi.h"
+#include "CommonVarLambda.h"
 #include "Fit/Fitter.h"
 #include "Fit/BinData.h"
 #include "Fit/Chi2FCN.h"
@@ -115,8 +115,8 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
   histo->SetTitle(title);
 }
 
-const Float_t UpperLimitLSBOmega = 1.663; // upper limit of fit of left sidebands for omega
-const Float_t LowerLimitRSBOmega = 1.678; // lower limit of fit of right sidebands for omega
+const Float_t UpperLimitLSBOmega = 1.663;  // upper limit of fit of left sidebands for omega
+const Float_t LowerLimitRSBOmega = 1.678;  // lower limit of fit of right sidebands for omega
 const Float_t UpperLimitLSBXi = 1.308;     // upper limit of fit of left sidebands for Xi
 const Float_t LowerLimitRSBXi = 1.335;     // lower limit of fit of right sidebands for Xi
 const Float_t UpperLimitLSBLambda = 1.107; // upper limit of fit of left sidebands for Lambda
@@ -1311,6 +1311,8 @@ void FitV2orPol_CB(
       SPathIn += "_isSysLambdaMultTrial";
     }
     SPathIn += STHN[ExtrisFromTHN];
+    if (isApplyAcceptanceInMacro)
+      SPathIn += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly && !isProducedAcceptancePlots)
       SPathIn += "_ResoOnTheFly";
     // if (ChosenPart >= 6)
@@ -2494,9 +2496,35 @@ void FitV2orPol_CB(
             total[pt]->SetParLimits(7, 0.000001, 0.002);
         }
       }
+      else if (ParticleType == 2) // Lambda
+      {
+        total[pt]->SetParLimits(1, 1.1, 1.13);
+        total[pt]->SetParLimits(2, 0.001, 0.02);
+        total[pt]->SetParLimits(3, 1, 10); // alphaL, 10
+        total[pt]->SetParLimits(5, 1, 10); // alphaR, 10
+        total[pt]->SetParLimits(4, 5, 50); // nL, 5, 50
+        total[pt]->SetParLimits(6, 5, 50); // nR, 5, 50
+        if (PtBins[pt] >= 4)
+        {
+          // total[pt]->SetParLimits(3, 1, 8);   // alphaL, 10
+          // total[pt]->SetParLimits(5, 1, 8);   // alphaR, 10
+          // total[pt]->SetParLimits(4, 10, 60); // nL, 5, 50
+          // total[pt]->SetParLimits(6, 20, 60); // nR, 5, 50
+          total[pt]->SetParLimits(3, 0, 8);   // alphaL, 10
+          total[pt]->SetParLimits(5, 0, 8);   // alphaR, 10
+          total[pt]->SetParLimits(4, 0, 120); // nL, 5, 50
+          total[pt]->SetParLimits(6, 0, 120); // nR, 5, 50
+          total[pt]->SetParameter(3, total[pt - 1]->GetParameter(3));
+          total[pt]->SetParameter(4, total[pt - 1]->GetParameter(4));
+          total[pt]->SetParameter(5, total[pt - 1]->GetParameter(5));
+          total[pt]->SetParameter(6, total[pt - 1]->GetParameter(6));
+        }
+        if (isGaussConv)
+          total[pt]->SetParLimits(7, 0.000001, 0.002);
+      }
       else
       {
-        cout << "Not yet implemented for Lambda and Omega " << endl;
+        cout << "Not yet implemented for Omega " << endl;
         return;
       }
 
@@ -2969,6 +2997,15 @@ void FitV2orPol_CB(
         fitter.Config().ParSettings(4).SetLimits(1.318, 1.324);
         fitter.Config().ParSettings(5).SetLimits(0.001, 0.01);
       }
+      else if (ParticleType == 2) // Lambda
+      {
+        fitter.Config().ParSettings(0).SetLimits(0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()));
+        fitter.Config().ParSettings(1).SetLimits(1.1, 1.13);
+        fitter.Config().ParSettings(2).SetLimits(0.0012, 0.010);
+        fitter.Config().ParSettings(3).SetLimits(0.08 * hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin()), hInvMass[pt]->GetBinContent(hInvMass[pt]->GetMaximumBin())); // maximum was wothout 0.3
+        fitter.Config().ParSettings(4).SetLimits(1.1, 1.13);
+        fitter.Config().ParSettings(5).SetLimits(0.001, 0.01);
+      }
 
       fitter.Config().MinimizerOptions().SetPrintLevel(0);
       fitter.Config().SetMinimizer("Minuit2", "Migrad");
@@ -3203,6 +3240,7 @@ void FitV2orPol_CB(
     }
   }
 
+  cout << "\nEnd of pt loop" << endl;
   TCanvas *canvasMass = new TCanvas("canvasMass", "canvasMass", 800, 1800);
   canvasMass->Divide(2, 3);
   StyleCanvas(canvasMass, 0.15, 0.05, 0.05, 0.15);
@@ -3225,7 +3263,7 @@ void FitV2orPol_CB(
       index = 4;
     else if (pt == 4)
       index = 5;
-    else if ((pt == 7 && ParticleType != 0) || (pt == 5 && ParticleType == 0))
+    else if (pt == 6) // 5
       index = 6;
     else
       continue;
@@ -3247,10 +3285,10 @@ void FitV2orPol_CB(
     total[pt]->Draw("same");
     // functions1[pt]->Draw("same");
     // functions2[pt]->Draw("same");
-    //  totalSignal[pt]->Draw("same");
+    // totalSignal[pt]->Draw("same");
     if (isFitDSCB)
     {
-      // functionDSCBPre[pt]->Draw("same");
+      functionDSCBPre[pt]->Draw("same");
       functionDSCBPost[pt]->Draw("same");
     }
     if (!isMC)
@@ -3289,6 +3327,9 @@ void FitV2orPol_CB(
     lineP3Sigma[pt]->Draw("same");
     lineM3Sigma[pt]->Draw("same");
   }
+
+  canvasMass->Modified();
+  canvasMass->Update();
 
   TCanvas *canvasSummary = new TCanvas("canvasSummary", "canvasSummary", 1900, 1200);
   canvasSummary->Divide(5, 3);
@@ -3625,6 +3666,9 @@ void FitV2orPol_CB(
   histoYieldFraction->Draw("");
   histoYieldFractionPtInt->Draw("same");
 
+  canvasSummary->Modified();
+  canvasSummary->Update();
+
   TString Soutputfile;
   TString SoutputfileAcceptance;
   Soutputfile = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_" + inputFileName + "_" + ParticleName[ChosenPart];
@@ -3699,6 +3743,8 @@ void FitV2orPol_CB(
       Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
     Soutputfile += "_isSysLambdaMultTrial";
   }
+  if (isApplyAcceptanceInMacro)
+    Soutputfile += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
   // if (ChosenPart >= 6)
@@ -3914,6 +3960,7 @@ void FitV2orPol_CB(
   Int_t ChosenPt = 8; // 8
   if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
     ChosenPt = numPtBinsVar;
+    //ChosenPt = numPtBinsVar - 2;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
@@ -4125,6 +4172,7 @@ void FitV2orPol_CB(
     totalPNorm->SetParameter(4, total[ChosenPt]->GetParameter(4));
     totalPNorm->SetParameter(5, total[ChosenPt]->GetParameter(5));
   }
+
   totalPNorm->SetNpx(10000);
   legendfit2->AddEntry(histo, "Data", "pl");
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
@@ -4365,6 +4413,9 @@ void FitV2orPol_CB(
   if (!isMC)
     bkg->Draw("same");
   // legendMassChi2->Draw("");
+  canvasP->Modified();
+  canvasP->Update();
+
   if (isProducedAcceptancePlots)
   {
     canvasCos2->cd();
@@ -4507,8 +4558,7 @@ void FitV2orPol_CB(
   pad3->Draw();
   pad3->cd();
   hDummy->Draw("same");
-  hInvMassDraw[ChosenPt]->Draw("hist same pe");
-  cout << "Integral of the histogram drawn: " << hInvMassDraw[ChosenPt]->Integral() << endl;
+  hInvMass[ChosenPt]->Draw("hist same pe");
   cout << "Integral of the histogram drawn: " << hInvMass[ChosenPt]->Integral() << endl;
   hInvMass[ChosenPt]->Draw("hist same pe");
   totalPNorm->Draw("same");
@@ -4536,7 +4586,6 @@ void FitV2orPol_CB(
     if (isCombinedFit)
       v2BkgFunctionGlobal[ChosenPt]->Draw("same");
   }
-
   TCanvas *canvasRatioToFit = new TCanvas("canvasRatioToFit", "canvasRatioToFit", 800, 800);
   StyleCanvas(canvasRatioToFit, 0.15, 0.03, 0.02, 0.14); // L, R, T, B
   TH1F *histoRatioToFit = (TH1F *)hInvMass[ChosenPt]->Clone("histoRatioToFit");
