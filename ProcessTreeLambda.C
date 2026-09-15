@@ -184,6 +184,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
   TFile *weightEffFileAL = new TFile(weightEffFileNameAL, "READ");
   TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
 
+  /*
   TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
   if (isSysMultTrial)
     SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_2_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root";
@@ -196,6 +197,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
   //  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
   TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
   TH2D *hAcceptanceAL{AcceptanceFileAL ? (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
+  */
 
   auto h = d1.Histo1D("fPt");
 
@@ -280,6 +282,38 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
 
   // now vary those thresholds
   const int NVAR = 1;
+  std::vector<std::unique_ptr<TFile>> acceptanceFiles;
+  std::vector<TH2F *> hAcceptanceLVec;
+  std::vector<TH2F *> hAcceptanceALVec;
+
+  for (int i = 0; i < NVAR; ++i)
+  {
+
+    TString acceptanceFileName = Form("AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_%i_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root", i);
+    acceptanceFiles.emplace_back(
+        std::make_unique<TFile>(
+            acceptanceFileName,
+            "READ"));
+    cout << "Opening acceptance file: " << acceptanceFileName << endl;
+
+    auto *hL = acceptanceFiles.back()->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
+    if (!hL)
+    {
+      throw std::runtime_error(
+          Form("Could not find acceptance histograms in variation %d", i));
+    }
+    hL->SetDirectory(nullptr);
+    hAcceptanceLVec.push_back(hL);
+    auto *hAL = acceptanceFiles.back()->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
+    if (!hAL)
+    {
+      throw std::runtime_error(
+          Form("Could not find acceptance histograms in variation %d", i));
+    }
+    hAL->SetDirectory(nullptr);
+    hAcceptanceALVec.push_back(hAL);
+  }
+
   auto df_varied = df_withCuts.Vary(
       {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
 
@@ -525,10 +559,10 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
     else return 0.; }, {"fPt", "fCentFT0C", "fSign"});
 
-  df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceL, &hAcceptanceAL](unsigned int, float pt, float eta, short sign)
+  df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAcceptanceALVec](unsigned int, float pt, float eta, short sign)
                                        {
-    if (sign==(short)0) return hAcceptanceL->GetBinContent(hAcceptanceL->FindBin(pt, eta));
-    else if (sign==(short)1)  return hAcceptanceAL->GetBinContent(hAcceptanceAL->FindBin(pt, eta)); 
+    if (sign==(short)0) return hAcceptanceLVec[0]->GetBinContent(hAcceptanceLVec[0]->FindBin(pt, eta));
+    else if (sign==(short)1)  return hAcceptanceALVec[0]->GetBinContent(hAcceptanceALVec[0]->FindBin(pt, eta)); 
     else return 0.; }, {"fPt", "fEta", "fSign"});
 
   if (ExtrisApplyEffWeights)
