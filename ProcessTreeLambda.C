@@ -63,6 +63,13 @@ Float_t MaxPzs2WithAlphaOmega = 65;
 const Int_t NPzs2 = 400;
 Double_t PzsBinsLambda[NPzs2 + 1];
 
+const Int_t NPtLambdaAcc = 11;
+Double_t PtLambdaAcc[NPtLambdaAcc + 1] = {0.2, 0.4, 0.6, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 6, 10};
+const Int_t NEtaLambdaAcc = 16;
+Double_t EtaLambdaAcc[NEtaLambdaAcc + 1] = {-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
+const Int_t NCos2ThetaAcc = 100;
+Double_t Cos2ThetaAcc[NCos2ThetaAcc + 1];
+
 Float_t MinPz = -10;
 Float_t MaxPz = 10;
 Float_t MinPzReso[numCentLambdaOO + 1] = {-32, -36, -40, -50, -60, -80, -120, -150, -250, -800, -60};
@@ -85,6 +92,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
                        Int_t EtaSysChoice = ExtrEtaSysChoice,
                        Bool_t isSysMultTrial = ExtrisSysLambdaMultTrial)
 {
+  for (Int_t i = 0; i <= NCos2ThetaAcc; i++)
+    Cos2ThetaAcc[i] = i * 1.0 / NCos2ThetaAcc;
 
   auto start = std::chrono::high_resolution_clock::now();
   ROOT::EnableImplicitMT(50);
@@ -115,8 +124,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   }
 
   std::vector<std::string> name;
-  TString filename = "input_" + inputFileName + "_New.txt";
-  //TString filename = "input_" + inputFileName + ".txt";
+  TString filename = "input_" + inputFileName + ".txt";
   std::ifstream fileIn(Form("%s", filename.Data()));
 
   cout << filename.Data() << endl;
@@ -160,7 +168,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   TString resoCentFileName = SinputFileNameResoWeight;
   TFile *resoFile = new TFile(resoCentFileName, "READ");
-  TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get("hResoPerCentBinsV0A") : nullptr};
+  TString ResoName = "hResoPerCentBinsV0A";
+  if (SinputFileName == "LHC25_OO_pass2_Train743624")
+    ResoName = "hResoPerCentBinsT0A";
+  TH1D *reso{resoCentFileName ? (TH1D *)resoFile->Get(ResoName) : nullptr};
   if (isSystReso)
     reso = (TH1D *)resoFile->Get("hResoPerCentBinsT0ATPCC");
 
@@ -170,6 +181,15 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TString weightEffFileNameAL = SinputFileNameEfficiencyWeightAntiLambda;
   TFile *weightEffFileAL = new TFile(weightEffFileNameAL, "READ");
   TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
+
+  TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  //  TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
+  TFile *AcceptanceFileL = new TFile(SinputFileNameAcceptanceL, "READ");
+  TH2D *hAcceptanceL{AcceptanceFileL ?  (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
+  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  //  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
+  TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
+  TH2D *hAcceptanceAL{AcceptanceFileAL ?  (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
 
   auto h = d1.Histo1D("fPt");
 
@@ -189,10 +209,19 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     d2 = d2.Filter("fEta < 0");
   else if (isAllEta == 2)
     d2 = d2.Filter("fEta > 0");
+  else if (isAllEta == 1)
+    d2 = d2.Filter("abs(fEta) < 0.8");
 
   // pt selection
   d2 = d2.Filter("fPt > 0.5");
   d2 = d2.Filter("fPt < 10");
+
+  // ctau selection
+  if (SinputFileName == "LHC25_OO_pass2_Train753645")
+  {
+    d2 = d2.Filter("fCtauLambda > 0");
+    d2 = d2.Filter("fCtauLambda < 30");
+  }
 
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -438,13 +467,15 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
+  if (isApplyAcceptanceInMacro)
+    OutputFileName += "_AcceptanceInMacro";
   if (ExtrisApplyEffWeights)
     OutputFileName += "_EffWeighted";
   OutputFileName += Form("_Nvar%i", NVAR);
   // OutputFileName += "_CorrectReso";
   if (isSystReso)
     OutputFileName += "_SystReso";
-  OutputFileName += "_050";
+  //  OutputFileName += "_NewHistos2";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -470,6 +501,13 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPtVsCos2Vector;
   std::vector<ROOT::RDF::RResultPtr<TH3D>> massVsPsiVsCos2Vector;
+  std::vector<ROOT::RDF::RResultPtr<TH3D>> hEtaVsPtVsCos2ThetaLambda;
+
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hcos2PhiVector;
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hcos2PsiVector;
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hsin2PhiVector;
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hsin2PsiVector;
+  std::vector<ROOT::RDF::RResultPtr<TH1D>> hcosThetaVector;
 
   // Containers to store histos and variations
   std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
@@ -514,6 +552,12 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
     else return 0.; }, {"fPt", "fCentFT0C", "fSign"});
 
+  df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceL, &hAcceptanceAL](unsigned int, float pt, float eta, short sign)
+                                       {
+    if (sign==(short)0) return hAcceptanceL->GetBinContent(hAcceptanceL->FindBin(pt, eta));
+    else if (sign==(short)1)  return hAcceptanceAL->GetBinContent(hAcceptanceAL->FindBin(pt, eta)); 
+    else return 0.; }, {"fPt", "fEta", "fSign"});
+
   if (ExtrisApplyEffWeights)
     df_selected = df_selected.Define("fTotalWeight", "fCentWeight * fEffWeight");
   else
@@ -521,13 +565,44 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
 
   string SPzs2LambdaFinal = "fPzs2Lambda";
   if (isApplyResoOnTheFly)
+  {
     SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight";
+    if (isApplyAcceptanceInMacro)
+      SPzs2LambdaFinal = "fPzs2Lambda/fResoWeight/fAcceptance";
+  }
   df_selected = df_selected.Define("fPzs2LambdaFinal", SPzs2LambdaFinal);
 
   string SPzLambdaFinal = "fCosThetaLambda";
   if (isApplyResoOnTheFly)
+  {
     SPzLambdaFinal = "fCosThetaLambda/fResoWeight";
+    if (isApplyAcceptanceInMacro)
+      SPzLambdaFinal = "fCosThetaLambda/fResoWeight/fAcceptance";
+  }
   df_selected = df_selected.Define("fPzLambdaFinal", SPzLambdaFinal);
+
+  df_selected = df_selected.Define("fCos2Phi", "std::cos(2*fPhi)");
+  df_selected = df_selected.Define("fCos2Psi", "std::cos(2*fPsiT0C)");
+  df_selected = df_selected.Define("fSin2Phi", "std::sin(2*fPhi)");
+  df_selected = df_selected.Define("fSin2Psi", "std::sin(2*fPsiT0C)");
+  df_selected = df_selected.Define("fSin2PsiDiff", "std::sin(2*fPsiDiff)");
+
+  auto profileCos2Psi = df_selected.Profile1D(
+      {"profileCos2Psi", "Mean cos(2*psi) vs X;X;Mean cos(2*psi)", 10, 0., 100.},
+      "fCentFT0C",
+      "fCos2Psi");
+  auto profileSin2Psi = df_selected.Profile1D(
+      {"profileSin2Psi", "Mean sin(2*psi) vs X;X;Mean sin(2*psi)", 10, 0., 100.},
+      "fCentFT0C",
+      "fSin2Psi");
+  auto profileSin2PsiDiff = df_selected.Profile1D(
+      {"profileSin2PsiDiff", "Mean sin(2*(psi1-psi2)) vs X;X;Mean sin(2*(psi1-psi2))", 10, 0., 100.},
+      "fCentFT0C",
+      "fSin2PsiDiff");
+  auto profileCosTheta = df_selected.Profile1D(
+      {"profileCosTheta", "Mean cos(theta) vs X;X;Mean cos(theta)", 10, 0., 100.},
+      "fCentFT0C",
+      "fCosThetaLambda");
 
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
@@ -554,7 +629,8 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
         MinPz = MinPzReso[cent];
         MaxPz = MaxPzReso[cent];
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311"){
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro)
+      {
         MinPz = -10;
         MaxPz = 10;
       }
@@ -572,6 +648,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
     auto dcent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
+    auto dcentAcc = dcent.Filter("fMassLambda > 1.1145 && fMassLambda < 1.1158");
 
     ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
     auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fTotalWeight");
@@ -625,6 +702,20 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
     auto massVsPsiVsCos2 = dcent.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassLambda", "f2PsiDiffCorr", "fCos2ThetaLambda");
     massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
+    auto etaVsPtVsCos2 = dcentAcc.Histo3D({Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta vs Pt vs Cos2", NEtaLambdaAcc, EtaLambdaAcc, NPtLambdaAcc, PtLambdaAcc, NCos2ThetaAcc, Cos2ThetaAcc}, "fEta", "fPt", "fCos2ThetaLambda");
+    hEtaVsPtVsCos2ThetaLambda.push_back(etaVsPtVsCos2);
+
+    // additional checks
+    auto cos2Phi = dcent.Histo1D({Form("cos2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Phi", 1000, -1, 1}, "fCos2Phi");
+    hcos2PhiVector.push_back(cos2Phi);
+    auto cos2Psi = dcent.Histo1D({Form("cos2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Psi", 1000, -1, 1}, "fCos2Psi");
+    hcos2PsiVector.push_back(cos2Psi);
+    auto sin2Phi = dcent.Histo1D({Form("sin2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Phi", 1000, -1, 1}, "fSin2Phi");
+    hsin2PhiVector.push_back(sin2Phi);
+    auto sin2Psi = dcent.Histo1D({Form("sin2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Psi", 1000, -1, 1}, "fSin2Psi");
+    hsin2PsiVector.push_back(sin2Psi);
+    auto cosTheta = dcent.Histo1D({Form("cosTheta_cent%i-%i", CentFT0CMin, CentFT0CMax), "CosTheta", 1000, -1, 1}, "fCosThetaLambda");
+    hcosThetaVector.push_back(cosTheta);
   }
 
   cout << "Drawing histo " << endl;
@@ -640,6 +731,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
+  profileCos2Psi->Write();
+  profileSin2Psi->Write();
+  profileSin2PsiDiff->Write();
+  profileCosTheta->Write();
   h->Write();
   hPtvsCent_BefSel->Write();
   hPtvsCent_AftSel->Write();
@@ -770,6 +865,12 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     PsiDiff2Vector[cent]->Write();
     hPsiCentVector[cent]->Write();
     hPhiCentVector[cent]->Write();
+    hcos2PhiVector[cent]->Write();
+    hcos2PsiVector[cent]->Write();
+    hsin2PhiVector[cent]->Write();
+    hsin2PsiVector[cent]->Write();
+    hcosThetaVector[cent]->Write();
+    hEtaVsPtVsCos2ThetaLambda[cent]->Write();
   }
 
   file->Close();
