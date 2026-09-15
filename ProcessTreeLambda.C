@@ -83,7 +83,9 @@ Int_t NPz = 1000;
 const Int_t numLambdaMassBins = 48;
 Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
 
-void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
+void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for acceptance
+                       Bool_t isStorePzs2AndPz = 0,  // store histos for Pzs2 and Pz
+                       Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                        Bool_t isSystReso = 0,
                        Int_t isAllEta = 1, // 0 for eta < 0, 1 for all eta, 2 for eta > 0
@@ -183,13 +185,17 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
 
   TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  if (isSysMultTrial)
+    SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_2_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root";
   //  TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
   TFile *AcceptanceFileL = new TFile(SinputFileNameAcceptanceL, "READ");
-  TH2D *hAcceptanceL{AcceptanceFileL ?  (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
+  TH2D *hAcceptanceL{AcceptanceFileL ? (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
   TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  if (isSysMultTrial)
+    SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_2_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root";
   //  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
   TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
-  TH2D *hAcceptanceAL{AcceptanceFileAL ?  (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
+  TH2D *hAcceptanceAL{AcceptanceFileAL ? (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
 
   auto h = d1.Histo1D("fPt");
 
@@ -232,82 +238,41 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   auto histoBefDcaNegToPV = d2.Histo1D({"histoBefDcaNegToPV", "DCA Neg to PV Distribution", 200, -1, 1}, "fDcaNegToPV");
   auto histoBefDcaPosToPV = d2.Histo1D({"histoBefDcaPosToPV", "DCA Pos to PV Distribution", 200, -1, 1}, "fDcaPosToPV");
 
-  // topological selections -- OLD way using Filter
-  /*
-  gRandom->SetSeed(0);
-  string V0FilterString = Form("fV0Radius > %.2f", DefaultV0RadiusCut);
-  if (isSysMultTrial)
-  {
-    if (isLoosest)
-      V0FilterString = Form("fV0Radius > %.2f", LowerlimitV0RadiusCut);
-    else if (isTightest)
-      V0FilterString = Form("fV0Radius > %.2f", UpperlimitV0RadiusCut);
-    else
-      V0FilterString = Form("fV0Radius > %.2f", LowerlimitV0RadiusCut + (UpperlimitV0RadiusCut - LowerlimitV0RadiusCut) * gRandom->Rndm());
-  }
-
-  string DcaV0DauString = Form("abs(fDcaV0Daughters) < %.2f", DefaultDcaV0DauCut);
-  if (isSysMultTrial)
-  {
-    if (isLoosest)
-      DcaV0DauString = Form("abs(fDcaV0Daughters) < %f", UpperlimitDcaV0DauCut);
-    else if (isTightest)
-      DcaV0DauString = Form("abs(fDcaV0Daughters) < %f", LowerlimitDcaV0DauCut);
-    else
-      DcaV0DauString = Form("abs(fDcaV0Daughters) < %f", LowerlimitDcaV0DauCut + (UpperlimitDcaV0DauCut - LowerlimitDcaV0DauCut) * gRandom->Rndm());
-  }
-
-  string V0CosPAString = Form("fV0CosPA > %.5f", DefaultV0CosPA);
-  if (isSysMultTrial)
-  {
-    if (isLoosest)
-      V0CosPAString = Form("fV0CosPA > %.5f", LowerlimitV0CosPA);
-    else if (isTightest)
-      V0CosPAString = Form("fV0CosPA > %.5f", UpperlimitV0CosPA);
-    else
-      V0CosPAString = Form("fV0CosPA > %.5f", LowerlimitV0CosPA + (UpperlimitV0CosPA - LowerlimitV0CosPA) * gRandom->Rndm());
-  }
-
-  string DcaNegToPVString = Form("abs(fDcaNegToPV) > %.2f", DefaultDcaNegToPV);
-  if (isSysMultTrial)
-  {
-    if (isLoosest)
-      DcaNegToPVString = Form("abs(fDcaNegToPV) > %f", LowerlimitDcaNegToPV);
-    else if (isTightest)
-      DcaNegToPVString = Form("abs(fDcaNegToPV) > %f", UpperlimitDcaNegToPV);
-    else
-      DcaNegToPVString = Form("abs(fDcaNegToPV) > %f", LowerlimitDcaNegToPV + (UpperlimitDcaNegToPV - LowerlimitDcaNegToPV) * gRandom->Rndm());
-  }
-
-  string DcaPosToPVString = Form("abs(fDcaPosToPV) > %.2f", DefaultDcaPosToPV);
-  if (isSysMultTrial)
-  {
-    if (isLoosest)
-      DcaPosToPVString = Form("abs(fDcaPosToPV) > %f", LowerlimitDcaPosToPV);
-    else if (isTightest)
-      DcaPosToPVString = Form("abs(fDcaPosToPV) > %f", UpperlimitDcaPosToPV);
-    else
-      DcaPosToPVString = Form("abs(fDcaPosToPV) > %f", LowerlimitDcaPosToPV + (UpperlimitDcaPosToPV - LowerlimitDcaPosToPV) * gRandom->Rndm());
-  }
-
-  auto d2a = d2.Filter(V0FilterString);
-  auto d2b = d2a.Filter(DcaV0DauString);
-  auto d2c = d2b.Filter(V0CosPAString);
-  auto d2d = d2c.Filter(DcaNegToPVString);
-  auto d2e = d2d.Filter(DcaPosToPVString);
-  */
-
   // default cuts
+  float DDefaultV0RadiusCut = DefaultV0RadiusCut;
+  float DDefaultDcaV0DauCut = DefaultDcaV0DauCut;
+  double DDefaultV0CosPA = DefaultV0CosPA;
+  float DDefaultDcaNegToPV = DefaultDcaNegToPV;
+  float DDefaultDcaPosToPV = DefaultDcaPosToPV;
+  if (isSysMultTrial)
+  {
+    if (isLoosest)
+    {
+      DDefaultV0RadiusCut = LowerlimitV0RadiusCut;
+      DDefaultDcaV0DauCut = UpperlimitDcaV0DauCut;
+      DDefaultV0CosPA = LowerlimitV0CosPA;
+      DDefaultDcaNegToPV = LowerlimitDcaNegToPV;
+      DDefaultDcaPosToPV = LowerlimitDcaPosToPV;
+    }
+    else if (isTightest)
+    {
+      DDefaultV0RadiusCut = UpperlimitV0RadiusCut;
+      DDefaultDcaV0DauCut = LowerlimitDcaV0DauCut;
+      DDefaultV0CosPA = UpperlimitV0CosPA;
+      DDefaultDcaNegToPV = UpperlimitDcaNegToPV;
+      DDefaultDcaPosToPV = UpperlimitDcaPosToPV;
+    }
+  }
   auto df_withCuts = d2.Define("cutV0Radius", [=]()
-                               { return static_cast<double>(DefaultV0RadiusCut); })
+                               { return static_cast<double>(DDefaultV0RadiusCut); })
                          .Define("cutDcaV0Daughters", [=]()
-                                 { return static_cast<double>(DefaultDcaV0DauCut); })
+                                 { return static_cast<double>(DDefaultDcaV0DauCut); })
                          .Define("cutV0CosPA", [=]()
-                                 { return static_cast<double>(DefaultV0CosPA); })
+                                 { return static_cast<double>(DDefaultV0CosPA); })
                          .Define("cutDcaPosToPV", [=]()
-                                 { return static_cast<double>(DefaultDcaPosToPV); })
+                                 { return static_cast<double>(DDefaultDcaPosToPV); })
                          .Define("cutDcaNegToPV", [=]()
-                                 { return static_cast<double>(DefaultDcaNegToPV); })
+                                 { return static_cast<double>(DDefaultDcaNegToPV); })
                          .Define("radiusV0", "fV0Radius * 1.")
                          .Define("dcaV0Dau", "fDcaV0Daughters * 1.")
                          .Define("dcaNegToPV", "fDcaNegToPV * 1.")
@@ -467,7 +432,7 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     OutputFileName += "_isOOCentrality";
   if (isApplyResoOnTheFly)
     OutputFileName += "_ResoOnTheFly";
-  if (isApplyAcceptanceInMacro)
+  if (isApplyAcceptanceInMacro && isStorePzs2AndPz)
     OutputFileName += "_AcceptanceInMacro";
   if (ExtrisApplyEffWeights)
     OutputFileName += "_EffWeighted";
@@ -476,6 +441,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   if (isSystReso)
     OutputFileName += "_SystReso";
   //  OutputFileName += "_NewHistos2";
+  if (isStoreAcceptance == 1)
+  {
+    OutputFileName += "_Acceptance";
+  }
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -513,6 +482,10 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
       std::declval<ROOT::RDF::RResultPtr<TH3D>>()))>
       h_variationsmassVsPtVsPzs2;
+
+  std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
+      std::declval<ROOT::RDF::RResultPtr<TH3D>>()))>
+      h_variationsetaVsPtVsCos2;
 
   /*
   std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
@@ -607,6 +580,9 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   cout << "I am looping over all centrality classes " << endl;
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
+
+    // if (isStoreAcceptance == 1 && cent < numCentLambdaOO)
+    //   continue;
     if (cent == numCentLambdaOO)
     { // 0-50%
       CentFT0CMin = 0;
@@ -650,72 +626,84 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
     auto dmasscut = dcent.Filter("fMassLambda > 1.1 && fMassLambda < 1.13");
     auto dcentAcc = dcent.Filter("fMassLambda > 1.1145 && fMassLambda < 1.1158");
 
-    ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
-    auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fTotalWeight");
-    auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
-    massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
-    h_variationsmassVsPtVsPzs2.push_back(variationsmassVsPtVsPzs2);
+    if (isStorePzs2AndPz)
+    {
+      ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
+      auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fTotalWeight");
+      auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
+      massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
+      h_variationsmassVsPtVsPzs2.push_back(variationsmassVsPtVsPzs2);
 
-    auto massvspt2D = dcent.Histo2D({
-                                        Form("MassVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax),
-                                        "massvspt",
-                                        80,
-                                        1.09,
-                                        1.14,
-                                        100,
-                                        0,
-                                        10,
-                                    },
-                                    "fMassLambda", "fPt");
-    //    auto variationsmassVsPt = ROOT::RDF::Experimental::VariationsFor(massvspt2D);
-    massvsptVector.push_back(massvspt2D);
-    // h_variationsmassVsPt.push_back(variationsmassVsPt);
+      auto massvspt2D = dcent.Histo2D({
+                                          Form("MassVsPt_cent%i-%i", CentFT0CMin, CentFT0CMax),
+                                          "massvspt",
+                                          80,
+                                          1.09,
+                                          1.14,
+                                          100,
+                                          0,
+                                          10,
+                                      },
+                                      "fMassLambda", "fPt");
+      //    auto variationsmassVsPt = ROOT::RDF::Experimental::VariationsFor(massvspt2D);
+      massvsptVector.push_back(massvspt2D);
+      // h_variationsmassVsPt.push_back(variationsmassVsPt);
 
-    auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "v2C", Nv2, Minv2, Maxv2}, v2Chosen);
-    v2CVector.push_back(v2C);
-    auto hPhiCent = dmasscut.Histo2D({Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Phi vs pt", 100, 0, 10, 100, 0, 2 * TMath::Pi()}, "fPt", "fPhi");
-    hPhiCentVector.push_back(hPhiCent);
-    auto hPsiCent = dmasscut.Histo1D({Form("PsiHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Psi", 100, -2 * TMath::Pi(), 2 * TMath::Pi()}, "fPsiT0C");
-    hPsiCentVector.push_back(hPsiCent);
+      auto v2C = dcent.Histo1D({Form("v2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "v2C", Nv2, Minv2, Maxv2}, v2Chosen);
+      v2CVector.push_back(v2C);
+      auto hPhiCent = dmasscut.Histo2D({Form("PhiHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Phi vs pt", 100, 0, 10, 100, 0, 2 * TMath::Pi()}, "fPt", "fPhi");
+      hPhiCentVector.push_back(hPhiCent);
+      auto hPsiCent = dmasscut.Histo1D({Form("PsiHist_cent%i-%i", CentFT0CMin, CentFT0CMax), "Psi", 100, -2 * TMath::Pi(), 2 * TMath::Pi()}, "fPsiT0C");
+      hPsiCentVector.push_back(hPsiCent);
 
-    auto PsiDiff = dcent.Histo1D({Form("2PsiDiffCorr_cent%i-%i", CentFT0CMin, CentFT0CMax), "2PsiDiffCorr", 100, 0, 2 * TMath::Pi()}, "f2PsiDiffCorr");
-    PsiDiffVector.push_back(PsiDiff);
-    auto PsiDiff2 = dcent.Histo1D({Form("2PsiDiff_cent%i-%i", CentFT0CMin, CentFT0CMax), "2PsiDiff", 100, -2 * TMath::Pi(), 2 * TMath::Pi()}, "f2PsiDiff");
-    PsiDiff2Vector.push_back(PsiDiff2);
+      auto PsiDiff = dcent.Histo1D({Form("2PsiDiffCorr_cent%i-%i", CentFT0CMin, CentFT0CMax), "2PsiDiffCorr", 100, 0, 2 * TMath::Pi()}, "f2PsiDiffCorr");
+      PsiDiffVector.push_back(PsiDiff);
+      auto PsiDiff2 = dcent.Histo1D({Form("2PsiDiff_cent%i-%i", CentFT0CMin, CentFT0CMax), "2PsiDiff", 100, -2 * TMath::Pi(), 2 * TMath::Pi()}, "f2PsiDiff");
+      PsiDiff2Vector.push_back(PsiDiff2);
 
-    auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassLambda");
-    hMassCutVector.push_back(hMassCut);
+      auto hMassCut = dmasscut.Histo1D({Form("massCut_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass of #Lambda#pi", 100, 1.28, 1.36}, "fMassLambda");
+      hMassCutVector.push_back(hMassCut);
 
-    auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.09, 1.14, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassLambda", "fPt", v2Chosen);
-    massVsPtVsV2CVector.push_back(massVsPtVsV2C);
+      auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.09, 1.14, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassLambda", "fPt", v2Chosen);
+      massVsPtVsV2CVector.push_back(massVsPtVsV2C);
 
-    auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
-    massVsPsiVsPzVector.push_back(massVsPsiVsPz);
+      auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
+      massVsPsiVsPzVector.push_back(massVsPsiVsPz);
 
-    auto massVsPz = dcent.Histo2D({Form("massVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pz", 80, 1.09, 1.14, NPz, MinPz, MaxPz}, "fMassLambda", "fPzLambdaFinal", "fTotalWeight");
-    massVsPzVector.push_back(massVsPz);
+      auto massVsPz = dcent.Histo2D({Form("massVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pz", 80, 1.09, 1.14, NPz, MinPz, MaxPz}, "fMassLambda", "fPzLambdaFinal", "fTotalWeight");
+      massVsPzVector.push_back(massVsPz);
 
-    auto massVsPzs2 = dcent.Histo2D({Form("massVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pzs2", numLambdaMassBins, LambdaMassBins, NPzs2, PzsBinsLambda}, "fMassLambda", "fPzs2LambdaFinal", "fTotalWeight");
-    massVsPzs2Vector.push_back(massVsPzs2);
+      auto massVsPzs2 = dcent.Histo2D({Form("massVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pzs2", numLambdaMassBins, LambdaMassBins, NPzs2, PzsBinsLambda}, "fMassLambda", "fPzs2LambdaFinal", "fTotalWeight");
+      massVsPzs2Vector.push_back(massVsPzs2);
 
-    auto massVsPtVsCos2 = dcent.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.09, 1.14, 100, 0, 10, 100, 0, 1}, "fMassLambda", "fPt", "fCos2ThetaLambda");
-    massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
-    auto massVsPsiVsCos2 = dcent.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassLambda", "f2PsiDiffCorr", "fCos2ThetaLambda");
-    massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
-    auto etaVsPtVsCos2 = dcentAcc.Histo3D({Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta vs Pt vs Cos2", NEtaLambdaAcc, EtaLambdaAcc, NPtLambdaAcc, PtLambdaAcc, NCos2ThetaAcc, Cos2ThetaAcc}, "fEta", "fPt", "fCos2ThetaLambda");
-    hEtaVsPtVsCos2ThetaLambda.push_back(etaVsPtVsCos2);
+      auto massVsPtVsCos2 = dcent.Histo3D({Form("massVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Cos2", 80, 1.09, 1.14, 100, 0, 10, 100, 0, 1}, "fMassLambda", "fPt", "fCos2ThetaLambda");
+      massVsPtVsCos2Vector.push_back(massVsPtVsCos2);
+      auto massVsPsiVsCos2 = dcent.Histo3D({Form("massVsPsiVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Cos2", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), 100, 0, 1}, "fMassLambda", "f2PsiDiffCorr", "fCos2ThetaLambda");
+      massVsPsiVsCos2Vector.push_back(massVsPsiVsCos2);
 
-    // additional checks
-    auto cos2Phi = dcent.Histo1D({Form("cos2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Phi", 1000, -1, 1}, "fCos2Phi");
-    hcos2PhiVector.push_back(cos2Phi);
-    auto cos2Psi = dcent.Histo1D({Form("cos2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Psi", 1000, -1, 1}, "fCos2Psi");
-    hcos2PsiVector.push_back(cos2Psi);
-    auto sin2Phi = dcent.Histo1D({Form("sin2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Phi", 1000, -1, 1}, "fSin2Phi");
-    hsin2PhiVector.push_back(sin2Phi);
-    auto sin2Psi = dcent.Histo1D({Form("sin2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Psi", 1000, -1, 1}, "fSin2Psi");
-    hsin2PsiVector.push_back(sin2Psi);
-    auto cosTheta = dcent.Histo1D({Form("cosTheta_cent%i-%i", CentFT0CMin, CentFT0CMax), "CosTheta", 1000, -1, 1}, "fCosThetaLambda");
-    hcosThetaVector.push_back(cosTheta);
+      // additional checks
+      auto cos2Phi = dcent.Histo1D({Form("cos2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Phi", 1000, -1, 1}, "fCos2Phi");
+      hcos2PhiVector.push_back(cos2Phi);
+      auto cos2Psi = dcent.Histo1D({Form("cos2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Cos2Psi", 1000, -1, 1}, "fCos2Psi");
+      hcos2PsiVector.push_back(cos2Psi);
+      auto sin2Phi = dcent.Histo1D({Form("sin2Phi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Phi", 1000, -1, 1}, "fSin2Phi");
+      hsin2PhiVector.push_back(sin2Phi);
+      auto sin2Psi = dcent.Histo1D({Form("sin2Psi_cent%i-%i", CentFT0CMin, CentFT0CMax), "Sin2Psi", 1000, -1, 1}, "fSin2Psi");
+      hsin2PsiVector.push_back(sin2Psi);
+      auto cosTheta = dcent.Histo1D({Form("cosTheta_cent%i-%i", CentFT0CMin, CentFT0CMax), "CosTheta", 1000, -1, 1}, "fCosThetaLambda");
+      hcosThetaVector.push_back(cosTheta);
+    }
+
+    if (isStoreAcceptance)
+    {
+      // auto etaVsPtVsCos2 = dcentAcc.Histo3D({Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta vs Pt vs Cos2", NEtaLambdaAcc, EtaLambdaAcc, NPtLambdaAcc, PtLambdaAcc, NCos2ThetaAcc, Cos2ThetaAcc}, "fEta", "fPt", "fCos2ThetaLambda");
+      // hEtaVsPtVsCos2ThetaLambda.push_back(etaVsPtVsCos2);
+      ROOT::RDF::TH3DModel modelAcc(Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Eta vs Pt vs Cos2", NEtaLambdaAcc, EtaLambdaAcc, NPtLambdaAcc, PtLambdaAcc, NCos2ThetaAcc, Cos2ThetaAcc);
+      auto etaVsPtVsCos2 = dcentAcc.Histo3D(modelAcc, "fEta", "fPt", "fCos2ThetaLambda");
+      auto variationsetaVsPtVsCos2 = ROOT::RDF::Experimental::VariationsFor(etaVsPtVsCos2);
+      hEtaVsPtVsCos2ThetaLambda.push_back(etaVsPtVsCos2);
+      h_variationsetaVsPtVsCos2.push_back(variationsetaVsPtVsCos2);
+    }
   }
 
   cout << "Drawing histo " << endl;
@@ -731,146 +719,88 @@ void ProcessTreeLambda(Bool_t isRapiditySel = ExtrisRapiditySel,
   TFile *file = new TFile(OutputFileName, "RECREATE");
   cout << file->GetName() << endl;
 
-  profileCos2Psi->Write();
-  profileSin2Psi->Write();
-  profileSin2PsiDiff->Write();
-  profileCosTheta->Write();
-  h->Write();
-  hPtvsCent_BefSel->Write();
-  hPtvsCent_AftSel->Write();
-  cMass->Write();
-  hmass_Bef->Write();
-  hmass->Write();
-  hmassvsPt->Write();
-  hMassVsPt->Write();
-  hphi->Write();
-  heta->Write();
-  hrapidity->Write();
-  histoV0Radius->Write();
-  histoDcaV0Daughters->Write();
-  histoV0CosPA->Write();
-  histoDcaNegToPV->Write();
-  histoDcaPosToPV->Write();
-  histoBefV0Radius->Write();
-  histoBefDcaV0Daughters->Write();
-  histoBefV0CosPA->Write();
-  histoBefDcaNegToPV->Write();
-  histoBefDcaPosToPV->Write();
-
-  /*
-  auto tags = variations_V0Radius.GetKeys();
-  for (auto &tag : tags)
+  if (isStorePzs2AndPz)
   {
-    std::cout << " | Variation tag V0 Radius: " << tag << std::endl;
-
-    auto histo = variations_V0Radius[tag];
-    TString histName = Form("test_V0Radius_%s", tag.c_str());
-    Float_t binEdge = 0;
-    for (Int_t i = 1; i <= histo.GetNbinsX(); i++)
-    {
-      binEdge = histo.GetBinLowEdge(i);
-      if (histo.GetBinContent(i) != 0) break;
-    }
-    hg_V0Radius->Fill(binEdge);
-
-    auto histo1 = variations_DcaV0Daughters[tag];
-    histName = Form("test_DcaV0Daughters_%s", tag.c_str());
-    binEdge = 0;
-    for (Int_t i = histo1.GetNbinsX()-1; i >= 1; i--)
-    {
-      binEdge = histo1.GetBinLowEdge(i+1);
-      if (histo1.GetBinContent(i) != 0) break;
-    }
-    hg_DcaV0Daughters->Fill(binEdge);
-
-    auto histo2 = variations_V0CosPA[tag];
-    histName = Form("test_V0CosPA_%s", tag.c_str());
-    binEdge = 0;
-    for (Int_t i = 1; i <= histo2.GetNbinsX(); i++)
-    {
-      binEdge = histo2.GetBinLowEdge(i);
-      if (histo2.GetBinContent(i) != 0) break;
-    }
-    hg_V0CosPA->Fill(binEdge);
-
-    auto histo3 = variations_DcaNegToPV[tag];
-    histName = Form("test_DcaNegToPV_%s", tag.c_str());
-    binEdge = 0;
-    for (Int_t i = 1; i <= histo3.GetNbinsX(); i++)
-    {
-      if (histo3.GetBinCenter(i) < 0)
-        continue;
-      binEdge = histo3.GetBinLowEdge(i);
-      if (histo3.GetBinContent(i) != 0) break;
-    }
-    hg_DcaNegToPV->Fill(binEdge);
-
-    auto histo4 = variations_DcaPosToPV[tag];
-    histName = Form("test_DcaPosToPV_%s", tag.c_str());
-    binEdge = 0;
-    for (Int_t i = 1; i <= histo4.GetNbinsX(); i++)
-    {
-      if (histo4.GetBinCenter(i) < 0)
-        continue;
-      binEdge = histo4.GetBinLowEdge(i);
-      if (histo4.GetBinContent(i) != 0)
-        break;
-    }
-    hg_DcaPosToPV->Fill(binEdge);
-    //histo.Write(histName);
+    profileCos2Psi->Write();
+    profileSin2Psi->Write();
+    profileSin2PsiDiff->Write();
+    profileCosTheta->Write();
+    h->Write();
+    hPtvsCent_BefSel->Write();
+    hPtvsCent_AftSel->Write();
+    cMass->Write();
+    hmass_Bef->Write();
+    hmass->Write();
+    hmassvsPt->Write();
+    hMassVsPt->Write();
+    hphi->Write();
+    heta->Write();
+    hrapidity->Write();
+    histoV0Radius->Write();
+    histoDcaV0Daughters->Write();
+    histoV0CosPA->Write();
+    histoDcaNegToPV->Write();
+    histoDcaPosToPV->Write();
+    histoBefV0Radius->Write();
+    histoBefDcaV0Daughters->Write();
+    histoBefV0CosPA->Write();
+    histoBefDcaNegToPV->Write();
+    histoBefDcaPosToPV->Write();
   }
-  hg_V0Radius->Write();
-  hg_DcaV0Daughters->Write();
-  hg_V0CosPA->Write();
-  hg_DcaNegToPV->Write();
-  hg_DcaPosToPV->Write();
-  */
+
   for (Int_t cent = 0; cent < numCentLambdaOO + 1; cent++)
   {
-
-    auto &variationMap = h_variationsmassVsPtVsPzs2[cent];
-    // auto &variationMapmassVsPt = h_variationsmassVsPt[cent];
-
-    // Retrieve the variation tags
-    auto tags = variationMap.GetKeys();
-
-    for (auto &tag : tags)
+    // if (isStoreAcceptance == 1 && cent < numCentLambdaOO)
+    //   continue;
+    if (isStorePzs2AndPz)
     {
-      std::cout << "Centrality bin " << cent
-                << " | Variation tag Pzs2: " << tag << std::endl;
+      auto &variationMap = h_variationsmassVsPtVsPzs2[cent];
+      auto tags = variationMap.GetKeys();
 
-      auto histo = variationMap[tag];
-      TString histName = Form("massVsPtVsPzs2_cent%i_%s", cent, tag.c_str());
-      histo.Write(histName); // or histo->Draw()
+      for (auto &tag : tags)
+      {
+        std::cout << "Centrality bin " << cent
+                  << " | Variation tag Pzs2: " << tag << std::endl;
+
+        auto histo = variationMap[tag];
+        TString histName = Form("massVsPtVsPzs2_cent%i_%s", cent, tag.c_str());
+        histo.Write(histName); // or histo->Draw()
+      }
+
+      massvsptVector[cent]->Write();
+      massVsPtVsPzs2Vector[cent]->Write();
+      massVsPzs2Vector[cent]->Write();
+      massVsPtVsV2CVector[cent]->Write();
+      massVsPsiVsPzVector[cent]->Write();
+      massVsPzVector[cent]->Write();
+      massVsPtVsCos2Vector[cent]->Write();
+      massVsPsiVsCos2Vector[cent]->Write();
+      PsiDiffVector[cent]->Write();
+      PsiDiff2Vector[cent]->Write();
+      hPsiCentVector[cent]->Write();
+      hPhiCentVector[cent]->Write();
+      hcos2PhiVector[cent]->Write();
+      hcos2PsiVector[cent]->Write();
+      hsin2PhiVector[cent]->Write();
+      hsin2PsiVector[cent]->Write();
+      hcosThetaVector[cent]->Write();
     }
-    /*
-    for (auto &tag : tags)
+
+    if (isStoreAcceptance)
     {
-      std::cout << " | Variation tag Mass vs Pt: " << tag << std::endl;
+      auto &variationMapAcc = h_variationsetaVsPtVsCos2[cent];
+      auto tagsAcc = variationMapAcc.GetKeys();
+      for (auto &tag : tagsAcc)
+      {
+        std::cout << "Centrality bin " << cent
+                  << " | Variation tag Acc: " << tag << std::endl;
 
-      auto histo = variationMapmassVsPt[tag];
-      TString histName = Form("MassVsPt_cent%i_%s", cent, tag.c_str());
-      histo.Write(histName); // or histo->Draw()
+        auto histo = variationMapAcc[tag];
+        TString histName = Form("etaVsPtVsCos2_cent%i_%s", cent, tag.c_str());
+        histo.Write(histName); // or histo->Draw()
+      }
+      hEtaVsPtVsCos2ThetaLambda[cent]->Write();
     }
-    */
-    massvsptVector[cent]->Write();
-    massVsPtVsPzs2Vector[cent]->Write();
-    massVsPzs2Vector[cent]->Write();
-    massVsPtVsV2CVector[cent]->Write();
-    massVsPsiVsPzVector[cent]->Write();
-    massVsPzVector[cent]->Write();
-    massVsPtVsCos2Vector[cent]->Write();
-    massVsPsiVsCos2Vector[cent]->Write();
-    PsiDiffVector[cent]->Write();
-    PsiDiff2Vector[cent]->Write();
-    hPsiCentVector[cent]->Write();
-    hPhiCentVector[cent]->Write();
-    hcos2PhiVector[cent]->Write();
-    hcos2PsiVector[cent]->Write();
-    hsin2PhiVector[cent]->Write();
-    hsin2PsiVector[cent]->Write();
-    hcosThetaVector[cent]->Write();
-    hEtaVsPtVsCos2ThetaLambda[cent]->Write();
   }
 
   file->Close();
