@@ -987,6 +987,8 @@ void FitV2orPol(
     }
     SPathIn += STHN[ExtrisFromTHN];
     // if (ExtrisApplyResoOnTheFly && !isProducedAcceptancePlots)
+    if (isApplyAcceptanceInMacro)
+      SPathIn += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly)
       SPathIn += "_ResoOnTheFly";
     // if (ChosenPart >= 6)
@@ -2825,6 +2827,8 @@ void FitV2orPol(
       Soutputfile += Form("_SysMultTrial_%i", indexMultTrial);
     Soutputfile += "_isSysLambdaMultTrial";
   }
+  if (isApplyAcceptanceInMacro)
+    Soutputfile += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     Soutputfile += "_ResoOnTheFly";
   // if (ChosenPart >= 6)
@@ -3451,7 +3455,8 @@ void FitV2orPol(
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
     TitleDummyRatio = "#it{P}_{z, s2}";
-    if (!isPtAnalysis) TitleDummyRatio = "#it{P}_{z}";
+    if (!isPtAnalysis)
+      TitleDummyRatio = "#it{P}_{z}";
   }
   StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, TitleDummyRatio, "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -3497,7 +3502,7 @@ void FitV2orPol(
       if (mul == 8)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.5, 0.5);
       if (!isPtAnalysis)
-        hDummyRatio->GetYaxis()->SetRangeUser(-0.08, 0.08);  
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.08, 0.08);
     }
   }
   hDummyRatio->Draw("same");

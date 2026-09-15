@@ -243,6 +243,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   stringout += V2FromFit[isFromFit];
   if (isReducedPtBins)
     stringout += "_ReducedPtBins";
+  if (isApplyAcceptanceInMacro)
+    stringout += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
@@ -376,6 +378,9 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
       PathIn += "_isTightest";
     PathIn += "_isSysLambdaMultTrial";
   }
+  if (isApplyAcceptanceInMacro)
+    // PathIn += "_AcceptanceInMacroAllLambdas";
+    PathIn += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     PathIn += "_ResoOnTheFly";
   if (ChosenPart == 0)
@@ -832,7 +837,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   legendMainFit->SetFillStyle(0);
   legendMainFit->SetTextSize(0.05);
   if (ChosenPart >= 6)
-    //legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. " + titleLambda + " Run 3", "p");
+    // legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. " + titleLambda + " Run 3", "p");
     legendMainFit->AddEntry(fHistPzsTotError, "stat. " + titleLambda + " Run 3", "p");
   else if (part == 0)
     legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "p");

@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-//#include "CommonVarXi.h"
+// #include "CommonVarXi.h"
 #include "CommonVarLambda.h"
-//#include "CommonVarOmega.h"
+// #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -267,6 +267,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   stringout += V2FromFit[isFromFit];
   if (isReducedPtBins)
     stringout += "_ReducedPtBins";
+  if (isApplyAcceptanceInMacro)
+    stringout += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
@@ -517,6 +519,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
         PathIn += "_isTightest";
       PathIn += "_isSysLambdaMultTrial";
     }
+    if (isApplyAcceptanceInMacro)
+      PathIn += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly)
       PathIn += "_ResoOnTheFly";
     if (ChosenPart == 0)
@@ -710,7 +714,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_" + ParticleName[ChosenPart];
   if (ExtrisFitDSCB)
   {
-    PathInSyst += "_DSCB";
+    //PathInSyst += "_DSCB";
     if (isFixParamDSCBFromMC)
       PathInSyst += "_FixParamFromMC";
   }
@@ -1229,7 +1233,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     hDummy->GetYaxis()->SetRangeUser(-0.005, 0.02);
   else if (part == 0) // Xi
     hDummy->GetYaxis()->SetRangeUser(-0.001, 0.011);
-  hDummy->GetYaxis()->SetRangeUser(-0.0005, 0.0075); //Lambda
+  hDummy->GetYaxis()->SetRangeUser(-0.0005, 0.0075); // Lambda
   hDummy->Draw("");
   lineatZero->Draw("same");
   if (ChosenPart >= 6)
@@ -1315,7 +1319,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gPzsPalliLambda->SetPoint(i, CentPalli[i], Pzs2LambdaPalli[i]);
     gPzsPalliLambda->SetPointError(i, 0, 0);
   }
-  //TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
+  // TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
   TLegend *legendPalermo = new TLegend(0.14, 0.43, 0.5, 0.68);
   legendPalermo->SetFillStyle(0);
   legendPalermo->SetTextAlign(12);
@@ -1331,7 +1335,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6) // Lambda
     legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pef");
   else if (part == 0) // Xi
-    //legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+    // legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
     cout << "ok" << endl;
   else if (part == 1) // Omega
     legendParticles->AddEntry(fHistPzs, Form("#Omega^{#minus} + #bar{#Omega}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
@@ -1359,9 +1363,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistPzsSistUpTo50->SetBinError(b, 0);
     }
   }
-  //fHistPzsUpTo50->Draw("same ex0");
-  //fHistPzsSistUpTo50->SetFillStyle(0);
-  //fHistPzsSistUpTo50->Draw("same e2");
+  // fHistPzsUpTo50->Draw("same ex0");
+  // fHistPzsSistUpTo50->SetFillStyle(0);
+  // fHistPzsSistUpTo50->Draw("same e2");
   fHistPzsLambdaNeNeJunlee->SetLineColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerStyle(29);
@@ -1383,7 +1387,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   legendPalermo->AddEntry(gPzsPalliXi, "#Xi + #bar{#Xi}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry(gPzsPalliOmega, "#Omega + #bar{#Omega}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry(gPzsPalliLambda, "#Lambda + #bar{#Lambda}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
-  if (ChosenPart < 6){
+  if (ChosenPart < 6)
+  {
     gPzsPalermo->Draw("same l");
     gPzsPalliXi->Draw("same l");
     gPzsPalliOmega->Draw("same l");
