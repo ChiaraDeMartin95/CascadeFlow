@@ -20,8 +20,8 @@
 #include "TPad.h"
 #include "StyleFile.h"
 #include "CommonVarPub.h"
-// #include "CommonVarLambda.h"
-#include "CommonVarXi.h"
+#include "CommonVarLambda.h"
+// #include "CommonVarXi.h"
 
 double ErrorInRatio(Double_t A, Double_t Aerr, Double_t B, Double_t Berr)
 {
@@ -155,10 +155,10 @@ TString SisPtIntegrated[2] = {"", "PtInt"};
 
 void MultiTrial(
     Int_t mul = 0,
-    Int_t Choice = 0,          // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed, 3 = Pzs2
-    Bool_t isPtAnalysis = 1,   // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
-    Bool_t isPtIntegrated = 1, // 1 for results integrated in pt / phi
-    TString SisSyst = "BDT",   /*"MassAndBDTCut", //forLambda: "LambdaTopo" ,*/
+    Int_t Choice = 0,               // 0 = V2Mixed, 1 = Pz(s2)Mixed, 2 = Pz(s2)LambdaFromCMixed, 3 = Pzs2
+    Bool_t isPtAnalysis = 0,        // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
+    Bool_t isPtIntegrated = 0,      // 1 for results integrated in pt / phi
+    TString SisSyst = "LambdaTopo", // for Xi paper proposal:  "BDT" /*"MassAndBDTCut", //forLambda: "LambdaTopo" ,*/
     Int_t ChosenPart = ChosenParticle,
     Bool_t isRapiditySel = ExtrisRapiditySel,
     Int_t BkgType = ExtrBkgType,
@@ -226,8 +226,9 @@ void MultiTrial(
   TString histoName = "histo" + TypeHisto;
   cout << "Histo name: " << histoName << endl;
 
-  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0C[mul], CentFT0C[mul + 1]) + ParticleName[ChosenPart] + "_" + SisSyst + "_" + SisPtIntegrated[isPtIntegrated];
+  TString Suffix = inputFileName + Form("_%i-%i_", CentFT0CMin, CentFT0CMax) + ParticleName[ChosenPart] + "_" + SisSyst + "_" + SisPtIntegrated[isPtIntegrated];
 
+  /* for preliminaries"
   if (isPolFromLambda)
   {
     if (CentFT0CMin == 50)
@@ -239,6 +240,7 @@ void MultiTrial(
       IndexNotDisplayed = 5;
     }
   }
+    */
   IndexNotDisplayed = 1000000;
 
   Int_t trials = 0;
@@ -325,6 +327,8 @@ void MultiTrial(
       SdefFinal += "_ReducedPtBins";
     SdefFinal += Form("_SysMultTrial_%i", 0);
     SdefFinal += "_isSysLambdaMultTrial";
+    if (isApplyAcceptanceInMacro)
+      SdefFinal += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly)
       SdefFinal += "_ResoOnTheFly";
     cout << "SdefFinal " << SdefFinal << endl;
@@ -547,6 +551,8 @@ void MultiTrial(
       else
         Svaried += Form("_SysMultTrial_%i", i - 197 + 1);
       Svaried += "_isSysLambdaMultTrial";
+      if (isApplyAcceptanceInMacro)
+        Svaried += "_AcceptanceInMacro";
       if (ExtrisApplyResoOnTheFly)
         Svaried += "_ResoOnTheFly";
       cout << "Svaried " << Svaried << endl;
@@ -1107,8 +1113,8 @@ void MultiTrial(
           continue;
         if (hVariedChi2NDF[i]->GetBinContent(1) / hVariedChi2NDF[i]->GetBinError(1) > MaxChi2NDF[mul])
           continue;
-        //if (hRawYieldRatio[i]->GetBinContent(1) < 0.7 || hRawYieldRatio[i]->GetBinContent(1) > 1.3)
-        //  continue;
+        // if (hRawYieldRatio[i]->GetBinContent(1) < 0.7 || hRawYieldRatio[i]->GetBinContent(1) > 1.3)
+        //   continue;
       }
       NumberOfActualTrialsBis++;
       if (TMath::Abs(h[i]->GetBinContent(pt + 1)) > TMath::Abs(hMaxDev->GetBinContent(pt + 1)))
@@ -1257,7 +1263,8 @@ void MultiTrial(
   legTrialReduced->Draw();
 
   // Gaussian distribution of maximum deviations
-  TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1000, 800);
+  TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1200, 1000);
+  if (!isPtIntegrated) cgaus->Divide(3, 3);
   StyleCanvas(cgaus, 0.1, 0.1, 0.1, 0.1);
   std::vector<TH1F *> hCollectionAbsoluteSyst(bins);
   std::vector<TF1 *> fgaus2(bins);
@@ -1268,11 +1275,11 @@ void MultiTrial(
     // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-    if (mul == 4 || mul ==7)
+    if (mul == 4 || mul == 7)
       hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     if (mul == 6)
       hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-      
+
     for (int i = 0; i < trials; i++)
     {
       if (hRawYieldRatio[i]->GetBinContent(1) < 0.2) // skip those variations with too low yield
@@ -1295,6 +1302,7 @@ void MultiTrial(
     hCollectionAbsoluteSyst[pt]->SetMarkerColor(kBlack);
     hCollectionAbsoluteSyst[pt]->SetMarkerStyle(kFullCircle);
     hCollectionAbsoluteSyst[pt]->SetTitle(Form("FT0C %i-%i %%", CentFT0CMin, CentFT0CMax));
+    if (!isPtIntegrated) hCollectionAbsoluteSyst[pt]->SetTitle(Form("p_{T} bin [%.1f-%.1f] GeV/c", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)));
     hCollectionAbsoluteSyst[pt]->GetYaxis()->SetTitle("Counts");
     hCollectionAbsoluteSyst[pt]->GetXaxis()->SetTitle("Y_{sys} - Y_{def}");
     // hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of deviations");
@@ -1307,6 +1315,8 @@ void MultiTrial(
     legend2->AddEntry(fgaus2[pt], Form("#sigma = %.5f", fgaus2[pt]->GetParameter(2)), "l");
     legend2->Draw();
   }
+  cgaus->Modified();
+  cgaus->Update();
   cgaus->SaveAs("../Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".pdf");
   cgaus->SaveAs("../Systematics/MultTrial_AbsoluteSystGauss" + Suffix + ".png");
   // cgaus->Close();
