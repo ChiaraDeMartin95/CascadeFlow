@@ -1054,6 +1054,7 @@ void FitV2orPol_CB(
   TF1 *fitV2SP[numPtBins + 1];
 
   TH1F *hCos2Theta[numPtBins + 1];
+  TH1F *hCos2[numPtBins + 1];
   TH2F *hmassVsCos2Theta[numPtBins + 1];
   TH1F *hCos2ThetaMassIntegrated[numPtBins + 1];
 
@@ -1335,19 +1336,23 @@ void FitV2orPol_CB(
       return;
     }
 
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
     PhiBins[pt] = pt * 2 * TMath::Pi() / numPsiBins;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     if (pt == numPtBinsVar)
     { // integrated
       SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[0], PtBins[numPtBins]);
     }
-    if (!isPtAnalysis) // psi bins
+    if (!isPtAnalysis)
+    { // psi bins
       SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[pt], PhiBins[pt] + 2 * TMath::Pi() / numPsiBins - 0.0001);
+      if (pt == numPtBinsVar)
+        SPt[pt] = Form("%.2f < #psi < %.2f", PhiBins[0], PhiBins[numPsiBins] - 0.0001);
+    }
 
     if (ChosenPart < 6)
       cout << "\nFor the centrality: " << CentFT0CMin << "-" << CentFT0CMax << " % and the pt: " << SPt[pt] << " the BDT cut is: " << BDTscoreCut << endl;
@@ -1393,7 +1398,7 @@ void FitV2orPol_CB(
       if (!isPtAnalysis)
       {
         histoNameMassvsV2 = Form("MassvsPz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
-        ProfileV2 = Form("Pz_cent%i-%i_psi%i_Profile", CentFT0CMin, CentFT0CMax, pt);
+        ProfileV2 = Form("Pz_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         histoNameMassvsCos2Theta = Form("MassvsCos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         AcceptanceHisto = Form("Cos2Theta_cent%i-%i_psi%i", CentFT0CMin, CentFT0CMax, pt);
         if (isPolFromLambda)
@@ -1426,6 +1431,36 @@ void FitV2orPol_CB(
     {
       cout << "Histogram hV2 not available" << endl;
       return;
+    }
+    if (!isPtAnalysis)
+    { // correct for acceptance vs mass in phi-Psi bins
+      TH1F *hV2PsiInt = (TH1F *)filein->Get(Form("Pz_cent%i-%i_psi6", CentFT0CMin, CentFT0CMax));
+      if (!hV2PsiInt)
+      {
+        cout << "Histogram hV2PsiInt not available" << endl;
+        return;
+      }
+      TH1F *hCos2PsiInt = (TH1F *)filein->Get(Form("Cos2Theta_cent%i-%i_psi6", CentFT0CMin, CentFT0CMax));
+      if (!hCos2PsiInt)
+      {
+        cout << "Histogram hCos2PsiInt not available" << endl;
+        return;
+      }
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro){
+        hV2PsiInt->Divide(hCos2PsiInt);
+        return;
+      }
+      hCos2[pt] = (TH1F *)filein->Get(AcceptanceHisto);
+      if (!hCos2[pt])
+      {
+        cout << "Histogram hCos2 not available" << endl;
+        return;
+      }
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro){
+        hV2[pt]->Divide(hCos2[pt]);
+        return;
+      }
+      hV2[pt]->Add(hV2PsiInt, -1);
     }
 
     Float_t MaxV2 = 0.02;
@@ -1612,11 +1647,11 @@ void FitV2orPol_CB(
 
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
 
     if (pt < 4)
       canvas[0]->cd(pt + 1);
@@ -3247,11 +3282,11 @@ void FitV2orPol_CB(
   Int_t index = 0;
   for (Int_t pt = 0; pt < numPtBinsVar + 1; pt++)
   {
-    if (!isPtAnalysis)
-    {
-      if (pt == numPtBinsVar)
-        continue; // skip the integrated
-    }
+    // if (!isPtAnalysis)
+    //{
+    //   if (pt == numPtBinsVar)
+    //     continue; // skip the integrated
+    // }
 
     if (pt == 0)
       index = 1;
@@ -3400,39 +3435,6 @@ void FitV2orPol_CB(
       histoV2MixedErr->SetTitle("Error of Pz mixed");
       histoV2Err->SetTitle("Error of Pz");
     }
-  }
-
-  // return;
-  //  subtract baseline
-  Float_t baseline = 0;
-  Float_t baselineNoFit = 0;
-  Float_t baselineMixed = 0;
-  TH1F *histobaseline = (TH1F *)histoV2->Clone("histobaseline");
-  TH1F *histobaselineNoFit = (TH1F *)histoV2NoFit->Clone("histobaselineNoFit");
-  TH1F *histobaselineMixed = (TH1F *)histoV2Mixed->Clone("histobaselineMixed");
-  histobaseline->Reset();
-  histobaselineNoFit->Reset();
-  histobaselineMixed->Reset();
-  if (!isPtAnalysis)
-  {
-    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
-    {
-      baseline += histoV2->GetBinContent(pt);
-      baselineNoFit += histoV2NoFit->GetBinContent(pt);
-      baselineMixed += histoV2Mixed->GetBinContent(pt);
-    }
-    baseline /= histoV2->GetNbinsX();
-    baselineNoFit /= histoV2->GetNbinsX();
-    baselineMixed /= histoV2->GetNbinsX();
-    for (Int_t pt = 1; pt <= histoV2->GetNbinsX(); pt++)
-    {
-      histobaseline->SetBinContent(pt, baseline);
-      histobaselineNoFit->SetBinContent(pt, baselineNoFit);
-      histobaselineMixed->SetBinContent(pt, baselineMixed);
-    }
-    histoV2->Add(histobaseline, -1);
-    histoV2NoFit->Add(histobaselineNoFit, -1);
-    histoV2Mixed->Add(histobaselineMixed, -1);
   }
 
   // acceptance correction for polarization
@@ -3960,7 +3962,9 @@ void FitV2orPol_CB(
   Int_t ChosenPt = 8; // 8
   if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
     ChosenPt = numPtBinsVar;
-    //ChosenPt = numPtBinsVar - 2;
+  // ChosenPt = numPtBinsVar - 2;
+  if (!isPtAnalysis)
+    ChosenPt = 0;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
