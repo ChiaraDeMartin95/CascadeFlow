@@ -1450,22 +1450,22 @@ void CompareResults(Int_t TypeComp = 0,
   else if (TypeComp == 52)
   {
     numOptions = 2;
-    isRatio = 0;
+    isRatio = 1;
     isFullCorr = 1;
     isStoreSyst = 0;
-    TypeSyst = "Reso1";
+    TypeSyst = "Reso1PP";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
     fileName[0] = "";
     fileName[1] = "_SystReso";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    sleg[0] = "Default reso";
+    sleg[0] = "Def. reso";
     sleg[1] = "T0A + TPCc as ref. detectors";
-    // YLow = 0.;
-    // YUp = 0.5;
-    YLowRatio = 0.5;
-    YUpRatio = 1.5;
+    //YLowRatio = -0.003;
+    //YUpRatio = 0.003;
+    YLowRatio = 0.9;
+    YUpRatio = 1.05;
     YLow = -0.002;
     YUp = 0.02;
     MinHistoX = 0;
@@ -1508,11 +1508,13 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 1;
     isStoreSyst = 1;
     isFitRatio = 1;
-    TypeSyst = "PzFitRange";
+    int isPt = 2;
+    TypeSyst = "PzFitRangePP";
     // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    fileName[0] = "";
-    fileName[1] = "_TighterPzFitRange";
+    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+    fileName[0] = "_EffW";
+    fileName[1] = "_TighterPzFitRange_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
@@ -1528,6 +1530,28 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      hTitleX = "p_{T} (GeV/c)";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      TypeSyst = "PzFitRangePP_Pt";
+    }
+    else if (isPt == 2)
+    {
+      CommonFileName = "../PzVsPsi/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_vsPsi_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+      namehisto[0] = "histoPz";
+      namehisto[1] = "histoPz";
+      hTitleX = "2(#varphi - #Psi_{2})";
+      MinHistoX = 0;
+      MaxHistoX = 6;
+      TypeSyst = "PzFitRangePP_Psi";
+      YLow = -0.012;
+      YUp = 0.012;
+    }
   }
   else if (TypeComp == 55)
   {
@@ -2559,36 +2583,52 @@ void CompareResults(Int_t TypeComp = 0,
   {
     // TypeComp == 91 --> Compare Lambda polarization obtained with DSCB + Cheb vs 2 Gauss + pol2
     numOptions = 2;
-    isRatio = 1;
+    isRatio = 0;
     isFitRatio = 1;
-    isFullCorr = 0;
-    isStoreSyst = 0;
-    TypeSyst = "";
-    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
-    // fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    // fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    // namehisto[0] = "fHistPzs";
-    // namehisto[1] = "fHistPzs";
-    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    namehisto[0] = "histoPzs2";
-    namehisto[1] = "histoPzs2";
+    isFullCorr = 1;
+    isStoreSyst = 1;
+    TypeSyst = "2GaussPlusPol2";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+    fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    sleg[0] = "DSCB + Cheb";
+    sleg[0] = "DSCB";
     sleg[1] = "2 Gauss + pol2";
-    // YLow = 0.;
-    // YUp = 0.5;
-    // YLowRatio = -0.006;
-    // YUpRatio = 0.006;
-    YLowRatio = 0.9;
-    YUpRatio = 1.1;
+    YLowRatio = -0.0003;
+    YUpRatio = 0.0003;
     YLow = -0.002;
     YUp = 0.02;
-    // MinHistoX = 0;
-    // MaxHistoX = 50;
-    MinHistoX = 0.5;
-    MaxHistoX = 3;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+    int isPt = 2;
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+      fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      hTitleX = "p_{T} (GeV/c)";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      TypeSyst = "2GaussPlusPol2_Pt";
+    }
+    else if (isPt == 2)
+    {
+      CommonFileName = "../PzVsPsi/Pzs2_LHC25_OO_pass2_Train";
+      fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_vsPsi_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_vsPsi_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      namehisto[0] = "histoPz";
+      namehisto[1] = "histoPz";
+      hTitleX = "2(#varphi - #Psi_{2})";
+      MinHistoX = 0;
+      MaxHistoX = 6;
+      TypeSyst = "2GaussPlusPol2_Psi";
+      YLow = -0.012;
+      YUp = 0.012;
+    }
   }
   else if (TypeComp == 92)
   {
@@ -2649,7 +2689,7 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 2;
     isStoreSyst = 0;
     TypeSyst = "";
-    //CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+    // CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
     fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
     fileName[1] = "742311_AntiLambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
@@ -2658,7 +2698,7 @@ void CompareResults(Int_t TypeComp = 0,
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    //hTitleX = "p_{T} (GeV/c)";
+    // hTitleX = "p_{T} (GeV/c)";
     sleg[0] = "#Lambda";
     sleg[1] = "#bar{#Lambda}";
     YLowRatio = -0.005;
@@ -2667,8 +2707,42 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.02;
     MinHistoX = 0;
     MaxHistoX = 50;
-    //MinHistoX = 0.5;
-    //MaxHistoX = 6;
+    // MinHistoX = 0.5;
+    // MaxHistoX = 6;
+  }
+  else if (TypeComp == 95)
+  {
+    // TypeComp == 95 --> Compare acceptance with loose and tight selections
+    numOptions = 3;
+    isRatio = 1;
+    isFullCorr = 2; // uncorrelated results
+    isStoreSyst = 0;
+    TypeSyst = "Acceptance";
+    CommonFileName = "../AcceptancePlots/Acceptance_LHC25_OO_pass2_Train598890_Lambda_EffW_WithAlpha_Eta08";
+    fileName[0] = "_isOOCentrality_TightAcceptance";
+    fileName[1] = "_isLoosest_isSysLambdaMultTrial_isOOCentrality_TightAcceptance";
+    fileName[2] = "_isTightest_isSysLambdaMultTrial_isOOCentrality_TightAcceptance";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+    // namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
+    // namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
+    // namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
+    hTitleY = "Cos^{2}(#theta_{p})";
+    // hTitleX = "#eta";
+    hTitleX = "p_{T} (GeV/c)";
+    YLow = 0;
+    YUp = 0.5;
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
+    sleg[0] = "Default";
+    sleg[1] = "Loose";
+    sleg[2] = "Tight";
+    MinHistoX = -0.8;
+    MaxHistoX = 0.8;
+    MinHistoX = 0.5;
+    MaxHistoX = 10;
+    yOffset = 6;
   }
   else
   {
@@ -2924,7 +2998,7 @@ if (TypeComp == 48)
 
   StylePad(pad1, 0.18, 0.01, 0.03, 0.);   // L, R, T, B
   StylePad(padL1, 0.18, 0.01, 0.02, 0.3); // L, R, T, B
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 1000000, 0, 100);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
   canvas->cd();
@@ -2944,6 +3018,7 @@ if (TypeComp == 48)
     hDummy->GetXaxis()->SetRangeUser(0, 90);
   if (TypeComp == 44)
     hDummy->GetXaxis()->SetRangeUser(0, 80);
+  hDummy->GetXaxis()->SetRangeUser(MinHistoX, MaxHistoX);
   pad1->Draw();
   pad1->cd();
   // hDummy->Draw("same");
