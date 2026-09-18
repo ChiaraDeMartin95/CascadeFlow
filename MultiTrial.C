@@ -1264,7 +1264,8 @@ void MultiTrial(
 
   // Gaussian distribution of maximum deviations
   TCanvas *cgaus = new TCanvas("cgaus", "cgaus", 1200, 1000);
-  if (!isPtIntegrated) cgaus->Divide(3, 3);
+  if (!isPtIntegrated)
+    cgaus->Divide(3, 3);
   StyleCanvas(cgaus, 0.1, 0.1, 0.1, 0.1);
   std::vector<TH1F *> hCollectionAbsoluteSyst(bins);
   std::vector<TF1 *> fgaus2(bins);
@@ -1279,6 +1280,16 @@ void MultiTrial(
       hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     if (mul == 6)
       hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+    if (!isPtIntegrated && Choice == 3)
+    {
+      fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.0008, 0.0008);
+      if (pt > 5)
+      {
+        hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.004, 0.004);
+        fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+      }
+    }
 
     for (int i = 0; i < trials; i++)
     {
@@ -1302,7 +1313,8 @@ void MultiTrial(
     hCollectionAbsoluteSyst[pt]->SetMarkerColor(kBlack);
     hCollectionAbsoluteSyst[pt]->SetMarkerStyle(kFullCircle);
     hCollectionAbsoluteSyst[pt]->SetTitle(Form("FT0C %i-%i %%", CentFT0CMin, CentFT0CMax));
-    if (!isPtIntegrated) hCollectionAbsoluteSyst[pt]->SetTitle(Form("p_{T} bin [%.1f-%.1f] GeV/c", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)));
+    if (!isPtIntegrated)
+      hCollectionAbsoluteSyst[pt]->SetTitle(Form("p_{T} bin [%.1f-%.1f] GeV/c", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)));
     hCollectionAbsoluteSyst[pt]->GetYaxis()->SetTitle("Counts");
     hCollectionAbsoluteSyst[pt]->GetXaxis()->SetTitle("Y_{sys} - Y_{def}");
     // hCollectionAbsoluteSyst[pt]->SetTitle("Gaussian of deviations");
