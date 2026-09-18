@@ -93,11 +93,15 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
     SinputFile += "_ResoOnTheFly";
+  if (isApplyAcceptanceInMacro)
+    SinputFile += "_AcceptanceInMacro";
   if (ExtrisApplyEffWeights && ChosenPart >= 6)
     SinputFile += "_EffWeighted";
-  if (ChosenPart >= 6 && !ExtrisFromTHN){ 
-    SinputFile += "_Nvar1";
-    if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff") SinputFile += "_050PtCut";
+  if (ChosenPart >= 6 && !ExtrisFromTHN)
+  {
+    SinputFile += "_Nvar20";
+    if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
+      SinputFile += "_050PtCut";
   }
   // SinputFile += "_Nvar1_TestMoreBins";
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
@@ -467,9 +471,16 @@ void ComputeV2(Int_t indexMultTrial = 0,
     hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2LambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzs2LambdaFromC_3D[cent] = Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax);
+
     hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
+    if (ExtrisSysLambdaMultTrial && ChosenPart >= 6)
+    {
+      hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i_RandomV0Cuts:%i", cent, indexMultTrial - 1);
+      if (indexMultTrial == 0)
+        hNamePzVsPsi_3D[cent] = Form("massVsPsiVsPz_cent%i_nominal", cent);
+    }
     hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPzLambdaFromC_WithAlpha_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (ChosenPart >= 6 && !ExtrisFromTHN)
       hNamePzVsPsiLambdaFromC_3D[cent] = Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax);
@@ -538,6 +549,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     {
       cout << "Histogram hmassVsPsiVsPz not available" << endl;
       return;
+    }
+    else
+    {
+      cout << "Taking the histogram: " << hNamePzVsPsi_3D[cent] << endl;
     }
     hmassVsPsiVsPzLambdaFromC[cent] = (TH3D *)inputFile->Get(hNamePzVsPsiLambdaFromC_3D[cent]);
     if (!hmassVsPsiVsPzLambdaFromC[cent])
@@ -788,6 +803,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
       SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
     SOutputFile += "_isSysLambdaMultTrial";
   }
+  if (isApplyAcceptanceInMacro)
+    SOutputFile += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
     SOutputFile += "_ResoOnTheFly";
   // if (ChosenPart >= 6)
