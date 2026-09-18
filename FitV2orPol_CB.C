@@ -711,6 +711,7 @@ Float_t ftcReso[commonNumCent + 1] = {0};
 const Bool_t isFitDSCB = ExtrisFitDSCB;
 
 void FitV2orPol_CB(
+    Int_t ChosenPt = 8,
     Bool_t isPtAnalysis = 1,    // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
     Bool_t isBkgPol = 1,
@@ -1446,7 +1447,8 @@ void FitV2orPol_CB(
         cout << "Histogram hCos2PsiInt not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro){
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro)
+      {
         hV2PsiInt->Divide(hCos2PsiInt);
         return;
       }
@@ -1456,7 +1458,8 @@ void FitV2orPol_CB(
         cout << "Histogram hCos2 not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro){
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro)
+      {
         hV2[pt]->Divide(hCos2[pt]);
         return;
       }
@@ -3959,12 +3962,11 @@ void FitV2orPol_CB(
   }
 
   // Performance plot
-  Int_t ChosenPt = 8; // 8
-  if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
-    ChosenPt = numPtBinsVar;
-  // ChosenPt = numPtBinsVar - 2;
-  if (!isPtAnalysis)
-    ChosenPt = 0;
+  // if (ParticleType == 1 || ParticleType == 2 || ParticleType == 0)
+  //  ChosenPt = numPtBinsVar;
+  ////ChosenPt = numPtBinsVar - 2;
+  // if (!isPtAnalysis)
+  //   ChosenPt = 0;
   Float_t LowLimitMass[numPart] = {1.29, 1.65, 1.29, 1.29, 1.65, 1.65, 1.1, 1.1, 1.1};
   Float_t UpLimitMass[numPart] = {1.35, 1.7, 1.35, 1.35, 1.7, 1.7, 1.13, 1.13, 1.13};
   Float_t UpperCutHisto = 1.7;
@@ -4336,15 +4338,21 @@ void FitV2orPol_CB(
   else if (ParticleType == 2)
     LegendTitle->AddEntry("", "#Lambda #rightarrow p #pi^{#minus} + c.c.", "");
 
-  if (ChosenPt == numPtBinsVar)
-    // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
-    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
+  if (isPtAnalysis)
+  {
+    if (ChosenPt == numPtBinsVar)
+      // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
+    else
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+  }
   else
-    LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
-  // if (ChosenPart >= 6)
-  // LegendTitle->AddEntry("", Form("Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
-  // else
-  // LegendTitle->AddEntry("", Form("BDT, Signif.(2#sigma) = %.0f #pm %.0f", Signif[ChosenPt], errSignif[ChosenPt]), "");
+  {
+    if (ChosenPt == numPsiBins)
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}, %s < 2(#varphi - #Psi_{2}) < 2#pi", PtBins[0], SPsiBin[0].Data()), "");
+    else
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}, %s < 2(#varphi - #Psi_{2}) < %s", PtBins[0], SPsiBin[ChosenPt].Data(), SPsiBin[ChosenPt + 1].Data()), "");
+  }
 
   TLegend *legendCos2 = new TLegend(0.6, 0.37, 0.85, 0.52);
   legendCos2->SetFillStyle(0);
@@ -4463,6 +4471,8 @@ void FitV2orPol_CB(
     if (isPolFromLambda)
       TitleDummyRatio = "#LT 1/#alpha_{#Lambda} cos(#theta_{p}*) sin(2(#varphi_{#Xi}-#Psi_{2})) #GT";
     TitleDummyRatio = "#it{P}_{z, s2}";
+    if (!isPtAnalysis)
+      TitleDummyRatio = "#it{P}_{z}";
   }
   StyleHistoYield(hDummyRatio, 1e-5, 0.15 - 1e-5, 1, 1, TitleXMass, TitleDummyRatio, "", 1, 1.15, YoffsetSpectraRatio);
   hDummyRatio->GetXaxis()->SetRangeUser(XRangeMin[ChosenPart], XRangeMax[ChosenPart]);
@@ -4498,6 +4508,16 @@ void FitV2orPol_CB(
         hDummyRatio->GetYaxis()->SetRangeUser(-0.2, 0.2);
       if (mul == 8)
         hDummyRatio->GetYaxis()->SetRangeUser(-0.5, 0.5);
+      if (mul == 10)
+      {
+        hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
+        if (ChosenPt >= 4)
+          hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
+        if (ChosenPt == 6)
+          hDummyRatio->GetYaxis()->SetRangeUser(-0.08, 0.08);
+        if (!isPtAnalysis)  
+          hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
+      }
     }
   }
   hDummyRatio->Draw("same");
@@ -4515,9 +4535,18 @@ void FitV2orPol_CB(
   //  hV2MassIntegrated[ChosenPt]->Draw("");
   legendChi2->Draw("");
   TString SIsPolFromLambda[2] = {"", "_isPolFromLambda"};
-  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
-  canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  if (isPtAnalysis)
+  {
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Pt%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  }
+  else
+  {
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Psi%i.pdf", CentFT0CMin, CentFT0CMax, ChosenPt));
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Psi%i.png", CentFT0CMin, CentFT0CMax, ChosenPt));
+    canvasP->SaveAs("../PerformancePlots/MassAnd" + NameAnalysis[!isV2] + ParticleName[ChosenPart] + SIsPolFromLambda[isPolFromLambda] + Form("_Cent%i-%i_Psi%i.eps", CentFT0CMin, CentFT0CMax, ChosenPt));
+  }
 
   if (isProducedAcceptancePlots)
   {
