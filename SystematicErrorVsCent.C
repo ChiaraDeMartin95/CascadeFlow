@@ -9,7 +9,8 @@
 #include "TF1.h"
 #include "TLegend.h"
 #include "CommonVarPub.h"
-#include "CommonVarXi.h"
+// #include "CommonVarXi.h"
+#include "CommonVarLambda.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
 {
@@ -106,14 +107,14 @@ Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 // Float_t PrimaryLambdaFraction = 0.03;
 Float_t PrimaryLambdaFraction = 0;
-//Float_t SecondaryLambdaFraction = 0.1;
-Float_t SecondaryLambdaFraction = 0.008; //only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
+// Float_t SecondaryLambdaFraction = 0.1;
+Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
 Float_t ZVertexErrorLambdaOO = 0.00009;
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
                            Float_t nsigmaBarlowMassCut = 1.0,
-                           Bool_t isFromFit = 0,
+                           Bool_t isFromFit = 1,
                            Bool_t isRapiditySel = ExtrisRapiditySel,
                            Int_t BkgType = ExtrBkgType,
                            Bool_t UseTwoGauss = ExtrUseTwoGauss,
@@ -274,7 +275,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistPolBkg0Error->SetName("hPolBkg0SystError");
 
-  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_BkgFit.root");
+  // TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_BkgFit.root");
+  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2.root");
   TH1F *fHistBkgExpoError = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
   if (!fHistBkgExpoError)
   {
@@ -283,7 +285,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistBkgExpoError->SetName("hBkgExpoSystError");
 
-  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRange.root");
+  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP.root");
   TH1F *fHistPzFitRangeError = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
   if (!fHistPzFitRangeError)
   {
@@ -344,6 +346,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       PathIn += "_Run2Binning";
     if (isPolFromLambda)
       PathIn += "_PolFromLambda";
+    if (ExtrisApplyEffWeights)
+      PathIn += "_EffW";
     if (!isRapiditySel || ExtrisFromTHN)
       PathIn += "_Eta08";
     // if (isReducedPtBins)
@@ -355,6 +359,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
     if (isReducedPtBins)
       PathIn += "_ReducedPtBins";
+    if (isApplyAcceptanceInMacro)
+      PathIn += "_AcceptanceInMacro";
     if (ChosenPart == 6)
     {
       // PathIn += Form("_SysMultTrial_%i", 0);
@@ -549,16 +555,23 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
 
   fHistBDTErrorVsCent->Smooth();
   fHistMassCutErrorVsCent->Smooth();
+
+  if (ChosenPart >= 6)
+  {
+    fHistBkgExpoErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+    fHistBkgExpoErrorVsCent->Smooth();
+    fHistPzFitRangeErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+    fHistPzFitRangeErrorVsCent->Smooth(1, "R");
+    fHistMassCutAndBDTErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+  }
   fHistMassCutAndBDTErrorVsCent->Smooth();
-  // fHistBkgExpoErrorVsCent->Smooth();
-  // fHistPzFitRangeErrorVsCent->Smooth();
   // fHistPolBkg0ErrorVsCent->Smooth();
   //  fHistResoErrorVsCent->Smooth();
   for (Int_t m = 0; m < commonNumCent; m++)
   {
-    //cout << "BDT error cent " << m << " : " << fHistBDTErrorVsCent->GetBinContent(m + 1) << endl;
-    //cout << "Mass cut error cent " << m << " : " << fHistMassCutErrorVsCent->GetBinContent(m + 1) << endl;
-    //cout << "Mass cut and BDT error cent " << m << " : " << fHistMassCutAndBDTErrorVsCent->GetBinContent(m + 1) << endl;
+    // cout << "BDT error cent " << m << " : " << fHistBDTErrorVsCent->GetBinContent(m + 1) << endl;
+    // cout << "Mass cut error cent " << m << " : " << fHistMassCutErrorVsCent->GetBinContent(m + 1) << endl;
+    // cout << "Mass cut and BDT error cent " << m << " : " << fHistMassCutAndBDTErrorVsCent->GetBinContent(m + 1) << endl;
   }
 
   Float_t BDTerror = 0;
@@ -663,7 +676,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart == 6)
   {
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "Topological selections", "l");
-    legend->AddEntry(fHistPrimaryLambdaErrorVsCent, "Primary #Lambda", "l");
+    legend->AddEntry(fHistPrimaryLambdaErrorVsCent, "Secondary #Lambda", "l");
   }
   else
     legend->AddEntry(fHistMassCutAndBDTErrorVsCent, "BDT selection", "l");

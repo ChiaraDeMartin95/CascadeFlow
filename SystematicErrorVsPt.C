@@ -207,13 +207,14 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistMean = nullptr;
 
   TFile *fileInResoError = TFile::Open("../CompareResults/SystUncertainty_Reso1.root");
-  TH1F *fHistResoError = (TH1F *)fileInResoError->Get("hRatioClone_1");
-  if (!fHistResoError)
+  TH1F *fHistResoErrorIn = (TH1F *)fileInResoError->Get("hRatioClone_1");
+  if (!fHistResoErrorIn)
   {
     cout << "Error: histogram Reso not found" << endl;
     return;
   }
-  fHistResoError->SetName("hResoSystError");
+  fHistResoErrorIn->SetName("hResoSystError");
+  TH1F *fHistResoError = nullptr;
 
   TFile *fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty_BkgPol0.root");
   TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
@@ -224,23 +225,45 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   }
   fHistPolBkg0Error->SetName("hPolBkg0SystError");
 
-  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2.root");
-  TH1F *fHistBkgExpoError = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
-  if (!fHistBkgExpoError)
+  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2_Pt.root");
+  if (!isPtAnalysis)
+    fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2_Psi.root");
+  TH1F *fHistBkgExpoErrorIn = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
+  if (!fHistBkgExpoErrorIn)
   {
     cout << "Error: histogram BkgExpo not found" << endl;
     return;
   }
-  fHistBkgExpoError->SetName("hBkgExpoSystError");
+  fHistBkgExpoErrorIn->SetName("hBkgExpoSystError");
+  TH1F *fHistBkgExpoError = (TH1F *)fHistBkgExpoErrorIn->Clone("hBkgExpoSystError");
+  for (Int_t i = 1; i <= fHistBkgExpoError->GetNbinsX(); i++)
+  {
+    fHistBkgExpoError->SetBinContent(i, std::abs(fHistBkgExpoError->GetBinContent(i)));
+    fHistBkgExpoError->SetBinError(i, 0);
+  }
+  if (isPtAnalysis)
+    fHistBkgExpoError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+  fHistBkgExpoError->Smooth(1, "R");
 
-  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRange.root");
-  TH1F *fHistPzFitRangeError = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
-  if (!fHistPzFitRangeError)
+  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP_Pt.root");
+  if (!isPtAnalysis)
+    fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP_Psi.root");
+  TH1F *fHistPzFitRangeErrorIn = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
+  if (!fHistPzFitRangeErrorIn)
   {
     cout << "Error: histogram PzFitRange not found" << endl;
     return;
   }
-  fHistPzFitRangeError->SetName("hPzFitRangeSystError");
+  fHistPzFitRangeErrorIn->SetName("hPzFitRangeSystErrorIn");
+  TH1F *fHistPzFitRangeError = (TH1F *)fHistPzFitRangeErrorIn->Clone("hPzFitRangeSystError");
+  for (Int_t i = 1; i <= fHistPzFitRangeError->GetNbinsX(); i++)
+  {
+    fHistPzFitRangeError->SetBinContent(i, std::abs(fHistPzFitRangeError->GetBinContent(i)));
+    fHistPzFitRangeError->SetBinError(i, 0);
+  }
+  if (isPtAnalysis)
+    fHistPzFitRangeError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+  fHistPzFitRangeError->Smooth(1, "R");
 
   TString Smolt[commonNumCent + 1];
   // get spectra in multiplicity classes
@@ -359,6 +382,9 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
       return;
     }
     fHistMassCutAndBDTError->SetName("hAbsoluteSystErrorMassCutAndBDT_" + Smolt[m]);
+    if (isPtAnalysis)
+      fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+    fHistMassCutAndBDTError->Smooth(1, "R");
 
     // primary Lambdas
     fHistPrimaryLambdaError = (TH1F *)fHistPzs2->Clone("fHistPrimaryLambdaError");
@@ -387,8 +413,17 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
       fHistZVertexError->SetBinError(pt, 0);
     }
 
+    // resolution error
+    fHistResoError = (TH1F *)fHistPzs2->Clone("fHistResoError");
+    for (Int_t i = 1; i <= fHistResoError->GetNbinsX(); i++)
+    {
+      fHistResoError->SetBinContent(i, 0.04 * std::abs(fHistPzs2->GetBinContent(i)));
+      fHistResoError->SetBinError(i, 0);
+    }
+
     fHistTotalError = (TH1F *)fHistPzs2->Clone("fHistTotalError");
     fHistTotalError->Reset();
+
     for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
     {
       fHistTotalError->SetBinContent(pt, TMath::Sqrt(fHistMassCutAndBDTError->GetBinContent(pt) * fHistMassCutAndBDTError->GetBinContent(pt) +
@@ -422,7 +457,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TString TitleX = TitleXPt;
   if (!isPtAnalysis)
     TitleX = TitleXPsi;
-  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
+  TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 10);
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, 1e-12);
   canvasError->cd();
@@ -464,7 +499,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->SetFillStyle(0);
   legend->SetTextSize(0.05);
   legend->AddEntry(fHistMassCutAndBDTError, "Topological selections", "l");
-  legend->AddEntry(fHistPrimaryLambdaError, "Primary #Lambda", "l");
+  legend->AddEntry(fHistPrimaryLambdaError, "Secondary #Lambda", "l");
   legend->AddEntry(fHistResoError, "Resolution", "l");
   legend->AddEntry(fHistZVertexError, "Z_{vtx} selection", "l");
   legend->AddEntry(fHistPolBkg0Error, "P_{z, s2, bkg} = 0", "l");
@@ -486,6 +521,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistBkgExpoRelError = (TH1F *)fHistBkgExpoError->Clone("fHistBkgExpoRelError");
   TH1F *fHistZVertexRelError = (TH1F *)fHistZVertexError->Clone("fHistZVertexRelError");
   TH1F *fHistTotalRelError = (TH1F *)fHistTotalError->Clone("fHistTotalRelError");
+  fHistPzFitRangeRelError->Reset();
   for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
   {
     fHistMassCutAndBDTRelError->SetBinContent(pt, fHistMassCutAndBDTError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
@@ -511,7 +547,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TCanvas *canvasRelError = new TCanvas("canvasRelError", "canvasRelError", 800, 600);
   StyleCanvas(canvasRelError, 0.05, 0.2, 0.2, 0.03);
   canvasRelError->cd();
-  TH1F *hDummyRelError = new TH1F("hDummyRelError", "hDummyRelError", 10000, 0, 100);
+  TH1F *hDummyRelError = new TH1F("hDummyRelError", "hDummyRelError", 10000, 0, 10);
   for (Int_t i = 1; i <= hDummyRelError->GetNbinsX(); i++)
     hDummyRelError->SetBinContent(i, 1e-12);
   canvasRelError->cd();
@@ -520,6 +556,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   SetHistoTextSize(hDummyRelError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, 2, yLabelOffset);
   SetTickLength(hDummyRelError, tickX, tickY);
   hDummyRelError->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
+  fHistPzFitRangeRelError->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
   hDummyRelError->Draw("");
   fHistMassCutAndBDTRelError->Draw("same");
   fHistPrimaryLambdaRelError->Draw("same");
@@ -530,7 +567,11 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistBkgExpoRelError->Draw("same");
   fHistZVertexRelError->Draw("same");
   fHistTotalRelError->Draw("same");
-  // legend->Draw("same");
+  //  legend->Draw("same");
+  for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)
+    cout << "Bin " << i << ": " << fHistPzFitRangeRelError->GetBinContent(i) << " +/- " << fHistPzFitRangeRelError->GetBinError(i) << endl;
+  canvasRelError->Modified();
+  canvasRelError->Update();
   canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s_%s.png", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
   canvasRelError->SaveAs(Form("../RelativeUncertaintySummary_%s_%s.pdf", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
 
