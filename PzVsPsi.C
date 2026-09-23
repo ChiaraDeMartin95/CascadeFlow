@@ -458,9 +458,71 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     }
   }
 
+  // Get histogram with syst uncertainty
+  TString PathInSyst = "../Systematics/SystVsPsi_" + NameAnalysis[!isV2] + "_";
+  PathInSyst += SinputFileNameSyst;
+  if (ChosenPart == 7 || ChosenPart == 8)
+    PathInSyst += "_" + ParticleName[6];
+  else
+    PathInSyst += "_" + ParticleName[ChosenPart];
+  if (ExtrisFitDSCB)
+  {
+    PathInSyst += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      PathInSyst += "_FixParamFromMC";
+  }
+  else
+    PathInSyst += IsOneOrTwoGauss[UseTwoGauss];
+  PathInSyst += SIsBkgParab[ExtrBkgTypeSyst];
+  PathInSyst += "_Pzs2";
+  if (isApplyWeights)
+    PathInSyst += "_Weighted";
+  if (isApplyCentWeight || ChosenPart >= 6)
+    PathInSyst += "_CentWeighted";
+  if (!useCommonBDTValue)
+    PathInSyst += "_BDTCentDep";
+  if (isRun2Binning)
+    PathInSyst += "_Run2Binning";
+  if (isPolFromLambda)
+    PathInSyst += "_PolFromLambda";
+  if (!isRapiditySel)
+    PathInSyst += "_Eta08";
+  if (ChosenPart < 6)
+    PathInSyst += STHN[ExtrisFromTHN];
+  if (useMixedBDTValueInFitMacro)
+    PathInSyst += "_MixedBDT";
+  if (isTightMassCut)
+    // PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    PathInSyst += Form("_TightMassCut%.1f", 2.1);
+  // PathInSyst += V2FromFit[isFromFit];
+  if (isReducedPtBins)
+    PathInSyst += "_ReducedPtBins";
+  if (ExtrisApplyResoOnTheFly || ChosenPart >= 6)
+    PathInSyst += "_ResoOnTheFly";
+  if (ChosenPart == 0)
+    PathInSyst += "_New";
+  PathInSyst += ".root";
+  cout << "Opening systematic uncertainty file: " << PathInSyst << endl;
+  TFile *fileInSyst = TFile::Open(PathInSyst);
+  if (!fileInSyst)
+  {
+    cout << "No file found" << endl;
+    return;
+  }
+  TH1F *fHistPzsSistError = (TH1F *)fileInSyst->Get("fHistTotalError");
+  if (!fHistPzsSistError)
+  {
+    cout << "No hist syst error found" << endl;
+    return;
+  }
   TH1F *fHistPzsSist = (TH1F *)fHistPzs->Clone("fHistPzsSist");
+  for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
+  {
+    fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
+    fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
+  }
+
   TH1F *fHistPzsError = (TH1F *)fHistPzs->Clone("fHistPzsError");
-  TH1F *fHistPzsSistError = (TH1F *)fHistPzs->Clone("fHistPzsSistError");
   TH1F *fHistPzsSignif = (TH1F *)fHistPzs->Clone("fHistPzs");
   TH1F *fHistPzsSignifStat = (TH1F *)fHistPzs->Clone("fHistPzs");
   TH1F *fHistPzsSignifLambda = (TH1F *)fHistPzs->Clone("fHistPzs");
@@ -545,34 +607,38 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
   SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
   hDummy->Draw("");
-  fHistPzs->Draw("same");
-  fHistPzsPsiInt->Draw("same");
-  if (!isFromFit)
-    fHistPzsBkgSub->Draw("same");
+  if (ChosenPart >= 6)
+  {
+    fHistPzsSist->SetLineColor(ColorOO);
+    fHistPzsSist->SetMarkerColor(ColorOO);
+    fHistPzs->SetLineColor(ColorOO);
+    fHistPzs->SetMarkerColor(ColorOO);
+    fHistPzsBkgSub->SetLineColor(ColorOO);
+    fHistPzsBkgSub->SetMarkerColor(ColorOO);
+  }
+  TF1 *lineAtZero = new TF1("pol0Psi", "0", LowerRangeParticle, UpperRangeParticle);
+  lineAtZero->SetLineColor(kBlack);
+  lineAtZero->SetLineStyle(2);
+  lineAtZero->Draw("same");
+  fHistPzsBkgSub->Draw("same ex0");
   TF1 *fitsine = new TF1("sine", fsine, LowerRangeParticle, UpperRangeParticle, 2);
-  fitsine->SetLineColor(ColorPart[part]);
+  fitsine->SetLineColor(ColorOO);
   fitsine->SetLineWidth(2);
   fHistPzsBkgSub->Fit(fitsine, "R");
   fitsine->Draw("same");
   TLegend *legendsinefit = new TLegend(0.2, 0.18, 0.6, 0.38);
   legendsinefit->SetFillStyle(0);
   legendsinefit->SetTextSize(0.04);
-  // legendsinefit->AddEntry(fitsine, Form("%.4f + 2*%.4f sin(2#varphi - 2#Psi_{2})", fitsine->GetParameter(0), fitsine->GetParameter(1)), "l");
   legendsinefit->AddEntry(fitsine, "p0 + 2*p1 sin(2#varphi - 2#Psi_{2})", "l");
   legendsinefit->AddEntry("", Form("p0 = %.4f +- %.4f", fitsine->GetParameter(0), fitsine->GetParError(0)), "");
   legendsinefit->AddEntry("", Form("p1 = %.4f +- %.4f", fitsine->GetParameter(1), fitsine->GetParError(1)), "");
-  legendsinefit->Draw("");
-
-  // fHistPzsSist->SetFillStyle(0);
-  // fHistPzsSist->Draw("same e2");
-  // fHistPzsLambda->Draw("same e0x0");
-  // fHistPzsLambdaSist->SetFillStyle(0);
-  // fHistPzsLambdaSist->Draw("same e2");
+  legendsinefit->Draw("same");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->Draw("same e2");
   LegendTitle->Draw("");
-  // legendLambda->Draw("");
-  canvasPzs->SaveAs(stringoutpdf + ".pdf");
-  canvasPzs->SaveAs(stringoutpdf + ".png");
-  canvasPzs->SaveAs(stringoutpdf + ".eps");
+  canvasPzs->SaveAs("../PzVsPsi.pdf");
+  canvasPzs->SaveAs("../PzVsPsi.png");
+  canvasPzs->SaveAs("../PzVsPsi.eps");
 
   // Relative stat. uncertainty
   TCanvas *canvasPzsError = new TCanvas("canvasPzsError", "canvasPzsError", 900, 700);
@@ -879,8 +945,8 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     fHistPzsSist->SetMarkerColor(ColorOO);
   }
   fHistPzsBkgSub->DrawClone("same ex0");
-  // fHistPzsSist->SetFillStyle(0);
-  // fHistPzsSist->DrawClone("same e2");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->DrawClone("same e2");
   LegendPreliminary2->Draw("");
   legendXi->Draw("");
   TLegend *legendData = new TLegend(0.06, 0.536, 0.42, 0.736);
@@ -974,8 +1040,8 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     }
   }
   fHistPzsUpTo50->Draw("same ex0");
-  // fHistPzsSistUpTo50->SetFillStyle(0);
-  // fHistPzsSistUpTo50->Draw("same e2");
+  fHistPzsSistUpTo50->SetFillStyle(0);
+  fHistPzsSistUpTo50->Draw("same e2");
   legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
   legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
   if (ChosenPart < 6)
