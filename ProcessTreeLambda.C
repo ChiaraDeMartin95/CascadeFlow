@@ -60,7 +60,7 @@ Float_t MaxPzs2 = 1;
 Float_t MaxPzs2Reso[numCentLambdaOO + 1] = {30, 35, 40, 45, 60, 70, 100, 140, 200, 1000, 60}; // 600 for 0-100%
 Float_t MaxPzs2WithAlphaXi = 2.8;
 Float_t MaxPzs2WithAlphaOmega = 65;
-const Int_t NPzs2 = 400;
+const Int_t NPzs2 = 200;
 Double_t PzsBinsLambda[NPzs2 + 1];
 
 const Int_t NPtLambdaAcc = 11;
@@ -78,13 +78,16 @@ Float_t MinPzWithAlphaOmega = -65;
 Float_t MaxPzReso[numCentLambdaOO + 1] = {32, 36, 40, 50, 60, 80, 120, 150, 250, 800, 60};
 Float_t MaxPzWithAlphaXi = 2.8;
 Float_t MaxPzWithAlphaOmega = 65;
-Int_t NPz = 1000;
+const Int_t NPz = 200;
+Double_t PzBinsLambda[NPz + 1];
 
 const Int_t numLambdaMassBins = 48;
 Double_t LambdaMassBins[numLambdaMassBins + 1] = {0};
+const Int_t numPhiBins = 6;
+Double_t PhiBins[numPhiBins + 1] = {0, TMath::Pi() / 3, 2 * TMath::Pi() / 3, TMath::Pi(), 4 * TMath::Pi() / 3, 5 * TMath::Pi() / 3, 2 * TMath::Pi()};
 
-void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for acceptance
-                       Bool_t isStorePzs2AndPz = 0,  // store histos for Pzs2 and Pz
+void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for acceptance
+                       Bool_t isStorePzs2AndPz = 1,  // store histos for Pzs2 and Pz
                        Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                        Bool_t isSystReso = 0,
@@ -98,7 +101,8 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     Cos2ThetaAcc[i] = i * 1.0 / NCos2ThetaAcc;
 
   auto start = std::chrono::high_resolution_clock::now();
-  ROOT::EnableImplicitMT(50);
+  // ROOT::EnableImplicitMT(50);
+  ROOT::EnableImplicitMT(16);
   TH1::SetDefaultSumw2();
 
   string v2Chosen = "fV2CEP";
@@ -184,20 +188,13 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
   TFile *weightEffFileAL = new TFile(weightEffFileNameAL, "READ");
   TH2D *hEffWeightAL{weightEffFileNameAL ? (TH2D *)weightEffFileAL->Get("hEffWeight2DAntiLambda") : nullptr};
 
-  /*
-  TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
-  if (isSysMultTrial)
-    SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_2_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root";
-  //  TString SinputFileNameAcceptanceL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
+  // default acceptances
+  TString SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
   TFile *AcceptanceFileL = new TFile(SinputFileNameAcceptanceL, "READ");
   TH2D *hAcceptanceL{AcceptanceFileL ? (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
-  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
-  if (isSysMultTrial)
-    SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_2_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root";
-  //  TString SinputFileNameAcceptanceAL = "Acceptance_" + SinputFileNameAcc + "_Lambda_WithAlpha_Eta08_FromTHN_isOOCentrality_TightAcceptance.root";
+  TString SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
   TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
   TH2D *hAcceptanceAL{AcceptanceFileAL ? (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
-  */
 
   auto h = d1.Histo1D("fPt");
 
@@ -275,28 +272,33 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
                                  { return static_cast<double>(DDefaultDcaPosToPV); })
                          .Define("cutDcaNegToPV", [=]()
                                  { return static_cast<double>(DDefaultDcaNegToPV); })
+                         .Define("acceptanceVariation", []()
+                                 { return -1.0; })
                          .Define("radiusV0", "fV0Radius * 1.")
                          .Define("dcaV0Dau", "fDcaV0Daughters * 1.")
                          .Define("dcaNegToPV", "fDcaNegToPV * 1.")
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int NVAR = 1;
+  const int shift = 20;
+  const int NVAR = 20;
   std::vector<std::unique_ptr<TFile>> acceptanceFiles;
   std::vector<TH2F *> hAcceptanceLVec;
   std::vector<TH2F *> hAcceptanceALVec;
 
-  for (int i = 0; i < NVAR; ++i)
+  for (int i = 0 + shift; i < NVAR + shift; ++i) // file labelled with zero has default acceptance
   {
 
-    TString acceptanceFileName = Form("AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_%i_isSysLambdaMultTrial_isOOCentrality_TightAcceptance.root", i);
-    acceptanceFiles.emplace_back(
-        std::make_unique<TFile>(
-            acceptanceFileName,
-            "READ"));
+    TString acceptanceFileName;
+    if (isStorePzs2AndPz)
+      acceptanceFileName = Form("AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_%i_isSysLambdaMultTrial_isOOCentrality_TightAcceptance_Batch1.root", i + 1);
+    else // dummy value
+      acceptanceFileName = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+
+    TFile *fileAcceptance = new TFile(acceptanceFileName, "READ");
     cout << "Opening acceptance file: " << acceptanceFileName << endl;
 
-    auto *hL = acceptanceFiles.back()->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
+    auto *hL = fileAcceptance->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
     if (!hL)
     {
       throw std::runtime_error(
@@ -304,7 +306,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     }
     hL->SetDirectory(nullptr);
     hAcceptanceLVec.push_back(hL);
-    auto *hAL = acceptanceFiles.back()->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
+    auto *hAL = fileAcceptance->Get<TH2F>("histoCos2ThetaLambdaFromCNoFit2D_cent0-50");
     if (!hAL)
     {
       throw std::runtime_error(
@@ -312,13 +314,14 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     }
     hAL->SetDirectory(nullptr);
     hAcceptanceALVec.push_back(hAL);
+    fileAcceptance->Close();
   }
 
   auto df_varied = df_withCuts.Vary(
-      {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"}, // columns that will vary together
+      {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV", "acceptanceVariation"}, // columns that will vary together
 
       // Lambda generating 100 random variations within limits
-      [](double r, double d, double c, double dp, double dn)
+      [](double r, double d, double c, double dp, double dn, double accVar)
       {
         // Define the allowed limits for each variable
         const double V0Radius_min = LowerlimitV0RadiusCut;
@@ -333,22 +336,32 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
         const double DcaNegToPV_max = UpperlimitDcaNegToPV;
 
         // Prepare the output: one RVec per column
-        RVec<RVecD> variations(5);
+        RVec<RVecD> variations(6);
         variations[0].reserve(NVAR); // cutV0Radius
         variations[1].reserve(NVAR); // cutDcaV0Daughters
         variations[2].reserve(NVAR); // cutV0CosPA
         variations[3].reserve(NVAR); // cutDcaPosToPV
         variations[4].reserve(NVAR); // cutDcaNegToPV
+        variations[5].reserve(NVAR); // acceptanceVariation
 
         // Initialize random generator (fixed seed for reproducibility)
         // std::mt19937 gen(42);
         std::mt19937 gen(43);
+        // std::mt19937 gen(44);
         std::uniform_real_distribution<double> distR(V0Radius_min, V0Radius_max);
         std::uniform_real_distribution<double> distD(DcaV0Daughters_min, DcaV0Daughters_max);
         std::uniform_real_distribution<double> distC(CosPA_min, CosPA_max);
         std::uniform_real_distribution<double> distDP(DcaPosToPV_min, DcaPosToPV_max);
         std::uniform_real_distribution<double> distDN(DcaNegToPV_min, DcaNegToPV_max);
 
+        for (int i = 0; i < shift; ++i)
+        {
+          distR(gen);
+          distD(gen);
+          distC(gen);
+          distDP(gen);
+          distDN(gen);
+        }
         // Generate random values for each variation
         for (int i = 0; i < NVAR; ++i)
         {
@@ -357,13 +370,14 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
           variations[2].push_back(distC(gen));
           variations[3].push_back(distDP(gen));
           variations[4].push_back(distDN(gen));
+          variations[5].push_back(static_cast<double>(i + shift));
         }
 
         return variations;
       },
 
       // Inputs to the Vary function (they can be the same as the varied columns)
-      {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV"},
+      {"cutV0Radius", "cutDcaV0Daughters", "cutV0CosPA", "cutDcaPosToPV", "cutDcaNegToPV", "acceptanceVariation"},
 
       NVAR, // number of variations
 
@@ -470,7 +484,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     OutputFileName += "_AcceptanceInMacro";
   if (ExtrisApplyEffWeights)
     OutputFileName += "_EffWeighted";
-  OutputFileName += Form("_Nvar%i", NVAR);
+  OutputFileName += Form("_Nvar%i_shift%i", NVAR, shift);
   // OutputFileName += "_CorrectReso";
   if (isSystReso)
     OutputFileName += "_SystReso";
@@ -521,6 +535,10 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
       std::declval<ROOT::RDF::RResultPtr<TH3D>>()))>
       h_variationsetaVsPtVsCos2;
 
+  std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
+      std::declval<ROOT::RDF::RResultPtr<TH3D>>()))>
+      h_variationsmassVsPsiVsPz;
+
   /*
   std::vector<decltype(ROOT::RDF::Experimental::VariationsFor(
       std::declval<ROOT::RDF::RResultPtr<TH2D>>()))>
@@ -559,11 +577,49 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
     else return 0.; }, {"fPt", "fCentFT0C", "fSign"});
 
-  df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAcceptanceALVec](unsigned int, float pt, float eta, short sign)
-                                       {
-    if (sign==(short)0) return hAcceptanceLVec[0]->GetBinContent(hAcceptanceLVec[0]->FindBin(pt, eta));
-    else if (sign==(short)1)  return hAcceptanceALVec[0]->GetBinContent(hAcceptanceALVec[0]->FindBin(pt, eta)); 
-    else return 0.; }, {"fPt", "fEta", "fSign"});
+  /*
+df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAcceptanceALVec](unsigned int, float pt, float eta, short sign)
+                                     {
+  if (sign==(short)0) return hAcceptanceLVec[0]->GetBinContent(hAcceptanceLVec[0]->FindBin(pt, eta));
+  else if (sign==(short)1)  return hAcceptanceALVec[0]->GetBinContent(hAcceptanceALVec[0]->FindBin(pt, eta));
+  else return 0.; }, {"fPt", "fEta", "fSign"});
+  */
+  df_selected = df_selected.Define(
+      "fAcceptance",
+      [hAcceptanceL, hAcceptanceAL, hAcceptanceLVec, hAcceptanceALVec](float pt, float eta, short sign, double variation)
+      {
+        const int ivar = static_cast<int>(variation - shift);
+
+        if (ivar < -1 || ivar >= NVAR)
+          return 0.;
+
+        if (sign == (short)0)
+        {
+          if (ivar == -1) // default
+            return hAcceptanceL->GetBinContent(hAcceptanceL->FindBin(pt, eta));
+          else
+          {
+            auto *h = hAcceptanceLVec[ivar];
+            return h->GetBinContent(h->FindBin(pt, eta));
+          }
+        }
+        else if (sign == (short)1)
+        {
+          if (ivar == -1) // default
+            return hAcceptanceAL->GetBinContent(hAcceptanceAL->FindBin(pt, eta));
+          else
+          {
+            auto *h = hAcceptanceALVec[ivar];
+            return h->GetBinContent(h->FindBin(pt, eta));
+          }
+        }
+        else
+          return 0.;
+      },
+      {"fPt",
+       "fEta",
+       "fSign",
+       "acceptanceVariation"});
 
   if (ExtrisApplyEffWeights)
     df_selected = df_selected.Define("fTotalWeight", "fCentWeight * fEffWeight");
@@ -654,6 +710,10 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
     {
       LambdaMassBins[i] = 1.1 + i * (1.13 - 1.1) / numLambdaMassBins;
     }
+    for (Int_t i = 0; i <= NPz; i++)
+    {
+      PzBinsLambda[i] = MinPz + i * (MaxPz - MinPz) / NPz;
+    }
 
     cout << "cent: " << cent << " min: " << CentFT0CMin << " max: " << CentFT0CMax << endl;
     auto dcent = df_selected.Filter(Form("fCentFT0C>=%.1f && fCentFT0C<%.1f", CentFT0CMin + 0.001, CentFT0CMax - 0.001));
@@ -701,8 +761,13 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
       auto massVsPtVsV2C = dcent.Histo3D({Form("massVsPtVsV2C_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs V2C", 80, 1.09, 1.14, 100, 0, 10, Nv2, Minv2, Maxv2}, "fMassLambda", "fPt", v2Chosen);
       massVsPtVsV2CVector.push_back(massVsPtVsV2C);
 
-      auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
+      // auto massVsPsiVsPz = dcent.Histo3D({Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", 80, 1.09, 1.14, 24, 0, 2 * TMath::Pi(), NPz, MinPz, MaxPz}, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
+      // massVsPsiVsPzVector.push_back(massVsPsiVsPz);
+      ROOT::RDF::TH3DModel modelPz(Form("massVsPsiVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs 2*(Psi-Phi) vs Pz", numLambdaMassBins, LambdaMassBins, numPhiBins, PhiBins, NPz, PzBinsLambda);
+      auto massVsPsiVsPz = dcent.Histo3D(modelPz, "fMassLambda", "f2PsiDiffCorr", "fPzLambdaFinal", "fTotalWeight");
+      auto variationsmassVsPsiVsPz = ROOT::RDF::Experimental::VariationsFor(massVsPsiVsPz);
       massVsPsiVsPzVector.push_back(massVsPsiVsPz);
+      h_variationsmassVsPsiVsPz.push_back(variationsmassVsPsiVsPz);
 
       auto massVsPz = dcent.Histo2D({Form("massVsPz_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pz", 80, 1.09, 1.14, NPz, MinPz, MaxPz}, "fMassLambda", "fPzLambdaFinal", "fTotalWeight");
       massVsPzVector.push_back(massVsPz);
@@ -801,6 +866,19 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
         histo.Write(histName); // or histo->Draw()
       }
 
+      auto &variationMapPsiPz = h_variationsmassVsPsiVsPz[cent];
+      auto tagsPsiPz = variationMapPsiPz.GetKeys();
+
+      for (auto &tag : tagsPsiPz)
+      {
+        std::cout << "Centrality bin " << cent
+                  << " | Variation tag PsiVsPz: " << tag << std::endl;
+
+        auto histo = variationMapPsiPz[tag];
+        TString histName = Form("massVsPsiVsPz_cent%i_%s", cent, tag.c_str());
+        histo.Write(histName); // or histo->Draw()
+      }
+
       massvsptVector[cent]->Write();
       massVsPtVsPzs2Vector[cent]->Write();
       massVsPzs2Vector[cent]->Write();
@@ -835,6 +913,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 1, // store histos for accepta
       }
       hEtaVsPtVsCos2ThetaLambda[cent]->Write();
     }
+    cout << "Finished processing centrality bin " << cent << endl;
   }
 
   file->Close();
