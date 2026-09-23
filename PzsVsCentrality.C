@@ -24,7 +24,7 @@
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
 #include "CommonVarLambda.h"
-// #include "CommonVarOmega.h"
+//  #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -696,7 +696,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     fHistMeanPlus2Sigma->SetBinContent(m + 1, fHistMean[m]->GetBinContent(1) + 2 * fHistSigma[m]->GetBinContent(1));
     fHistMeanPlus2Sigma->SetBinError(m + 1, 0);
 
-    if (ExtrisFitDSCB)
+    if (ExtrisFitDSCB && ChosenPart < 6)
     {
       fHistMeanMinus2Sigma->SetBinContent(m + 1, ExtrLowLimitDSCB[ChosenPart]);
       fHistMeanPlus2Sigma->SetBinContent(m + 1, ExtrUpLimitDSCB[ChosenPart]);
@@ -714,7 +714,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_" + ParticleName[ChosenPart];
   if (ExtrisFitDSCB)
   {
-    //PathInSyst += "_DSCB";
+    PathInSyst += "_DSCB";
     if (isFixParamDSCBFromMC)
       PathInSyst += "_FixParamFromMC";
   }
@@ -739,7 +739,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (useMixedBDTValueInFitMacro)
     PathInSyst += "_MixedBDT";
   if (isTightMassCut)
-    PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    // PathInSyst += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    PathInSyst += Form("_TightMassCut%.1f", 2.1);
   // PathInSyst += V2FromFit[isFromFit];
   if (isReducedPtBins)
     PathInSyst += "_ReducedPtBins";
@@ -1007,7 +1008,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsSignifUpTo50->Draw("same");
   fHistPzsSignifStatUpTo50->Draw("same");
 
-  fHistPzsSignifLambda->Draw("same e0x0");
+  //fHistPzsSignifLambda->Draw("same e0x0");
   //  LegendTitle->Draw("");
 
   TString titleLambda = "#Lambda + #bar{#Lambda}";
@@ -1139,7 +1140,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasMeanSigma->cd();
   TH1F *hDummySigma = (TH1F *)hDummy->Clone("hDummySigma");
   if (ChosenPart >= 6)
-    hDummySigma->GetYaxis()->SetRangeUser(1.1, 1.13);
+    hDummySigma->GetYaxis()->SetRangeUser(1.11, 1.12);
   else if (part == 0)
   {
     hDummySigma->GetYaxis()->SetRangeUser(1.31, 1.33);
@@ -1169,7 +1170,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                                                  fHistPzsSistError->GetBinContent(b) * fHistPzsSistError->GetBinContent(b)));
   }
   canvasfitPol0->cd();
+  SetFont(hDummy);
+  StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummy, tickX, tickY);
   hDummy->GetYaxis()->SetMaxDigits(1);
+  hDummy->GetYaxis()->SetRangeUser(-0.001, 0.011);
   hDummy->Draw("");
   fHistPzsTotError->Draw("same");
   TF1 *fpol1;
@@ -1222,18 +1228,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TCanvas *canvasPzsXi = new TCanvas("canvasPzsXi", "canvasPzsXi", 900, 700);
   StyleCanvas(canvasPzsXi, 0.06, 0.12, 0.1, 0.03); // first 0.03
   canvasPzsXi->cd();
-  SetFont(hDummy);
-  StyleHistoYield(hDummy, YLow[part], YUp[part], 1, 1, TitleXCent, TitleYPzs, "", 1, 1.15, 1.8);
   StyleHistoYield(fHistPzs, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
   StyleHistoYield(fHistPzsSist, YLow[part], YUp[part], kOrange + 10, 20, TitleXCent, TitleYPzs, "", 1.9, 1.15, 1.8);
-  SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
-  SetTickLength(hDummy, tickX, tickY);
   hDummy->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
   if (part == 1) // Omega
     hDummy->GetYaxis()->SetRangeUser(-0.005, 0.02);
   else if (part == 0) // Xi
     hDummy->GetYaxis()->SetRangeUser(-0.001, 0.011);
-  hDummy->GetYaxis()->SetRangeUser(-0.0005, 0.0075); // Lambda
+  // hDummy->GetYaxis()->SetRangeUser(-0.0005+0.000001, 0.0011-0.000001); // Lambda
   hDummy->Draw("");
   lineatZero->Draw("same");
   if (ChosenPart >= 6)
@@ -1363,9 +1365,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistPzsSistUpTo50->SetBinError(b, 0);
     }
   }
-  // fHistPzsUpTo50->Draw("same ex0");
-  // fHistPzsSistUpTo50->SetFillStyle(0);
-  // fHistPzsSistUpTo50->Draw("same e2");
+  fHistPzsUpTo50->Draw("same ex0");
+  fHistPzsSistUpTo50->SetFillStyle(0);
+  fHistPzsSistUpTo50->Draw("same e2");
   fHistPzsLambdaNeNeJunlee->SetLineColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerColor(kGreen + 2);
   fHistPzsLambdaNeNeJunlee->SetMarkerStyle(29);

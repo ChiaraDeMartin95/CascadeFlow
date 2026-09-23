@@ -171,6 +171,7 @@ void CompareResults(Int_t TypeComp = 0,
                     Bool_t UseTwoGauss = ExtrUseTwoGauss)
 {
 
+  TString AdditionalName = "";
   Bool_t isRatio = 1;    // 1 for ratio, 0 for difference
   Int_t isFullCorr = -1; // 1 for full correlation, 0 for partial correlation, -1 for no correlation
   Bool_t isFitRatio = 0;
@@ -1462,8 +1463,8 @@ void CompareResults(Int_t TypeComp = 0,
     hTitleX = "FT0C centrality (%)";
     sleg[0] = "Def. reso";
     sleg[1] = "T0A + TPCc as ref. detectors";
-    //YLowRatio = -0.003;
-    //YUpRatio = 0.003;
+    // YLowRatio = -0.003;
+    // YUpRatio = 0.003;
     YLowRatio = 0.9;
     YUpRatio = 1.05;
     YLow = -0.002;
@@ -1479,11 +1480,12 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 1;
     isStoreSyst = 1;
     isFitRatio = 1;
-    TypeSyst = "BkgPol0";
+    TypeSyst = "BkgPol0PP";
     // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train562850_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
-    fileName[0] = "";
-    fileName[1] = "_isBkgPol0";
+    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+    fileName[0] = "_EffW";
+    fileName[1] = "_isBkgPol0_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
@@ -1499,6 +1501,29 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.01;
     MinHistoX = 0;
     MaxHistoX = 50;
+    int isPt = 2;
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      hTitleX = "p_{T} (GeV/c)";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      TypeSyst = "BkgPol0PP_Pt";
+    }
+    else if (isPt == 2)
+    {
+      CommonFileName = "../PzVsPsi/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_vsPsi_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly";
+      namehisto[0] = "histoPz";
+      namehisto[1] = "histoPz";
+      hTitleX = "2(#varphi - #Psi_{2})";
+      MinHistoX = 0;
+      MaxHistoX = 6;
+      TypeSyst = "BkgPol0PP_Psi";
+      YLow = -0.012;
+      YUp = 0.012;
+    }
   }
   else if (TypeComp == 54)
   {
@@ -2194,8 +2219,8 @@ void CompareResults(Int_t TypeComp = 0,
     // isFullCorr = 0; // partial correlation
     isStoreSyst = 0;
     TypeSyst = "";
-    // CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train598890";
-    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train743624";
+    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train598890";
+    // CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train743624";
     // fileName[0] = "_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     fileName[0] = "_PositiveEta_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     fileName[1] = "_NegativeEta_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
@@ -2257,7 +2282,8 @@ void CompareResults(Int_t TypeComp = 0,
     isStoreSyst = 0;
     TypeSyst = "";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+    //fileName[0] = "598890_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     fileName[1] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
@@ -2284,7 +2310,8 @@ void CompareResults(Int_t TypeComp = 0,
     isStoreSyst = 0;
     TypeSyst = "";
     CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+    //fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     // fileName[0] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     fileName[1] = "743624_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     namehisto[0] = "histoPzs2";
@@ -2368,22 +2395,18 @@ void CompareResults(Int_t TypeComp = 0,
     // TypeComp == 84 --> Compare acceptance Lambda vs AntiLambda (from tree)
     numOptions = 3;
     isRatio = 1;
-    isFullCorr = 0; // uncorrelated results
+    isFullCorr = 0;
     isStoreSyst = 0;
     TypeSyst = "Acceptance";
     CommonFileName = "../AcceptancePlots/";
     fileName[0] = "Acceptance_LHC25_OO_pass2_Train598890_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
     fileName[1] = "Acceptance_LHC25_OO_pass2_Train598890_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
     fileName[2] = "Acceptance_LHC25_OO_pass2_Train598890_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance";
-    namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
-    namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
-    namehisto[2] = "Cos2ThetaLambdaFromCVsPt_cent60-70";
-    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
-    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
-    namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent60-70";
+    namehisto[0] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
+    namehisto[1] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
+    namehisto[2] = "Cos2ThetaLambdaFromCVsEta_cent0-50";
     hTitleY = "Cos^{2}(#theta_{p})";
     hTitleX = "#eta";
-    // hTitleX = "p_{T} (GeV/c)";
     YLow = 0;
     YUp = 0.5;
     YLowRatio = 0.95;
@@ -2393,9 +2416,19 @@ void CompareResults(Int_t TypeComp = 0,
     sleg[2] = "#bar{#Lambda}";
     MinHistoX = -0.8;
     MaxHistoX = 0.8;
-    // MinHistoX = 0.5;
-    // MaxHistoX = 10;
     yOffset = 6;
+    int isPt = 1;
+    AdditionalName = "_Eta";
+    if (isPt == 1)
+    {
+      namehisto[0] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+      namehisto[1] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+      namehisto[2] = "Cos2ThetaLambdaFromCVsPt_cent0-50";
+      MinHistoX = 0.5;
+      MaxHistoX = 10;
+      hTitleX = "p_{T} (GeV/c)";
+      AdditionalName = "_Pt";
+    }
   }
   else if (TypeComp == 85)
   {
@@ -2407,7 +2440,8 @@ void CompareResults(Int_t TypeComp = 0,
     isStoreSyst = 0;
     TypeSyst = "";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    //fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
     fileName[1] = "751984_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
@@ -2435,7 +2469,8 @@ void CompareResults(Int_t TypeComp = 0,
     isStoreSyst = 0;
     TypeSyst = "";
     CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    //fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
     fileName[1] = "751984_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
     sleg[0] = "|#eta| < 0.8";
     sleg[1] = "|y| < 0.5";
@@ -2490,24 +2525,34 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 0; // uncorrelated results
     isStoreSyst = 0;
     TypeSyst = "";
-    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
-    fileName[1] = "753645_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    fileName[1] = "753645_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C centrality (%)";
     sleg[0] = "default";
     sleg[1] = "ctau < 30 cm";
-    namehisto[0] = "histoPzs2";
-    namehisto[1] = "histoPzs2";
-    hTitleX = "p_{T} (GeV/c)";
-    // YLow = 0.;
-    // YUp = 0.5;
-    // YLowRatio = -0.006;
-    // YUpRatio = 0.006;
     YLowRatio = 0.5;
     YUpRatio = 2;
     YLow = -0.002;
     YUp = 0.02;
-    MinHistoX = 0.5;
-    MaxHistoX = 6;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+    int isPt = 0;
+    AdditionalName = "";
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+      fileName[0] = "598890_MyEff_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+      fileName[1] = "753645_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_ResoOnTheFly_EffW";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      hTitleX = "p_{T} (GeV/c)";
+      AdditionalName = "_Pt";
+    }
   }
   else if (TypeComp == 89)
   {
@@ -2553,31 +2598,34 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 1; // fully correlated results
     isStoreSyst = 0;
     TypeSyst = "";
-    // CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
-    // fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    // fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacroAllLambdas_ResoOnTheFly_EffW";
-    // namehisto[0] = "fHistPzs";
-    // namehisto[1] = "fHistPzs";
-    CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
-    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacroAllLambdas_ResoOnTheFly_EffW";
-    namehisto[0] = "histoPzs2";
-    namehisto[1] = "histoPzs2";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
+    fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+    fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacroAllLambdas_ResoOnTheFly_EffW";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    sleg[0] = "Acceptance #Lambda or #bar{#Lambda}";
-    sleg[1] = "Acceptance all lambdas";
-    // YLow = 0.;
-    // YUp = 0.5;
-    // YLowRatio = -0.006;
-    // YUpRatio = 0.006;
-    YLowRatio = 0.5;
-    YUpRatio = 1.5;
+    sleg[0] = "Acc. #Lambda or #bar{#Lambda}";
+    sleg[1] = "Acc. all #Lambda";
+    YLowRatio = 0.95;
+    YUpRatio = 1.05;
     YLow = -0.002;
     YUp = 0.02;
-    // MinHistoX = 0;
-    // MaxHistoX = 50;
-    MinHistoX = 0.5;
-    MaxHistoX = 6;
+    MinHistoX = 0;
+    MaxHistoX = 50;
+    int isPt = 0;
+    AdditionalName = "";
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+      fileName[0] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      fileName[1] = "742311_Lambda_BkgParab_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacroAllLambdas_ResoOnTheFly_EffW";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      hTitleX = "p_{T} (GeV/c)";
+      AdditionalName = "_Pt";
+    }
   }
   else if (TypeComp == 91)
   {
@@ -2689,16 +2737,12 @@ void CompareResults(Int_t TypeComp = 0,
     isFullCorr = 2;
     isStoreSyst = 0;
     TypeSyst = "";
-    // CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
     CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC25_OO_pass2_Train";
     fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
     fileName[1] = "742311_AntiLambda_DSCB_BkgCheb_Pzs2_CentWeighted_PtInt_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
-    // namehisto[0] = "histoPzs2";
-    // namehisto[1] = "histoPzs2";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     hTitleX = "FT0C centrality (%)";
-    // hTitleX = "p_{T} (GeV/c)";
     sleg[0] = "#Lambda";
     sleg[1] = "#bar{#Lambda}";
     YLowRatio = -0.005;
@@ -2707,8 +2751,20 @@ void CompareResults(Int_t TypeComp = 0,
     YUp = 0.02;
     MinHistoX = 0;
     MaxHistoX = 50;
-    // MinHistoX = 0.5;
-    // MaxHistoX = 6;
+    int isPt = 1;
+    AdditionalName = "";
+    if (isPt == 1)
+    {
+      CommonFileName = "../Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train";
+      fileName[0] = "742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      fileName[1] = "742311_AntiLambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW";
+      namehisto[0] = "histoPzs2";
+      namehisto[1] = "histoPzs2";
+      MinHistoX = 0.5;
+      MaxHistoX = 6;
+      hTitleX = "p_{T} (GeV/c)";
+      AdditionalName = "_Pt";
+    }
   }
   else if (TypeComp == 95)
   {
@@ -2958,7 +3014,7 @@ void CompareResults(Int_t TypeComp = 0,
     // hgaussPt[j - 1]->Draw("same");
   }
   if (TypeComp == 48)
-    cgaus->SaveAs(Form("../CompareResults/GaussianDistribution_TypeComp%i.png", TypeComp));
+    cgaus->SaveAs(Form("../CompareResults/GaussianDistribution_TypeComp%i%s.png", TypeComp, AdditionalName.Data()));
 
   /*
 TCanvas *cgausVsPt = new TCanvas("cgausVsPt", "cgausVsPt", 700, 500);
@@ -3194,8 +3250,8 @@ if (TypeComp == 48)
   padL1->Modified();
   padL1->Update();
 
-  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.png", TypeComp));
-  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i.pdf", TypeComp));
+  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i%s.png", TypeComp, AdditionalName.Data()));
+  canvas->SaveAs(Form("../CompareResults/Canvas_CompareResults%i%s.pdf", TypeComp, AdditionalName.Data()));
 
   TCanvas *canvas2 = new TCanvas("canvas2", "canvas2", 900, 700); // without ratio
   StyleCanvas(canvas2, 0.05, 0.15, 0.15, 0.05);
@@ -3209,8 +3265,8 @@ if (TypeComp == 48)
     h[i]->Draw("same");
   }
   leg->Draw("same");
-  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.png", TypeComp));
-  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio.pdf", TypeComp));
+  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio%s.png", TypeComp, AdditionalName.Data()));
+  canvas2->SaveAs(Form("../CompareResults/Canvas_CompareResults%i_NoRatio%s.pdf", TypeComp, AdditionalName.Data()));
 
   TFile *outputForSyst;
   TString SoutputForSyst = "../CompareResults/SystUncertainty_" + TypeSyst + ".root";

@@ -118,7 +118,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLowMean[numPart] = {1.31, 1.66, 1.1};
 Float_t YUpMean[numPart] = {1.327, 1.68, 1.13};
 Float_t YLowSigma[numPart] = {0.0, 0.0, 0.0};
-Float_t YUpSigma[numPart] = {0.006, 0.006, 0.004};
+Float_t YUpSigma[numPart] = {0.006, 0.006, 0.003};
 Float_t YLowPurity[numPart] = {0.8, 0.5, 0.6};
 Float_t YLowV2[numPart] = {-0.3, -0.4, -0.3};
 Float_t YUpV2[numPart] = {0.5, 0.5, 0.5};
@@ -264,7 +264,14 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   stringout = OutputDir + "PlotRatios" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileName;
   stringout += "_" + ParticleName[ChosenPart];
-  stringout += IsOneOrTwoGauss[UseTwoGauss];
+  if (ExtrisFitDSCB)
+  {
+    stringout += "_DSCB";
+    if (isFixParamDSCBFromMC)
+      stringout += "_FixParamFromMC";
+  }
+  else
+    stringout += IsOneOrTwoGauss[UseTwoGauss];
   stringout += SIsBkgParab[BkgType];
   stringout += "_" + TypeHisto[Choice];
   stringoutShort = OutputDir + "PlotRatios" + "_" + TypeHisto[Choice] + "_";
@@ -394,6 +401,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
       continue;
+    if (m > 4 && m != commonNumCent)  
+      continue;
     if (m == numCent)
     { // 0-80%
       CentFT0CMin = 0;
@@ -433,7 +442,14 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     PathIn = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
     PathIn += SinputFileName;
     PathIn += "_" + ParticleName[ChosenPart];
-    PathIn += IsOneOrTwoGauss[UseTwoGauss];
+    if (ExtrisFitDSCB)
+    {
+      PathIn += "_DSCB";
+      if (isFixParamDSCBFromMC)
+        PathIn += "_FixParamFromMC";
+    }
+    else
+      PathIn += IsOneOrTwoGauss[UseTwoGauss];
     PathIn += SIsBkgParab[BkgType];
     Smolt[m] += Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
     SmoltBis[m] += Form("%i#minus%i", CentFT0CMin, CentFT0CMax);
@@ -490,6 +506,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
       PathIn += "_ReducedPtBins";
     if ((isOOCentrality) && (Choice == 10 || Choice == 11))
       PathIn += "_isOOCentrality";
+    if (isApplyAcceptanceInMacro && (Choice != 10 && Choice != 11))
+      PathIn += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly && (Choice != 10 && Choice != 11))
       PathIn += "_ResoOnTheFly";
     if (ChosenPart == 0)
@@ -568,6 +586,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   Int_t NFixedBin = 0;
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
+    if (m > 4 && m != commonNumCent)  
+      continue;
     if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
@@ -576,7 +596,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
     for (Int_t b = 1; b <= fHistSpectrum[m]->GetNbinsX(); b++)
     {
       cout << "bin " << b << " content " << fHistSpectrum[m]->GetBinContent(b) << " error " << fHistSpectrum[m]->GetBinError(b) << endl;
-      if (std::isnan(fHistSpectrum[m]->GetBinError(b)) || fHistSpectrum[m]->GetBinError(b) / fHistSpectrum[m]->GetBinContent(b) > 1)
+      if (std::isnan(fHistSpectrum[m]->GetBinError(b)) || fHistSpectrum[m]->GetBinError(b) / fHistSpectrum[m]->GetBinContent(b) > 0.01)
       {
         fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b - 1));
         NFixedBin++;
@@ -588,6 +608,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
           fHistSpectrum[m]->SetBinError(b, fHistSpectrum[m]->GetBinError(b + 1) / fHistSpectrum[m]->GetBinContent(b + 1) * fHistSpectrum[m]->GetBinContent(b));
         }
       } // fuffa
+      //if (Choice == 2 && fHistSpectrum[m]->GetBinContent(b) < 0.9)
+      //  fHistSpectrum[m]->SetBinContent(b, 0);
     }
     fHistSpectrumScaled[m] = (TH1F *)fHistSpectrum[m]->Clone("fHistSpectrumScaled_" + Smolt[m]);
     if (Choice == 3)
@@ -668,6 +690,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
+    if (m > 4 && m != commonNumCent)  
+      continue;
     if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
@@ -708,6 +732,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
   hDummy->Draw("same");
   for (Int_t m = commonNumCent; m >= 0; m--)
   {
+    if (m > 4 && m != commonNumCent)  
+      continue;
     if ((m == commonNumCent || m == (commonNumCent - 1)) && isV2)
       continue;
     if (isRun2Binning && (m == 0 || (m > (commonNumCent - 2) && m != commonNumCent)))
