@@ -29,6 +29,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  if (ExtrisSysLambdaMultTrial && indexMultTrial == 0 && MultiTrialShift != 0){
+    cout << "Skipping the first systematic trial due to MultiTrialShift." << endl;
+    return;
+  }
   if (isMC)
   {
     inputFileName = SinputFileNameMC;
@@ -100,6 +104,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !ExtrisFromTHN)
   {
     SinputFile += "_Nvar20";
+    if (MultiTrialShift!=0) SinputFile += Form("_shift%i", MultiTrialShift);
     if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
       SinputFile += "_050PtCut";
   }
@@ -800,7 +805,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     else if (isTightest)
       SOutputFile += "_isTightest";
     else
-      SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
+      SOutputFile += Form("_SysMultTrial_%i", indexMultTrial + MultiTrialShift);
     SOutputFile += "_isSysLambdaMultTrial";
   }
   if (isApplyAcceptanceInMacro)
