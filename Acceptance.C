@@ -108,12 +108,12 @@ void StyleHistoYield(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t st
 }
 
 void Acceptance(Int_t indexMultTrial = 0,
+                Bool_t isSysMultTrial = ExtrisSysMultTrial,
                 Int_t isTightAcceptance = 1,
                 Int_t ChosenPart = ChosenParticle,
                 TString inputFileName = SinputFileName,
                 Bool_t isRapiditySel = ExtrisRapiditySel,
-                Int_t EtaSysChoice = ExtrEtaSysChoice,
-                Bool_t isSysMultTrial = ExtrisSysMultTrial)
+                Int_t EtaSysChoice = ExtrEtaSysChoice)
 {
 
   if (isSysMultTrial)
@@ -141,6 +141,14 @@ void Acceptance(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SinputFile += "_Eta08";
   SinputFile += SBDT;
+  if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
+  {
+    if (isLoosest)
+      SinputFile += "_isLoosest";
+    else if (isTightest)
+      SinputFile += "_isTightest";
+    // SinputFile += Form("_SysMultTrial_%i", indexMultTrial);
+  }
   if (isOOCentrality)
     SinputFile += "_isOOCentrality";
   if (ExtrisApplyResoOnTheFly)
@@ -153,8 +161,9 @@ void Acceptance(Int_t indexMultTrial = 0,
       SinputFile += "_TightAcceptance";
     else if (isTightAcceptance == 2)
       SinputFile += "_TighterAcceptance2";
-    SinputFile += "_Acceptance";
+    // SinputFile += "_Acceptance";
   }
+  SinputFile += "_Nvar1_Acceptance";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -215,8 +224,17 @@ void Acceptance(Int_t indexMultTrial = 0,
     }
     hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2LambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (!ExtrisFromTHN)
+    {
       hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2_cent%i-%i", CentFT0CMin, CentFT0CMax);
+      if (ExtrisSysLambdaMultTrial && ChosenPart >= 6)
+      {
+        hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2_cent%i_RandomV0Cuts:%i", cent, indexMultTrial - 1);
+        if (indexMultTrial == 0)
+          hNameCos2ThetaLambdaFromC_Eta3D[cent] = Form("etaVsPtVsCos2_cent%i_nominal", cent);
+      }
+    }
     hEtaVsPtVsCos2ThetaLambdaFromC[cent] = (TH3D *)inputFile->Get(hNameCos2ThetaLambdaFromC_Eta3D[cent]);
+
     pNameCos2ThetaLambdaFromC[cent] = Form("pCos2ThetaLambdaFromC_cent%i-%i", CentFT0CMin, CentFT0CMax);
     if (!hEtaVsPtVsCos2ThetaLambdaFromC[cent])
     {
@@ -386,6 +404,16 @@ void Acceptance(Int_t indexMultTrial = 0,
   if (!isRapiditySel)
     SOutputFile += "_Eta08";
   SOutputFile += STHN[ExtrisFromTHN];
+  if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
+  {
+    if (isLoosest)
+      SOutputFile += "_isLoosest";
+    else if (isTightest)
+      SOutputFile += "_isTightest";
+    else
+      SOutputFile += Form("_SysMultTrial_%i", indexMultTrial);
+    SOutputFile += "_isSysLambdaMultTrial";
+  }
   if (isOOCentrality)
     SOutputFile += "_isOOCentrality";
   if (isTightAcceptance == 1)
