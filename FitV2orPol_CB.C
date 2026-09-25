@@ -1319,7 +1319,7 @@ void FitV2orPol_CB(
       SPathIn += "_ResoOnTheFly";
     // if (ChosenPart >= 6)
     // SPathIn += "_CorrectReso_TestLeassPtBins";
-    // SPathIn += "_SystReso";
+    //SPathIn += "_SystReso";
     if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
       SPathIn += "_NoMassCutForAcceptance";
     // SPathIn += "_TestMoreBins";
@@ -2778,7 +2778,7 @@ void FitV2orPol_CB(
 
     LowLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinLowEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] - sigmacentral * sigmaw[pt]));
     UpLimit[pt] = hInvMass[pt]->GetXaxis()->GetBinUpEdge(hInvMass[pt]->GetXaxis()->FindBin(mean[pt] + sigmacentral * sigmaw[pt]));
-    if (ExtrisSysMassCut || ExtrisFitDSCB)
+    if (ExtrisSysMassCut || ExtrisFitDSCB && ChosenPart < 6)
     {
       LowLimit[pt] = ExtrLowLimit;
       UpLimit[pt] = ExtrUpLimit;
@@ -3301,7 +3301,7 @@ void FitV2orPol_CB(
       index = 4;
     else if (pt == 4)
       index = 5;
-    else if (pt == 6) // 5
+    else if (pt == 8) // 5
       index = 6;
     else
       continue;
@@ -3326,7 +3326,7 @@ void FitV2orPol_CB(
     // totalSignal[pt]->Draw("same");
     if (isFitDSCB)
     {
-      functionDSCBPre[pt]->Draw("same");
+      //functionDSCBPre[pt]->Draw("same");
       functionDSCBPost[pt]->Draw("same");
     }
     if (!isMC)
@@ -3767,7 +3767,7 @@ void FitV2orPol_CB(
     Soutputfile += "_isTightMassForAcceptancePurity";
   if (isTighterPzFitRange)
     Soutputfile += "_TighterPzFitRange";
-  // Soutputfile += "_SystReso";
+  //Soutputfile += "_SystReso";
   if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
   {
     Soutputfile += "_NoMassCutForAcceptance";
