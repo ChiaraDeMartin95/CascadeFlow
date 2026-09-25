@@ -157,10 +157,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
   if (ChosenPart >= 6)
   { // for Lambda in OO
-    YLow[part] = {-0.0005};
+    YLow[part] = {-0.001};
     // YLow[part] = {-0.0004};
     //  YUp[part] = {0.035};
-    YUp[part] = {0.0075};
+    //YUp[part] = {0.0075};
+    YUp[part] = {0.011};
   }
   if (part == 1) // for Omega
   {
@@ -374,7 +375,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
-  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  //LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendTitle->AddEntry("", "#bf{ALICE}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
   {
@@ -803,7 +805,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
   LegendPreliminary2->SetTextSize(0.048);
-  LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  //LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendPreliminary2->AddEntry("", "#bf{ALICE}", "");
   // LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (ChosenPart >= 6)
@@ -817,7 +820,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
   if (ChosenPart >= 6)
-    LegendPreliminary3->AddEntry("", "#bf{ALICE Preliminary}", "");
+    LegendPreliminary3->AddEntry("", "#bf{ALICE}", "");
   else
     LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
@@ -1008,8 +1011,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fHistPzsSignifUpTo50->Draw("same");
   fHistPzsSignifStatUpTo50->Draw("same");
 
-  //fHistPzsSignifLambda->Draw("same e0x0");
-  //  LegendTitle->Draw("");
+  // fHistPzsSignifLambda->Draw("same e0x0");
+  //   LegendTitle->Draw("");
 
   TString titleLambda = "#Lambda + #bar{#Lambda}";
   if (ChosenParticle == 7)
@@ -1192,14 +1195,19 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   fpol1->SetLineColor(kBlue + 2);
   fpol0->SetLineColor(kAzure + 1);
-  fHistPzsTotError->Fit("fpol1", "R+");
-  fHistPzsTotError->Fit("fpol0", "R+");
+  
+  TH1F * fHistPzsFit = (TH1F*)fHistPzs->Clone("fHistPzsFit");
+  //TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
+  if (ChosenPart >= 6)
+    fHistPzsFit->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+  fHistPzsFit->Fit("fpol1", "R+");
+  fHistPzsFit->Fit("fpol0", "R+");
   // LegendTitle->Draw("");
   TLegend *legendMainFit = new TLegend(0.2, 0.73, 0.5, 0.88);
   legendMainFit->SetFillStyle(0);
   legendMainFit->SetTextSize(0.05);
   if (ChosenPart >= 6)
-    legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. " + titleLambda + " Run 3", "p");
+    legendMainFit->AddEntry(fHistPzsTotError, "stat. " + titleLambda + " Run 3", "p");
   else if (part == 0)
     legendMainFit->AddEntry(fHistPzsTotError, "stat. + syst. #Xi^{#minus} + #bar{#Xi}^{+} Run 3", "p");
   else if (part == 1)
