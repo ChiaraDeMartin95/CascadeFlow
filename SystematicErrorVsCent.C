@@ -109,7 +109,8 @@ Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0;
 // Float_t SecondaryLambdaFraction = 0.1;
 Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
-Float_t ZVertexErrorLambdaOO = 0.00009;
+//Float_t ZVertexErrorLambdaOO = 0.00009;
+Float_t ZVertexErrorLambdaOO = 0;
 
 void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
                            Bool_t isPolFromLambda = 0,
@@ -257,7 +258,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistMeanVsCent = new TH1F("fHistMeanVsCent", "fHistMeanVsCent", numCent, fCentFT0C);
   }
 
-  TFile *fileInResoError = TFile::Open("../CompareResults/SystUncertainty_Reso1.root");
+  TFile *fileInResoError = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_Reso1PP.root");
   TH1F *fHistResoError = (TH1F *)fileInResoError->Get("hRatioClone_1");
   if (!fHistResoError)
   {
@@ -266,7 +267,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistResoError->SetName("hResoSystError");
 
-  TFile *fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty_BkgPol0.root");
+  TFile *fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP.root");
   TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
   if (!fHistPolBkg0Error)
   {
@@ -276,7 +277,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   fHistPolBkg0Error->SetName("hPolBkg0SystError");
 
   // TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_BkgFit.root");
-  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2.root");
+  TFile *fileInBkgExpo = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_2GaussPlusPol2PP.root");
   TH1F *fHistBkgExpoError = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
   if (!fHistBkgExpoError)
   {
@@ -285,7 +286,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistBkgExpoError->SetName("hBkgExpoSystError");
 
-  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP.root");
+  TFile *fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP.root");
   TH1F *fHistPzFitRangeError = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
   if (!fHistPzFitRangeError)
   {
@@ -559,10 +560,12 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6)
   {
     fHistBkgExpoErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
-    fHistBkgExpoErrorVsCent->Smooth();
+    fHistBkgExpoErrorVsCent->Smooth(1, "R");
     fHistPzFitRangeErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
     fHistPzFitRangeErrorVsCent->Smooth(1, "R");
     fHistMassCutAndBDTErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+    fHistPolBkg0ErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
+    fHistPolBkg0ErrorVsCent->Smooth(1, "R");
   }
   fHistMassCutAndBDTErrorVsCent->Smooth();
   // fHistPolBkg0ErrorVsCent->Smooth();
@@ -665,7 +668,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistPolBkg0ErrorVsCent->Draw("same");
     fHistPzFitRangeErrorVsCent->Draw("same");
     fHistBkgExpoErrorVsCent->Draw("same");
-    fHistZVertexErrorVsCent->Draw("same");
+    //fHistZVertexErrorVsCent->Draw("same");
     fHistMassCutAndBDTErrorVsCent->Draw("same");
   }
   fHistTotalErrorVsCent->Draw("same");
@@ -692,7 +695,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart == 6)
   {
     legend->AddEntry(fHistResoErrorVsCent, "Resolution", "l");
-    legend->AddEntry(fHistZVertexErrorVsCent, "Z_{vtx} selection", "l");
+    //legend->AddEntry(fHistZVertexErrorVsCent, "Z_{vtx} selection", "l");
     legend->AddEntry(fHistPolBkg0ErrorVsCent, "P_{z, s2, bkg} = 0", "l");
     legend->AddEntry(fHistPzFitRangeErrorVsCent, "P_{z} fit range", "l");
     legend->AddEntry(fHistBkgExpoErrorVsCent, "Background fit function", "l");
@@ -782,7 +785,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistPolBkg0RelErrorVsCent->Draw("same");
     fHistPzFitRangeRelErrorVsCent->Draw("same");
     fHistBkgExpoRelErrorVsCent->Draw("same");
-    fHistZVertexRelErrorVsCent->Draw("same");
+    //fHistZVertexRelErrorVsCent->Draw("same");
   }
   fHistTotalRelErrorVsCent->Draw("same");
   // legend->Draw("same");

@@ -106,7 +106,8 @@ Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0;
 Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
-Float_t ZVertexErrorLambdaOO = 0.00009;
+//Float_t ZVertexErrorLambdaOO = 0.00009;
+Float_t ZVertexErrorLambdaOO = 0;
 
 void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
                          Int_t ChosenPart = ChosenParticle,
@@ -148,7 +149,9 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   // fileout name
   TString stringout;
   TString stringoutpdf;
-  stringout = "../Systematics/SystVsPt_" + NameAnalysis[!isV2] + "_";
+  stringout = "../Systematics/SystVs";
+  if (isPtAnalysis) stringout += "Pt_" + NameAnalysis[!isV2] + "_";
+  else stringout += "Psi_" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileNameSyst;
   stringout += "_" + ParticleName[ChosenPart];
   if (ExtrisFitDSCB)
@@ -206,7 +209,9 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistTotalError = nullptr;
   TH1F *fHistMean = nullptr;
 
-  TFile *fileInResoError = TFile::Open("../CompareResults/SystUncertainty_Reso1.root");
+  TFile *fileInResoError = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_Reso1PP_Pt.root");
+  if (!isPtAnalysis)
+    fileInResoError = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_Reso1PP_Psi.root");
   TH1F *fHistResoErrorIn = (TH1F *)fileInResoError->Get("hRatioClone_1");
   if (!fHistResoErrorIn)
   {
@@ -216,18 +221,29 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistResoErrorIn->SetName("hResoSystError");
   TH1F *fHistResoError = nullptr;
 
-  TFile *fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty_BkgPol0.root");
-  TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
-  if (!fHistPolBkg0Error)
+  TFile *fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP_Pt.root");
+  if (!isPtAnalysis)
+    fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP_Psi.root");
+  TH1F *fHistPolBkg0ErrorIn = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
+  if (!fHistPolBkg0ErrorIn)
   {
     cout << "Error: histogram PolBkg0 not found" << endl;
     return;
   }
-  fHistPolBkg0Error->SetName("hPolBkg0SystError");
+  fHistPolBkg0ErrorIn->SetName("hPolBkg0SystError");
+  TH1F *fHistPolBkg0Error = (TH1F *)fHistPolBkg0ErrorIn->Clone("hPolBkg0SystError");
+  for (Int_t i = 1; i <= fHistPolBkg0Error->GetNbinsX(); i++)
+  {
+    fHistPolBkg0Error->SetBinContent(i, std::abs(fHistPolBkg0Error->GetBinContent(i)));
+    fHistPolBkg0Error->SetBinError(i, 0);
+  }
+  if (isPtAnalysis)
+    fHistPolBkg0Error->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+  fHistPolBkg0Error->Smooth(1, "R");
 
-  TFile *fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2_Pt.root");
+  TFile *fileInBkgExpo = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_2GaussPlusPol2PP_Pt.root");
   if (!isPtAnalysis)
-    fileInBkgExpo = TFile::Open("../CompareResults/SystUncertainty_2GaussPlusPol2_Psi.root");
+    fileInBkgExpo = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_2GaussPlusPol2PP_Psi.root");
   TH1F *fHistBkgExpoErrorIn = (TH1F *)fileInBkgExpo->Get("hRatioClone_1");
   if (!fHistBkgExpoErrorIn)
   {
@@ -245,9 +261,9 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     fHistBkgExpoError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
   fHistBkgExpoError->Smooth(1, "R");
 
-  TFile *fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP_Pt.root");
+  TFile *fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP_Pt.root");
   if (!isPtAnalysis)
-    fileInPzFitRange = TFile::Open("../CompareResults/SystUncertainty_PzFitRangePP_Psi.root");
+    fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP_Psi.root");
   TH1F *fHistPzFitRangeErrorIn = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
   if (!fHistPzFitRangeErrorIn)
   {
@@ -418,6 +434,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     for (Int_t i = 1; i <= fHistResoError->GetNbinsX(); i++)
     {
       fHistResoError->SetBinContent(i, 0.04 * std::abs(fHistPzs2->GetBinContent(i)));
+      //fHistResoError->SetBinContent(i, std::abs(fHistResoErrorIn->GetBinContent(i)));
       fHistResoError->SetBinError(i, 0);
     }
 
@@ -490,7 +507,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPolBkg0Error->Draw("same");
   fHistPzFitRangeError->Draw("same");
   fHistBkgExpoError->Draw("same");
-  fHistZVertexError->Draw("same");
+  //fHistZVertexError->Draw("same");
   fHistMassCutAndBDTError->Draw("same");
 
   fHistTotalError->Draw("same");
@@ -501,7 +518,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->AddEntry(fHistMassCutAndBDTError, "Topological selections", "l");
   legend->AddEntry(fHistPrimaryLambdaError, "Secondary #Lambda", "l");
   legend->AddEntry(fHistResoError, "Resolution", "l");
-  legend->AddEntry(fHistZVertexError, "Z_{vtx} selection", "l");
+  //legend->AddEntry(fHistZVertexError, "Z_{vtx} selection", "l");
   legend->AddEntry(fHistPolBkg0Error, "P_{z, s2, bkg} = 0", "l");
   legend->AddEntry(fHistPzFitRangeError, "P_{z} fit range", "l");
   legend->AddEntry(fHistBkgExpoError, "Background fit function", "l");
@@ -516,12 +533,20 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistPrimaryLambdaRelError = (TH1F *)fHistPrimaryLambdaError->Clone("fHistPrimaryLambdaRelError");
   TH1F *fHistResoRelError = (TH1F *)fHistResoError->Clone("fHistResoRelError");
   TH1F *fHistDecayParRelError = (TH1F *)fHistDecayParError->Clone("fHistDecayParRelError");
-  TH1F *fHistPolBkg0RelError = (TH1F *)fHistPolBkg0Error->Clone("fHistPolBkg0RelError");
-  TH1F *fHistPzFitRangeRelError = (TH1F *)fHistPzFitRangeError->Clone("fHistPzFitRangeRelError");
-  TH1F *fHistBkgExpoRelError = (TH1F *)fHistBkgExpoError->Clone("fHistBkgExpoRelError");
+  TH1F *fHistPolBkg0RelError = (TH1F *)fHistPzs2->Clone("fHistPolBkg0RelError");
+  TH1F *fHistPzFitRangeRelError = (TH1F *)fHistPzs2->Clone("fHistPzFitRangeRelError");
+  TH1F *fHistBkgExpoRelError = (TH1F *)fHistPzs2->Clone("fHistBkgExpoRelError");
   TH1F *fHistZVertexRelError = (TH1F *)fHistZVertexError->Clone("fHistZVertexRelError");
   TH1F *fHistTotalRelError = (TH1F *)fHistTotalError->Clone("fHistTotalRelError");
-  fHistPzFitRangeRelError->Reset();
+  fHistPolBkg0RelError->SetLineColor(kGray + 1);
+  fHistPolBkg0RelError->SetLineStyle(2);
+  fHistPolBkg0RelError->SetLineWidth(3);
+  fHistPzFitRangeRelError->SetLineColor(kOrange - 3);
+  fHistPzFitRangeRelError->SetLineStyle(2);
+  fHistPzFitRangeRelError->SetLineWidth(3);
+  fHistBkgExpoRelError->SetLineColor(kPink + 1);
+  fHistBkgExpoRelError->SetLineStyle(2);
+  fHistBkgExpoRelError->SetLineWidth(3);
   for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
   {
     fHistMassCutAndBDTRelError->SetBinContent(pt, fHistMassCutAndBDTError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
@@ -552,7 +577,10 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     hDummyRelError->SetBinContent(i, 1e-12);
   canvasRelError->cd();
   SetFont(hDummyRelError);
-  StyleHistoYield(hDummyRelError, 0, 0.2, 1, 1, TitleX, "Relative syst. uncertainty", "", 1, 1.15, 1.6);
+  Float_t UpperLimitRel = 0.2;
+  if (!isPtAnalysis)
+    UpperLimitRel = 0.4;
+  StyleHistoYield(hDummyRelError, 0, UpperLimitRel, 1, 1, TitleX, "Relative syst. uncertainty", "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummyRelError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, 2, yLabelOffset);
   SetTickLength(hDummyRelError, tickX, tickY);
   hDummyRelError->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
@@ -565,7 +593,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPolBkg0RelError->Draw("same");
   fHistPzFitRangeRelError->Draw("same");
   fHistBkgExpoRelError->Draw("same");
-  fHistZVertexRelError->Draw("same");
+  //fHistZVertexRelError->Draw("same");
   fHistTotalRelError->Draw("same");
   //  legend->Draw("same");
   for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)
