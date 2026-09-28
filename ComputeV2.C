@@ -104,7 +104,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !ExtrisFromTHN)
   {
     SinputFile += "_Nvar20";
-    if (MultiTrialShift!=0) SinputFile += Form("_shift%i", MultiTrialShift);
+    //SinputFile += "_Nvar1";
+    if (ExtrisSysLambdaMultTrial && MultiTrialShift!=0) SinputFile += Form("_shift%i", MultiTrialShift);
     if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
       SinputFile += "_050PtCut";
   }
@@ -115,6 +116,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     SinputFile += "_XiRedCent";
+  //SinputFile += "_SystReso.root";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -825,6 +827,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ExtrisCentXiRed && Part == 0)
     SOutputFile += "_XiRedCent";
   SOutputFile += ".root";
+  //SOutputFile += "_SystReso.root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
 
