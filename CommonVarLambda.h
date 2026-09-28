@@ -4,7 +4,8 @@
 // To be changed according to the following instructions to produce systematic variations in input of MultiTrial.C
 // ExtrisSysLambdaMultTrial = 1
 // trialsLambdaTopo --> actual number of variations
-// SinputFileNameSyst --> take the proper input for systematic variations
+// SinputFileNameSyst --> take the proper input for systematic variations (already set to the write one)
+// ExtrisSysLambdaMultTrial = 1;
 
 // (OLD) To be changed according to the following instructions to produce acceptance from THM (old way!):
 // isApplyCentWeight = 0

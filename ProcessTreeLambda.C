@@ -190,9 +190,17 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
 
   // default acceptances
   TString SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_LambdaPart_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  if (SinputFileNameAcc == "LHC25_OO_pass2_Train767332")
+  {
+    SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  }
   TFile *AcceptanceFileL = new TFile(SinputFileNameAcceptanceL, "READ");
   TH2D *hAcceptanceL{AcceptanceFileL ? (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
   TString SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  if (SinputFileNameAcc == "LHC25_OO_pass2_Train767332")
+  {
+    SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  }
   TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
   TH2D *hAcceptanceAL{AcceptanceFileAL ? (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
 
@@ -280,8 +288,8 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
                          .Define("dcaPosToPV", "fDcaPosToPV * 1.");
 
   // now vary those thresholds
-  const int shift = 20;
-  const int NVAR = 20;
+  const int shift = 0; // for syst: done in steps of 20
+  const int NVAR = 1;  // for syst: NVAR = 20 (larger values cause memory issues)
   std::vector<std::unique_ptr<TFile>> acceptanceFiles;
   std::vector<TH2F *> hAcceptanceLVec;
   std::vector<TH2F *> hAcceptanceALVec;
@@ -291,7 +299,11 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
 
     TString acceptanceFileName;
     if (isStorePzs2AndPz)
+    {
       acceptanceFileName = Form("AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_SysMultTrial_%i_isSysLambdaMultTrial_isOOCentrality_TightAcceptance_Batch1.root", i + 1);
+      if (SinputFileNameAcc == "LHC25_OO_pass2_Train767332")
+        acceptanceFileName = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+    }
     else // dummy value
       acceptanceFileName = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
 
