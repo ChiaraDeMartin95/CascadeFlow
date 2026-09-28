@@ -106,7 +106,7 @@ Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0;
 Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
-//Float_t ZVertexErrorLambdaOO = 0.00009;
+// Float_t ZVertexErrorLambdaOO = 0.00009;
 Float_t ZVertexErrorLambdaOO = 0;
 
 void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
@@ -150,8 +150,10 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TString stringout;
   TString stringoutpdf;
   stringout = "../Systematics/SystVs";
-  if (isPtAnalysis) stringout += "Pt_" + NameAnalysis[!isV2] + "_";
-  else stringout += "Psi_" + NameAnalysis[!isV2] + "_";
+  if (isPtAnalysis)
+    stringout += "Pt_" + NameAnalysis[!isV2] + "_";
+  else
+    stringout += "Psi_" + NameAnalysis[!isV2] + "_";
   stringout += SinputFileNameSyst;
   stringout += "_" + ParticleName[ChosenPart];
   if (ExtrisFitDSCB)
@@ -434,8 +436,15 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     for (Int_t i = 1; i <= fHistResoError->GetNbinsX(); i++)
     {
       fHistResoError->SetBinContent(i, 0.04 * std::abs(fHistPzs2->GetBinContent(i)));
-      //fHistResoError->SetBinContent(i, std::abs(fHistResoErrorIn->GetBinContent(i)));
+      // fHistResoError->SetBinContent(i, std::abs(fHistResoErrorIn->GetBinContent(i)));
       fHistResoError->SetBinError(i, 0);
+    }
+
+    fHistMean = (TH1F *)fHistPzs2->Clone("fHistMean");
+    for (Int_t i = 1; i <= fHistMeanSystMultiTrialMean->GetNbinsX(); i++)
+    {
+      fHistMean->SetBinContent(i, fHistMeanSystMultiTrialMean->GetBinContent(i));
+      fHistMean->SetBinError(i, 0);
     }
 
     fHistTotalError = (TH1F *)fHistPzs2->Clone("fHistTotalError");
@@ -507,7 +516,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPolBkg0Error->Draw("same");
   fHistPzFitRangeError->Draw("same");
   fHistBkgExpoError->Draw("same");
-  //fHistZVertexError->Draw("same");
+  // fHistZVertexError->Draw("same");
   fHistMassCutAndBDTError->Draw("same");
 
   fHistTotalError->Draw("same");
@@ -518,7 +527,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->AddEntry(fHistMassCutAndBDTError, "Topological selections", "l");
   legend->AddEntry(fHistPrimaryLambdaError, "Secondary #Lambda", "l");
   legend->AddEntry(fHistResoError, "Resolution", "l");
-  //legend->AddEntry(fHistZVertexError, "Z_{vtx} selection", "l");
+  // legend->AddEntry(fHistZVertexError, "Z_{vtx} selection", "l");
   legend->AddEntry(fHistPolBkg0Error, "P_{z, s2, bkg} = 0", "l");
   legend->AddEntry(fHistPzFitRangeError, "P_{z} fit range", "l");
   legend->AddEntry(fHistBkgExpoError, "Background fit function", "l");
@@ -593,7 +602,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPolBkg0RelError->Draw("same");
   fHistPzFitRangeRelError->Draw("same");
   fHistBkgExpoRelError->Draw("same");
-  //fHistZVertexRelError->Draw("same");
+  // fHistZVertexRelError->Draw("same");
   fHistTotalRelError->Draw("same");
   //  legend->Draw("same");
   for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)
@@ -613,6 +622,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistBkgExpoError->Write();
   fHistZVertexError->Write();
   fHistTotalError->Write();
+  fHistMean->Write();
   fileout->Close();
 
   cout << "\nI have created the file:\n " << stringout << endl;
