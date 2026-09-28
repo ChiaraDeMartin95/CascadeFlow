@@ -1276,18 +1276,26 @@ void MultiTrial(
     // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     // hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 30, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-    if (mul == 4 || mul == 7)
-      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     if (mul == 6)
       hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 10, -1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
     if (!isPtIntegrated && Choice == 3)
     {
       fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
-      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.0008, 0.0008);
+      hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.0004, 0.0004);
+      if (pt > 2)
+      {
+        hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.0008, 0.0008);
+        fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+      }
       if (pt > 5)
       {
-        hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.004, 0.004);
+        hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.003, 0.003);
         fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -0.5 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 1 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
+      }
+      if (pt > 6)
+      {
+        hCollectionAbsoluteSyst[pt] = new TH1F(Form("hCollectionAbsoluteSyst%i", pt), Form("p_{T} bin [%.1f-%.1f] GeV/c;Y_{sys};Counts", h[0]->GetBinLowEdge(pt + 1), h[0]->GetBinLowEdge(pt + 2)), 20, -0.01, 0.01);
+        fgaus2[pt] = new TF1(Form("fgaus2%i", pt), "gaus", -1 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()), 2 * hAbsoluteMaxDev->GetBinContent(hAbsoluteMaxDev->GetMaximumBin()));
       }
     }
 
