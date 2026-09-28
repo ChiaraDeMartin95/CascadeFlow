@@ -21,10 +21,13 @@ isXi = not args.isOmega
 print("isIntegratedPt: ", args.isIntegratedPt)
 
 DirName = '../TrainingPlots'
-AdditionalName = '/Pass5'
+#AdditionalName = '/Pass5'
+AdditionalName = '/LHC26f6'
 
-FileBkg="../TreeForTrainingBkg/AnalysisResults_trees_LHC23_PbPb_pass5_Train653920.root"
-FileSig="../TreeForTrainingSignal/AnalysisResults_trees_LHC24j2_pass4_Train655683.root"
+#FileBkg="../TreeForTrainingBkg/AnalysisResults_trees_LHC23_PbPb_pass5_Train653920.root"
+#FileSig="../TreeForTrainingSignal/AnalysisResults_trees_LHC24j2_pass4_Train655683.root"
+FileBkg="../TreeForTrainingBkg/AnalysisResults_trees_LHC25_PbPb_pass1_Train717614.root"
+FileSig="../TreeForTrainingSignal/AnalysisResults_trees_LHC26f6.root"
 bkgCandidates= TreeHandler(FileBkg,'O2casctraining', folder_name='DF_*') 
 sigCandidates= TreeHandler(FileSig,'O2casctraining', folder_name='DF_*')
 #sigCandidates= TreeHandler(FileSig,'O2casctraining')
@@ -101,16 +104,17 @@ plot_utils.plot_corr([bkgCandidatesRed, sigCandidates], vars_to_draw, leg_labels
 plt.savefig(DirName+AdditionalName+"/Correlations.png")
 #plt.show()
 
-npt = 3
+npt = 7
 minpt = 0.6
 if not isXi: 
     minpt = 0.8
 #ptbin = [minpt, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0]
-ptbin = [minpt, 1.0, 2.0, 3.0, 10.0]
-x = slice(1, npt+2)
-ptbinMax = ptbin[x] 
-nsig = [0, 0, 0, 0, 0, 0, 0]
-nbkg = [0, 0, 0, 0, 0, 0, 0]
+#ptbin = [minpt, 1.0, 2.0, 3.0, 10.0]
+ptbin = [minpt, 1.0, 1.4, 1.8, 2.2, 2.6, 3.0, 4.0, 10.0]
+x = slice(1, npt+2) #1, 2, 3, 4
+ptbinMax = ptbin[x] #1, 2, 3, 10
+nsig = [0, 0, 0, 0, 0, 0, 0, 0]
+nbkg = [0, 0, 0, 0, 0, 0, 0, 0]
 
 if (args.isIntegratedPt):
     ptbin[0] = minpt
