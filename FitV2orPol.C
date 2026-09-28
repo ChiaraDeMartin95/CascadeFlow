@@ -1015,11 +1015,6 @@ void FitV2orPol(
       return;
     }
 
-    // if (!isPtAnalysis)
-    //{
-    //   if (pt == numPtBinsVar)
-    //     continue; // skip the integrated
-    // }
     PhiBins[pt] = pt * 2 * TMath::Pi() / numPsiBins;
     SPt[pt] = Form("%.2f < p_{T} < %.2f", PtBins[pt], PtBins[pt + 1]);
     if (pt == numPtBinsVar)
@@ -1125,7 +1120,7 @@ void FitV2orPol(
         cout << "Histogram hCos2PsiInt not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311")
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro)
         hV2PsiInt->Divide(hCos2PsiInt);
       hCos2[pt] = (TH1F *)filein->Get(AcceptanceHisto);
       if (!hCos2[pt])
@@ -1133,7 +1128,7 @@ void FitV2orPol(
         cout << "Histogram hCos2 not available" << endl;
         return;
       }
-      if (SinputFileName == "LHC25_OO_pass2_Train742311")
+      if (SinputFileName == "LHC25_OO_pass2_Train742311" && !isApplyAcceptanceInMacro)
         hV2[pt]->Divide(hCos2[pt]);
       hV2[pt]->Add(hV2PsiInt, -1);
     }
