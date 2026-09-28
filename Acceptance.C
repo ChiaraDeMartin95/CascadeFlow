@@ -116,8 +116,7 @@ void Acceptance(Int_t indexMultTrial = 0,
                 Int_t EtaSysChoice = ExtrEtaSysChoice)
 {
 
-  if (isSysMultTrial)
-    inputFileName = SinputFileNameSyst;
+  inputFileName = SinputFileNameAcc;
   Float_t BDTscoreCut = DefaultBDTscoreCut;
   if (indexMultTrial > trialsBDT)
     return;
@@ -163,6 +162,7 @@ void Acceptance(Int_t indexMultTrial = 0,
       SinputFile += "_TighterAcceptance2";
     // SinputFile += "_Acceptance";
   }
+  //SinputFile += "_Nvar100_Batch1_Acceptance";
   SinputFile += "_Nvar1_Acceptance";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
@@ -420,7 +420,7 @@ void Acceptance(Int_t indexMultTrial = 0,
     SOutputFile += "_TightAcceptance";
   else if (isTightAcceptance == 2)
     SOutputFile += "_TightAcceptance2";
-
+  //SOutputFile += "_Batch1";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   TList *listAcceptance = new TList();
