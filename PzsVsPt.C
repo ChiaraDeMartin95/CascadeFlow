@@ -296,7 +296,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
-  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendTitle->AddEntry("", "#bf{ALICE}", "");
   /*
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
@@ -560,7 +560,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
   LegendPreliminary2->SetTextSize(0.048);
-  LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendPreliminary2->AddEntry("", "#bf{ALICE}", "");
   // LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (ChosenPart >= 6)
@@ -574,7 +574,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
   if (ChosenPart >= 6)
-    LegendPreliminary3->AddEntry("", "#bf{ALICE Preliminary}", "");
+    LegendPreliminary3->AddEntry("", "#bf{ALICE}", "");
   else
     LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
@@ -627,7 +627,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TGraph *gPzsVsPt502 = new TGraph(npoints);
   for (Int_t i = 0; i < gPzsVsPt502->GetN(); i++)
   {
-    gPzsVsPt502->SetPoint(i, PtValues[i], PzsVsPt502[i]/100);
+    gPzsVsPt502->SetPoint(i, PtValues[i], PzsVsPt502[i] / 100);
   }
   gPzsVsPt502->SetLineColor(kBlack);
   gPzsVsPt502->SetLineWidth(2);
@@ -654,7 +654,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TGraph *gPzsVsPt536 = new TGraph(npoints);
   for (Int_t i = 0; i < gPzsVsPt536->GetN(); i++)
   {
-    gPzsVsPt536->SetPoint(i, PtValues536[i], PzsVsPt536[i]/100);
+    gPzsVsPt536->SetPoint(i, PtValues536[i], PzsVsPt536[i] / 100);
   }
   gPzsVsPt536->SetLineColor(kRed);
   gPzsVsPt536->SetLineWidth(2);
@@ -679,17 +679,17 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
   hDummy->GetYaxis()->SetTitleOffset(1.4);
   hDummy->Draw("");
-  // fHistPzs->Draw("same ex0");
-  // fHistPzsSist->SetFillStyle(0);
-  // fHistPzsSist->Draw("same e2");
+  fHistPzs->Draw("same ex0");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->Draw("same e2");
   fHistPzsLambda->Draw("same ex0");
   fHistPzsLambdaSist->SetFillStyle(0);
   fHistPzsLambdaSist->Draw("same e2");
   gPzsJunlee->Draw("same p");
   gPzsJunleeSyst->Draw("same e2");
-  gPzsPalermo->Draw("same l");
-  gPzsVsPt536->Draw("same l");
-  gPzsVsPt502->Draw("same l");
+  //gPzsPalermo->Draw("same l");
+  //gPzsVsPt536->Draw("same l");
+  //gPzsVsPt502->Draw("same l");
   // LegendTitle->Draw("");
   legendLambda->AddEntry(gPzsJunlee, "Pb-Pb 5.36, 30-50\%, |y| < 0.5", "pl");
   legendLambda->AddEntry(fHistPzs, "OO 5.36, 0-50\%, |#eta| < 0.8", "pl");
@@ -968,8 +968,14 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   }
   fpol1->SetLineColor(kBlue + 2);
   fpol0->SetLineColor(kAzure + 1);
-  fHistPzsTotError->Fit("fpol1", "R+");
-  fHistPzsTotError->Fit("fpol0", "R+");
+
+  TH1F *fHistPzsFit = (TH1F *)fHistPzs->Clone("fHistPzsFit");
+  // TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
+  fHistPzsFit->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+  //fHistPzsTotError->Fit("fpol1", "R+");
+  //fHistPzsTotError->Fit("fpol0", "R+");
+  fHistPzsFit->Fit("fpol1", "R+");
+  fHistPzsFit->Fit("fpol0", "R+");
   // LegendTitle->Draw("");
   TLegend *legendMainFit = new TLegend(0.2, 0.73, 0.5, 0.88);
   legendMainFit->SetFillStyle(0);
@@ -999,7 +1005,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   canvasfitPol0->SaveAs("../PzsVsPt_fitPol0.pdf");
   canvasfitPol0->SaveAs("../PzsVsPt_fitPol0.png");
 
-  TF1 *lineatZero = new TF1("lineatZero", "0", 0, 100);
+  TF1 *lineatZero = new TF1("lineatZero", "0", 0, 10);
   lineatZero->SetLineColor(kBlack);
   lineatZero->SetLineStyle(2);
   TCanvas *canvasPzsXi = new TCanvas("canvasPzsXi", "canvasPzsXi", 900, 700);
@@ -1039,7 +1045,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   legendData->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
   legendData->AddEntry(fHistPzs, "Stat. error", "pe");
   legendData->AddEntry(fHistPzsSist, "Syst. error", "f");
-  legendData->Draw("");
+  //legendData->Draw("");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.pdf");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.png");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.eps");

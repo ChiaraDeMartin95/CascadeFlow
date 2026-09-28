@@ -24,8 +24,8 @@
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
 // #include "CommonVar_v2.h"
-#include "CommonVarOmega.h"
-// #include "CommonVarLambda.h"
+// #include "CommonVarOmega.h"
+#include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -349,6 +349,8 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiT0C[mult]->GetXaxis()->SetTitle("#Psi_{T0C}");
     if (mult < (commonNumCent - 2))
       hPsiT0C[mult]->Draw("same hist");
+    //hPsiT0C[mult]->GetXaxis()->SetRangeUser(-1, 1);
+    cout << "Mean in mult: " << mult << " = " << hPsiT0C[mult]->GetMean() << "+-" << hPsiT0C[mult]->GetMeanError() << endl;
   }
 
   TLegend *leg = new TLegend(0.35, 0.2, 0.65, 0.5);
@@ -436,7 +438,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiV0A[mult]->SetMarkerSize(SizeMult[mult]);
     hPsiV0A[mult]->GetXaxis()->SetTitle("#Psi_{V0A}");
     hPsiV0A[mult]->SetTitle("EP V0A");
-    hPsiV0A[mult]->SetTitle("");
+    // hPsiV0A[mult]->SetTitle("");
     if (mult < (commonNumCent - 2))
       hPsiV0A[mult]->Draw("same hist");
   }
@@ -461,7 +463,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiTPCL[mult]->SetMarkerSize(SizeMult[mult]);
     hPsiTPCL[mult]->GetXaxis()->SetTitle("#Psi_{TPC-L}");
     hPsiTPCL[mult]->SetTitle("EP TPC-L");
-    hPsiTPCL[mult]->SetTitle("");
+    // hPsiTPCL[mult]->SetTitle("");
     if (mult < (commonNumCent - 2))
       hPsiTPCL[mult]->Draw("same hist");
   }
@@ -486,7 +488,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiTPCR[mult]->SetMarkerSize(SizeMult[mult]);
     hPsiTPCR[mult]->GetXaxis()->SetTitle("#Psi_{TPC-R}");
     hPsiTPCR[mult]->SetTitle("EP TPC-R");
-    hPsiTPCR[mult]->SetTitle("");
+    // hPsiTPCR[mult]->SetTitle("");
     if (mult < (commonNumCent - 2))
       hPsiTPCR[mult]->Draw("same hist");
   }

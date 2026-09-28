@@ -244,7 +244,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
     stringout += "_isBkgPol0";
-  // stringout += "_SystReso";
+  //stringout += "_SystReso";
   if (isTighterPzFitRange)
     stringout += "_TighterPzFitRange";
   if (isFDCorrected)
@@ -376,7 +376,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     PathIn += "_EPReso";
   if (isBkgPol == 0)
     PathIn += "_isBkgPol0";
-  // PathIn += "_SystReso";
+  //PathIn += "_SystReso";
   if (isTighterPzFitRange)
     PathIn += "_TighterPzFitRange";
   // PathIn += "_NegativeC";
