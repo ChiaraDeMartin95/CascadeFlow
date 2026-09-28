@@ -12,9 +12,10 @@ Bool_t isCombinedFit = 0; // Fit simultaneously mass and V2 (now implemented onl
 // New def for analysis : ExtrisFitDSCB = 1; isGaussConv = 1; ExtrBkgType = 4;
 // Old default (still used for Systematics): ExtrisFitDSCB = 0; isGaussConv = 0; ExtrUseTwoGauss = 1; BkgType = 1;
 
-Int_t ExtrBkgTypeSyst = 4;          // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
-Bool_t isApplyWeights = 0;          // weights to flatten the phi distribution of cascades
-Bool_t isApplyCentWeight = 0;       // 1 for OO
+Int_t ExtrBkgTypeSyst = 4;    // for syst. uncertainty: 0: pol1, 1:pol2, 2:pol3, 3:expo, 4:Chebyshev series
+Bool_t isApplyWeights = 0;    // weights to flatten the phi distribution of cascades
+Bool_t isApplyCentWeight = 0; // 1 for OO
+Bool_t isApplyAcceptanceInMacro = 0;
 Bool_t ExtrisApplyEffWeights = 0;   // weights to take into account efficiency dependence on multiplciity (for v2 only)
 Bool_t ExtrisApplyResoOnTheFly = 0; // 1 for OO
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
@@ -101,10 +102,10 @@ TString SinputFileNameAR = SinputFileName;
 TString SinputFileNameResoWeight = ""; // empty, not needed for Xi in Pb-Pb
 
 // File names for systematics
-//TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; // these systematics are DONE and to be USED for PAPER
+// TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train534683"; // these systematics are DONE and to be USED for PAPER
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train568467_OccupancySel30000";
 // TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train567157_OccupancyCut";
-TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; //these were not run YET
+TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train540301"; // these were not run YET
 //  TString SinputFileNameSyst = "LHC23_PbPb_pass5_Train541065";
 
 // File name for efficiency correction (if ExtrisApplyEffWeights == 1)
@@ -130,7 +131,7 @@ const bool isApplyAcceptanceCorrection = 0;                        // for recent
 const bool isAcceptanceFromExternalFile = 0;                       // 1 for acceptance from external file, 0 for acceptance from the same file
 TString SAcceptanceFile = "../AcceptancePlots/Acceptance_Xi.root"; // file where acceptance is taken from if isAcceptanceFromExternalFile == 1
 const bool useMixedBDTValueInFitMacro = 1;                         // variable used in FitV2OrPol.C macro
-const bool useBDTCutPtIntMaxSignif = 0; //use BDT values defined in BDTscoreCutPtIntMaxSignif for the integrated pt measurement (to maximize significance)
+const bool useBDTCutPtIntMaxSignif = 0;                            // use BDT values defined in BDTscoreCutPtIntMaxSignif for the integrated pt measurement (to maximize significance)
 // if = 1: pt and multiplicity dependent value defined in:
 //   - the function DefineMixedBDTValue (for the pt differential measurement) or
 //   - BDTscoreCutPtInt (for the integrated pt measurement)
@@ -145,6 +146,7 @@ const double BDTscoreCutPtIntMaxSignif[numCent + 1] = {0.72, 0.6, 0.52, 0.44, 0.
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
 // --------------------------- SYST ------------------------------
+const Int_t MultiTrialShift = 0;
 const int trialsLambdaTopo = 2;
 // systematic studies on BDT score variation ----------------------
 bool ExtrisSysMultTrial = 0;       // 1 for systematic studies, 0 for default analysis
@@ -155,7 +157,7 @@ const float UpperlimitBDTscoreCut = 1;
 const float LowerlimitBDTscoreCut = 0.2;
 // const double MinBDTscorePtInt[numCent + 1] = {0.959, 0.92, 0.879, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 // const double MaxBDTscorePtInt[numCent + 1] = {0.98, 0.96, 0.96, 0.96, 0.96, 0.96, 0.8, 0.76, 0.96};
-//const double MinBDTscorePtInt[numCent + 1] = {0.84, 0.8, 0.6, 0.4, 0.4, 0.2, 0.2, 0.2, 0.6};
+// const double MinBDTscorePtInt[numCent + 1] = {0.84, 0.8, 0.6, 0.4, 0.4, 0.2, 0.2, 0.2, 0.6};
 const double MinBDTscorePtInt[numCent + 1] = {0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
 const double MaxBDTscorePtInt[numCent + 1] = {0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96};
 // const double MaxBDTscorePtInt[numCent + 1] = {0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72, 0.72};
