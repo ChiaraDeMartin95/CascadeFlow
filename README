@@ -14,14 +14,20 @@ to be run with option isPtAnalysis = 1 changing "mul" from 0 to 10 (10 = central
 10. PzVsPsi.C --> plots Pz2 values vs 2(phi-Psi); takes in input syst uncertainty (see below)
 
 // Systematics related to topological selections
-9. MultiTrial.C --> for each centrality, it calculates the systematic uncertainty from topological variations taking in input several file outputs of FitV2orPol.C
-Settings: Choice = 3 (Pzs2), SisSyst = "LambdaTopo".
-Must be run after running several times with different indexMultTrial both ComputeV2.C and FitV2orPol.C (use script script_MultiTrial.sh), with the following settings in CommonVarLambda.h:
-trialsLambdaTopo: number of trails
-ExtrisSysLambdaMultTrial = 1
+To produce variations:
+1. Run ProcessTreeLambda.C with NVAR set to the number of desired variations. 
+First, run ProcessTreeLambda.C with option isStoreAcceptance = 1 to save acceptance info, then run Acceptance.C to produce one acceptance file for every variation.
+Then, run ProcessTreeLambda.C with option isStorePzs2AndPz = 1. It will take in input the different acceptance files and produce ONE output file with all variations.
+If too much memory is comsumed, choose small NVAR (e.g. 20) and run the variationsin batches (using shift variable to avoid generating the same random number in each batch.
+2. Run ComputeV2.C and FitV2orPol_CB.C for each variation. In CommonVarLambda.h, change input variables according to instructions reported in the header file.
+3. MultiTrial.C --> it calculates the systematic uncertainty from topological variations taking in input several file outputs of FitV2orPol_CB.C
+Settings: Choice = 3, SisSyst = "LambdaTopo"
+for Pzs vs centrality: isPtAnalysis = 1, isPtIntegrated = 1, change "mul" from 0 to 10
+for Pzs vs pT: isPtAnalysis = 1, isPtIntegrated = 0, "mul" = 10
+for Pz vs (phi-Psi): isPtAnalysis = 0, isPtIntegrated = 0, "mul" = 10
 //Total systematics
-10. SystematicErrorVsCent.C --> it produces total syst vs centrality
-11. SystematicErrorVsPt.C --> it produces total syst vs pT (option isPtAnalysis = 1) or vs (phi-Psi) (option isPtAnalysis = 0)
+4. SystematicErrorVsCent.C --> it produces total syst vs centrality
+5. SystematicErrorVsPt.C --> it produces total syst vs pT (option isPtAnalysis = 1) or vs (phi-Psi) (option isPtAnalysis = 0)
 
 ----------------------------------------------------------------------
 How to run the full analysis for Lambda polarization in OO (for Preliminaries):
