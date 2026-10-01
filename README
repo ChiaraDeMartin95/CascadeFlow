@@ -1,4 +1,30 @@
-How to run the full analysis for Lambda polarization in OO:
+How to run the full analysis for Lambda polarization in OO (for paper):
+- Application of acceptance correction factor done in ProcessTreeLambda.C macro
+1. Event QC: QCPlots.C --> produces QC plots + centrality weight
+2. Resolution: Resolution.C --> produces resolution
+3. Acceptance correction factor: ProcessTreeLambda.C with option isStoreAcceptance = 1 followed by Acceptance.C --> produces acceptance plots
+4. Efficiency weights: ComputeEff.C --> produces efficiency vs pt in different centrality classes; EffWeight.C --> produces 2D plot of weights vs pt and cent
+5. ProcessTreeLambda.C (option isStorePzs2AndPz = 1)--> takes in input the resolution, the centrality weight, the acceptance correction factor, the efficiency weight, 
+and the tree produced by the task cascadeflow.cxx (process function processAnalyseLambdaEP2CentralFW), and produces histograms for Pzs2 vs cent and pt, and Pz vs (phi-Psi)
+6. ComputeV2.C --> produces histograms
+7. FitV2orPol_CB.C --> produces Pzs2 values for each centrality class and pT interval; 
+to be run with option isPtAnalysis = 1 changing "mul" from 0 to 10 (10 = centrality class 0-50%), and with option isPtAnalysis = 0 for mul = 10 only (ChosenPt < 6)
+8. PzsVsCentrality.C --> plots Pzs2 values vs centrality. In addition, it also fits Pzs2 vs centrality, plots syt. uncertainty taken from input file, plots purity, yields, mean values, significance vs centrality, Pzs2 vs multiplicity (compared to Pb-Pb values)
+9. PzsVsPt.C --> plots Pzs2 values vs pT; takes in input syst uncertainty (see below)
+10. PzVsPsi.C --> plots Pz2 values vs 2(phi-Psi); takes in input syst uncertainty (see below)
+
+// Systematics related to topological selections
+9. MultiTrial.C --> for each centrality, it calculates the systematic uncertainty from topological variations taking in input several file outputs of FitV2orPol.C
+Settings: Choice = 3 (Pzs2), SisSyst = "LambdaTopo".
+Must be run after running several times with different indexMultTrial both ComputeV2.C and FitV2orPol.C (use script script_MultiTrial.sh), with the following settings in CommonVarLambda.h:
+trialsLambdaTopo: number of trails
+ExtrisSysLambdaMultTrial = 1
+//Total systematics
+10. SystematicErrorVsCent.C --> it produces total syst vs centrality
+11. SystematicErrorVsPt.C --> it produces total syst vs pT (option isPtAnalysis = 1) or vs (phi-Psi) (option isPtAnalysis = 0)
+
+----------------------------------------------------------------------
+How to run the full analysis for Lambda polarization in OO (for Preliminaries):
 1. Event QC: QCPlots.C --> produces QC plots + centrality weight
 2. Resolution: Resolution.C --> produces resolution
 //Acceptance (needed in input of cascadeflow.cxx)
