@@ -28,6 +28,8 @@ for Pz vs (phi-Psi): isPtAnalysis = 0, isPtIntegrated = 0, "mul" = 10
 //Total systematics
 4. SystematicErrorVsCent.C --> it produces total syst vs centrality
 5. SystematicErrorVsPt.C --> it produces total syst vs pT (option isPtAnalysis = 1) or vs (phi-Psi) (option isPtAnalysis = 0)
+Note: sources of uncertainty different from topo variations are typically computed in CompareResults.C macro.
+Uncertainty related to feed-down from Xi is computed using macro FDFraction.C
 
 ----------------------------------------------------------------------
 How to run the full analysis for Lambda polarization in OO (for Preliminaries):
