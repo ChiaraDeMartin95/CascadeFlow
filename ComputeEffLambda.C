@@ -15,7 +15,7 @@
 #include "TRatioPlot.h"
 #include "TLegend.h"
 #include "TPad.h"
-// #include "CommonVar.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "StyleFile.h"
 #include "TGraphErrors.h"
@@ -52,6 +52,15 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
   TH1F *histoPtEff[numCentLambdaOO + 1];
   TH1F *histoRatioTo0100[numCentLambdaOO + 1];
 
+  TH2F *histoRecoLambdaFromXi = (TH2F *)dirReco->Get("h2DRecoTrue" + ParticleName[ChosenPart] + "FromXi");
+  if (!histoRecoLambdaFromXi)
+  {
+    cout << "Histogram h2DRecoTrue" << ParticleName[ChosenPart] << "FromXi not found" << endl;
+    return;
+  }
+  TH1F *histoRecoPtLambdaFromXi[numCentLambdaOO + 1];
+  TH1F *histoPtEffLambdaFromXi[numCentLambdaOO + 1];
+
   TString SinputFileGen = "../FileForEfficiency/AnalysisResults_" + inputFileNameEff + ".root";
   TFile *inputFileGen = new TFile(SinputFileGen, "READ");
   if (!inputFileGen)
@@ -72,14 +81,23 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
     cout << "Histogram h2DGen" << ParticleName[ChosenPart] << " not found" << endl;
     return;
   }
+  TH2F *histoGenLambdaFromXi = (TH2F *)dirMCGen->Get("h2DGenXiVsPtLambda");
+  if (!histoGenLambdaFromXi)
+  {
+    cout << "Histogram h2DGenXiVsPtLambda not found" << endl;
+    return;
+  }
   TH1F *histoGenPt[numCentLambdaOO + 1];
+  TH1F *histoGenPtLambdaFromXi[numCentLambdaOO + 1];
 
   Float_t NEvents[numCentLambdaOO + 1] = {0};
 
   TCanvas *cEff = new TCanvas("cEff", "cEff", 900, 700);
+  TCanvas *cEffLambdaFromXi = new TCanvas("cEffLambdaFromXi", "cEffLambdaFromXi", 900, 700);
   TCanvas *cRatio = new TCanvas("cRatio", "cRatio", 900, 700);
   StyleCanvas(cEff, 0.12, 0.05, 0.02, 0.13);
   StyleCanvas(cRatio, 0.12, 0.05, 0.02, 0.13);
+  StyleCanvas(cEffLambdaFromXi, 0.12, 0.05, 0.02, 0.13);
 
   TLegend *legendMult = new TLegend(0.15, 0.7, 0.5, 0.9);
   legendMult->SetHeader("FT0C Centrality Percentile");
@@ -111,7 +129,12 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
     StyleHistoYield(histoGenPt[m], 0, 1.1 * histoGenPt[numCentLambdaOO]->GetBinContent(histoGenPt[numCentLambdaOO]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
     legendMult->AddEntry(histoGenPt[m], Form("%i-%i %%", CentFT0CMin, CentFT0CMax), "pl");
     histoGenPt[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
-    
+
+    histoGenLambdaFromXi->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
+    histoGenPtLambdaFromXi[m] = (TH1F *)histoGenLambdaFromXi->ProjectionY(Form("histoGen" + RapidityCoverage[isMidRapidity] + "PtLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
+    histoGenPtLambdaFromXi[m] = (TH1F *)histoGenPtLambdaFromXi[m]->Rebin(numPtBinsEff, "", PtBinsEff);
+    histoGenPtLambdaFromXi[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
+
     histoRecoLambda->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoRecoPt[m] = (TH1F *)histoRecoLambda->ProjectionY(Form("histoRecoPt_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRecoPt[m] = (TH1F *)histoRecoPt[m]->Rebin(numPtBinsEff, "", PtBinsEff);
@@ -129,6 +152,24 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
     cEff->cd();
     histoPtEff[m]->Draw("same e");
     legendMult->Draw("");
+
+    histoRecoLambdaFromXi->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
+    histoRecoPtLambdaFromXi[m] = (TH1F *)histoRecoLambdaFromXi->ProjectionY(Form("histoRecoPtLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
+    histoRecoPtLambdaFromXi[m] = (TH1F *)histoRecoPtLambdaFromXi[m]->Rebin(numPtBinsEff, "", PtBinsEff);
+    StyleHistoYield(histoRecoPtLambdaFromXi[m], 0, 1.1 * histoRecoPtLambdaFromXi[numCentLambdaOO]->GetBinContent(histoRecoPtLambdaFromXi[numCentLambdaOO]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
+    histoRecoPtLambdaFromXi[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
+    histoPtEffLambdaFromXi[m] = (TH1F *)histoRecoPtLambdaFromXi[m]->Clone(Form("histoPtEffLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
+    histoPtEffLambdaFromXi[m]->Divide(histoGenPtLambdaFromXi[m]);
+    for (Int_t i = 1; i <= histoPtEffLambdaFromXi[m]->GetNbinsX(); i++)
+    {
+      histoPtEffLambdaFromXi[m]->SetBinError(i, SetEfficiencyError(histoRecoPtLambdaFromXi[m]->GetBinContent(i), histoGenPt[m]->GetBinContent(i)));
+    }
+    StyleHistoYield(histoPtEffLambdaFromXi[m], 0, 0.4, ColorMult[m], MarkerMult[m], TitleXPt, "Efficiency", "", 1, 1.15, 1.2);
+    histoPtEffLambdaFromXi[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
+    cEffLambdaFromXi->cd();
+    histoPtEffLambdaFromXi[m]->Draw("same e");
+    legendMult->Draw("");
+    
 
     histoRatioTo0100[m] = (TH1F *)histoPtEff[m]->Clone(Form("histoRatioTo0100_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRatioTo0100[m]->Divide(histoPtEff[numCentLambdaOO]);
