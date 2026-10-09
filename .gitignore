@@ -29,6 +29,6 @@ QCPlots/
 *.so
 ProcessTreeLambdaServer.C
 CommonVarLambdaServer.h
-CmmonVarPubServer.h
+CommonVarPubServer.h
 Tapering.C
 script_download_HY.sh
