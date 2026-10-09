@@ -26,7 +26,7 @@
 #include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 
-TF1 *GetLevidNdptTimesPt(Double_t norm, Double_t n, Double_t temp, Double_t mass, const char *name)
+TF1 *GetLevidNdpt(Double_t norm, Double_t n, Double_t temp, Double_t mass, const char *name)
 {
 
   // Levi function, dNdpt
@@ -35,7 +35,6 @@ TF1 *GetLevidNdptTimesPt(Double_t norm, Double_t n, Double_t temp, Double_t mass
   snprintf(formula, 500, "( x*[0]*([1]-1)*([1]-2)  )/( [1]*[2]*( [1]*[2]+[3]*([1]-2) )  ) * pow( 1 + (sqrt([3]*[3]+x*x) -[3])/([1]*[2])  , -[1])");
   TF1 *fLastFunc = new TF1(name, formula, 0, 10);
   fLastFunc->SetParameters(norm, n, temp, mass);
-  fLastFunc->SetParLimits(2, 0.01, 10);
   fLastFunc->SetParNames("norm (dN/dy)", "n", "T", "mass");
   fLastFunc->FixParameter(3, mass);
   fLastFunc->SetLineWidth(1);
@@ -129,15 +128,9 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 // take spectra in input
 // fits them to get pt-integrated yields
 
-void YieldFit(Int_t typefit = 3, // mT scaling, Boltzmann, Fermi-Direc, Levi
-              Int_t ChosenPart = ChosenParticle)
+void YieldFit(Int_t ChosenPart = ChosenParticle)
 {
 
-  if (typefit != 3)
-  {
-    cout << "Not yet implemented" << endl;
-    return;
-  }
   // multiplicity related variables
   const int numMult = 10; // number of multiplicity bins
   TString Smolt[numMult + 1] = {"0_5", "5_10", "10_20", "20_30", "30_40", "40_50", "50_60", "60_70", "70_80", "80_90", "90_100"};
@@ -233,7 +226,7 @@ void YieldFit(Int_t typefit = 3, // mT scaling, Boltzmann, Fermi-Direc, Levi
     fHistSpectrumSistScaled[m] = (TH1F *)fHistSpectrumSist[m]->Clone("fHistSpectrumSistScaled_" + Smolt[m]);
     fHistSpectrumStatScaled[m] = (TH1F *)fHistSpectrumStat[m]->Clone("fHistSpectrumStatScaled_" + Smolt[m]);
 
-    fHistSpectrumRatioFit[m] = (TH1F *)fHistSpectrumStat[m]->Clone(Form("HistRatioFit_m%i_typefit%i", m, typefit));
+    fHistSpectrumRatioFit[m] = (TH1F *)fHistSpectrumStat[m]->Clone(Form("HistRatioFit_m%i", m));
 
   } // end loop on mult
 
@@ -245,7 +238,7 @@ void YieldFit(Int_t typefit = 3, // mT scaling, Boltzmann, Fermi-Direc, Levi
   // fit spectra
   const int numfittipo = 5;
   Int_t ColorFit[numfittipo + 1] = {860, 881, 868, 628, 419, kAzure + 7};
-  TString nameFit[numfittipo + 1] = {"MTExp", "Boltzmann", "Fermi-Dirac", "Levy"};
+  TString nameFit[numfittipo + 1] = {"MTExp", "Boltzmann", "Fermi-Dirac", "Levy", ""};
   TFitResultPtr fFitResultPtr0[numMult + 1];
   TF1 *fit_pwgfunc[numMult + 1];
   TF1 *fit_pwgfunc_Scaled[numMult + 1];
@@ -260,19 +253,18 @@ void YieldFit(Int_t typefit = 3, // mT scaling, Boltzmann, Fermi-Direc, Levi
   legendfitSummary->SetFillStyle(0);
   legendfitSummary->SetTextSize(0.04);
   legendfitSummary->SetTextAlign(33);
-  legendfitSummary->AddEntry("", nameFit[typefit] + " fit", "");
-
+  
   Int_t factor = 1;
 
   for (Int_t m = numMult; m >= 0; m--)
   {
     cout << "Processing multiplicity class: " << m << endl;
-    namepwgfunc[m] = Form("fitpwgfunc_m%i_fit%i", m, typefit);
-    fit_pwgfunc[m] = GetLevidNdptTimesPt(0.04 * factor, 0.03, 0.1, ParticleMassPDG[ChosenPart], namepwgfunc[m]);
+    namepwgfunc[m] = Form("fitpwgfunc_m%i", m);
+    fit_pwgfunc[m] = GetLevidNdpt(0.04 * factor, 7, 0.1, ParticleMassPDG[ChosenPart], namepwgfunc[m]);
     fit_pwgfunc[m]->SetParLimits(0, 0, fHistSpectrumStat[m]->GetBinContent(fHistSpectrumStat[m]->GetMaximumBin()) * 0.5 * 10); // norm
     fit_pwgfunc[m]->SetParLimits(1, 2, 30);                                                                                    // n
     fit_pwgfunc[m]->SetParLimits(2, 0.1, 10);                                                                                  // T
-    fit_pwgfunc[m]->SetParameter(2, 0.7);
+    fit_pwgfunc[m]->SetParameter(2, 0.3);
 
     fit_pwgfunc[m]->SetLineColor(ColorMult[m]);
     fit_pwgfunc[m]->SetLineStyle(7);
