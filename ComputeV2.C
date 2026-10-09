@@ -29,7 +29,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
                Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
-  if (ExtrisSysLambdaMultTrial && indexMultTrial == 0 && MultiTrialShift != 0){
+  if (ExtrisSysLambdaMultTrial && indexMultTrial == 0 && MultiTrialShift != 0)
+  {
     cout << "Skipping the first systematic trial due to MultiTrialShift." << endl;
     return;
   }
@@ -103,9 +104,11 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_EffWeighted";
   if (ChosenPart >= 6 && !ExtrisFromTHN)
   {
-    SinputFile += "_Nvar20";
-    //SinputFile += "_Nvar1";
-    if (ExtrisSysLambdaMultTrial && MultiTrialShift!=0) SinputFile += Form("_shift%i", MultiTrialShift);
+    // SinputFile += "_Nvar20";
+    //SinputFile += "_Nvar20";
+    SinputFile += "_Nvar1";
+    if (ExtrisSysLambdaMultTrial && MultiTrialShift != 0)
+      SinputFile += Form("_shift%i", MultiTrialShift);
     if (SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
       SinputFile += "_050PtCut";
   }
@@ -116,7 +119,13 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     SinputFile += "_XiRedCent";
-  //SinputFile += "_SystReso.root";
+  // SinputFile += "_SystReso.root";
+  if (ChosenPart >= 6)
+    SinputFile += "_PtFix";
+  if (ApplyK0sMassRej)
+    SinputFile += "_K0sMassRej";
+  if (!isT0CCentrality)
+    SinputFile += "_T0MCentrality";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -826,8 +835,14 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     SOutputFile += "_XiRedCent";
+  if (ChosenPart >= 6)
+    SOutputFile += "_PtFix";
+  if (ApplyK0sMassRej)
+    SOutputFile += "_K0sMassRej";
+  if (!isT0CCentrality)
+    SOutputFile += "_T0MCentrality";
   SOutputFile += ".root";
-  //SOutputFile += "_SystReso.root";
+  // SOutputFile += "_SystReso.root";
   cout << "Output file: " << SOutputFile << endl;
   TFile *file = new TFile(SOutputFile, "RECREATE");
 

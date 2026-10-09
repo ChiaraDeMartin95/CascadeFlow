@@ -1027,8 +1027,8 @@ void FitV2orPol_CB(
     return;
   }
 
-  if (ChosenParticle >= 6)
-    PtBins[0] = 0.5; // for Lambda
+  // if (ChosenParticle >= 6)
+  //   PtBins[0] = 0.5; // for Lambda
 
   if (ChosenPart >= 6)
   {
@@ -1319,12 +1319,18 @@ void FitV2orPol_CB(
       SPathIn += "_ResoOnTheFly";
     // if (ChosenPart >= 6)
     // SPathIn += "_CorrectReso_TestLeassPtBins";
-    //SPathIn += "_SystReso";
+    // SPathIn += "_SystReso";
     if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
       SPathIn += "_NoMassCutForAcceptance";
     // SPathIn += "_TestMoreBins";
     if (ExtrisCentXiRed && part == 0)
       SPathIn += "_XiRedCent";
+    if (ChosenPart >= 6)
+      SPathIn += "_PtFix";
+    if (ApplyK0sMassRej)
+      SPathIn += "_K0sMassRej";
+    if (!isT0CCentrality)
+      SPathIn += "_T0MCentrality";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -3326,7 +3332,7 @@ void FitV2orPol_CB(
     // totalSignal[pt]->Draw("same");
     if (isFitDSCB)
     {
-      //functionDSCBPre[pt]->Draw("same");
+      // functionDSCBPre[pt]->Draw("same");
       functionDSCBPost[pt]->Draw("same");
     }
     if (!isMC)
@@ -3767,7 +3773,7 @@ void FitV2orPol_CB(
     Soutputfile += "_isTightMassForAcceptancePurity";
   if (isTighterPzFitRange)
     Soutputfile += "_TighterPzFitRange";
-  //Soutputfile += "_SystReso";
+  // Soutputfile += "_SystReso";
   if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
   {
     Soutputfile += "_NoMassCutForAcceptance";
@@ -3776,6 +3782,12 @@ void FitV2orPol_CB(
   // Soutputfile += "_TestMoreBins";
   if (ExtrisCentXiRed && part == 0)
     Soutputfile += "_XiRedCent";
+  if (ChosenPart >= 6)
+    Soutputfile += "_PtFix";
+  if (ApplyK0sMassRej)
+    Soutputfile += "_K0sMassRej";
+  if (!isT0CCentrality)
+    Soutputfile += "_T0MCentrality";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");
@@ -4515,7 +4527,7 @@ void FitV2orPol_CB(
           hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
         if (ChosenPt == 6)
           hDummyRatio->GetYaxis()->SetRangeUser(-0.08, 0.08);
-        if (!isPtAnalysis)  
+        if (!isPtAnalysis)
           hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
       }
     }
@@ -4676,7 +4688,7 @@ void FitV2orPol_CB(
 
   if (!ExtrisSysMassCut)
     cout << "Purity, significance and yields computed in mass interval of: " << sigmacentral << " sigmas " << endl;
-  // cout << "This interval is: " << LowLimit[ChosenPt] << " - " << UpLimit[ChosenPt] << " GeV/c^2" << endl;
+  cout << "This interval is: " << LowLimit[ChosenPt] << " - " << UpLimit[ChosenPt] << " GeV/c^2" << endl;
   // cout << "In this interval, the integral of the signal function is:" << endl;
   // cout << histoYieldFractionPtInt->GetBinContent(1) << " of the total integral" << endl;
 
