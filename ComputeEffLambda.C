@@ -52,12 +52,20 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
   TH1F *histoPtEff[numCentLambdaOO + 1];
   TH1F *histoRatioTo0100[numCentLambdaOO + 1];
 
-  TH2F *histoRecoLambdaFromXi = (TH2F *)dirReco->Get("h2DRecoTrue" + ParticleName[ChosenPart] + "FromXi");
-  if (!histoRecoLambdaFromXi)
+  TH2F *histoRecoLambdaPartFromXi = (TH2F *)dirReco->Get("h2DRecoTrue" + ParticleName[6] + "FromXi");
+  if (!histoRecoLambdaPartFromXi)
   {
-    cout << "Histogram h2DRecoTrue" << ParticleName[ChosenPart] << "FromXi not found" << endl;
+    cout << "Histogram h2DRecoTrue" << ParticleName[6] << "FromXi not found" << endl;
     return;
   }
+  TH2F *histoRecoALambdaFromXi = (TH2F *)dirReco->Get("h2DRecoTrue" + ParticleName[8] + "FromXi");
+  if (!histoRecoALambdaFromXi)
+  {
+    cout << "Histogram h2DRecoTrue" << ParticleName[8] << "FromXi not found" << endl;
+    return;
+  }
+  TH2F *histoRecoLambdaFromXi = (TH2F *)histoRecoLambdaPartFromXi->Clone("h2DRecoAllLambdaFromXi");
+  histoRecoLambdaFromXi->Add(histoRecoALambdaFromXi);
   TH1F *histoRecoPtLambdaFromXi[numCentLambdaOO + 1];
   TH1F *histoPtEffLambdaFromXi[numCentLambdaOO + 1];
 
@@ -180,9 +188,15 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
     legendMult->Draw("");
 
   } // end loop on centrality
+  cEff->Modified();
+  cEff->Update();
+  cEffLambdaFromXi->Modified();
+  cEffLambdaFromXi->Update();
 
   cEff->SaveAs("../Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".pdf");
   cEff->SaveAs("../Efficiency/Efficiency_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".png");
+  cEffLambdaFromXi->SaveAs("../Efficiency/EfficiencyLambdaFromXi_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".pdf");
+  cEffLambdaFromXi->SaveAs("../Efficiency/EfficiencyLambdaFromXi_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".png");
   cRatio->SaveAs("../Efficiency/EfficiencyRatioTo0100_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".pdf");
   cRatio->SaveAs("../Efficiency/EfficiencyRatioTo0100_" + inputFileNameEff + "_" + ParticleName[ChosenPart] + RapidityCoverage[isMidRapidity] + ".png");
 
