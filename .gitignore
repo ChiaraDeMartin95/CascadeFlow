@@ -27,3 +27,8 @@ QCPlots/
 *pcm
 *.d
 *.so
+ProcessTreeLambdaServer.C
+CommonVarLambdaServer.h
+CmmonVarPubServer.h
+Tapering.C
+script_download_HY.sh
