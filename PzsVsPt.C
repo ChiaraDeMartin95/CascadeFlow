@@ -274,6 +274,12 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   // stringout += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     stringout += "_OmegaRedCent";
+  //stringout += "_PtFix2Bins";
+  stringout += "_PtFix";
+  if (ApplyK0sMassRej)
+    stringout += "_K0sMassRej";
+  if (!isT0CCentrality)
+    stringout += "_T0MCentrality";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -395,6 +401,12 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     PathIn += "_OmegaRedPt";
   if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
     PathIn += "_050PtCut";
+  //PathIn += "_PtFix2Bins";
+  PathIn += "_PtFix";
+  if (ApplyK0sMassRej)
+    PathIn += "_K0sMassRej";
+  if (!isT0CCentrality)
+    PathIn += "_T0MCentrality";
   PathIn += ".root";
   cout << "Path in : " << PathIn << endl;
 
@@ -676,7 +688,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     fHistPzsSist->SetLineColor(ColorOO);
     fHistPzsSist->SetMarkerColor(ColorOO);
   }
-  hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
+  // hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
+  hDummy->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
   hDummy->GetYaxis()->SetTitleOffset(1.4);
   hDummy->Draw("");
   fHistPzs->Draw("same ex0");
@@ -687,9 +700,9 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambdaSist->Draw("same e2");
   gPzsJunlee->Draw("same p");
   gPzsJunleeSyst->Draw("same e2");
-  //gPzsPalermo->Draw("same l");
-  //gPzsVsPt536->Draw("same l");
-  //gPzsVsPt502->Draw("same l");
+  gPzsPalermo->Draw("same l");
+  gPzsVsPt536->Draw("same l");
+  gPzsVsPt502->Draw("same l");
   // LegendTitle->Draw("");
   legendLambda->AddEntry(gPzsJunlee, "Pb-Pb 5.36, 30-50\%, |y| < 0.5", "pl");
   legendLambda->AddEntry(fHistPzs, "OO 5.36, 0-50\%, |#eta| < 0.8", "pl");
@@ -972,8 +985,8 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   TH1F *fHistPzsFit = (TH1F *)fHistPzs->Clone("fHistPzsFit");
   // TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
   fHistPzsFit->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
-  //fHistPzsTotError->Fit("fpol1", "R+");
-  //fHistPzsTotError->Fit("fpol0", "R+");
+  // fHistPzsTotError->Fit("fpol1", "R+");
+  // fHistPzsTotError->Fit("fpol0", "R+");
   fHistPzsFit->Fit("fpol1", "R+");
   fHistPzsFit->Fit("fpol0", "R+");
   // LegendTitle->Draw("");
@@ -1045,7 +1058,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   legendData->AddEntry("", "Uncertainties: stat. (bar), total sys. (open box)", "");
   legendData->AddEntry(fHistPzs, "Stat. error", "pe");
   legendData->AddEntry(fHistPzsSist, "Syst. error", "f");
-  //legendData->Draw("");
+  // legendData->Draw("");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.pdf");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.png");
   canvasPzsXi->SaveAs("../" + ParticleName[ChosenPart] + "PolVsPt.eps");

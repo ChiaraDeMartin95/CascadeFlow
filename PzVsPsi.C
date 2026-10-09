@@ -244,7 +244,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
     stringout += "_isBkgPol0";
-  //stringout += "_SystReso";
+  // stringout += "_SystReso";
   if (isTighterPzFitRange)
     stringout += "_TighterPzFitRange";
   if (isFDCorrected)
@@ -265,6 +265,10 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
   // stringout += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     stringout += "_OmegaRedCent";
+  if (ApplyK0sMassRej)
+    stringout += "_K0sMassRej";
+  if (!isT0CCentrality)
+    stringout += "_T0MCentrality";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -376,7 +380,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     PathIn += "_EPReso";
   if (isBkgPol == 0)
     PathIn += "_isBkgPol0";
-  //PathIn += "_SystReso";
+  // PathIn += "_SystReso";
   if (isTighterPzFitRange)
     PathIn += "_TighterPzFitRange";
   // PathIn += "_NegativeC";
@@ -384,6 +388,10 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     PathIn += "_OmegaRedPt";
   // if (ChosenPart >= 6)
   //   PathIn += "_050";
+  if (ApplyK0sMassRej)
+    PathIn += "_PtFix_K0sMassRej";
+  if (!isT0CCentrality)
+    PathIn += "_PtFix_T0MCentrality";
   PathIn += ".root";
   cout << "Path in : " << PathIn << endl;
 
