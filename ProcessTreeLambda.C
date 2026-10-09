@@ -734,7 +734,7 @@ df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAccepta
 
     if (isStorePzs2AndPz)
     {
-      ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBinsLambda, PtBinsLambda, NPzs2, PzsBinsLambda);
+      ROOT::RDF::TH3DModel model(Form("massVsPtVsPzs2_cent%i-%i", CentFT0CMin, CentFT0CMax), "Invariant mass vs Pt vs Pzs2", numLambdaMassBins, LambdaMassBins, numPtBins, PtBins, NPzs2, PzsBinsLambda);
       auto massVsPtVsPzs2 = dcent.Histo3D(model, "fMassLambda", "fPt", "fPzs2LambdaFinal", "fTotalWeight");
       auto variationsmassVsPtVsPzs2 = ROOT::RDF::Experimental::VariationsFor(massVsPtVsPzs2);
       massVsPtVsPzs2Vector.push_back(massVsPtVsPzs2);
