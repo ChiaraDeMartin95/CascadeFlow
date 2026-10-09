@@ -91,12 +91,13 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
                        Bool_t isRapiditySel = ExtrisRapiditySel,
                        Bool_t isApplyResoOnTheFly = ExtrisApplyResoOnTheFly,
                        Bool_t isSystReso = 0,
-                       Int_t isAllEta = 1, // 0 for eta < 0, 1 for all eta, 2 for eta > 0
+                       Int_t isAllEta = 1,         // 0 for eta < 0, 1 for all eta, 2 for eta > 0
                        Int_t ChosenPart = ChosenParticle,
                        TString inputFileName = SinputFileName,
                        Int_t EtaSysChoice = ExtrEtaSysChoice,
                        Bool_t isSysMultTrial = ExtrisSysLambdaMultTrial)
 {
+
   for (Int_t i = 0; i <= NCos2ThetaAcc; i++)
     Cos2ThetaAcc[i] = i * 1.0 / NCos2ThetaAcc;
 
@@ -235,6 +236,15 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
     d2 = d2.Filter("fCtauLambda > 0");
     d2 = d2.Filter("fCtauLambda < 30");
   }
+
+  // K0s mass rejection
+  if (ApplyK0sMassRej)
+  {
+    d2 = d2.Filter("abs(fMassK0Short - 0.497611) > 0.01");
+  }
+
+  // centrality selection
+  TString centralityVar = isT0CCentrality == 0 ? "fCentT0M" : "fCentFT0C";
 
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
@@ -505,6 +515,10 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   {
     OutputFileName += "_Acceptance";
   }
+  if (ApplyK0sMassRej)
+    OutputFileName += "_K0sMassRej";
+  if (isT0CCentrality == 0)
+    OutputFileName += "_T0MCentrality";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
