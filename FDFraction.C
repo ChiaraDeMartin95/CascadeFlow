@@ -152,9 +152,9 @@ void FDFraction()
 
     hFDLambdaProj2D->GetXaxis()->SetRange(hFDLambdaProj2D->GetXaxis()->FindBin(CentFT0CMin + 0.1), hFDLambdaProj2D->GetXaxis()->FindBin(CentFT0CMax - 0.1));
     TH1F *hFDLambdaProj = (TH1F *)hFDLambdaProj2D->ProjectionY(Form("FDFraction_%d_%d", CentFT0CMin, CentFT0CMax));
-    hFDFractionLambdavsCent->SetBinContent(mul + 1, hFDLambdaProj->GetBinContent(2) / hFDLambdaProj->GetBinContent(1));
-    hFDFractionALambdavsCent->SetBinContent(mul + 1, hFDLambdaProj->GetBinContent(4) / hFDLambdaProj->GetBinContent(3));
-    hFDFractionAllLambdavsCent->SetBinContent(mul + 1, (hFDLambdaProj->GetBinContent(2) + hFDLambdaProj->GetBinContent(4)) / (hFDLambdaProj->GetBinContent(1) + hFDLambdaProj->GetBinContent(3)));
+    hFDFractionLambdavsCent->SetBinContent(mul + 1, hFDLambdaProj->GetBinContent(2) / (hFDLambdaProj->GetBinContent(1) + hFDLambdaProj->GetBinContent(2)));
+    hFDFractionALambdavsCent->SetBinContent(mul + 1, hFDLambdaProj->GetBinContent(4) / (hFDLambdaProj->GetBinContent(3) + hFDLambdaProj->GetBinContent(4)));
+    hFDFractionAllLambdavsCent->SetBinContent(mul + 1, (hFDLambdaProj->GetBinContent(2) + hFDLambdaProj->GetBinContent(4)) / (hFDLambdaProj->GetBinContent(1) + hFDLambdaProj->GetBinContent(3) + hFDLambdaProj->GetBinContent(2) + hFDLambdaProj->GetBinContent(4)));
     cout << "Centrality " << CentFT0CMin << "-" << CentFT0CMax << "%: FD Lambda Fraction = " << hFDFractionLambdavsCent->GetBinContent(mul + 1) << ", FD Anti-Lambda Fraction = " << hFDFractionALambdavsCent->GetBinContent(mul + 1) << endl;
     hFDFractionLambdavsCent->SetBinError(mul + 1, sqrt(1. / hFDLambdaProj->GetBinContent(2) + 1. / hFDLambdaProj->GetBinContent(1)) * hFDFractionLambdavsCent->GetBinContent(mul + 1));
     hFDFractionALambdavsCent->SetBinError(mul + 1, sqrt(1. / hFDLambdaProj->GetBinContent(4) + 1. / hFDLambdaProj->GetBinContent(3)) * hFDFractionALambdavsCent->GetBinContent(mul + 1));
@@ -200,14 +200,14 @@ void FDFraction()
   for (Int_t i = 1; i <= hDummy->GetNbinsX(); i++)
     hDummy->SetBinContent(i, -1000);
   SetFont(hDummy);
-  StyleHistoYield(hDummy, 0.08, 0.12, 1, 1, TitleXCent, "Fraction of secondary #Lambda", "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummy, 0, 0.3, 1, 1, TitleXCent, "Fraction of secondary #Lambda", "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummy, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummy, tickX, tickY);
   if (ChosenParticle == 6)
     hDummy->GetXaxis()->SetRangeUser(0, 90);
 
   TCanvas *canvasFDFractionVsCent = new TCanvas("canvasFDFractionVsCent", "canvasFDFractionVsCent", 900, 700);
-  StyleCanvas(canvasFDFractionVsCent, 0.06, 0.12, 0.15, 0.03);
+  StyleCanvas(canvasFDFractionVsCent, 0.08, 0.12, 0.15, 0.03);
   canvasFDFractionVsCent->cd();
   SetFont(hFDFractionLambdavsCent);
   StyleHistoYield(hFDFractionLambdavsCent, 0, 1, kBlue + 1, 20, "Centrality (%)", "Fraction of primary #Lambda", "", 1.5, 1.5, 1.7);
@@ -234,7 +234,7 @@ void FDFraction()
   for (Int_t i = 1; i <= hDummyPt->GetNbinsX(); i++)
     hDummyPt->SetBinContent(i, -1000);
   SetFont(hDummyPt);
-  StyleHistoYield(hDummyPt, 0.08, 0.12, 1, 1, TitleXPt, "Fraction of secondary #Lambda", "", 1, 1.15, 1.6);
+  StyleHistoYield(hDummyPt, 0, 0.3, 1, 1, TitleXPt, "Fraction of secondary #Lambda", "", 1, 1.15, 1.6);
   SetHistoTextSize(hDummyPt, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyPt, tickX, tickY);
   StyleHistoYield(hFDFractionLambdavsPt, 0, 1, kBlue + 1, 20, TitleXPt, "Fraction of secondary #Lambda", "", 1.5, 1.5, 1.7);
@@ -258,6 +258,17 @@ void FDFraction()
   Float_t CorrectionLambda[numCentLambdaOO] = {0};
   Float_t CorrectionALambda[numCentLambdaOO] = {0};
   TH1F *hFDFractionRelSistVsCent = new TH1F("hFDFractionRelSistVsCent", "hFDFractionRelSistVsCent", numCentLambdaOO, 0, 100);
+  TH1D *hRelSystV1 = new TH1D("hRelSystV1", "hRelSystV1", numCentLambdaOO, 0, 100);
+  TH1D *hRelSystV2 = new TH1D("hRelSystV2", "hRelSystV2", numCentLambdaOO, 0, 100);
+  TH1F *hRelSystV1Plus = new TH1F("hRelSystV1Plus", "hRelSystV1Plus", numCentLambdaOO, 0, 100);
+  TH1F *hRelSystV1Minus = new TH1F("hRelSystV1Minus", "hRelSystV1Minus", numCentLambdaOO, 0, 100);
+  TH1D *hRelSystSouravV1 = new TH1D("hRelSystSouravV1", "hRelSystSouravV1", numCentLambdaOO, 0, 100);
+  TH1D *hRelSystSouravV1Plus = new TH1D("hRelSystSouravV1Plus", "hRelSystSouravV1Plus", numCentLambdaOO, 0, 100);
+  TH1D *hRelSystSouravV1Minus = new TH1D("hRelSystSouravV1Minus", "hRelSystSouravV1Minus", numCentLambdaOO, 0, 100);
+  // rel syst version 1: fFD |C * R -1|
+  // rel syst version 2: fFD |C * R -1| / (1-fFD +C *  fFD* R)
+  Float_t XiLambdaRatio = 0.98; // R
+  Float_t XiLambdaRatioErr = 0.25;
   for (Int_t m = 0; m < numCentLambdaOO; m++)
   {
     FDFraction[m] = hFDFractionAllLambdavsCent->GetBinContent(m + 1);
@@ -272,13 +283,112 @@ void FDFraction()
     cout << "  -> Max difference / 2 = " << abs(CorrectionLambda[m] - CorrectionALambda[m]) / 2 << endl;
     cout << "Relative difference: " << abs(CorrectionLambda[m] - CorrectionALambda[m]) / (2 * Correction[m]) << endl;
     hFDFractionRelSistVsCent->SetBinContent(m + 1, abs(CorrectionLambda[m] - CorrectionALambda[m]) / 2);
+    hRelSystV1->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * XiLambdaRatio - 1));
+    hRelSystV1Plus->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr) - 1));
+    hRelSystV1Minus->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr) - 1));
+    hRelSystV2->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * XiLambdaRatio - 1) / (1 - FDFraction[m] + CXiToLambda * FDFraction[m] * XiLambdaRatio));
+    hRelSystSouravV1->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * XiLambdaRatio - 1) / (1 - FDFraction[m] * CXiToLambda * XiLambdaRatio));
+    hRelSystSouravV1Plus->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr) - 1) / (1 - FDFraction[m] * CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr)));
+    hRelSystSouravV1Minus->SetBinContent(m + 1, FDFraction[m] * std::abs(CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr) - 1) / (1 - FDFraction[m] * CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr)));
   }
+  TCanvas *canvasSystFDFractionvsCent = new TCanvas("canvasSystFDFractionvsCent", "canvasSystFDFractionvsCent", 900, 700);
+  StyleCanvas(canvasSystFDFractionvsCent, 0.06, 0.15, 0.13, 0.03);
+  canvasSystFDFractionvsCent->cd();
+  TH1F *hDummyRelError = new TH1F("hDummyRelError", "hDummyRelError", 10000, 0, 100);
+  for (Int_t i = 1; i <= hDummyRelError->GetNbinsX(); i++)
+    hDummyRelError->SetBinContent(i, -1000);
+  SetFont(hDummyRelError);
+  StyleHistoYield(hDummyRelError, 0., 0.08, 1, 1, TitleXCent, "Rel. error", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyRelError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyRelError, tickX, tickY);
+  hDummyRelError->Draw();
+  // hFDFractionRelSistVsCent->Draw("same");
+  hRelSystV1->SetLineColor(kRed);
+  // hRelSystV1->Draw("same");
+  //  hRelSystV2->SetLineColor(kBlue);
+  //  hRelSystV2->Draw("same");
+  hRelSystV1Plus->SetLineColor(kGreen + 2);
+  // hRelSystV1Plus->Draw("same");
+  hRelSystV1Minus->SetLineColor(kMagenta);
+  // hRelSystV1Minus->Draw("same");
+  hRelSystSouravV1->SetLineColor(kRed);
+  hRelSystSouravV1->SetLineStyle(3);
+  hRelSystSouravV1->SetLineWidth(3);
+  hRelSystSouravV1->Draw("same");
+  hRelSystSouravV1Plus->SetLineColor(kGreen + 2);
+  hRelSystSouravV1Plus->SetLineStyle(3);
+  hRelSystSouravV1Plus->SetLineWidth(3);
+  hRelSystSouravV1Plus->Draw("same");
+  hRelSystSouravV1Minus->SetLineColor(kMagenta);
+  hRelSystSouravV1Minus->SetLineStyle(3);
+  hRelSystSouravV1Minus->SetLineWidth(3);
+  hRelSystSouravV1Minus->Draw("same");
+  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent.pdf");
+  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent.png");
+
+  TCanvas *canvasSystFDFractionVsPt = new TCanvas("canvasSystFDFractionVsPt", "canvasSystFDFractionVsPt", 900, 700);
+  StyleCanvas(canvasSystFDFractionVsPt, 0.06, 0.15, 0.13, 0.03);
+  canvasSystFDFractionVsPt->cd();
+  TH1F *hDummyPtRelError = new TH1F("hDummyPtRelError", "hDummyPtRelError", 10000, 0, 10);
+  for (Int_t i = 1; i <= hDummyPtRelError->GetNbinsX(); i++)
+    hDummyPtRelError->SetBinContent(i, -1000);
+  SetFont(hDummyPtRelError);
+  StyleHistoYield(hDummyPtRelError, 0, 0.08, 1, 1, TitleXPt, "Rel. error", "", 1, 1.15, 1.6);
+  SetHistoTextSize(hDummyPtRelError, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyPtRelError, tickX, tickY);
+  TH1F *hRelSystV1Pt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystV1Pt");
+  TH1F *hRelSystV1PlusPt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystV1PlusPt");
+  TH1F *hRelSystV1MinusPt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystV1MinusPt");
+  TH1F *hRelSystSouravV1Pt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystSouravV1Pt");
+  TH1F *hRelSystSouravV1PlusPt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystSouravV1PlusPt");
+  TH1F *hRelSystSouravV1MinusPt = (TH1F *)hFDFractionAllLambdavsPt->Clone("hRelSystSouravV1MinusPt");
+  for (Int_t i = 1; i <= hRelSystV1Pt->GetNbinsX(); i++)
+  {
+    hRelSystV1Pt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * XiLambdaRatio - 1));
+    hRelSystV1PlusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr) - 1));
+    hRelSystV1MinusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr) - 1));
+    hRelSystSouravV1Pt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * XiLambdaRatio - 1) / (1 - hFDFractionAllLambdavsPt->GetBinContent(i) * CXiToLambda * XiLambdaRatio));
+    hRelSystSouravV1PlusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr) - 1) / (1 - hFDFractionAllLambdavsPt->GetBinContent(i) * CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr)));
+    hRelSystSouravV1MinusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr) - 1) / (1 - hFDFractionAllLambdavsPt->GetBinContent(i) * CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr)));
+  }
+  hDummyPtRelError->Draw();
+  hRelSystV1Pt->SetLineColor(kRed);
+  hRelSystV1Pt->SetMarkerColor(kRed);
+  //hRelSystV1Pt->Draw("same");
+  hRelSystV1PlusPt->SetLineColor(kGreen + 2);
+  hRelSystV1PlusPt->SetMarkerColor(kGreen + 2);
+  //hRelSystV1PlusPt->Draw("same");
+  hRelSystV1MinusPt->SetLineColor(kMagenta);
+  hRelSystV1MinusPt->SetMarkerColor(kMagenta);
+  //hRelSystV1MinusPt->Draw("same");
+
+  hRelSystSouravV1Pt->SetLineColor(kRed);
+  hRelSystSouravV1Pt->SetMarkerColor(kRed);
+  hRelSystSouravV1Pt->SetLineStyle(3);
+  hRelSystSouravV1Pt->SetLineWidth(3);
+  hRelSystSouravV1Pt->Draw("same");
+  hRelSystSouravV1PlusPt->SetLineColor(kGreen + 2);
+  hRelSystSouravV1PlusPt->SetMarkerColor(kGreen + 2);
+  hRelSystSouravV1PlusPt->SetLineStyle(3);
+  hRelSystSouravV1PlusPt->SetLineWidth(3);
+  hRelSystSouravV1PlusPt->Draw("same");
+  hRelSystSouravV1MinusPt->SetLineColor(kMagenta);
+  hRelSystSouravV1MinusPt->SetMarkerColor(kMagenta);
+  hRelSystSouravV1MinusPt->SetLineStyle(3);
+  hRelSystSouravV1MinusPt->SetLineWidth(3);
+  hRelSystSouravV1MinusPt->Draw("same");
+  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt.pdf");
+  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt.png");
+
   TString stringout = "../LambdaFDFraction" + SinputFileNameFDFraction + ".root";
   TFile *fileout = new TFile(stringout, "RECREATE");
   hFDFractionLambdavsCent->Write();
   hFDFractionALambdavsCent->Write();
   hFDFractionAllLambdavsCent->Write();
   hFDFractionRelSistVsCent->Write();
+  hRelSystV1MinusPt->Write();
+  hRelSystSouravV1MinusPt->Write();
+
   fileout->Close();
 
   cout << "\nStarting from the file: " << PathInFD << endl;
