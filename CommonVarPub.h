@@ -75,7 +75,7 @@ Double_t CentFT0CMaxOmegaRed = 70;
 Int_t CentFT0COmegaRed[numCentOmegaRed + 1] = {0, 30, 50, 70};
 Double_t fCentFT0COmegaRed[numCentOmegaRed + 1] = {0, 30, 50, 70};
 
-// min and max pt
+// min and max ptw
 Float_t MinPt[numPart] = {0.8, 1.4, 0.8, 0.8, 1.4, 1.4, 0.5, 0.5, 0.5};
 Float_t MaxPt[numPart] = {8, 8, 8, 8, 8, 8, 10, 10, 10};
 
@@ -90,6 +90,9 @@ Double_t dNdEtaOOErrPrelSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 
 Double_t dNdEtaOO[numCentLambdaOO] = {(129.6660 + 106.8340) / 2, 87.2877, 67.1562, 51.1201, 37.8919, 26.9060, 21.0754, 15.8103, 11.8605, 0}; // from 60% to 90%, extrapolated with MultVsCent.C macro
 Double_t dNdEtaOOErr[numCentLambdaOO] = {(0.0335 + 0.0250) / 2, 0.0143, 0.0117, 0.0099, 0.0084, 0.0069, 0, 0, 0, 0};                         // from 60% to 90%, extrapolated with MultVsCent.C macro
 Double_t dNdEtaOOErrSyst[numCentLambdaOO] = {(4.1009 + 3.3921) / 2, 2.8101, 2.2507, 1.8847, 1.6370, 1.4909, 0.868578, 0.793424, 0.70358, 0}; // from 60% to 90%, extrapolated with MultVsCent.C macro
+Double_t dNdEtaOOT0M[numCentLambdaOO] = {(127.0460 + 105.3680) / 2, 86.1428, 66.2735, 50.5913, 38.1252, 28.2048, 20.4185, 14.3388, 9.3787, 3.3677}; // from note: https://alice-notes.web.cern.ch/system/files/notes/analysis/1678/2026-09-07-Anannote_dnchdeta_po_oo_nene_v5.pdf
+Double_t dNdEtaOOErrT0M[numCentLambdaOO] = {(0.0483 + 0.0291) / 2, 0.0153, 0.0123, 0.0105, 0.0090, 0.0077, 0, 0, 0, 0};                         // from note: https://alice-notes.web.cern.ch/system/files/notes/analysis/1678/2026-09-07-Anannote_dnchdeta_po_oo_nene_v5.pdf
+Double_t dNdEtaOOErrSystT0M[numCentLambdaOO] = {(4.6831 + 3.39433) / 2, 3.2258, 2.4183, 1.8038, 1.3571, 0.9985, 0.7368, 0.5397, 0.3944, 0.6654}; 
 Double_t EccOO[numCentLambdaOO] = {(0.302 + 0.323) / 2, 0.364, 0.421, 0.479, 0.532, 0.577, 0.614, 0.644, 0.672, 0.699};
 Double_t dNdEtaOOPrel6090 = 11.6993;
 Double_t dNdEtaOOErrPrel6090 = 0.0024;
