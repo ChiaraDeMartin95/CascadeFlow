@@ -24,7 +24,7 @@
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
 #include "CommonVarLambda.h"
-//  #include "CommonVarOmega.h"
+//   #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -160,7 +160,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     YLow[part] = {-0.001};
     // YLow[part] = {-0.0004};
     //  YUp[part] = {0.035};
-    //YUp[part] = {0.0075};
+    // YUp[part] = {0.0075};
     YUp[part] = {0.011};
   }
   if (part == 1) // for Omega
@@ -299,6 +299,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // stringout += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     stringout += "_OmegaRedCent";
+  if (ApplyK0sMassRej)
+    stringout += "_K0sMassRej";
+  if (!isT0CCentrality)
+    stringout += "_T0MCentrality";
   stringoutpdf = stringout;
   stringout += ".root";
 
@@ -375,7 +379,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
-  //LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  // LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
   LegendTitle->AddEntry("", "#bf{ALICE}", "");
   LegendTitle->AddEntry("", "PbPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
@@ -537,6 +541,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       PathIn += "_OmegaRedCent";
     if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
       PathIn += "_050PtCut";
+    if (ApplyK0sMassRej)
+      PathIn += "_PtFix_K0sMassRej";
+    if (!isT0CCentrality)
+      PathIn += "_PtFix_T0MCentrality";
     PathIn += ".root";
     cout << "Path in : " << PathIn << endl;
     fileIn[m] = TFile::Open(PathIn);
@@ -805,7 +813,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
   LegendPreliminary2->SetTextSize(0.048);
-  //LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  // LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
   LegendPreliminary2->AddEntry("", "#bf{ALICE}", "");
   // LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
@@ -1195,9 +1203,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   fpol1->SetLineColor(kBlue + 2);
   fpol0->SetLineColor(kAzure + 1);
-  
-  TH1F * fHistPzsFit = (TH1F*)fHistPzs->Clone("fHistPzsFit");
-  //TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
+
+  TH1F *fHistPzsFit = (TH1F *)fHistPzs->Clone("fHistPzsFit");
+  // TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
   if (ChosenPart >= 6)
     fHistPzsFit->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
   fHistPzsFit->Fit("fpol1", "R+");
@@ -1330,10 +1338,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     gPzsPalliLambda->SetPointError(i, 0, 0);
   }
   // TLegend *legendPalermo = new TLegend(0.14, 0.51, 0.5, 0.65);
-  TLegend *legendPalermo = new TLegend(0.14, 0.43, 0.5, 0.68);
+  TLegend *legendPalermo = new TLegend(0.14, 0.48, 0.5, 0.68);
   legendPalermo->SetFillStyle(0);
   legendPalermo->SetTextAlign(12);
-  legendPalermo->SetTextSize(0.048);
+  legendPalermo->SetTextSize(0.04);
+  legendPalermo->SetMargin(0.18);
   StyleHistoYield(fHistPzsLambdaJunlee, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
   StyleHistoYield(fHistPzsLambdaJunleeSist, YLow[part], YUp[part], colorJunlee, 47, TitleXCent, TitleYPzs, "", 2.1, 1.15, 1.8);
 
@@ -1345,8 +1354,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   if (ChosenPart >= 6) // Lambda
     legendParticles->AddEntry(fHistPzs, Form("%s, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", titleLambda.Data(), MinPt[ChosenPart]), "pef");
   else if (part == 0) // Xi
-    // legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
-    cout << "ok" << endl;
+    legendParticles->AddEntry(fHistPzs, Form("#Xi^{#minus} + #bar{#Xi}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   else if (part == 1) // Omega
     legendParticles->AddEntry(fHistPzs, Form("#Omega^{#minus} + #bar{#Omega}^{+}, |#it{#eta} | < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   if (ChosenPart >= 6)
@@ -1392,16 +1400,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gPzsPalliLambda->SetLineColor(kCyan + 1);
   gPzsPalliLambda->SetMarkerColor(kCyan + 1);
   gPzsPalliLambda->SetLineWidth(3);
-  legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
-  legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
-  legendPalermo->AddEntry(gPzsPalliXi, "#Xi + #bar{#Xi}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
-  legendPalermo->AddEntry(gPzsPalliOmega, "#Omega + #bar{#Omega}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  // legendPalermo->AddEntry(gPzsPalermo, "#Lambda + #bar{#Lambda}, Pb-Pb 5.02 TeV, #zeta/s par III", "l");
+  // legendPalermo->AddEntry("", "Eur. Phys. J.C 84 (2024) 9, 920", "");
   legendPalermo->AddEntry(gPzsPalliLambda, "#Lambda + #bar{#Lambda}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendPalermo->AddEntry(gPzsPalliXi, "#Xi^{-} + #bar{#Xi}^{+}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendPalermo->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  // legendPalermo->AddEntry(gPzsPalliOmega, "#Omega^{-} + #bar{#Omega}^{+}, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
   if (ChosenPart < 6)
   {
-    gPzsPalermo->Draw("same l");
+    // gPzsPalermo->Draw("same l");
     gPzsPalliXi->Draw("same l");
-    gPzsPalliOmega->Draw("same l");
+    // gPzsPalliOmega->Draw("same l");
     gPzsPalliLambda->Draw("same l");
   }
   // fHistPzsLambdaNeNeJunlee->Draw("same ex0");
@@ -1417,6 +1426,70 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.pdf");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.png");
   canvasPzsXiLambda->SaveAs("../XiLambdaPolVsCent.eps");
+
+  cout << "\n\n Comparison to model for Xi: " << endl;
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    cout << "\nbin " << i << ":" << fHistPzs->GetBinCenter(i) << endl;
+    cout << "data: " << fHistPzs->GetBinContent(i) << endl;
+    cout << "model: " << gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "difference: " << fHistPzs->GetBinContent(i) - gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) << " +- " << fHistPzsTotError->GetBinError(i) << endl;
+    cout << "ratio: " << fHistPzs->GetBinContent(i) / gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) << " +- " << fHistPzsTotError->GetBinError(i) / gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "nsigma : " << std::abs(fHistPzs->GetBinContent(i) - gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i))) / fHistPzsTotError->GetBinError(i) << endl;
+  }
+  cout << "\n\n Comparison of Xi to Lambda predictions at 5.36 TeV: " << endl;
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    cout << "\nbin " << i << ":" << fHistPzs->GetBinCenter(i) << endl;
+    cout << "Xi model: " << gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "Lambda model: " << gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "difference: " << gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) - gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "ratio: " << gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) / gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
+  }
+
+  TCanvas *canvasPzsRatioXiLambda = new TCanvas("canvasPzsRatioXiLambda", "canvasPzsRatioXiLambda", 900, 700);
+  StyleCanvas(canvasPzsRatioXiLambda, 0.06, 0.15, 0.1, 0.03);
+  TH1F *fHistPzsRatioXiLambda = (TH1F *)fHistPzs->Clone("fHistPzsRatioXiLambda");
+  TH1F *fHistPzsRatioXiLambdaSist = (TH1F *)fHistPzs->Clone("fHistPzsRatioXiLambdaSist");
+  TH1F *fHistPzsRatioXiLambdaFit = (TH1F *)fHistPzs->Clone("fHistPzsRatioXiLambdaFit");
+  for (Int_t i = 1; i <= fHistPzsRatioXiLambda->GetNbinsX(); i++)
+  {
+    fHistPzsRatioXiLambda->SetBinContent(i, fHistPzs->GetBinContent(i) / fHistPzsLambdaJunlee->GetBinContent(i));
+    fHistPzsRatioXiLambda->SetBinError(i, sqrt(pow(fHistPzs->GetBinError(i) / fHistPzs->GetBinContent(i), 2) + pow(fHistPzsLambdaJunlee->GetBinError(i) / fHistPzsLambdaJunlee->GetBinContent(i), 2)) * fHistPzsRatioXiLambda->GetBinContent(i));
+
+    fHistPzsRatioXiLambdaSist->SetBinContent(i, fHistPzs->GetBinContent(i) / fHistPzsLambdaJunlee->GetBinContent(i));
+    fHistPzsRatioXiLambdaSist->SetBinError(i, sqrt(pow(fHistPzsSist->GetBinError(i) / fHistPzsSist->GetBinContent(i), 2) + pow(fHistPzsLambdaJunleeSist->GetBinError(i) / fHistPzsLambdaJunleeSist->GetBinContent(i), 2)) * fHistPzsRatioXiLambdaSist->GetBinContent(i));
+  }
+  for (Int_t i = 1; i <= fHistPzsRatioXiLambdaFit->GetNbinsX(); i++)
+  {
+    fHistPzsRatioXiLambdaFit->SetBinContent(i, fHistPzsRatioXiLambda->GetBinContent(i));
+    fHistPzsRatioXiLambdaFit->SetBinError(i, sqrt(pow(fHistPzsRatioXiLambda->GetBinError(i), 2) + pow(fHistPzsRatioXiLambdaSist->GetBinError(i), 2)));
+  }
+  canvasPzsRatioXiLambda->cd();
+  TH1F *hDummyRatioXiLambda = new TH1F("hDummyRatioXiLambda", "hDummyRatioXiLambda", 10000, 0, 100);
+  for (Int_t i = 1; i <= hDummyRatioXiLambda->GetNbinsX(); i++)
+    hDummyRatioXiLambda->SetBinContent(i, -999);
+  SetFont(hDummyRatioXiLambda);
+  StyleHistoYield(hDummyRatioXiLambda, YLow[part], YUp[part], 1, 1, TitleXCent, "P_{z,s} #Xi / P_{z,s} #Lambda", "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummyRatioXiLambda, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyRatioXiLambda, tickX, tickY);
+  hDummyRatioXiLambda->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
+  hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-5, 5);
+  hDummyRatioXiLambda->Draw("");
+  fHistPzsRatioXiLambda->Draw("same");
+  fHistPzsRatioXiLambdaSist->SetFillStyle(0);
+  fHistPzsRatioXiLambdaSist->Draw("same e2");
+  fHistPzsRatioXiLambdaSist->Draw("same");
+  TF1 *lineatOneRatioXiLambda = new TF1("lineatOneRatioXiLambda", "1", 1, UpperRangeParticle);
+  lineatOneRatioXiLambda->SetLineColor(kBlack);
+  lineatOneRatioXiLambda->SetLineStyle(2);
+  lineatOneRatioXiLambda->Draw("same");
+  TF1 *fitToRatio = new TF1("fitToRatio", "[0]", 0, UpperRangeParticle);
+  fitToRatio->SetLineColor(kRed);
+  fitToRatio->SetLineStyle(1);
+  fHistPzsRatioXiLambdaFit->Fit(fitToRatio, "R0");
+  fitToRatio->Draw("same");
+  canvasPzsRatioXiLambda->SaveAs("../canvasPzsRatioXiLambda.png");
 
   Float_t xLabelMult = 35;
   Float_t xTitleMult = 35;
@@ -1482,10 +1555,20 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       // cout << "b " << b << " " << dNdEtaOO[commonNumCent - b] << endl;
       if (isOOCentrality)
       {
-        gPzsVsMult->SetPoint(b - 1, dNdEtaOO[commonNumCent - b], fHistPzs->GetBinContent(commonNumCent - b + 1));
-        gPzsVsMult->SetPointError(b - 1, dNdEtaOOErr[commonNumCent - b], fHistPzs->GetBinError(commonNumCent - b + 1));
-        gPzsVsMultSist->SetPoint(b - 1, dNdEtaOO[commonNumCent - b], fHistPzsSist->GetBinContent(commonNumCent - b + 1));
-        gPzsVsMultSist->SetPointError(b - 1, dNdEtaOOErrSyst[commonNumCent - b], fHistPzsSist->GetBinError(commonNumCent - b + 1));
+        if (!isT0CCentrality)
+        {
+          gPzsVsMult->SetPoint(b - 1, dNdEtaOOT0M[commonNumCent - b], fHistPzs->GetBinContent(commonNumCent - b + 1));
+          gPzsVsMult->SetPointError(b - 1, dNdEtaOOErrT0M[commonNumCent - b], fHistPzs->GetBinError(commonNumCent - b + 1));
+          gPzsVsMultSist->SetPoint(b - 1, dNdEtaOOT0M[commonNumCent - b], fHistPzsSist->GetBinContent(commonNumCent - b + 1));
+          gPzsVsMultSist->SetPointError(b - 1, dNdEtaOOErrSystT0M[commonNumCent - b], fHistPzsSist->GetBinError(commonNumCent - b + 1));
+        }
+        else
+        {
+          gPzsVsMult->SetPoint(b - 1, dNdEtaOO[commonNumCent - b], fHistPzs->GetBinContent(commonNumCent - b + 1));
+          gPzsVsMult->SetPointError(b - 1, dNdEtaOOErr[commonNumCent - b], fHistPzs->GetBinError(commonNumCent - b + 1));
+          gPzsVsMultSist->SetPoint(b - 1, dNdEtaOO[commonNumCent - b], fHistPzsSist->GetBinContent(commonNumCent - b + 1));
+          gPzsVsMultSist->SetPointError(b - 1, dNdEtaOOErrSyst[commonNumCent - b], fHistPzsSist->GetBinError(commonNumCent - b + 1));
+        }
       }
       else
       {
