@@ -108,7 +108,7 @@ Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 // Float_t PrimaryLambdaFraction = 0.03;
 Float_t PrimaryLambdaFraction = 0;
 // Float_t SecondaryLambdaFraction = 0.1;
-Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
+Float_t SecondaryLambdaFraction = 0.035; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
 //Float_t ZVertexErrorLambdaOO = 0.00009;
 Float_t ZVertexErrorLambdaOO = 0;
 

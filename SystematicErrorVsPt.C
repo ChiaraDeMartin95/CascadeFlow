@@ -105,7 +105,7 @@ Float_t TransferCoefficienctRelError = 0.0043;
 Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0;
-Float_t SecondaryLambdaFraction = 0.008; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
+Float_t SecondaryLambdaFraction = 0.035; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
 // Float_t ZVertexErrorLambdaOO = 0.00009;
 Float_t ZVertexErrorLambdaOO = 0;
 
@@ -211,6 +211,15 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistTotalError = nullptr;
   TH1F *fHistMean = nullptr;
 
+  TFile *fileInFDError = TFile::Open(" ../LambdaFDFractionLHC25h3b_pass2_Train591313.root");
+  TH1F *fHistFDErrorIn = (TH1F *)fileInFDError->Get("hRelSystSouravV1MinusPt");
+  if (!fHistFDErrorIn)
+  {
+    cout << "Error: histogram Reso not found" << endl;
+    return;
+  }
+  fHistFDErrorIn->SetName("hFDSystError");
+
   TFile *fileInResoError = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_Reso1PP_Pt.root");
   if (!isPtAnalysis)
     fileInResoError = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_Reso1PP_Psi.root");
@@ -223,7 +232,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistResoErrorIn->SetName("hResoSystError");
   TH1F *fHistResoError = nullptr;
 
-  TFile *fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP_Pt.root");
+  TFile *fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP_PtFix.root");
   if (!isPtAnalysis)
     fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP_Psi.root");
   TH1F *fHistPolBkg0ErrorIn = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
@@ -263,7 +272,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     fHistBkgExpoError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
   fHistBkgExpoError->Smooth(1, "R");
 
-  TFile *fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP_Pt.root");
+  TFile *fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP_PtFix.root");
   if (!isPtAnalysis)
     fileInPzFitRange = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_PzFitRangePP_Psi.root");
   TH1F *fHistPzFitRangeErrorIn = (TH1F *)fileInPzFitRange->Get("hRatioClone_1");
@@ -409,7 +418,10 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     fHistPrimaryLambdaError->Reset();
     for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
     {
-      fHistPrimaryLambdaError->SetBinContent(pt, std::abs(SecondaryLambdaFraction * fHistPzs2->GetBinContent(pt)));
+      if (!isPtAnalysis)
+        fHistPrimaryLambdaError->SetBinContent(pt, std::abs(SecondaryLambdaFraction * fHistPzs2->GetBinContent(pt)));
+      else
+        fHistPrimaryLambdaError->SetBinContent(pt, std::abs(fHistFDErrorIn->GetBinContent(pt) * fHistPzs2->GetBinContent(pt)));
       fHistPrimaryLambdaError->SetBinError(pt, 0);
     }
 
