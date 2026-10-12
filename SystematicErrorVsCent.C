@@ -567,7 +567,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistPolBkg0ErrorVsCent->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
     fHistPolBkg0ErrorVsCent->Smooth(1, "R");
   }
-  fHistMassCutAndBDTErrorVsCent->Smooth();
+  fHistMassCutAndBDTErrorVsCent->Smooth(1, "R");
   // fHistPolBkg0ErrorVsCent->Smooth();
   //  fHistResoErrorVsCent->Smooth();
   for (Int_t m = 0; m < commonNumCent; m++)
