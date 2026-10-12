@@ -174,9 +174,9 @@ void FDFraction()
     Float_t PtMax = PtBins[pt + 1];
     hFDLambdaProj2DvsPt->GetXaxis()->SetRange(hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMin + 0.01), hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMax - 0.01));
     TH1F *hFDLambdaProjPt = (TH1F *)hFDLambdaProj2DvsPt->ProjectionY(Form("FDFraction_Pt_%d_%d", Int_t(PtMin * 10), Int_t(PtMax * 10)));
-    hFDFractionLambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(2) / hFDLambdaProjPt->GetBinContent(1));
-    hFDFractionALambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(4) / hFDLambdaProjPt->GetBinContent(3));
-    hFDFractionAllLambdavsPt->SetBinContent(pt + 1, (hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)) / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(3)));
+    hFDFractionLambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(2) / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(2)));
+    hFDFractionALambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(4) / (hFDLambdaProjPt->GetBinContent(3) + hFDLambdaProjPt->GetBinContent(4)));
+    hFDFractionAllLambdavsPt->SetBinContent(pt + 1, (hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)) / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(3) + hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)));
     cout << "Pt " << PtMin << "-" << PtMax << " GeV/c: FD Lambda Fraction = " << hFDFractionLambdavsPt->GetBinContent(pt + 1) << ", FD Anti-Lambda Fraction = " << hFDFractionALambdavsPt->GetBinContent(pt + 1) << endl;
     hFDFractionLambdavsPt->SetBinError(pt + 1, sqrt(1. / hFDLambdaProjPt->GetBinContent(2) + 1. / hFDLambdaProjPt->GetBinContent(1)) * hFDFractionLambdavsPt->GetBinContent(pt + 1));
     hFDFractionALambdavsPt->SetBinError(pt + 1, sqrt(1. / hFDLambdaProjPt->GetBinContent(4) + 1. / hFDLambdaProjPt->GetBinContent(3)) * hFDFractionALambdavsPt->GetBinContent(pt + 1));
