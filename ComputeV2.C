@@ -105,7 +105,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !ExtrisFromTHN)
   {
     // SinputFile += "_Nvar20";
-    //SinputFile += "_Nvar20";
+    // SinputFile += "_Nvar20";
     SinputFile += "_Nvar1";
     if (ExtrisSysLambdaMultTrial && MultiTrialShift != 0)
       SinputFile += Form("_shift%i", MultiTrialShift);
@@ -162,8 +162,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   TProfile *pPzs2LambdaFromC[commonNumCent + 1][numPtBins + 1];
   TProfile *pPz[commonNumCent + 1][numPsiBins + 1];
   TProfile *pPzLambdaFromC[commonNumCent + 1][numPsiBins + 1];
-  TH2F *hPhiCentHisto[commonNumCent];
-  TH1F *hPhiCentHisto1D[commonNumCent][numPtBins + 1];
+  TH2F *hPhiCentHisto[commonNumCent + 1];
+  TH1F *hPhiCentHisto1D[commonNumCent + 1][numPtBins + 1];
 
   TString hName[commonNumCent + 1] = {""};
   TString hNamePzs2_3D[commonNumCent + 1] = {""};
