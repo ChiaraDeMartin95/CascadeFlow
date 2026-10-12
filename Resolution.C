@@ -257,13 +257,13 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     cout << "MeanT0CTPCA: " << MeanT0CTPCA << " MeanT0CTPCC: " << MeanT0CTPCC << " MeanTPCAC: " << MeanTPCAC << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << "MeanT0CV0A: " << MeanT0CV0A << " MeanV0ATPCA: " << MeanV0ATPCA << " MeanV0ATPCC: " << MeanV0ATPCC << "Reso: " << sqrt(MeanT0CV0A * MeanV0ATPCA / MeanV0ATPCA) << endl;
     // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
-    Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
+    Float_t RelErr2 = 1./4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t RelErr2V0ATPCA = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
-    Float_t RelErr2V0ATPCC = pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
-    Float_t RelErr2T0ATPCA = pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
-    Float_t RelErr2T0ATPCC = pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
-    Float_t RelErr2T0AT0CTPCa = pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2);
+    Float_t RelErr2V0ATPCA = 1./4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
+    Float_t RelErr2V0ATPCC = 1./4 * (pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
+    Float_t RelErr2T0ATPCA = 1./4 * (pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
+    Float_t RelErr2T0ATPCC = 1./4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
+    Float_t RelErr2T0AT0CTPCa = 1./4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
     Float_t ErrResoV0ATPCA = sqrt(RelErr2V0ATPCA * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     Float_t ErrResoV0ATPCC = sqrt(RelErr2V0ATPCC * (MeanT0CV0A * MeanT0CTPCC / MeanV0ATPCC));
     Float_t ErrResoT0ATPCA = sqrt(RelErr2T0ATPCA * (MeanT0CT0A * MeanT0CTPCA / MeanT0ATPCA));
@@ -355,13 +355,13 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     Float_t ErrMeanT0CT0A = h1QT0CT0A->GetMeanError();
     Float_t ErrMeanT0ATPCA = h1QT0ATPCA->GetMeanError();
     Float_t ErrMeanT0ATPCC = h1QT0ATPCC->GetMeanError();
-    Float_t RelErr2 = pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2);
+    Float_t RelErr2 = 1./4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t RelErr2V0A = pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2);
+    Float_t RelErr2V0A = 1./4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
     Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
-    Float_t RelErr2T0ATPCC = pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2);
+    Float_t RelErr2T0ATPCC = 1./4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
     Float_t ErrResoT0ATPCC = sqrt(RelErr2T0ATPCC * (MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
-    Float_t RelErr2T0AT0CTPCa = pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2);
+    Float_t RelErr2T0AT0CTPCa = 1./4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
     Float_t ErrResoT0AT0CTPCa = sqrt(RelErr2T0AT0CTPCa * (MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
 
     hResoPerCentBins->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
@@ -427,6 +427,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     hReso2SubEvents->GetYaxis()->SetRangeUser(0., 1.5);
     hReso2SubEvents->GetXaxis()->SetRangeUser(0., 80.);
   }
+  //hReso->SetLineColor(kWhite);
+  //hReso->SetMarkerColor(kWhite);
   hReso->Draw("");
   hReso2SubEvents->SetLineColor(kOrange + 7);
   hReso2SubEvents->SetMarkerColor(kOrange + 7);
