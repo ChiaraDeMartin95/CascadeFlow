@@ -297,7 +297,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
 
       hResoT0ATPCA->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCA / MeanT0ATPCA));
       hResoT0ATPCA->SetBinError(cent + 1, ErrResoT0ATPCA);
-      hResoT0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCC / MeanV0ATPCC));
+      hResoT0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
       hResoT0ATPCC->SetBinError(cent + 1, ErrResoT0ATPCC);
 
       hReso2T0CTPCA->SetBinContent(cent + 1, sqrt(MeanT0CTPCA));
