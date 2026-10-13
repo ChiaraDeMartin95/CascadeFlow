@@ -96,8 +96,19 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
   pad->SetBottomMargin(BMargin);
 }
 
-void FDFraction()
+void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsPrimaryFracLambda), 1: from data (Lambda from Xi spectrum)
+                // inputs used only if isFDFromData = 1
+                TString inputFileLambdaFromXi = "../LambdaFromXi.root", // output of LambdaFromXi.C
+                // outputs of ComputeEffLambda.C for Lambda (ChosenPart = 6) and AntiLambda (ChosenPart = 8): their average is used
+                TString inputFileEffLambdaFromXi = "../Efficiency/Efficiency_" + SinputFileNameEfficiency + "_" + ParticleName[6] + RapidityCoverage[0] + ".root",
+                TString inputFileEffALambdaFromXi = "../Efficiency/Efficiency_" + SinputFileNameEfficiency + "_" + ParticleName[8] + RapidityCoverage[0] + ".root",
+                // denominator: Lambda yield (1/Nevt dN/dpT) from FitV2orPol_CB.C, one file per centrality class (%i-%i = CentMin-CentMax)
+                TString inputFileDen = "../OutputAnalysis/FitPzs2_" + SinputFileNameAR + "_" + ParticleName[ChosenParticle] + "_DSCB_BkgCheb_Cent%i-%i_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_PtFix.root",
+                TString nameDen = "histoYield")
 {
+  // Fit function (LambdaFromXi.C output hLambdaFromXi_fitpwgfunc_m<i>) used for each centrality class CentFT0CLambdaOO[m]-CentFT0CLambdaOO[m+1]
+  Int_t FitIndexForCent[numCentLambdaOO] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  TString SuffixFD = isFDFromData ? "_FromData" : ""; // added to the names of the output files
 
   TString PathInFD = "../TreeForAnalysis/AnalysisResults_" + SinputFileNameFDFraction + ".root";
   TFile *fileInFD = new TFile(PathInFD, "READ");
@@ -183,6 +194,117 @@ void FDFraction()
     hFDFractionAllLambdavsPt->SetBinError(pt + 1, sqrt(1. / (hFDLambdaProjPt->GetBinContent(2) + hFDLambdaProjPt->GetBinContent(4)) + 1. / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(3))) * hFDFractionAllLambdavsPt->GetBinContent(pt + 1));
   }
 
+  // FD fraction from data: f_FD = (dN/dpT of Lambda from Xi) x (efficiency of Lambda from Xi) / (denominator)
+  // The denominator must have the same normalisation as the numerator: reconstructed (not efficiency corrected) Lambda per event per GeV/c
+  // The result replaces hFDFractionAllLambdavsCent and hFDFractionAllLambdavsPt (Lambda + ALambda) in the rest of the macro
+  TH1F *hFDFractionFromDatavsPt[numCentLambdaOO] = {nullptr};
+  if (isFDFromData)
+  {
+    TFile *fileLambdaFromXi = new TFile(inputFileLambdaFromXi, "READ");
+    TFile *fileEffLambdaFromXi = new TFile(inputFileEffLambdaFromXi, "READ");
+    TFile *fileEffALambdaFromXi = new TFile(inputFileEffALambdaFromXi, "READ");
+    if (fileLambdaFromXi->IsZombie() || fileEffLambdaFromXi->IsZombie() || fileEffALambdaFromXi->IsZombie())
+    {
+      cout << "Input file for FD fraction from data not found" << endl;
+      return;
+    }
+    if (inputFileDen.Contains("_EffW"))
+      cout << "WARNING: the yield in " << inputFileDen << " is filled with 1/efficiency weights (ExtrisApplyEffWeights = 1), i.e. it is not the raw yield" << endl;
+
+    hFDFractionAllLambdavsCent->Reset();
+    hFDFractionAllLambdavsPt->Reset();
+    TH1F *hNumIntCent = new TH1F("hNumIntCent", "hNumIntCent", numPtBins, PtBins); // sum over the centrality classes in 0-CentFT0CMaxLambdaOO
+    TH1F *hDenIntCent = new TH1F("hDenIntCent", "hDenIntCent", numPtBins, PtBins);
+    hNumIntCent->Sumw2();
+    hDenIntCent->Sumw2();
+
+    for (Int_t mul = 0; mul < numCentLambdaOO; mul++)
+    {
+      Int_t CentFT0CMin = CentFT0CLambdaOO[mul];
+      Int_t CentFT0CMax = CentFT0CLambdaOO[mul + 1];
+      TString nameLambdaFromXi = Form("hLambdaFromXi_fitpwgfunc_m%i", FitIndexForCent[mul]);
+      TString nameEffLambdaFromXi = Form("histoPtEffLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax);
+      TString inputFileDenCent = Form(inputFileDen.Data(), CentFT0CMin, CentFT0CMax);
+      TFile *fileDen = new TFile(inputFileDenCent, "READ");
+      if (fileDen->IsZombie())
+      {
+        cout << "Denominator file not found, centrality class " << CentFT0CMin << "-" << CentFT0CMax << "% skipped: " << inputFileDenCent << endl;
+        continue;
+      }
+      TString nameDenCent = nameDen + " in " + inputFileDenCent;
+      TH1 *hLambdaFromXi = (TH1 *)fileLambdaFromXi->Get(nameLambdaFromXi);
+      TH1 *hEffLambdaFromXiPart = (TH1 *)fileEffLambdaFromXi->Get(nameEffLambdaFromXi);
+      TH1 *hEffALambdaFromXiPart = (TH1 *)fileEffALambdaFromXi->Get(nameEffLambdaFromXi);
+      TH1 *hDen = (TH1 *)fileDen->Get(nameDen);
+      if (!hLambdaFromXi || !hEffLambdaFromXiPart || !hEffALambdaFromXiPart || !hDen)
+      {
+        cout << "Missing histogram for centrality " << CentFT0CMin << "-" << CentFT0CMax << "%: " << (hLambdaFromXi ? "" : nameLambdaFromXi + " ") << (hEffLambdaFromXiPart ? "" : nameEffLambdaFromXi + " (Lambda) ") << (hEffALambdaFromXiPart ? "" : nameEffLambdaFromXi + " (AntiLambda) ") << (hDen ? "" : nameDenCent) << endl;
+        return;
+      }
+      for (TH1 *h : {hLambdaFromXi, hEffLambdaFromXiPart, hEffALambdaFromXiPart, hDen})
+      {
+        Bool_t sameBinning = (h->GetNbinsX() == numPtBins);
+        for (Int_t i = 0; sameBinning && i <= numPtBins; i++)
+          sameBinning = (TMath::Abs(h->GetXaxis()->GetBinUpEdge(i) - PtBins[i]) < 1e-6);
+        if (!sameBinning)
+        {
+          cout << "Histogram " << h->GetName() << " does not have the PtBins binning" << endl;
+          return;
+        }
+      }
+
+      // average efficiency of Lambda and AntiLambda from Xi (independent MC samples -> error = sqrt(err1^2 + err2^2) / 2)
+      TH1 *hEffLambdaFromXi = (TH1 *)hEffLambdaFromXiPart->Clone(Form("histoPtEffAvgLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
+      for (Int_t pt = 1; pt <= numPtBins; pt++)
+      {
+        hEffLambdaFromXi->SetBinContent(pt, (hEffLambdaFromXiPart->GetBinContent(pt) + hEffALambdaFromXiPart->GetBinContent(pt)) / 2.);
+        hEffLambdaFromXi->SetBinError(pt, sqrt(pow(hEffLambdaFromXiPart->GetBinError(pt), 2) + pow(hEffALambdaFromXiPart->GetBinError(pt), 2)) / 2.);
+        cout << "  pt " << PtBins[pt - 1] << "-" << PtBins[pt] << ": eff Lambda from Xi = " << hEffLambdaFromXiPart->GetBinContent(pt) << ", AntiLambda = " << hEffALambdaFromXiPart->GetBinContent(pt) << ", average = " << hEffLambdaFromXi->GetBinContent(pt) << endl;
+      }
+
+      hFDFractionFromDatavsPt[mul] = new TH1F(Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
+      Double_t NumInt = 0, NumIntErr2 = 0, DenInt = 0, DenIntErr2 = 0; // pt integrated in MinPt-MaxPt
+      for (Int_t pt = 1; pt <= numPtBins; pt++)
+      {
+        Double_t Num = hLambdaFromXi->GetBinContent(pt) * hEffLambdaFromXi->GetBinContent(pt);
+        Double_t NumRelErr2 = 0;
+        if (hLambdaFromXi->GetBinContent(pt) > 0 && hEffLambdaFromXi->GetBinContent(pt) > 0)
+          NumRelErr2 = pow(hLambdaFromXi->GetBinError(pt) / hLambdaFromXi->GetBinContent(pt), 2) + pow(hEffLambdaFromXi->GetBinError(pt) / hEffLambdaFromXi->GetBinContent(pt), 2);
+        Double_t Den = hDen->GetBinContent(pt);
+        Double_t DenErr = hDen->GetBinError(pt);
+        if (Den <= 0)
+          continue;
+        Double_t Frac = Num / Den;
+        hFDFractionFromDatavsPt[mul]->SetBinContent(pt, Frac);
+        hFDFractionFromDatavsPt[mul]->SetBinError(pt, Frac * sqrt(NumRelErr2 + pow(DenErr / Den, 2)));
+
+        if (PtBins[pt - 1] >= MinPt[ChosenParticle] - 1e-6 && PtBins[pt] <= MaxPt[ChosenParticle] + 1e-6)
+        {
+          Double_t Width = hDen->GetBinWidth(pt);
+          NumInt += Num * Width;
+          NumIntErr2 += pow(Num * Width, 2) * NumRelErr2;
+          DenInt += Den * Width;
+          DenIntErr2 += pow(DenErr * Width, 2);
+        }
+        // classes of equal width in centrality have the same number of events -> per-event yields can be summed
+        if (CentFT0CMax <= CentFT0CMaxLambdaOO)
+        {
+          hNumIntCent->SetBinContent(pt, hNumIntCent->GetBinContent(pt) + Num);
+          hNumIntCent->SetBinError(pt, sqrt(pow(hNumIntCent->GetBinError(pt), 2) + Num * Num * NumRelErr2));
+          hDenIntCent->SetBinContent(pt, hDenIntCent->GetBinContent(pt) + Den);
+          hDenIntCent->SetBinError(pt, sqrt(pow(hDenIntCent->GetBinError(pt), 2) + DenErr * DenErr));
+        }
+      }
+      if (DenInt > 0)
+      {
+        hFDFractionAllLambdavsCent->SetBinContent(mul + 1, NumInt / DenInt);
+        hFDFractionAllLambdavsCent->SetBinError(mul + 1, NumInt / DenInt * sqrt(NumIntErr2 / pow(NumInt, 2) + DenIntErr2 / pow(DenInt, 2)));
+      }
+      cout << "Centrality " << CentFT0CMin << "-" << CentFT0CMax << "%: FD Fraction from data (Lambda + ALambda) = " << hFDFractionAllLambdavsCent->GetBinContent(mul + 1) << endl;
+    }
+    hFDFractionAllLambdavsPt->Divide(hNumIntCent, hDenIntCent);
+  }
+
   Float_t xTitle = 30;
   Float_t xOffset = 1.3;
   Float_t yTitle = 38;
@@ -214,21 +336,27 @@ void FDFraction()
   StyleHistoYield(hFDFractionALambdavsCent, 0, 1, kGreen + 1, 20, "Centrality (%)", "Fraction of primary #Lambda", "", 1.5, 1.5, 1.7);
   StyleHistoYield(hFDFractionAllLambdavsCent, 0, 1, kRed + 1, 20, "Centrality (%)", "Fraction of primary #Lambda", "", 1.5, 1.5, 1.7);
   hDummy->Draw("");
-  hFDFractionLambdavsCent->Draw("same");
-  hFDFractionALambdavsCent->Draw("same");
+  if (!isFDFromData) // from data only Lambda + ALambda
+  {
+    hFDFractionLambdavsCent->Draw("same");
+    hFDFractionALambdavsCent->Draw("same");
+  }
   hFDFractionAllLambdavsCent->Draw("same");
 
   TLegend *legendFDFraction = new TLegend(0.2, 0.7, 0.5, 0.9);
   legendFDFraction->SetFillStyle(0);
   legendFDFraction->SetTextAlign(12);
   legendFDFraction->SetTextSize(0.048);
-  legendFDFraction->AddEntry(hFDFractionLambdavsCent, "#Lambda", "pl");
-  legendFDFraction->AddEntry(hFDFractionALambdavsCent, "#bar{#Lambda}", "pl");
+  if (!isFDFromData)
+  {
+    legendFDFraction->AddEntry(hFDFractionLambdavsCent, "#Lambda", "pl");
+    legendFDFraction->AddEntry(hFDFractionALambdavsCent, "#bar{#Lambda}", "pl");
+  }
   legendFDFraction->AddEntry(hFDFractionAllLambdavsCent, "#Lambda + #bar{#Lambda}", "pl");
   legendFDFraction->Draw("");
 
-  canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent.pdf");
-  canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent.png");
+  canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent" + SuffixFD + ".pdf");
+  canvasFDFractionVsCent->SaveAs("../FDFraction/FDFraction_Lambda_vs_Cent" + SuffixFD + ".png");
 
   TH1F *hDummyPt = new TH1F("hDummyPt", "hDummyPt", 10000, 0, 10);
   for (Int_t i = 1; i <= hDummyPt->GetNbinsX(); i++)
@@ -243,13 +371,17 @@ void FDFraction()
   TCanvas *canvasFDFractionVsPt = new TCanvas("canvasFDFractionVsPt", "canvasFDFractionVsPt", 900, 700);
   StyleCanvas(canvasFDFractionVsPt, 0.06, 0.12, 0.15, 0.03);
   canvasFDFractionVsPt->cd();
+  hDummyPt->GetXaxis()->SetRangeUser(0, 6);
   hDummyPt->Draw("");
-  hFDFractionLambdavsPt->Draw("same");
-  hFDFractionALambdavsPt->Draw("same");
+  if (!isFDFromData)
+  {
+    hFDFractionLambdavsPt->Draw("same");
+    hFDFractionALambdavsPt->Draw("same");
+  }
   hFDFractionAllLambdavsPt->Draw("same");
   legendFDFraction->Draw("");
-  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt.pdf");
-  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt.png");
+  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt" + SuffixFD + ".pdf");
+  canvasFDFractionVsPt->SaveAs("../FDFraction/FDFraction_Lambda_vs_Pt" + SuffixFD + ".png");
 
   Float_t FDFraction[numCentLambdaOO] = {0};
   Float_t FDFractionLambda[numCentLambdaOO] = {0};
@@ -323,8 +455,8 @@ void FDFraction()
   hRelSystSouravV1Minus->SetLineStyle(3);
   hRelSystSouravV1Minus->SetLineWidth(3);
   hRelSystSouravV1Minus->Draw("same");
-  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent.pdf");
-  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent.png");
+  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent" + SuffixFD + ".pdf");
+  canvasSystFDFractionvsCent->SaveAs("../FDFraction/SystFDFraction_vs_Cent" + SuffixFD + ".png");
 
   TCanvas *canvasSystFDFractionVsPt = new TCanvas("canvasSystFDFractionVsPt", "canvasSystFDFractionVsPt", 900, 700);
   StyleCanvas(canvasSystFDFractionVsPt, 0.06, 0.15, 0.13, 0.03);
@@ -351,6 +483,7 @@ void FDFraction()
     hRelSystSouravV1PlusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr) - 1) / (1 - hFDFractionAllLambdavsPt->GetBinContent(i) * CXiToLambda * (XiLambdaRatio + XiLambdaRatioErr)));
     hRelSystSouravV1MinusPt->SetBinContent(i, hFDFractionAllLambdavsPt->GetBinContent(i) * std::abs(CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr) - 1) / (1 - hFDFractionAllLambdavsPt->GetBinContent(i) * CXiToLambda * (XiLambdaRatio - XiLambdaRatioErr)));
   }
+  hDummyPtRelError->GetXaxis()->SetRangeUser(0, 6);
   hDummyPtRelError->Draw();
   hRelSystV1Pt->SetLineColor(kRed);
   hRelSystV1Pt->SetMarkerColor(kRed);
@@ -377,10 +510,10 @@ void FDFraction()
   hRelSystSouravV1MinusPt->SetLineStyle(3);
   hRelSystSouravV1MinusPt->SetLineWidth(3);
   hRelSystSouravV1MinusPt->Draw("same");
-  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt.pdf");
-  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt.png");
+  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt" + SuffixFD + ".pdf");
+  canvasSystFDFractionVsPt->SaveAs("../FDFraction/SystFDFraction_vs_Pt" + SuffixFD + ".png");
 
-  TString stringout = "../LambdaFDFraction" + SinputFileNameFDFraction + ".root";
+  TString stringout = "../LambdaFDFraction" + SinputFileNameFDFraction + SuffixFD + ".root";
   TFile *fileout = new TFile(stringout, "RECREATE");
   hFDFractionLambdavsCent->Write();
   hFDFractionALambdavsCent->Write();
@@ -388,6 +521,13 @@ void FDFraction()
   hFDFractionRelSistVsCent->Write();
   hRelSystV1MinusPt->Write();
   hRelSystSouravV1MinusPt->Write();
+  if (isFDFromData)
+  {
+    hFDFractionAllLambdavsPt->Write();
+    for (Int_t mul = 0; mul < numCentLambdaOO; mul++)
+      if (hFDFractionFromDatavsPt[mul])
+        hFDFractionFromDatavsPt[mul]->Write();
+  }
 
   fileout->Close();
 
