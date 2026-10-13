@@ -2546,9 +2546,11 @@ void FitV2orPol_CB(
         total[pt]->SetParLimits(2, 0.001, 0.02);
         total[pt]->SetParLimits(3, 1, 10); // alphaL, 10
         total[pt]->SetParLimits(5, 1, 10); // alphaR, 10
-        total[pt]->SetParLimits(4, 5, 50); // nL, 5, 50
-        total[pt]->SetParLimits(6, 5, 50); // nR, 5, 50
-        if (PtBins[pt] >= 4)
+        //total[pt]->SetParLimits(4, 5, 50); // nL, 5, 50
+        //total[pt]->SetParLimits(6, 5, 50); // nR, 5, 50
+        total[pt]->SetParLimits(4, 5, 150);
+        total[pt]->SetParLimits(6, 5, 150); // nR, 5, 100
+        if (isPtAnalysis && pt < numPtBinsVar && PtBins[pt] >= 4)
         {
           // total[pt]->SetParLimits(3, 1, 8);   // alphaL, 10
           // total[pt]->SetParLimits(5, 1, 8);   // alphaR, 10
