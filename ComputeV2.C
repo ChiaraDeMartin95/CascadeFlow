@@ -120,12 +120,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ExtrisCentXiRed && Part == 0)
     SinputFile += "_XiRedCent";
   // SinputFile += "_SystReso.root";
-  if (ChosenPart >= 6)
-    SinputFile += "_PtFix";
   if (ApplyK0sMassRej)
-    SinputFile += "_K0sMassRej";
+    SinputFile += "_PtFix_K0sMassRej";
   if (!isT0CCentrality)
-    SinputFile += "_T0MCentrality";
+    SinputFile += "_PtFix_T0MCentrality";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
 
@@ -835,12 +833,10 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SOutputFile += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     SOutputFile += "_XiRedCent";
-  if (ChosenPart >= 6)
-    SOutputFile += "_PtFix";
   if (ApplyK0sMassRej)
-    SOutputFile += "_K0sMassRej";
+    SOutputFile += "_PtFix_K0sMassRej";
   if (!isT0CCentrality)
-    SOutputFile += "_T0MCentrality";
+    SOutputFile += "_PtFix_T0MCentrality";
   SOutputFile += ".root";
   // SOutputFile += "_SystReso.root";
   cout << "Output file: " << SOutputFile << endl;
