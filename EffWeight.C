@@ -21,7 +21,7 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
