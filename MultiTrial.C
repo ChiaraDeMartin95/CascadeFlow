@@ -331,6 +331,8 @@ void MultiTrial(
       SdefFinal += "_AcceptanceInMacro";
     if (ExtrisApplyResoOnTheFly)
       SdefFinal += "_ResoOnTheFly";
+    if (isPtAnalysis && !isPtIntegrated)
+      SdefFinal += "_PtFix";
     cout << "SdefFinal " << SdefFinal << endl;
   }
 
@@ -555,6 +557,8 @@ void MultiTrial(
         Svaried += "_AcceptanceInMacro";
       if (ExtrisApplyResoOnTheFly)
         Svaried += "_ResoOnTheFly";
+      if (isPtAnalysis && !isPtIntegrated)
+        Svaried += "_PtFix";
       cout << "Svaried " << Svaried << endl;
     }
 
@@ -1094,11 +1098,11 @@ void MultiTrial(
   hAbsoluteMaxDev->Reset();
   TH1F *hRMS = (TH1F *)hAbsoluteSyst[0]->Clone("hRMS");
   hRMS->Reset();
-  Float_t RMS = 0;
-  Int_t counter = 0;
 
   for (int pt = 0; pt < bins; pt++) // loop over pT bins
   {
+    Float_t RMS = 0;
+    Int_t counter = 0;
     // cout << "check " << hMaxDev->GetBinContent(pt + 1) << " " << hAbsoluteMaxDev->GetBinContent(pt + 1) << endl;
     for (int i = 0; i < trials; i++)
     {
@@ -1492,6 +1496,8 @@ void MultiTrial(
       OutputFile += "_ReducedPtBins";
     if (ExtrisApplyResoOnTheFly)
       OutputFile += "_ResoOnTheFly";
+    if (isPtAnalysis && !isPtIntegrated)
+      OutputFile += "_PtFix";
   }
   OutputFile += ".root";
 
