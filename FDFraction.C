@@ -520,6 +520,7 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
   hFDFractionAllLambdavsCent->Write();
   hFDFractionRelSistVsCent->Write();
   hRelSystV1MinusPt->Write();
+  hRelSystSouravV1Minus->Write();
   hRelSystSouravV1MinusPt->Write();
   if (isFDFromData)
   {
