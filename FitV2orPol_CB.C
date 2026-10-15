@@ -711,6 +711,7 @@ Float_t ftcReso[commonNumCent + 1] = {0};
 const Bool_t isFitDSCB = ExtrisFitDSCB;
 
 void FitV2orPol_CB(
+    Bool_t isRebin = 1,
     Int_t ChosenPt = 8,
     Bool_t isPtAnalysis = 1,    // 1 for V2 vs pt and Pzs2 vs pt, 0 for Pz vs 2(phi-Psi)
     Bool_t isPolFromLambda = 0, // 0: polarization of cascades computed directly, 1: polarization of cascades computed from polarization of lambdas
@@ -1322,15 +1323,15 @@ void FitV2orPol_CB(
     // SPathIn += "_SystReso";
     if (ChosenPart >= 6 && !isMassCutForAcceptance && isProducedAcceptancePlots)
       SPathIn += "_NoMassCutForAcceptance";
+    if (isRebin)
+      SPathIn += "_Rebin";
     // SPathIn += "_TestMoreBins";
     if (ExtrisCentXiRed && part == 0)
       SPathIn += "_XiRedCent";
-    if (ChosenPart >= 6)
-      SPathIn += "_PtFix";
     if (ApplyK0sMassRej)
       SPathIn += "_K0sMassRej";
     if (!isT0CCentrality)
-      SPathIn += "_T0MCentrality";
+      SPathIn += "_PtFix_T0MCentrality";
     SPathIn += ".root";
 
     if (pt == numPtBinsVar)
@@ -2546,8 +2547,8 @@ void FitV2orPol_CB(
         total[pt]->SetParLimits(2, 0.001, 0.02);
         total[pt]->SetParLimits(3, 1, 10); // alphaL, 10
         total[pt]->SetParLimits(5, 1, 10); // alphaR, 10
-        //total[pt]->SetParLimits(4, 5, 50); // nL, 5, 50
-        //total[pt]->SetParLimits(6, 5, 50); // nR, 5, 50
+        // total[pt]->SetParLimits(4, 5, 50); // nL, 5, 50
+        // total[pt]->SetParLimits(6, 5, 50); // nR, 5, 50
         total[pt]->SetParLimits(4, 5, 150);
         total[pt]->SetParLimits(6, 5, 150); // nR, 5, 100
         if (isPtAnalysis && pt < numPtBinsVar && PtBins[pt] >= 4)
@@ -2801,6 +2802,9 @@ void FitV2orPol_CB(
     lineP3Sigma[pt]->Draw("same");
     lineM3Sigma[pt]->Draw("same");
 
+    //LowLimit[pt] = 1.105;
+    //UpLimit[pt] = 1.125;
+
     b[pt] = 0;
     errb[pt] = 0;
     if (BkgType == 0)
@@ -2950,7 +2954,6 @@ void FitV2orPol_CB(
       v2FitFunction[pt]->FixParameter(1, 0); // bkg v2 constant
       v2FitFunction[pt]->FixParameter(2, 0); // bkg v2 constant
     }
-    // hV2[pt]->Rebin(2);
     // hV2[pt]->Fit(v2FitFunction[pt], "R0");
     Double_t PzBkgError = 0;
     v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
@@ -3124,7 +3127,7 @@ void FitV2orPol_CB(
     if (isV2)
       StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
     // else StyleHisto(hV2MassIntegrated[pt], 0, 1.2 * hV2MassIntegrated[pt]->GetBinContent(hV2MassIntegrated[pt]->GetMaximumBin()), 1, 20, "v_{2}", "Counts", SPt[pt] + " GeV/#it{c}", 1, -100, 100, 1.4, 1.6, 0.7);
-    //  hV2MassIntegrated[pt]->Rebin(2);
+    // hV2MassIntegrated[pt]->Rebin(2);
 
     hCos2ThetaMassIntegrated[pt] = (TH1F *)hmassVsCos2Theta[pt]->ProjectionX(Form("Cos2ThetavsMass_cent%i-%i_pt%i", CentFT0CMin, CentFT0CMax, pt), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(LowLimit[pt]), hmassVsCos2Theta[pt]->GetYaxis()->FindBin(UpLimit[pt]));
     StyleHisto(hCos2ThetaMassIntegrated[pt], 0, 1.2 * hCos2ThetaMassIntegrated[pt]->GetBinContent(hCos2ThetaMassIntegrated[pt]->GetMaximumBin()), 1, 20, "cos(2#theta)", "Counts", SPt[pt] + " GeV/#it{c}", 1, -1, 1, 1.4, 1.6, 0.7);
@@ -3781,15 +3784,15 @@ void FitV2orPol_CB(
     Soutputfile += "_NoMassCutForAcceptance";
     SoutputfileAcceptance += "_NoMassCutForAcceptance";
   }
+  if (isRebin)
+    Soutputfile += "_Rebin";
   // Soutputfile += "_TestMoreBins";
   if (ExtrisCentXiRed && part == 0)
     Soutputfile += "_XiRedCent";
-  if (ChosenPart >= 6)
-    Soutputfile += "_PtFix";
   if (ApplyK0sMassRej)
     Soutputfile += "_K0sMassRej";
   if (!isT0CCentrality)
-    Soutputfile += "_T0MCentrality";
+    Soutputfile += "_PtFix_T0MCentrality";
 
   // save canvases
   canvas[0]->SaveAs(Soutputfile + ".pdf(");

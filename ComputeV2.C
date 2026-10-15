@@ -18,15 +18,16 @@
 // #include "CommonVarXi.h"
 #include "CommonVarLambda.h"
 
-void ComputeV2(Int_t indexMultTrial = 0,
-               Int_t ChosenPart = ChosenParticle,
-               Bool_t isMC = 0,
-               Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
-               Bool_t isRapiditySel = ExtrisRapiditySel,
-               TString inputFileName = SinputFileName,
-               Int_t RebinFactor = 1,
-               Int_t EtaSysChoice = ExtrEtaSysChoice,
-               Bool_t isSysMultTrial = ExtrisSysMultTrial)
+void ComputeV2(
+    Int_t RebinFactor = 2,
+    Int_t indexMultTrial = 0,
+    Int_t ChosenPart = ChosenParticle,
+    Bool_t isMC = 0,
+    Bool_t isMassCutForAcceptance = 1, // default is 1, with 0 we have no mass cut so to be able to do the fit of acceptance vs mass; only for LAMBDA
+    Bool_t isRapiditySel = ExtrisRapiditySel,
+    TString inputFileName = SinputFileName,
+    Int_t EtaSysChoice = ExtrEtaSysChoice,
+    Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
   if (ExtrisSysLambdaMultTrial && indexMultTrial == 0 && MultiTrialShift != 0)
@@ -121,7 +122,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
     SinputFile += "_XiRedCent";
   // SinputFile += "_SystReso.root";
   if (ApplyK0sMassRej)
-    SinputFile += "_PtFix_K0sMassRej";
+    SinputFile += "_K0sMassRej";
   if (!isT0CCentrality)
     SinputFile += "_PtFix_T0MCentrality";
   SinputFile += ".root";
@@ -827,6 +828,8 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ChosenPart >= 6 && !isMassCutForAcceptance)
     SOutputFile += "_NoMassCutForAcceptance";
   // SOutputFile += "_TestMoreBins";
+  if (RebinFactor != 1)
+    SOutputFile += "_Rebin";
   if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
     SOutputFile += "_050PtCut";
   if (ExtrisCentOmegaRed && Part == 1)
@@ -834,7 +837,7 @@ void ComputeV2(Int_t indexMultTrial = 0,
   if (ExtrisCentXiRed && Part == 0)
     SOutputFile += "_XiRedCent";
   if (ApplyK0sMassRej)
-    SOutputFile += "_PtFix_K0sMassRej";
+    SOutputFile += "_K0sMassRej";
   if (!isT0CCentrality)
     SOutputFile += "_PtFix_T0MCentrality";
   SOutputFile += ".root";
