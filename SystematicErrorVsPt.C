@@ -99,13 +99,13 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0.0015};
 
-Float_t AccRelError[numCent + 1] = {0.05, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.02};
+Float_t AccRelError[numPtBins] = {0.05, 0.05, 0.03, 0.01, 0.01, 0.02, 0.03, 0.03};
 Float_t LambdaDecayParameterRelError = 0.01;
 Float_t TransferCoefficienctRelError = 0.0043;
 Float_t RunByRunAccRelError = 0.01;
 Float_t ResoRelError[numCentLambdaOO + 1] = {0};
 Float_t PrimaryLambdaFraction = 0;
-Float_t SecondaryLambdaFraction = 0.035; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
+Float_t SecondaryLambdaFraction = 0.04; // only considering feed-down from Xi decays, not from higher mass resonances decaying into Lambdas
 // Float_t ZVertexErrorLambdaOO = 0.00009;
 Float_t ZVertexErrorLambdaOO = 0;
 
@@ -206,12 +206,13 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistMeanSystMultiTrialMean = nullptr;
   TH1F *fHistPrimaryLambdaError = nullptr;
   TH1F *fHistDecayParError = nullptr;
+  TH1F *fHistAccError = nullptr;
   TH1F *fHistZVertexError = nullptr;
 
   TH1F *fHistTotalError = nullptr;
   TH1F *fHistMean = nullptr;
 
-  TFile *fileInFDError = TFile::Open(" ../LambdaFDFractionLHC25h3b_pass2_Train591313.root");
+  TFile *fileInFDError = TFile::Open("../LambdaFDFractionLHC25h3b_pass2_Train591313_FromData.root");
   TH1F *fHistFDErrorIn = (TH1F *)fileInFDError->Get("hRelSystSouravV1MinusPt");
   if (!fHistFDErrorIn)
   {
@@ -250,7 +251,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   }
   if (isPtAnalysis)
     fHistPolBkg0Error->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
-  fHistPolBkg0Error->Smooth(1, "R");
+  //fHistPolBkg0Error->Smooth(1, "R");
 
   TFile *fileInBkgExpo = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_2GaussPlusPol2PP_Pt.root");
   if (!isPtAnalysis)
@@ -285,7 +286,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistPzFitRangeError = (TH1F *)fHistPzFitRangeErrorIn->Clone("hPzFitRangeSystError");
   for (Int_t i = 1; i <= fHistPzFitRangeError->GetNbinsX(); i++)
   {
-    fHistPzFitRangeError->SetBinContent(i, std::abs(fHistPzFitRangeError->GetBinContent(i)));
+    fHistPzFitRangeError->SetBinContent(i, std::abs(fHistPzFitRangeErrorIn->GetBinContent(i)));
     fHistPzFitRangeError->SetBinError(i, 0);
   }
   if (isPtAnalysis)
@@ -409,9 +410,13 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
       return;
     }
     fHistMassCutAndBDTError->SetName("hAbsoluteSystErrorMassCutAndBDT_" + Smolt[m]);
-    if (isPtAnalysis)
-      fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+    if (isPtAnalysis){
+      fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(1, PtBins[numPtBins - 1]);
+    }
     fHistMassCutAndBDTError->Smooth(1, "R");
+    if (isPtAnalysis){
+      fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
+    }
 
     // primary Lambdas
     fHistPrimaryLambdaError = (TH1F *)fHistPzs2->Clone("fHistPrimaryLambdaError");
@@ -432,6 +437,15 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     {
       fHistDecayParError->SetBinContent(pt, std::abs(LambdaDecayParameterRelError * fHistPzs2->GetBinContent(pt)));
       fHistDecayParError->SetBinError(pt, 0);
+    }
+
+    // acceptance error
+    fHistAccError = (TH1F *)fHistPzs2->Clone("fHistAccError");
+    fHistAccError->Reset();
+    for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
+    {
+      fHistAccError->SetBinContent(pt, AccRelError[pt - 1] * std::abs(fHistPzs2->GetBinContent(pt)));
+      fHistAccError->SetBinError(pt, 0);
     }
 
     // Z vertex error
@@ -468,6 +482,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
                                                      fHistPrimaryLambdaError->GetBinContent(pt) * fHistPrimaryLambdaError->GetBinContent(pt) +
                                                      fHistResoError->GetBinContent(pt) * fHistResoError->GetBinContent(pt) +
                                                      fHistDecayParError->GetBinContent(pt) * fHistDecayParError->GetBinContent(pt) +
+                                                     fHistAccError->GetBinContent(pt) * fHistAccError->GetBinContent(pt) +
                                                      fHistZVertexError->GetBinContent(pt) * fHistZVertexError->GetBinContent(pt) +
                                                      fHistPolBkg0Error->GetBinContent(pt) * fHistPolBkg0Error->GetBinContent(pt) +
                                                      fHistPzFitRangeError->GetBinContent(pt) * fHistPzFitRangeError->GetBinContent(pt) +
@@ -508,6 +523,9 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistMassCutAndBDTError->SetLineColor(kGreen + 2);
   fHistPrimaryLambdaError->SetLineColor(kOrange + 2);
   fHistResoError->SetLineColor(kMagenta);
+  fHistAccError->SetLineColor(kCyan);
+  fHistAccError->SetLineStyle(2);
+  fHistAccError->SetLineWidth(3);
   fHistDecayParError->SetLineColor(kRed + 1);
   fHistPolBkg0Error->SetLineColor(kGray + 1);
   fHistPolBkg0Error->SetLineStyle(2);
@@ -525,6 +543,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistDecayParError->Draw("same");
   fHistPrimaryLambdaError->Draw("same");
   fHistResoError->Draw("same");
+  fHistAccError->Draw("same");
   fHistPolBkg0Error->Draw("same");
   fHistPzFitRangeError->Draw("same");
   fHistBkgExpoError->Draw("same");
@@ -545,6 +564,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->AddEntry(fHistBkgExpoError, "Background fit function", "l");
   legend->AddEntry(fHistDecayParError, "Decay parameter", "l");
   legend->AddEntry(fHistTotalError, "Total", "l");
+  legend->AddEntry(fHistAccError, "Acceptance", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.png", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.pdf", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
@@ -558,6 +578,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistPzFitRangeRelError = (TH1F *)fHistPzs2->Clone("fHistPzFitRangeRelError");
   TH1F *fHistBkgExpoRelError = (TH1F *)fHistPzs2->Clone("fHistBkgExpoRelError");
   TH1F *fHistZVertexRelError = (TH1F *)fHistZVertexError->Clone("fHistZVertexRelError");
+  TH1F *fHistAccRelError = (TH1F *)fHistAccError->Clone("fHistAccRelError");
   TH1F *fHistTotalRelError = (TH1F *)fHistTotalError->Clone("fHistTotalRelError");
   fHistPolBkg0RelError->SetLineColor(kGray + 1);
   fHistPolBkg0RelError->SetLineStyle(2);
@@ -574,6 +595,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     fHistPrimaryLambdaRelError->SetBinContent(pt, fHistPrimaryLambdaError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
     fHistResoRelError->SetBinContent(pt, fHistResoError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
     fHistDecayParRelError->SetBinContent(pt, fHistDecayParError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
+    fHistAccRelError->SetBinContent(pt, fHistAccError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
     fHistPolBkg0RelError->SetBinContent(pt, fHistPolBkg0Error->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
     fHistPzFitRangeRelError->SetBinContent(pt, fHistPzFitRangeError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
     fHistBkgExpoRelError->SetBinContent(pt, fHistBkgExpoError->GetBinContent(pt) / TMath::Abs(fHistPzs2->GetBinContent(pt)));
@@ -615,6 +637,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPzFitRangeRelError->Draw("same");
   fHistBkgExpoRelError->Draw("same");
   // fHistZVertexRelError->Draw("same");
+  fHistAccRelError->Draw("same"); 
   fHistTotalRelError->Draw("same");
   //  legend->Draw("same");
   for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)

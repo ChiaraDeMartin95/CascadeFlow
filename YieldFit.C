@@ -35,7 +35,7 @@ TF1 *GetLevidNdpt(Double_t norm, Double_t n, Double_t temp, Double_t mass, const
   snprintf(formula, 500, "( x*[0]*([1]-1)*([1]-2)  )/( [1]*[2]*( [1]*[2]+[3]*([1]-2) )  ) * pow( 1 + (sqrt([3]*[3]+x*x) -[3])/([1]*[2])  , -[1])");
   TF1 *fLastFunc = new TF1(name, formula, 0, 10);
   fLastFunc->SetParameters(norm, n, temp, mass);
-  fLastFunc->SetParNames("norm (dN/dy)", "n", "T", "mass");
+  fLastFunc->SetParNames("norm", "n", "T", "mass");
   fLastFunc->FixParameter(3, mass);
   fLastFunc->SetLineWidth(1);
   return fLastFunc;
@@ -128,7 +128,7 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 // take spectra in input
 // fits them to get pt-integrated yields
 
-void YieldFit(Int_t ChosenPart = ChosenParticle)
+void YieldFit()
 {
 
   // multiplicity related variables
@@ -260,7 +260,7 @@ void YieldFit(Int_t ChosenPart = ChosenParticle)
   {
     cout << "Processing multiplicity class: " << m << endl;
     namepwgfunc[m] = Form("fitpwgfunc_m%i", m);
-    fit_pwgfunc[m] = GetLevidNdpt(0.04 * factor, 7, 0.1, ParticleMassPDG[ChosenPart], namepwgfunc[m]);
+    fit_pwgfunc[m] = GetLevidNdpt(0.04 * factor, 7, 0.1, 1.32171, namepwgfunc[m]); //Xi mass: 1.32171
     fit_pwgfunc[m]->SetParLimits(0, 0, fHistSpectrumStat[m]->GetBinContent(fHistSpectrumStat[m]->GetMaximumBin()) * 0.5 * 10); // norm
     fit_pwgfunc[m]->SetParLimits(1, 2, 30);                                                                                    // n
     fit_pwgfunc[m]->SetParLimits(2, 0.1, 10);                                                                                  // T
