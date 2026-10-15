@@ -20,14 +20,14 @@ Bool_t ExtrisRapiditySel = 0; // 0: |eta| < 0.8, 1: |y| < 0.5 (for Pzs2),
 Bool_t ExtrisPartialEta = 0;  // 1: select only 0 < eta < 0.8 (opposite to FT0C)
 Bool_t isApplyWeights = 0;    // weights to flatten the phi distribution of cascades
 Bool_t isApplyCentWeight = 1; // 0 for acceptance from THN
-Bool_t isT0CCentrality = 1; //variation 0: to apply T0M centrality
+Bool_t isT0CCentrality = 1;   // variation 0: to apply T0M centrality
 Bool_t ExtrisApplyEffWeights = 1;
 Bool_t isApplyAcceptanceInMacro = 1;
-//TString SinputFileNameAcc = "LHC25_OO_pass2_Train598890";
-// TString SinputFileNameAcc = "LHC25_OO_pass2_Train767332"; //|z| < 8 cm
-TString SinputFileNameAcc = "LHC25_OO_pass2_Train776588"; //mass rej
+TString SinputFileNameAcc = "LHC25_OO_pass2_Train598890";
+//  TString SinputFileNameAcc = "LHC25_OO_pass2_Train767332"; //|z| < 8 cm
+// TString SinputFileNameAcc = "LHC25_OO_pass2_Train776588"; // mass rej
 Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance from THN
-Bool_t ApplyK0sMassRej = 1; //default: 0
+Bool_t ApplyK0sMassRej = 0;         // default: 0
 Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
 Bool_t ExtrisFromTHN = 0;           // 1 for acceptance from THN, 0 for acceptance from tree, 0 for analysis; 0: process the tree, 1: process the THnSparse
 Bool_t isReducedPtBins = 1;         // 0 for acceptance
@@ -87,7 +87,7 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train598890";
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; // for PRELIMINARIES 2026
-//TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly //for paper proposal
+TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly //for paper proposal
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_T0ATest2";
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
@@ -100,9 +100,9 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train753645"; // ctau < 30 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train767332";
 // TString SinputFileName = "LHC25_OO_pass2_Train768474"; // |z| < 8 cm
-//TString SinputFileName = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
-//TString SinputFileName = "LHC25_OO_pass2_Train776588"; //to apply K0s mass rejection
-TString SinputFileName = "LHC25_OO_pass2_Train776588"; //to compute polarization vs T0M centrality
+// TString SinputFileName = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
+//TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to apply K0s mass rejection
+// TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to compute polarization vs T0M centrality
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
@@ -110,8 +110,8 @@ TString SinputFileNameMC = "";
 // To get number of analyzed events
 // TString SinputFileNameAR = "LHC25_OO_pass2_Train598890";
 // TString SinputFileNameAR = "LHC25_OO_pass2_T0ATest2";
-TString SinputFileNameAR = "LHC25_OO_pass2_Train742311"; //Default for paper proposal
-//TString SinputFileNameAR = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
+TString SinputFileNameAR = "LHC25_OO_pass2_Train742311"; // Default for paper proposal
+// TString SinputFileNameAR = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
 
 // File name for centrality weights
 // TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train503805";
@@ -119,14 +119,14 @@ TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
 // File name for efficiency weights
 // TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
-TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
+// TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
 // TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; //Romain efficiency
 TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_Lambda_Eta08.root";
 TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_AntiLambda_Eta08.root";
-//TString SinputFileNameEfficiency = "secondaryL";
-//TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776616"; //to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 0.5)
-//TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776615"; //to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 1.0)
-//TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train777272"; //to compute secondary lambda efficiency for FD (no eta cut on gen Lambda at denom, |yXi_gen| < 0.5)
+// TString SinputFileNameEfficiency = "secondaryL";
+TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776616"; // new efficiency weights up to 10 GeV/c, to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 0.5)
+// TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776615"; //to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 1.0)
+// TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train777272"; //to compute secondary lambda efficiency for FD (no eta cut on gen Lambda at denom, |yXi_gen| < 0.5)
 
 // File name for resolution weights
 // TString SinputFileNameResoWeight = "Resolution_SP_CFW_LHC25_OO_pass2_Train510916.root";
@@ -168,7 +168,7 @@ const bool useMixedBDTValueInFitMacro = 0;                         // variable u
 const double BDTscoreCutPtInt[numCent + 1] = {0.8, 0.8, 0.6, 0.52, 0.44, 0.2, 0.2, 0.2, 0.56}; // BDT cut for integrated pt measurement
 const float LimitForV2woFit = 0.97;                                                            // purity limit to decide whether to extract v2 from fit or not
 bool isTightMassCut = 1;                                                                       // 1 for tight mass cut, 0 for loose mass cut
-float Extrsigmacentral[2] = {4.2, 2.1};                                                      // 2.1
+float Extrsigmacentral[2] = {4.2, 2.1};                                                        // 2.1
 const double BDTscoreCutPtIntLoosest[numCent + 1] = {0.96, 0.92, 0.88, 0.76, 0.52, 0.4, 0.24, 0.2, 0.92};
 // BDT cut for integrated pt measurement, loosest cut that give a purity > 0.95 within Extrsigmacentral[1];
 
