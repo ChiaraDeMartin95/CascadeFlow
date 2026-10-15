@@ -444,7 +444,10 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
     fHistAccError->Reset();
     for (Int_t pt = 1; pt <= fHistPzs2->GetNbinsX(); pt++)
     {
-      fHistAccError->SetBinContent(pt, AccRelError[pt - 1] * std::abs(fHistPzs2->GetBinContent(pt)));
+      if (isPtAnalysis)
+        fHistAccError->SetBinContent(pt, AccRelError[pt - 1] * std::abs(fHistPzs2->GetBinContent(pt)));
+      else
+        fHistAccError->SetBinContent(pt, 0);
       fHistAccError->SetBinError(pt, 0);
     }
 
@@ -543,7 +546,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistDecayParError->Draw("same");
   fHistPrimaryLambdaError->Draw("same");
   fHistResoError->Draw("same");
-  fHistAccError->Draw("same");
+  if (isPtAnalysis) fHistAccError->Draw("same");
   fHistPolBkg0Error->Draw("same");
   fHistPzFitRangeError->Draw("same");
   fHistBkgExpoError->Draw("same");
@@ -564,7 +567,7 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->AddEntry(fHistBkgExpoError, "Background fit function", "l");
   legend->AddEntry(fHistDecayParError, "Decay parameter", "l");
   legend->AddEntry(fHistTotalError, "Total", "l");
-  legend->AddEntry(fHistAccError, "Acceptance", "l");
+  if (isPtAnalysis) legend->AddEntry(fHistAccError, "Acceptance", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.png", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.pdf", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
@@ -637,7 +640,8 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPzFitRangeRelError->Draw("same");
   fHistBkgExpoRelError->Draw("same");
   // fHistZVertexRelError->Draw("same");
-  fHistAccRelError->Draw("same"); 
+  if (isPtAnalysis)
+    fHistAccRelError->Draw("same"); 
   fHistTotalRelError->Draw("same");
   //  legend->Draw("same");
   for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)
