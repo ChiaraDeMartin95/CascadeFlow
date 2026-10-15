@@ -118,12 +118,13 @@ Int_t colorJunlee = kAzure - 3;
 Int_t ColorOO = kMagenta + 1;
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
+                     Bool_t isRebin = 1,
+                     Bool_t isBkgPol = 1,
                      Bool_t isPolFromLambda = 0,
                      Bool_t isFromFit = 1,
                      Bool_t isGlobalFit = 0,
                      Bool_t isFitDSCB = ExtrisFitDSCB,
                      Bool_t isFDCorrected = 0,
-                     Bool_t isBkgPol = 1,
                      Bool_t isTighterPzFitRange = 0,
                      Bool_t isRapiditySel = ExtrisRapiditySel,
                      Int_t BkgType = ExtrBkgType,
@@ -140,9 +141,10 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     cout << "Reduced pt bins are selected, but numPtBins is not set to numPtBinsReduced. Please check the settings." << endl;
     return;
   }
-  Int_t ChosenPt = -999;
-  cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
-  cin >> ChosenPt;
+  // Int_t ChosenPt = -999;
+  Int_t ChosenPt = 100;
+  //cout << "Type 100 if you want to analyse Pz (integrated in pT), or the number of the pt interval you want" << endl;
+  //cin >> ChosenPt;
 
   Int_t part = 0;
   if (ChosenPart == 1 || ChosenPart == 4 || ChosenPart == 5)
@@ -274,8 +276,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
     stringout += "_EPReso";
-  if (!isFromFit)
-    stringout += "_NoPurityDivision";
+  // if (!isFromFit)
+  //   stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
     stringout += "_isBkgPol0";
   // stringout += "_SystReso";
@@ -293,6 +295,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   if (ExtrisApplyEffWeights)
     stringout += "_EffW";
+  if (isRebin)
+    stringout += "_Rebin";
   // stringout += "_TestMoreBins";
   if (isGlobalFit)
     stringout += "_GlobalFit";
@@ -537,12 +541,14 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     if (isTighterPzFitRange)
       PathIn += "_TighterPzFitRange";
     // PathIn += "_NegativeC";
+    if (isRebin)
+      PathIn += "_Rebin";
     if (ExtrisCentOmegaRed && part == 1)
       PathIn += "_OmegaRedCent";
     if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
       PathIn += "_050PtCut";
     if (ApplyK0sMassRej)
-      PathIn += "_PtFix_K0sMassRej";
+      PathIn += "_K0sMassRej";
     if (!isT0CCentrality)
       PathIn += "_PtFix_T0MCentrality";
     PathIn += ".root";
@@ -553,7 +559,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt" + V2FromFit[isFromFit]);
       if (isGlobalFit)
         fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntGlobal" + V2FromFit[isFromFit]);
-      fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "BkgPtInt" + V2FromFit[isFromFit]);
+      fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "BkgPtInt");
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYieldPtInt");
@@ -568,7 +574,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
       if (isGlobalFit)
         fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
-      fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg" + V2FromFit[isFromFit]);
+      fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg");
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
       fHistYield[m] = (TH1F *)fileIn[m]->Get("histoYield");
@@ -635,12 +641,12 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     if (!isFromFit)
     {
-      // fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
-      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
-      // fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
-      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
-      // fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
-      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
+      fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzs->SetBinContent(m + 1, fHistSpectrum[m]->GetBinContent(1));
+      fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzs->SetBinError(m + 1, fHistSpectrum[m]->GetBinError(1));
+      fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1) / fHistPurity[m]->GetBinContent(1));
+      // fHistPzsError->SetBinContent(m + 1, fHistSpectrum[m]->GetBinError(1));
       fHistPzsError->SetBinError(m + 1, 0);
       fHistPzsBkgUnderPeak->SetBinContent(m + 1, fHistPzsBkg[m]->GetBinContent(1));
       fHistPzsBkgUnderPeak->SetBinError(m + 1, fHistPzsBkg[m]->GetBinError(1));

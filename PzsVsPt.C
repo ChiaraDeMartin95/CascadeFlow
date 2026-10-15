@@ -119,12 +119,13 @@ Int_t ColorJunlee = kGreen + 1;
 Int_t ColorOO = kMagenta + 1;
 
 void PzsVsPt(Int_t ChosenPart = ChosenParticle,
+             Bool_t isRebin = 1,
+             Bool_t isBkgPol = 1,
              Bool_t isPolFromLambda = 0,
              Bool_t isFromFit = 1,
              Bool_t isGlobalFit = 0,
              Bool_t isFitDSCB = ExtrisFitDSCB,
              Bool_t isFDCorrected = 0,
-             Bool_t isBkgPol = 1,
              Bool_t isTighterPzFitRange = 0,
              Bool_t isRapiditySel = ExtrisRapiditySel,
              Int_t BkgType = ExtrBkgType,
@@ -249,8 +250,6 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     stringout += "_ResoOnTheFly";
   if (ChosenPart == 0)
     stringout += "_EPReso";
-  if (!isFromFit)
-    stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
     stringout += "_isBkgPol0";
   // stringout += "_SystReso";
@@ -268,14 +267,15 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   }
   if (ExtrisApplyEffWeights)
     stringout += "_EffW";
+  if (isRebin)
+    stringout += "_Rebin";
   // stringout += "_TestMoreBins";
   if (isGlobalFit)
     stringout += "_GlobalFit";
   // stringout += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     stringout += "_OmegaRedCent";
-  //stringout += "_PtFix2Bins";
-  stringout += "_PtFix";
+  // stringout += "_PtFix2Bins";
   if (ApplyK0sMassRej)
     stringout += "_K0sMassRej";
   if (!isT0CCentrality)
@@ -396,17 +396,18 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   // PathIn += "_SystReso";
   if (isTighterPzFitRange)
     PathIn += "_TighterPzFitRange";
+  if (isRebin)
+    PathIn += "_Rebin";
   // PathIn += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
     PathIn += "_OmegaRedPt";
   if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
     PathIn += "_050PtCut";
-  //PathIn += "_PtFix2Bins";
-  PathIn += "_PtFix";
+  // PathIn += "_PtFix2Bins";
   if (ApplyK0sMassRej)
     PathIn += "_K0sMassRej";
   if (!isT0CCentrality)
-    PathIn += "_T0MCentrality";
+    PathIn += "_PtFix_T0MCentrality";
   PathIn += ".root";
   cout << "Path in : " << PathIn << endl;
 
@@ -415,7 +416,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
   if (isGlobalFit)
     fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
-  fHistPzsBkg = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg" + V2FromFit[isFromFit]);
+  fHistPzsBkg = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg");
   fHistPurity = (TH1F *)fileIn->Get("histoPurity");
   fHistSignificance = (TH1F *)fileIn->Get("histoSignificance");
   fHistYield = (TH1F *)fileIn->Get("histoYield");
@@ -527,6 +528,14 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     return;
   }
   TH1F *fHistPzsSist = (TH1F *)fHistPzs->Clone("fHistPzsSist");
+  if (!isFromFit)
+  {
+    for (Int_t pt = 1; pt < fHistPzs->GetNbinsX(); pt++)
+    {
+      fHistPzs->SetBinContent(pt, fHistPzs->GetBinContent(pt) / fHistPurity->GetBinContent(pt));
+      fHistPzs->SetBinError(pt, fHistPzs->GetBinError(pt) / fHistPurity->GetBinContent(pt));
+    }
+  }
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
     // fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
