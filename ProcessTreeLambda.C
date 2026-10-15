@@ -247,7 +247,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   TString centralityVar = isT0CCentrality == 0 ? "fCentT0M" : "fCentFT0C";
 
   // pt vs centrality before selections
-  auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
+  auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, centralityVar, "fPt");
 
   auto histoBefV0Radius = d2.Histo1D({"histoBefV0Radius", "V0 Radius Distribution", 100, 0, 10}, "fV0Radius");
   auto histoBefDcaV0Daughters = d2.Histo1D({"histoBefDcaV0Daughters", "DCA V0 Daughters Distribution", 100, 0, 2}, "fDcaV0Daughters");
@@ -445,7 +445,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   */
 
   // pt vs centrality after selections
-  auto hPtvsCent_AftSel = df_selected.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, "fCentFT0C", "fPt");
+  auto hPtvsCent_AftSel = df_selected.Histo2D({"PtvsCent_AftSel", "PtvsCent_AftSel", 100, 0, 100, 400, 0, 20}, centralityVar, "fPt");
 
   // invariant mass histograms
   auto hmass = df_selected.Histo1D({"mass_Lambda", "Invariant mass of p#pi", 100, 1.09, 1.14}, "fMassLambda");
@@ -587,21 +587,21 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   df_selected = df_selected.DefineSlot("fCentWeight", [&centWeight](unsigned int, float cent)
                                        {
     if (cent < 0. || cent > 100.) return 0.;
-    else return centWeight[static_cast<int>(cent)]; }, {"fCentFT0C"});
-  //  df_selected.Display({"fCentFT0C", "fCentWeight"}, 128)->Print();
+    else return centWeight[static_cast<int>(cent)]; }, {centralityVar});
+  //  df_selected.Display({centralityVar, "fCentWeight"}, 128)->Print();
   //  return;
 
   df_selected = df_selected.DefineSlot("fResoWeight", [&resoWeight](unsigned int, float cent)
                                        {
     if (cent < 0. || cent > 100.) return 0.;
-    else return resoWeight[static_cast<int>(cent)]; }, {"fCentFT0C"});
-  //  df_selected.Display({"fCentFT0C", "fResoWeight"}, 128)->Print();
+    else return resoWeight[static_cast<int>(cent)]; }, {centralityVar});
+  //  df_selected.Display({centralityVar, "fResoWeight"}, 128)->Print();
 
   df_selected = df_selected.DefineSlot("fEffWeight", [&hEffWeightL, &hEffWeightAL](unsigned int, float pt, float cent, short sign)
                                        {
     if (sign==(short)0) return hEffWeightL->GetBinContent(hEffWeightL->FindBin(pt, cent+0.001));
     else if (sign==(short)1)  return hEffWeightAL->GetBinContent(hEffWeightAL->FindBin(pt, cent+0.001)); 
-    else return 0.; }, {"fPt", "fCentFT0C", "fSign"});
+    else return 0.; }, {"fPt", centralityVar, "fSign"});
 
   /*
 df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAcceptanceALVec](unsigned int, float pt, float eta, short sign)
@@ -678,19 +678,19 @@ df_selected = df_selected.DefineSlot("fAcceptance", [&hAcceptanceLVec, &hAccepta
 
   auto profileCos2Psi = df_selected.Profile1D(
       {"profileCos2Psi", "Mean cos(2*psi) vs X;X;Mean cos(2*psi)", 10, 0., 100.},
-      "fCentFT0C",
+      centralityVar,
       "fCos2Psi");
   auto profileSin2Psi = df_selected.Profile1D(
       {"profileSin2Psi", "Mean sin(2*psi) vs X;X;Mean sin(2*psi)", 10, 0., 100.},
-      "fCentFT0C",
+      centralityVar,
       "fSin2Psi");
   auto profileSin2PsiDiff = df_selected.Profile1D(
       {"profileSin2PsiDiff", "Mean sin(2*(psi1-psi2)) vs X;X;Mean sin(2*(psi1-psi2))", 10, 0., 100.},
-      "fCentFT0C",
+      centralityVar,
       "fSin2PsiDiff");
   auto profileCosTheta = df_selected.Profile1D(
       {"profileCosTheta", "Mean cos(theta) vs X;X;Mean cos(theta)", 10, 0., 100.},
-      "fCentFT0C",
+      centralityVar,
       "fCosThetaLambda");
 
   cout << "I am looping over all centrality classes " << endl;
