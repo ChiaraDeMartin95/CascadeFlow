@@ -195,6 +195,11 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   {
     SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
   }
+  if (ApplyK0sMassRej)
+  {
+    SinputFileNameAcceptanceL = "AcceptancePlots/Acceptance_" + SinputFileNameAccK0sMassRej + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  }
+   cout << "Opening acceptance file for Lambda (default case): " << SinputFileNameAcceptanceL << endl;
   TFile *AcceptanceFileL = new TFile(SinputFileNameAcceptanceL, "READ");
   TH2D *hAcceptanceL{AcceptanceFileL ? (TH2D *)AcceptanceFileL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
   TString SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_AntiLambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
@@ -202,6 +207,11 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   {
     SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
   }
+  if (ApplyK0sMassRej)
+  {
+    SinputFileNameAcceptanceAL = "AcceptancePlots/Acceptance_" + SinputFileNameAccK0sMassRej + "_Lambda_EffW_WithAlpha_Eta08_isOOCentrality_TightAcceptance.root";
+  }
+  cout << "Opening acceptance file for AntiLambda (default case): " << SinputFileNameAcceptanceAL << endl;
   TFile *AcceptanceFileAL = new TFile(SinputFileNameAcceptanceAL, "READ");
   TH2D *hAcceptanceAL{AcceptanceFileAL ? (TH2D *)AcceptanceFileAL->Get("histoCos2ThetaLambdaFromCNoFit2D_cent0-50") : nullptr};
 
@@ -244,7 +254,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   }
 
   // centrality selection
-  TString centralityVar = isT0CCentrality == 0 ? "fCentT0M" : "fCentFT0C";
+  std::string centralityVar = isT0CCentrality == 0 ? "fCentFT0M" : "fCentFT0C";
 
   // pt vs centrality before selections
   auto hPtvsCent_BefSel = d2.Histo2D({"PtvsCent_BefSel", "PtvsCent_BefSel", 100, 0, 100, 400, 0, 20}, centralityVar, "fPt");
@@ -519,6 +529,8 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
     OutputFileName += "_K0sMassRej";
   if (isT0CCentrality == 0)
     OutputFileName += "_T0MCentrality";
+
+  //OutputFileName += "_1050.root";
   OutputFileName += ".root";
 
   Int_t CentFT0CMax = 0;
@@ -580,7 +592,7 @@ void ProcessTreeLambda(Bool_t isStoreAcceptance = 0, // store histos for accepta
   double resoWeight[100];
   for (Int_t cent = 0; cent < 100; cent++)
   {
-    centWeight[cent] = 1. / weights->GetBinContent(cent + 1);
+    centWeight[cent] = weights->GetBinContent(cent + 1);
     resoWeight[cent] = reso->GetBinContent(cent + 1);
   }
 
