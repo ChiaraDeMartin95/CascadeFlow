@@ -162,8 +162,12 @@ void Acceptance(Int_t indexMultTrial = 0,
       SinputFile += "_TighterAcceptance2";
     // SinputFile += "_Acceptance";
   }
-  //SinputFile += "_Nvar100_Batch1_Acceptance"; //this line is to be used for the systematics associated with topological selections
-  SinputFile += "_Nvar1_Acceptance"; //otherwise use this line, by adapting Nvar1 to your needs
+  // SinputFile += "_Nvar100_Batch1_Acceptance"; //this line is to be used for the systematics associated with topological selections
+  SinputFile += "_Nvar1_Acceptance"; // otherwise use this line, by adapting Nvar1 to your needs
+  if (ApplyK0sMassRej)
+    SinputFile += "_K0sMassRej";
+  if (!isT0CCentrality)
+    SinputFile += "_T0MCentrality";
   SinputFile += ".root";
   cout << "Input file: " << SinputFile << endl;
   TFile *inputFile = new TFile(SinputFile);
@@ -420,7 +424,11 @@ void Acceptance(Int_t indexMultTrial = 0,
     SOutputFile += "_TightAcceptance";
   else if (isTightAcceptance == 2)
     SOutputFile += "_TightAcceptance2";
-  //SOutputFile += "_Batch1";  //this line is to be used for the systematics associated with topological selections
+  // SOutputFile += "_Batch1";  //this line is to be used for the systematics associated with topological selections
+  if (ApplyK0sMassRej)
+    SOutputFile += "_K0sMassRej";
+  if (!isT0CCentrality)
+    SOutputFile += "_T0MCentrality";
   SOutputFile += ".root";
   TFile *file = new TFile(SOutputFile, "RECREATE");
   TList *listAcceptance = new TList();

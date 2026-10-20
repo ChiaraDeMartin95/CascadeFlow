@@ -4,10 +4,13 @@
 // minSigmaDen stat. sigma are drawn with open markers and excluded from the fit, since the ratio is ill-defined there.
 // As a cross-check, a scale factor k is also fitted directly, minimising sum (OO_i - k PbPb_i)^2 / (sOO_i^2 + k^2 sPbPb_i^2)
 // over all bins, which avoids dividing by values close to zero.
+// If isPbPbOverOO = 1, the inverse ratio Pb-Pb / OO is shown instead (the denominator compatibility check and the scale-factor
+// fit, PbPb = k OO, are then done with OO as denominator).
 //
 // Usage: root -l -b -q PzsVsPtRatioToPbPb.C
 //        root -l -b -q 'PzsVsPtRatioToPbPb.C(1)'   // fit with stat. and syst. uncertainties added in quadrature
 //        root -l -b -q 'PzsVsPtRatioToPbPb.C(0, 1., 0, "OutputAnalysis/<Cent0-50 fit file>.root", "Pzs2VsPt/<pT file, NoFit>.root", 1, "_NoFit")'
+//        root -l -b -q 'PzsVsPtRatioToPbPb.C(0, 1., 1, "OutputAnalysis/<Cent0-50 fit file>.root", "Pzs2VsPt/<pT file>.root", 1, "", 1)'   // Pb-Pb / OO
 //
 // The OO points are read from fileNameOOPt (output of PzsVsPt.C): histoPzs2 if isFromFit = 1, histoPzs2NoFit otherwise.
 // The OO 0-50% pT-integrated value is read from fileNameOOInt (output of FitV2orPol_CB.C for Cent0-50):
@@ -45,10 +48,11 @@ struct PtSet
 void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
                         Double_t minSigmaDen = 1.,
                         Bool_t isFromFit = 1,
-                        TString fileNameOOInt = "OutputAnalysis/FitPzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Cent0-50_CentWeighted_EffW_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_isBkgPol0_Rebin.root",
-                        TString fileNameOOPt = "Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_isBkgPol0_EffW_Rebin.root",
+                        TString fileNameOOInt = "OutputAnalysis/FitPzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Cent0-50_CentWeighted_EffW_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_Rebin.root",
+                        TString fileNameOOPt = "Pzs2VsPt/Pzs2_LHC25_OO_pass2_Train742311_Lambda_DSCB_BkgCheb_Pzs2_CentWeighted_Eta08_TightMassCut2.1_ReducedPtBins_AcceptanceInMacro_ResoOnTheFly_EffW_Rebin.root",
                         Bool_t isDrawModelOO = 1, // draw the model scaled to the OO 0-50% pT-integrated value
                         TString outSuffix = "",   // appended to the output file names
+                        Bool_t isPbPbOverOO = 0,  // 0: ratio OO / Pb-Pb, 1: ratio Pb-Pb / OO
                         TString dir = "/Users/mbp-cdm-01/Desktop/ResearchTeachingActivity/MyRun3Analyses/CascadesFlow/")
 {
   gStyle->SetOptStat(0);
@@ -120,7 +124,7 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
   const char *modelFile[2] = {"Fig_5_Prediction_1-1-2_model_PbPb_5020_30-50_LocalSpinPol_z_s2_vs_pT.dat",
                               "Fig_5_Prediction_1-1-2_model_PbPb_5360_30-50_LocalSpinPol_z_s2_vs_pT.dat"};
   const char *modelLabel[2] = {"Model, Pb-Pb 5.02 TeV, 30-50%", "Model, Pb-Pb 5.36 TeV, 30-50%"};
-  const Int_t modelColor[2] = {kBlack, kRed};
+  const Int_t modelColor[2] = {kBlue, kGreen + 2};
   TGraph *gModel[2];
   for (Int_t m = 0; m < 2; m++)
   {
@@ -160,7 +164,7 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
     gDSyst[k]->SetFillStyle(0);
   }
 
-  // Ratios OO / Pb-Pb and pol0 fits
+  // Ratios OO / Pb-Pb (or Pb-Pb / OO if isPbPbOverOO) and pol0 fits
   TGraphErrors *gRFit[2], *gRExcl[2], *gRSyst[2];
   TF1 *fPol0[2];
   for (Int_t p = 0; p < 2; p++)
@@ -168,15 +172,17 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
     gRFit[p] = new TGraphErrors();
     gRExcl[p] = new TGraphErrors();
     gRSyst[p] = new TGraphErrors();
-    std::cout << "\nOO / " << d[p].label << std::endl;
+    const PtSet &sN = isPbPbOverOO ? d[p] : d[2]; // numerator
+    const PtSet &sD = isPbPbOverOO ? d[2] : d[p]; // denominator
+    std::cout << "\n" << sN.label << " / " << sD.label << std::endl;
     for (Int_t i = 0; i < nPt; i++)
     {
-      Double_t num = d[2].y[i], den = d[p].y[i];
+      Double_t num = sN.y[i], den = sD.y[i];
       Double_t r = num / den;
-      Double_t eStat = TMath::Abs(r) * sqrt(pow(d[2].stat[i] / num, 2) + pow(d[p].stat[i] / den, 2));
-      Double_t eSyst = TMath::Abs(r) * sqrt(pow(d[2].syst[i] / num, 2) + pow(d[p].syst[i] / den, 2));
+      Double_t eStat = TMath::Abs(r) * sqrt(pow(sN.stat[i] / num, 2) + pow(sD.stat[i] / den, 2));
+      Double_t eSyst = TMath::Abs(r) * sqrt(pow(sN.syst[i] / num, 2) + pow(sD.syst[i] / den, 2));
       Double_t eFit = isFitWithSyst ? sqrt(eStat * eStat + eSyst * eSyst) : eStat;
-      Bool_t isExcluded = TMath::Abs(den) < minSigmaDen * d[p].stat[i];
+      Bool_t isExcluded = TMath::Abs(den) < minSigmaDen * sD.stat[i];
       Double_t xr = d[p].x[i] + (p == 0 ? -0.04 : 0.04);
       TGraphErrors *g = isExcluded ? gRExcl[p] : gRFit[p];
       g->AddPoint(xr, r);
@@ -184,12 +190,12 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
       gRSyst[p]->AddPoint(xr, r);
       gRSyst[p]->SetPointError(gRSyst[p]->GetN() - 1, 0.08, eSyst);
       std::cout << Form("  pT %4.2f: %7.3f +- %.3f (stat) +- %.3f (syst)%s", d[p].x[i], r, eStat, eSyst,
-                        isExcluded ? Form("   excluded: Pb-Pb value is %.1f sigma from zero", TMath::Abs(den) / d[p].stat[i]) : "")
+                        isExcluded ? Form("   excluded: denominator is %.1f sigma from zero", TMath::Abs(den) / sD.stat[i]) : "")
                 << std::endl;
     }
     fPol0[p] = new TF1(Form("fPol0_%d", p), "pol0", 0.5, 6);
     fPol0[p]->SetLineColor(d[p].color);
-    fPol0[p]->SetLineStyle(p == 0 ? 1 : 2);
+    fPol0[p]->SetLineStyle(1); // solid, the dashed line is the pT-integrated ratio
     fPol0[p]->SetLineWidth(2);
     gRFit[p]->Fit(fPol0[p], "Q0");
     Double_t chi2 = fPol0[p]->GetChisquare();
@@ -198,19 +204,19 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
                       fPol0[p]->GetParameter(0), fPol0[p]->GetParError(0), chi2, ndf, TMath::Prob(chi2, ndf))
               << std::endl;
 
-    // Cross-check: direct fit of the scale factor OO = k Pb-Pb on all bins
+    // Cross-check: direct fit of the scale factor numerator = k denominator on all bins
     auto chi2k = [&](Double_t k)
     {
       Double_t c = 0;
       for (Int_t i = 0; i < nPt; i++)
       {
-        Double_t sO = d[2].stat[i], sP = d[p].stat[i];
+        Double_t sNum = sN.stat[i], sDen = sD.stat[i];
         if (isFitWithSyst)
         {
-          sO = sqrt(sO * sO + pow(d[2].syst[i], 2));
-          sP = sqrt(sP * sP + pow(d[p].syst[i], 2));
+          sNum = sqrt(sNum * sNum + pow(sN.syst[i], 2));
+          sDen = sqrt(sDen * sDen + pow(sD.syst[i], 2));
         }
-        c += pow(d[2].y[i] - k * d[p].y[i], 2) / (sO * sO + k * k * sP * sP);
+        c += pow(sN.y[i] - k * sD.y[i], 2) / (sNum * sNum + k * k * sDen * sDen);
       }
       return c;
     };
@@ -259,7 +265,11 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
   l0->SetLineStyle(2);
   l0->Draw();
   for (Int_t m = 0; m < 2; m++)
+  {
+    if (m == 0)
+      continue;
     gModel[m]->Draw("l same");
+  }
 
   // Model prediction for OO 0-50%: Pb-Pb 5.02 TeV prediction scaled to the OO pT-integrated value
   TF1 *fModelOO = nullptr;
@@ -323,7 +333,7 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
     fModelOO->SetLineStyle(2);
     fModelOO->SetLineWidth(3);
     fModelOO->SetNpx(500);
-    fModelOO->Draw("same");
+    // fModelOO->Draw("same");
   }
   TLegend *leg = new TLegend(0.19, 0.52, 0.65, 0.92);
   leg->SetBorderSize(0);
@@ -336,14 +346,21 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
     leg->AddEntry(gD[k], d[k].label, "pe");
   }
   for (Int_t m = 0; m < 2; m++)
+  {
+    if (m == 0)
+      continue;
     leg->AddEntry(gModel[m], modelLabel[m], "l");
-  if (fModelOO)
-    leg->AddEntry(fModelOO, Form("Model #times %.2f, scaled to OO 0-50%%", kOO), "l");
+  }
+  // if (fModelOO)
+  //   leg->AddEntry(fModelOO, Form("Model #times %.2f, scaled to OO 0-50%%", kOO), "l");
   leg->Draw();
 
   pBot->cd();
-  TH1F *hBot = new TH1F("hBot", ";#it{p}_{T} (GeV/#it{c});OO / Pb-Pb", 100, 0, 6.2);
-  hBot->GetYaxis()->SetRangeUser(-2, 11);
+  TH1F *hBot = new TH1F("hBot", isPbPbOverOO ? ";#it{p}_{T} (GeV/#it{c});Pb-Pb / OO" : ";#it{p}_{T} (GeV/#it{c});OO / Pb-Pb", 100, 0, 6.2);
+  if (isPbPbOverOO)
+    hBot->GetYaxis()->SetRangeUser(-0.5, 2.5);
+  else
+    hBot->GetYaxis()->SetRangeUser(-2, 11);
   hBot->GetYaxis()->SetNdivisions(505);
   hBot->GetYaxis()->SetTitleSize(0.1);
   hBot->GetYaxis()->SetTitleOffset(0.62);
@@ -352,15 +369,34 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
   hBot->GetXaxis()->SetLabelSize(0.09);
   hBot->SetLineWidth(0);
   hBot->Draw("axis");
-  TLine *l1 = new TLine(0, 1, 6.2, 1);
-  l1->SetLineStyle(3);
-  l1->Draw();
-  TLegend *legR = new TLegend(0.18, 0.74, 0.8, 0.96);
+
+  const char *denLabel[2] = {"Pb-Pb 5.02", "Pb-Pb 5.36"};
+  TString ratioLabel[2];
+  for (Int_t p = 0; p < 2; p++)
+    ratioLabel[p] = isPbPbOverOO ? Form("%s / OO", denLabel[p]) : Form("OO / %s", denLabel[p]);
+
+  // pT-integrated ratios (Pb-Pb 30-50% pT-integrated values)
+  const Double_t PzsPbPbInt[2] = {0.000882, 0.000683}; // 5.02 TeV, 5.36 TeV
+  TF1 *fRatioInt[2] = {nullptr, nullptr};
+  if (PzsOOInt != 0) // only available if isDrawModelOO
+    for (Int_t p = 0; p < 2; p++)
+    {
+      fRatioInt[p] = new TF1(Form("fRatioInt_%d", p), "pol0", 0, 6);
+      fRatioInt[p]->SetParameter(0, isPbPbOverOO ? PzsPbPbInt[p] / PzsOOInt : PzsOOInt / PzsPbPbInt[p]);
+      fRatioInt[p]->SetLineColor(d[p].color);
+      fRatioInt[p]->SetLineStyle(2);
+      fRatioInt[p]->SetLineWidth(3);
+      fRatioInt[p]->Draw("same");
+    }
+
+  TLegend *legR = new TLegend(0.18, 0.7, 0.9, 0.96);
   legR->SetBorderSize(0);
   legR->SetFillStyle(0);
   legR->SetTextSize(0.065);
+  for (Int_t p = 0; p < 2; p++)
+    if (fRatioInt[p])
+      legR->AddEntry(fRatioInt[p], Form("%s, #it{p}_{T}-integrated: %.2f", ratioLabel[p].Data(), fRatioInt[p]->GetParameter(0)), "l");
 
-  const char *denLabel[2] = {"Pb-Pb 5.02", "Pb-Pb 5.36"};
   for (Int_t p = 0; p < 2; p++)
   {
     gRSyst[p]->SetLineColor(d[p].color);
@@ -375,17 +411,14 @@ void PzsVsPtRatioToPbPb(Bool_t isFitWithSyst = 0,
     gRExcl[p]->SetMarkerSize(1.3);
     gRExcl[p]->SetMarkerColor(d[p].color);
     gRExcl[p]->SetLineColor(d[p].color);
-    if (gRExcl[p]->GetN() > 0)
-      gRExcl[p]->Draw("p same");
-    fPol0[p]->Draw("same");
-    legR->AddEntry(fPol0[p], Form("OO / %s: %.2f #pm %.2f (#chi^{2}/ndf = %.1f/%d)", denLabel[p], fPol0[p]->GetParameter(0), fPol0[p]->GetParError(0), fPol0[p]->GetChisquare(), fPol0[p]->GetNDF()),
-                   "l");
+    // if (gRExcl[p]->GetN() > 0)
+    gRExcl[p]->Draw("p same");
   }
   legR->Draw();
   c->Modified();
   c->Update();
 
-  TString sout = dir + (isFitWithSyst ? "PzsVsPt_RatioOOToPbPb_FitStatSyst" : "PzsVsPt_RatioOOToPbPb") + outSuffix;
+  TString sout = dir + (isPbPbOverOO ? "PzsVsPt_RatioPbPbToOO" : "PzsVsPt_RatioOOToPbPb") + (isFitWithSyst ? "_FitStatSyst" : "") + outSuffix;
   c->SaveAs(sout + ".pdf");
   c->SaveAs(sout + ".png");
   std::cout << "\nI have created " << sout << ".{pdf,png}" << std::endl;

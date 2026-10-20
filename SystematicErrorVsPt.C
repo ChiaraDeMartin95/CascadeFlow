@@ -99,7 +99,8 @@ void StylePad(TPad *pad, Float_t LMargin, Float_t RMargin, Float_t TMargin, Floa
 Float_t YLow[numPart] = {0};
 Float_t YUp[numPart] = {0.0015};
 
-Float_t AccRelError[numPtBins] = {0.05, 0.05, 0.03, 0.01, 0.01, 0.02, 0.03, 0.03};
+// Float_t AccRelError[numPtBins] = {0.05, 0.05, 0.03, 0.01, 0.01, 0.02, 0.03, 0.03};
+Float_t AccRelError[numPtBins] = {0};
 Float_t LambdaDecayParameterRelError = 0.01;
 Float_t TransferCoefficienctRelError = 0.0043;
 Float_t RunByRunAccRelError = 0.01;
@@ -246,12 +247,14 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   TH1F *fHistPolBkg0Error = (TH1F *)fHistPolBkg0ErrorIn->Clone("hPolBkg0SystError");
   for (Int_t i = 1; i <= fHistPolBkg0Error->GetNbinsX(); i++)
   {
-    fHistPolBkg0Error->SetBinContent(i, std::abs(fHistPolBkg0Error->GetBinContent(i)));
+    fHistPolBkg0Error->SetBinContent(i, 0.6 * std::abs(fHistPolBkg0Error->GetBinContent(i)));
     fHistPolBkg0Error->SetBinError(i, 0);
   }
   if (isPtAnalysis)
+    fHistPolBkg0Error->GetXaxis()->SetRangeUser(1, PtBins[numPtBins - 1]);
+  fHistPolBkg0Error->Smooth(1, "R");
+  if (isPtAnalysis)
     fHistPolBkg0Error->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
-  //fHistPolBkg0Error->Smooth(1, "R");
 
   TFile *fileInBkgExpo = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_2GaussPlusPol2PP_Pt.root");
   if (!isPtAnalysis)
@@ -410,11 +413,13 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
       return;
     }
     fHistMassCutAndBDTError->SetName("hAbsoluteSystErrorMassCutAndBDT_" + Smolt[m]);
-    if (isPtAnalysis){
+    if (isPtAnalysis)
+    {
       fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(1, PtBins[numPtBins - 1]);
     }
     fHistMassCutAndBDTError->Smooth(1, "R");
-    if (isPtAnalysis){
+    if (isPtAnalysis)
+    {
       fHistMassCutAndBDTError->GetXaxis()->SetRangeUser(PtBins[0], PtBins[numPtBins - 1]);
     }
 
@@ -546,7 +551,8 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistDecayParError->Draw("same");
   fHistPrimaryLambdaError->Draw("same");
   fHistResoError->Draw("same");
-  if (isPtAnalysis) fHistAccError->Draw("same");
+  //if (isPtAnalysis)
+  //  fHistAccError->Draw("same");
   fHistPolBkg0Error->Draw("same");
   fHistPzFitRangeError->Draw("same");
   fHistBkgExpoError->Draw("same");
@@ -567,7 +573,8 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   legend->AddEntry(fHistBkgExpoError, "Background fit function", "l");
   legend->AddEntry(fHistDecayParError, "Decay parameter", "l");
   legend->AddEntry(fHistTotalError, "Total", "l");
-  if (isPtAnalysis) legend->AddEntry(fHistAccError, "Acceptance", "l");
+  //if (isPtAnalysis)
+  //  legend->AddEntry(fHistAccError, "Acceptance", "l");
   legend->Draw("same");
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.png", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
   canvasError->SaveAs(Form("../AbsoluteUncertaintySummary_%s_%s.pdf", SVariableDep.Data(), ParticleName[ChosenPart].Data()));
@@ -640,8 +647,8 @@ void SystematicErrorVsPt(Bool_t isPtAnalysis = 1, // 1 for V2 vs pt and Pzs2 vs 
   fHistPzFitRangeRelError->Draw("same");
   fHistBkgExpoRelError->Draw("same");
   // fHistZVertexRelError->Draw("same");
-  if (isPtAnalysis)
-    fHistAccRelError->Draw("same"); 
+  //if (isPtAnalysis)
+  //  fHistAccRelError->Draw("same");
   fHistTotalRelError->Draw("same");
   //  legend->Draw("same");
   for (Int_t i = 1; i <= fHistPzFitRangeRelError->GetNbinsX(); i++)

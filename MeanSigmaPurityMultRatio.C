@@ -482,7 +482,7 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
 
     if (Choice == 10 || Choice == 11)
     {
-      PathIn = "../AcceptancePlots/Acceptance_" + SinputFileName + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
+      PathIn = "../AcceptancePlots/Acceptance_" + SinputFileNameAcc + "_" + ParticleName[ChosenPart] + SEtaSysChoice[0];
       if (isApplyWeights)
         PathIn += "_Weighted";
       // if (isApplyCentWeight)
@@ -502,8 +502,8 @@ void MeanSigmaPurityMultRatio(Bool_t isPtAnalysis = 1,
         PathIn += "_Eta08";
       PathIn += STHN[ExtrisFromTHN];
     }
-    if (isReducedPtBins)
-      PathIn += "_ReducedPtBins";
+    //if (isReducedPtBins)
+    //  PathIn += "_ReducedPtBins";
     if ((isOOCentrality) && (Choice == 10 || Choice == 11))
       PathIn += "_isOOCentrality";
     if (isApplyAcceptanceInMacro && (Choice != 10 && Choice != 11))

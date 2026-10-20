@@ -22,8 +22,8 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
-#include "CommonVarLambda.h"
+#include "CommonVarXi.h"
+// #include "CommonVarLambda.h"
 //   #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
@@ -1453,6 +1453,46 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     cout << "ratio: " << gPzsPalliXi->Eval(fHistPzs->GetBinCenter(i)) / gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
   }
 
+  cout << "\n\n Comparison of Omega to Lambda predictions at 5.36 TeV: " << endl;
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    cout << "\nbin " << i << ":" << fHistPzs->GetBinCenter(i) << endl;
+    cout << "Xi model: " << gPzsPalliOmega->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "Lambda model: " << gPzsPalliOmega->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "difference: " << gPzsPalliOmega->Eval(fHistPzs->GetBinCenter(i)) - gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
+    cout << "ratio: " << gPzsPalliOmega->Eval(fHistPzs->GetBinCenter(i)) / gPzsPalliLambda->Eval(fHistPzs->GetBinCenter(i)) << endl;
+  }
+
+  // Model predictions (zeta/s par III, 5.36 TeV): Xi / Lambda and Omega / Lambda ratios vs centrality
+  // Start from 30%: below it the Lambda prediction crosses zero and the ratios are meaningless
+  const Float_t MinCentRatioModel = 30;
+  TGraph *gRatioModelXiLambda = new TGraph();
+  TGraph *gRatioModelOmegaLambda = new TGraph();
+  Float_t minRatioModel = 1e9;
+  Float_t maxRatioModel = -1e9;
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    if (fHistPzs->GetBinLowEdge(i) < MinCentRatioModel)
+      continue;
+    Double_t cent = fHistPzs->GetBinCenter(i);
+    Double_t ratioXi = gPzsPalliXi->Eval(cent) / gPzsPalliLambda->Eval(cent);
+    Double_t ratioOmega = gPzsPalliOmega->Eval(cent) / gPzsPalliLambda->Eval(cent);
+    gRatioModelXiLambda->SetPoint(gRatioModelXiLambda->GetN(), cent, ratioXi);
+    gRatioModelOmegaLambda->SetPoint(gRatioModelOmegaLambda->GetN(), cent, ratioOmega);
+    minRatioModel = TMath::Min(minRatioModel, (Float_t)TMath::Min(ratioXi, ratioOmega));
+    maxRatioModel = TMath::Max(maxRatioModel, (Float_t)TMath::Max(ratioXi, ratioOmega));
+  }
+  gRatioModelXiLambda->SetLineColor(kRed + 1);
+  gRatioModelXiLambda->SetMarkerColor(kRed + 1);
+  gRatioModelXiLambda->SetMarkerStyle(20);
+  gRatioModelXiLambda->SetMarkerSize(1.5);
+  gRatioModelXiLambda->SetLineWidth(3);
+  gRatioModelOmegaLambda->SetLineColor(kMagenta + 1);
+  gRatioModelOmegaLambda->SetMarkerColor(kMagenta + 1);
+  gRatioModelOmegaLambda->SetMarkerStyle(21);
+  gRatioModelOmegaLambda->SetMarkerSize(1.5);
+  gRatioModelOmegaLambda->SetLineWidth(3);
+
   TCanvas *canvasPzsRatioXiLambda = new TCanvas("canvasPzsRatioXiLambda", "canvasPzsRatioXiLambda", 900, 700);
   StyleCanvas(canvasPzsRatioXiLambda, 0.06, 0.15, 0.1, 0.03);
   TH1F *fHistPzsRatioXiLambda = (TH1F *)fHistPzs->Clone("fHistPzsRatioXiLambda");
@@ -1479,23 +1519,78 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(hDummyRatioXiLambda, YLow[part], YUp[part], 1, 1, TitleXCent, "P_{z,s} #Xi / P_{z,s} #Lambda", "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummyRatioXiLambda, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyRatioXiLambda, tickX, tickY);
-  hDummyRatioXiLambda->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
-  hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-5, 5);
+  hDummyRatioXiLambda->GetXaxis()->SetRangeUser(10, 80);
+  hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-1, 6);
   hDummyRatioXiLambda->Draw("");
   fHistPzsRatioXiLambda->Draw("same");
   fHistPzsRatioXiLambdaSist->SetFillStyle(0);
   fHistPzsRatioXiLambdaSist->Draw("same e2");
   fHistPzsRatioXiLambdaSist->Draw("same");
-  TF1 *lineatOneRatioXiLambda = new TF1("lineatOneRatioXiLambda", "1", 1, UpperRangeParticle);
-  lineatOneRatioXiLambda->SetLineColor(kBlack);
+  TF1 *lineatOneRatioXiLambda = new TF1("lineatOneRatioXiLambda", "1", 10, 80);
+  lineatOneRatioXiLambda->SetLineColor(kGray + 1);
   lineatOneRatioXiLambda->SetLineStyle(2);
   lineatOneRatioXiLambda->Draw("same");
   TF1 *fitToRatio = new TF1("fitToRatio", "[0]", 0, UpperRangeParticle);
   fitToRatio->SetLineColor(kRed);
-  fitToRatio->SetLineStyle(1);
+  fitToRatio->SetLineStyle(3);
   fHistPzsRatioXiLambdaFit->Fit(fitToRatio, "R0");
   fitToRatio->Draw("same");
+  // Model Xi / Lambda at the bin centres in the plotted range 10-80% (the model-only canvas starts at 30%)
+  TGraph *gRatioModelXiLambdaThick = new TGraph();
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    if (fHistPzs->GetBinLowEdge(i) < 10 || fHistPzs->GetXaxis()->GetBinUpEdge(i) > 80)
+      continue;
+    Double_t cent = fHistPzs->GetBinCenter(i);
+    gRatioModelXiLambdaThick->SetPoint(gRatioModelXiLambdaThick->GetN(), cent, gPzsPalliXi->Eval(cent) / gPzsPalliLambda->Eval(cent));
+  }
+  gRatioModelXiLambdaThick->SetLineColor(kRed + 1);
+  gRatioModelXiLambdaThick->SetLineWidth(6); // thicker than on the model-only canvas
+  gRatioModelXiLambdaThick->Draw("same l");
+  TLegend *legendRatioXiLambda = new TLegend(0.14, 0.64, 0.6, 0.9);
+  legendRatioXiLambda->SetFillStyle(0);
+  legendRatioXiLambda->SetBorderSize(0);
+  legendRatioXiLambda->SetTextAlign(12);
+  legendRatioXiLambda->SetTextSize(0.04);
+  legendRatioXiLambda->AddEntry(fHistPzsRatioXiLambdaSist, "Data", "pef");
+  legendRatioXiLambda->AddEntry(gRatioModelXiLambdaThick, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendRatioXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  legendRatioXiLambda->AddEntry(fitToRatio, Form("Constant fit to data: %.2f #pm %.2f", fitToRatio->GetParameter(0), fitToRatio->GetParError(0)), "l");
+  legendRatioXiLambda->Draw("");
   canvasPzsRatioXiLambda->SaveAs("../canvasPzsRatioXiLambda.png");
+
+  TCanvas *canvasPzsRatioModelToLambda = new TCanvas("canvasPzsRatioModelToLambda", "canvasPzsRatioModelToLambda", 900, 700);
+  StyleCanvas(canvasPzsRatioModelToLambda, 0.06, 0.15, 0.1, 0.03);
+  canvasPzsRatioModelToLambda->cd();
+  TH1F *hDummyRatioModelToLambda = new TH1F("hDummyRatioModelToLambda", "hDummyRatioModelToLambda", 10000, 0, 100);
+  for (Int_t i = 1; i <= hDummyRatioModelToLambda->GetNbinsX(); i++)
+    hDummyRatioModelToLambda->SetBinContent(i, -999);
+  SetFont(hDummyRatioModelToLambda);
+  StyleHistoYield(hDummyRatioModelToLambda, YLow[part], YUp[part], 1, 1, TitleXCent, "P_{z,s} / P_{z,s} #Lambda (model)", "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummyRatioModelToLambda, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyRatioModelToLambda, tickX, tickY);
+  hDummyRatioModelToLambda->GetXaxis()->SetRangeUser(0, fHistPzs->GetXaxis()->GetXmax());
+  Float_t marginRatioModel = 0.15 * (maxRatioModel - minRatioModel);
+  hDummyRatioModelToLambda->GetYaxis()->SetRangeUser(TMath::Min(minRatioModel - marginRatioModel, (Float_t)0.9), maxRatioModel + 2 * marginRatioModel);
+  hDummyRatioModelToLambda->Draw("");
+  TF1 *lineatOneRatioModel = new TF1("lineatOneRatioModel", "1", 0, fHistPzs->GetXaxis()->GetXmax());
+  lineatOneRatioModel->SetLineColor(kBlack);
+  lineatOneRatioModel->SetLineStyle(2);
+  lineatOneRatioModel->Draw("same");
+  gRatioModelXiLambda->Draw("same lp");
+  gRatioModelOmegaLambda->Draw("same lp");
+  TLegend *legendRatioModel = new TLegend(0.14, 0.68, 0.6, 0.9);
+  legendRatioModel->SetFillStyle(0);
+  legendRatioModel->SetBorderSize(0);
+  legendRatioModel->SetTextAlign(12);
+  legendRatioModel->SetTextSize(0.04);
+  legendRatioModel->SetHeader("Pb-Pb 5.36 TeV, #zeta/s par III");
+  legendRatioModel->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  legendRatioModel->AddEntry(gRatioModelXiLambda, "(#Xi^{-} + #bar{#Xi}^{+}) / (#Lambda + #bar{#Lambda})", "lp");
+  legendRatioModel->AddEntry(gRatioModelOmegaLambda, "(#Omega^{-} + #bar{#Omega}^{+}) / (#Lambda + #bar{#Lambda})", "lp");
+  legendRatioModel->Draw("");
+  canvasPzsRatioModelToLambda->SaveAs("../canvasPzsRatioModelToLambda.pdf");
+  canvasPzsRatioModelToLambda->SaveAs("../canvasPzsRatioModelToLambda.png");
 
   Float_t xLabelMult = 35;
   Float_t xTitleMult = 35;
