@@ -101,8 +101,9 @@ TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) --
 // TString SinputFileName = "LHC25_OO_pass2_Train767332";
 // TString SinputFileName = "LHC25_OO_pass2_Train768474"; // |z| < 8 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
-//TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to apply K0s mass rejection
+// TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to apply K0s mass rejection
 // TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to compute polarization vs T0M centrality
+// TString SinputFileName = "LHC25_OO_pass2_Train742311_1050";
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
