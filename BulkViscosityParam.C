@@ -16,6 +16,21 @@
 #include <TCutG.h>
 #include "TFitResult.h"
 #include "TLegend.h"
+#include "TGraph.h"
+
+// Closed polygon between two curves (upper one forward, lower one backward), for filled CL bands
+TGraph *MakeBand(TGraph *lo, TGraph *hi, Color_t col, Float_t alpha)
+{
+    const Int_t nh = hi->GetN(), nl = lo->GetN();
+    TGraph *band = new TGraph(nh + nl);
+    for (Int_t i = 0; i < nh; i++)
+        band->SetPoint(i, hi->GetX()[i], hi->GetY()[i]);
+    for (Int_t i = 0; i < nl; i++)
+        band->SetPoint(nh + i, lo->GetX()[nl - 1 - i], lo->GetY()[nl - 1 - i]);
+    band->SetFillColorAlpha(col, alpha);
+    band->SetLineWidth(0);
+    return band;
+}
 
 void BulkViscosityParam()
 {
@@ -122,7 +137,7 @@ void BulkViscosityParam()
     }
 
     fileBLowerCL.close();
-    TGraph *gBulkParamBayesLowerCL = new TGraph(npointsLowerCL);
+    TGraph *gBulkParamBayesLowerCL = new TGraph(countLowerCL); // file has fewer points than npointsLowerCL
     for (Int_t i = 0; i < gBulkParamBayesLowerCL->GetN(); i++)
     {
         gBulkParamBayesLowerCL->SetPoint(i, TValuesBayesLowerCL[i], BulkValuesBayesLowerCL[i]);
@@ -257,11 +272,29 @@ void BulkViscosityParam()
 
     TCanvas *canvasBulkParam = new TCanvas("canvasBulkParam", "canvasBulkParam", 800, 600);
     gBulkParamIII->SetLineColor(kBlue);
-    gBulkParamIII->SetLineWidth(2);
+    gBulkParamIII->SetLineWidth(4);
     gBulkParamIII->SetTitle("");
     gBulkParamIII->GetXaxis()->SetTitle("Temperature (GeV)");
     gBulkParamIII->GetYaxis()->SetTitle("Bulk Viscosity / Entropy Density");
     gBulkParamIII->Draw("AL SAME");
+
+    // CL bands (drawn first so the curves stay on top)
+    // Bayes lower CL ends at ~0 around T = 185: extend it at zero up to the end of the upper CL
+    TGraph *gBayesLowerCLBand = new TGraph(*gBulkParamBayesLowerCL);
+    gBayesLowerCLBand->SetPoint(gBayesLowerCLBand->GetN(), gBulkParamBayesUpperCL->GetX()[gBulkParamBayesUpperCL->GetN() - 1], 0.);
+    // Govert lower CL is zero
+    TGraph *gGovertLowerCLBand = new TGraph(gBulkParamBayesGovertUpperCL->GetN());
+    for (Int_t i = 0; i < gGovertLowerCLBand->GetN(); i++)
+    {
+        gGovertLowerCLBand->SetPoint(i, gBulkParamBayesGovertUpperCL->GetX()[i], 0.);
+    }
+    TGraph *bandBayes = MakeBand(gBayesLowerCLBand, gBulkParamBayesUpperCL, kRed, 0.25);
+    TGraph *bandBec = MakeBand(gBulkParamBayesBecLowerCL, gBulkParamBayesBecUpperCL, kViolet, 0.2);
+    TGraph *bandGovert = MakeBand(gGovertLowerCLBand, gBulkParamBayesGovertUpperCL, kGreen + 1, 0.25);
+    bandBec->Draw("F SAME");
+    bandBayes->Draw("F SAME");
+    bandGovert->Draw("F SAME");
+
     gBulkParamBayes->SetLineColor(kRed);
     gBulkParamBayes->SetLineWidth(2);
     gBulkParamBayes->Draw("L SAME");
@@ -286,6 +319,7 @@ void BulkViscosityParam()
     gBulkParamBayesGovertUpperCL->SetLineColor(kGreen + 1);
     gBulkParamBayesGovertUpperCL->SetLineWidth(2);
     gBulkParamBayesGovertUpperCL->Draw("L SAME");
+    gBulkParamIII->Draw("L SAME"); // keep the thick blue curve above the bands
 
     TLegend *legendBulkParam = new TLegend(0.52, 0.7, 0.87, 0.9);
     legendBulkParam->SetHeader("Bulk Viscosity");
