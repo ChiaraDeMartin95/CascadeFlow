@@ -32,3 +32,5 @@ CommonVarLambdaServer.h
 CommonVarPubServer.h
 Tapering.C
 script_download_HY.sh
+*.html
+*.json
