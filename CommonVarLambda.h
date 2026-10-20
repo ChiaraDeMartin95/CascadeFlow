@@ -24,13 +24,13 @@ Bool_t isT0CCentrality = 1;   // variation 0: to apply T0M centrality
 Bool_t ExtrisApplyEffWeights = 1;
 Bool_t isApplyAcceptanceInMacro = 1;
 TString SinputFileNameAcc = "LHC25_OO_pass2_Train598890";
-//  TString SinputFileNameAcc = "LHC25_OO_pass2_Train767332"; //|z| < 8 cm
-// TString SinputFileNameAcc = "LHC25_OO_pass2_Train776588"; // mass rej
-Bool_t ExtrisApplyResoOnTheFly = 1; // 0 for acceptance from THN
-Bool_t ApplyK0sMassRej = 0;         // default: 0
-Int_t v2type = 2;                   // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
-Bool_t ExtrisFromTHN = 0;           // 1 for acceptance from THN, 0 for acceptance from tree, 0 for analysis; 0: process the tree, 1: process the THnSparse
-Bool_t isReducedPtBins = 1;         // 0 for acceptance
+// TString SinputFileNameAcc = "LHC25_OO_pass2_Train767332"; //|z| < 8 cm
+TString SinputFileNameAccK0sMassRej = "LHC25_OO_pass2_Train776588"; // mass rej
+Bool_t ExtrisApplyResoOnTheFly = 1;                       // 0 for acceptance from THN
+Bool_t ApplyK0sMassRej = 0;                               // default: 0
+Int_t v2type = 2;                                         // 0: v2 - old task version before train 224930, 1: v2 SP, 2: v2 EP
+Bool_t ExtrisFromTHN = 0;                                 // 1 for acceptance from THN, 0 for acceptance from tree, 0 for analysis; 0: process the tree, 1: process the THnSparse
+Bool_t isReducedPtBins = 1;                               // 0 for acceptance
 Bool_t isOOCentrality = 1;
 Bool_t isRun2Binning = 0;
 
@@ -101,7 +101,7 @@ TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) --
 // TString SinputFileName = "LHC25_OO_pass2_Train767332";
 // TString SinputFileName = "LHC25_OO_pass2_Train768474"; // |z| < 8 cm
 // TString SinputFileName = "LHC25_OO_pass2_Train776589"; //to compute resolution vs T0M centrality
-// TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to apply K0s mass rejection
+// TString SinputFileName = "LHC25_OO_pass2_Train776588"; //to apply K0s mass rejection
 // TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to compute polarization vs T0M centrality
 // TString SinputFileName = "LHC25_OO_pass2_Train742311_1050";
 
@@ -120,12 +120,14 @@ TString SinputFileNameCentWeight = "LHC25_OO_pass2_Train562132_wTHN";
 
 // File name for efficiency weights
 // TString SinputFileNameEfficiency = "CorrectedSpectra_Lambda_withEvtLoss_withFeeddown.root"; //Romain Schotter input
-// TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
+//TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train621696"; //--> for preliminary; in input of ComputeEff.C macro, to be used for the efficiency correction in FitV2OrPol.C macro
 // TString SinputFileNameEfficiencyWeight = "../EfficiencyWeight.root"; //Romain efficiency
-TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_Lambda_Eta08.root";
-TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_AntiLambda_Eta08.root";
+//TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_Lambda_Eta08.root"; //for preliminary
+//TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train621696_AntiLambda_Eta08.root"; //for preliminary
+TString SinputFileNameEfficiencyWeightLambda = "EfficiencyWeight_LHC25h3c_pass2_Train776616_Lambda_Eta08.root"; //for paper proposal
+TString SinputFileNameEfficiencyWeightAntiLambda = "EfficiencyWeight_LHC25h3c_pass2_Train776616_AntiLambda_Eta08.root"; //for paper proposal
 // TString SinputFileNameEfficiency = "secondaryL";
-TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776616"; // new efficiency weights up to 10 GeV/c, to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 0.5)
+TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776616"; //new efficiency weights up to 10 GeV/c, to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 0.5)
 // TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train776615"; //to compute secondary lambda efficiency for FD (|etaLambda_gen| < 0.8, |yXi_gen| < 1.0)
 // TString SinputFileNameEfficiency = "LHC25h3c_pass2_Train777272"; //to compute secondary lambda efficiency for FD (no eta cut on gen Lambda at denom, |yXi_gen| < 0.5)
 
