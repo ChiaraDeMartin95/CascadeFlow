@@ -115,7 +115,7 @@ Float_t YLow[numPart] = {-0.001};
 Float_t YUp[numPart] = {0.011};
 
 // Int_t ColorJunlee = kAzure - 3;
-Int_t ColorJunlee = kGreen + 1;
+Int_t ColorJunlee = kGreen + 2;
 Int_t ColorOO = kMagenta + 1;
 
 void PzsVsPt(Int_t ChosenPart = ChosenParticle,
@@ -191,18 +191,29 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda_StatErr->SetMarkerColor(kBlue);
   fHistPzsLambda_StatErr->SetLineColor(kBlue);
 
-  TString SfilePbPbJunlee = "../LambdaJunlee/PolIntgOut.root";
+  TString SfilePbPbJunlee = "../LambdaJunlee/HEPData-ins3169170-v1-Table_4.root";
   TFile *fileJunlee = new TFile(SfilePbPbJunlee);
-  TGraphErrors *gPzsJunlee = (TGraphErrors *)fileJunlee->Get("PtPolRun3_stat");
-  TGraphErrors *gPzsJunleeSyst = (TGraphErrors *)fileJunlee->Get("PtPolRun3_syst");
-  gPzsJunlee->SetMarkerStyle(20);
-  gPzsJunlee->SetMarkerSize(1.5);
-  gPzsJunlee->SetMarkerColor(ColorJunlee);
-  gPzsJunlee->SetLineColor(ColorJunlee);
-  gPzsJunleeSyst->SetMarkerStyle(20);
-  gPzsJunleeSyst->SetMarkerSize(1.5);
-  gPzsJunleeSyst->SetMarkerColor(ColorJunlee);
-  gPzsJunleeSyst->SetLineColor(ColorJunlee);
+  TDirectoryFile *dirJunlee = (TDirectoryFile *)fileJunlee->Get("Table 4");
+  TH1F *hPzsJunlee = (TH1F *)dirJunlee->Get("Hist1D_y1");
+  hPzsJunlee->SetName("hPzsJunlee");
+  TH1F *hPzsJunleeStatErr = (TH1F *)dirJunlee->Get("Hist1D_y1_e1");
+  hPzsJunleeStatErr->SetName("hPzsJunleeStatErr");
+  TH1F *hPzsJunleeSystErr = (TH1F *)dirJunlee->Get("Hist1D_y1_e2");
+  hPzsJunleeSystErr->SetName("hPzsJunleeSystErr");
+  TH1F *hPzsJunleeSyst = (TH1F *)hPzsJunlee->Clone("hPzsJunleeSyst");
+  for (Int_t i = 1; i <= hPzsJunlee->GetNbinsX(); i++)
+  {
+    hPzsJunlee->SetBinError(i, hPzsJunleeStatErr->GetBinContent(i));
+    hPzsJunleeSyst->SetBinError(i, hPzsJunleeSystErr->GetBinContent(i));
+  }
+  hPzsJunlee->SetMarkerStyle(20);
+  hPzsJunlee->SetMarkerSize(1.5);
+  hPzsJunlee->SetMarkerColor(ColorJunlee);
+  hPzsJunlee->SetLineColor(ColorJunlee);
+  hPzsJunleeSyst->SetMarkerStyle(20);
+  hPzsJunleeSyst->SetMarkerSize(1.5);
+  hPzsJunleeSyst->SetMarkerColor(ColorJunlee);
+  hPzsJunleeSyst->SetLineColor(ColorJunlee);
 
   // fileout name
   TString stringout;
@@ -291,11 +302,10 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   gStyle->SetLegendFillColor(0);
   gStyle->SetLegendBorderSize(0);
 
-  TLegend *legendLambda = new TLegend(0.2, 0.7, 0.6, 0.9);
+  TLegend *legendLambda = new TLegend(0.2, 0.63, 0.6, 0.83);
   legendLambda->SetFillStyle(0);
-  legendLambda->SetTextSize(0.04);
+  legendLambda->SetTextSize(0.045);
   // legendLambda->AddEntry(fHistPzsLambda, "#Lambda + #bar{#Lambda}, Phys. Rev. Lett. 128.17 (2022)", "pl");
-  legendLambda->AddEntry(fHistPzsLambda, "Pb-Pb 5.02, 30-50\%, |y| < 0.5", "pl");
 
   TLegend *LegendTitle;
   LegendTitle = new TLegend(0.54, 0.72, 0.93, 0.9);
@@ -324,6 +334,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     */
 
   TH1F *fHistPzs;
+  TH1F *fHistPzsPtInt;
   TH1F *fHistPzsBkg;
   TH1F *fHistPurity;
   TH1F *fHistSignificance;
@@ -416,6 +427,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
   if (isGlobalFit)
     fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
+  fHistPzsPtInt = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt");
   fHistPzsBkg = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg");
   fHistPurity = (TH1F *)fileIn->Get("histoPurity");
   fHistSignificance = (TH1F *)fileIn->Get("histoSignificance");
@@ -677,7 +689,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   {
     gPzsVsPt536->SetPoint(i, PtValues536[i], PzsVsPt536[i] / 100);
   }
-  gPzsVsPt536->SetLineColor(kRed);
+  gPzsVsPt536->SetLineColor(kGreen + 2);
   gPzsVsPt536->SetLineWidth(2);
 
   TH1F *hDummy = new TH1F("hDummy", "hDummy", 10000, 0, 100);
@@ -697,7 +709,6 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     fHistPzsSist->SetLineColor(ColorOO);
     fHistPzsSist->SetMarkerColor(ColorOO);
   }
-  // hDummy->GetXaxis()->SetRangeUser(LowerRangeParticle, UpperRangeParticle);
   hDummy->GetXaxis()->SetRangeUser(0, UpperRangeParticle);
   hDummy->GetYaxis()->SetTitleOffset(1.4);
   hDummy->Draw("");
@@ -707,18 +718,132 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda->Draw("same ex0");
   fHistPzsLambdaSist->SetFillStyle(0);
   fHistPzsLambdaSist->Draw("same e2");
-  gPzsJunlee->Draw("same p");
-  gPzsJunleeSyst->Draw("same e2");
+  hPzsJunlee->Draw("same ex0");
+  hPzsJunleeSyst->SetFillStyle(0);
+  hPzsJunleeSyst->Draw("same e2");
   gPzsPalermo->Draw("same l");
   gPzsVsPt536->Draw("same l");
   gPzsVsPt502->Draw("same l");
   // LegendTitle->Draw("");
-  legendLambda->AddEntry(gPzsJunlee, "Pb-Pb 5.36, 30-50\%, |y| < 0.5", "pl");
-  legendLambda->AddEntry(fHistPzs, "OO 5.36, 0-50\%, |#eta| < 0.8", "pl");
+  // legendLambda->AddEntry(hPzsJunlee, Form("Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV, 30-50%, |#it{y}| < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
+  // legendLambda->AddEntry(fHistPzs, Form("OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, 0-50%, |#it{#eta}| < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
+  legendLambda->AddEntry(fHistPzs, "OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, 0-50\%, |#it{#eta} | < 0.8", "pl");
+  legendLambda->AddEntry(fHistPzsLambda, "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.02, 30-50\%, |#it{y}  < 0.5", "pl");
+  legendLambda->AddEntry(hPzsJunlee, "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV, 30-50\%, |#it{y} | < 0.5", "pl");
   legendLambda->Draw("");
   canvasPzs->SaveAs("../PzsVsPt_PbPbComp.pdf");
   canvasPzs->SaveAs("../PzsVsPt_PbPbComp.png");
   canvasPzs->SaveAs("../PzsVsPt_PbPbComp.eps");
+
+  // Pzs vs pT in OO and PbPb + ratio
+  TCanvas *cRatio = new TCanvas("cRatio", "cRatio", 800, 900);
+  TPad *pTop = new TPad("pTop", "", 0, 0.35, 1, 1);
+  TPad *pBot = new TPad("pBot", "", 0, 0, 1, 0.35);
+  pTop->SetBottomMargin(0.02);
+  pTop->SetLeftMargin(0.15);
+  pTop->SetRightMargin(0.03);
+  pTop->SetTopMargin(0.05);
+  pBot->SetTopMargin(0.03);
+  pBot->SetBottomMargin(0.3);
+  pBot->SetLeftMargin(0.15);
+  pBot->SetRightMargin(0.03);
+  pTop->Draw();
+  pBot->Draw();
+
+  pTop->cd();
+  TH1F *hTop = new TH1F("hTop", ";;#it{P}_{z,s2}", 100, 0, 6);
+  hTop->GetYaxis()->SetRangeUser(-0.001, 0.0105);
+  hTop->GetYaxis()->SetTitleSize(0.065);
+  hTop->GetYaxis()->SetTitleOffset(1.05);
+  hTop->GetYaxis()->SetLabelSize(0.05);
+  hTop->GetYaxis()->SetMaxDigits(3);
+  hTop->GetXaxis()->SetLabelSize(0);
+  hTop->SetLineWidth(0);
+  hTop->Draw("axis");
+  TLine *l0 = new TLine(0, 0, 6.2, 0);
+  l0->SetLineStyle(2);
+  l0->Draw();
+  fHistPzs->Draw("same ex0");
+  fHistPzsSist->SetFillStyle(0);
+  fHistPzsSist->Draw("same e2");
+  fHistPzsLambda->Draw("same ex0");
+  fHistPzsLambdaSist->SetFillStyle(0);
+  fHistPzsLambdaSist->Draw("same e2");
+  hPzsJunlee->Draw("same ex0");
+  hPzsJunleeSyst->Draw("same e2");
+  // gPzsPalermo->Draw("same l");
+  gPzsVsPt536->Draw("same l");
+  // gPzsVsPt502->Draw("same l");
+  legendLambda->AddEntry(gPzsVsPt536, "Model, Pb#minusPb #sqrt{s_{NN}} = 5.36 TeV", "l");
+  legendLambda->Draw("");
+
+  TLegend *LegendTitleRatio;
+  LegendTitleRatio = new TLegend(0.17, 0.79, 0.3, 0.95);
+  LegendTitleRatio->SetFillStyle(0);
+  LegendTitleRatio->SetTextAlign(12);
+  LegendTitleRatio->SetTextSize(0.05);
+  LegendTitleRatio->AddEntry("", "#bf{ALICE}", "");
+  LegendTitleRatio->Draw("");
+
+  pBot->cd();
+  TH1F *hBot = new TH1F("hBot", ";#it{p}_{T} (GeV/#it{c});Pb-Pb / OO", 100, 0, 6);
+  hBot->GetYaxis()->SetRangeUser(-0.5, 2.5);
+  //  hBot->GetYaxis()->SetRangeUser(-2, 11);
+  hBot->GetYaxis()->SetNdivisions(505);
+  hBot->GetYaxis()->SetTitleSize(0.1);
+  hBot->GetYaxis()->SetTitleOffset(0.62);
+  hBot->GetYaxis()->SetLabelSize(0.09);
+  hBot->GetXaxis()->SetTitleSize(0.11);
+  hBot->GetXaxis()->SetLabelSize(0.09);
+  hBot->SetLineWidth(0);
+  hBot->Draw("axis");
+  TH1F *hRatioPbPbToOO = (TH1F *)fHistPzs->Clone("hRatioPbPbToOO");
+  TH1F *hRatioPbPbToOOSist = (TH1F *)fHistPzsSist->Clone("hRatioPbPbToOOSist");
+  for (Int_t i = 1; i <= hRatioPbPbToOO->GetNbinsX(); i++)
+  {
+    cout << "Bin center : " << hRatioPbPbToOO->GetBinCenter(i) << " Bin content : " << hRatioPbPbToOO->GetBinContent(i) << endl;
+    cout << "junlee bin center: " << hPzsJunlee->GetBinCenter(i) << " Bin content : " << hPzsJunlee->GetBinContent(i) << endl;
+    hRatioPbPbToOO->SetBinContent(i, hPzsJunlee->GetBinContent(i) / fHistPzs->GetBinContent(i));
+    hRatioPbPbToOO->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunlee->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzs->GetBinError(i) / fHistPzs->GetBinContent(i), 2)));
+    hRatioPbPbToOOSist->SetBinContent(i, hRatioPbPbToOO->GetBinContent(i));
+    hRatioPbPbToOOSist->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunleeSyst->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzsSist->GetBinError(i) / fHistPzsSist->GetBinContent(i), 2)));
+  }
+  hRatioPbPbToOO->SetLineColor(ColorJunlee);
+  hRatioPbPbToOO->SetMarkerColor(ColorJunlee);
+  hRatioPbPbToOO->Draw("same ex0");
+  hRatioPbPbToOOSist->SetLineColor(ColorJunlee);
+  hRatioPbPbToOOSist->SetMarkerColor(ColorJunlee);
+  hRatioPbPbToOOSist->SetFillStyle(0);
+  hRatioPbPbToOOSist->Draw("same e2");
+
+  // pT integrated ratio
+  TString SfilePbPbJunleeVsCent = "../LambdaJunlee/HEPData-ins3169170-v1-Table_3.root";
+  TFile *fileJunleeVsCent = new TFile(SfilePbPbJunleeVsCent);
+  TDirectoryFile *dirJunleeVsCent = (TDirectoryFile *)fileJunleeVsCent->Get("Table 3");
+  TH1F *hPzsJunleeVsCent = (TH1F *)dirJunleeVsCent->Get("Hist1D_y1");
+  Double_t PzsPbPb3050 = (hPzsJunleeVsCent->GetBinContent(hPzsJunleeVsCent->FindBin(35)) * LambdaYield[0] +
+                          hPzsJunleeVsCent->GetBinContent(hPzsJunleeVsCent->FindBin(45)) * LambdaYield[1]) /
+                         (LambdaYield[0] + LambdaYield[1]);
+  Double_t ratioPbPbToOO = PzsPbPb3050 / fHistPzsPtInt->GetBinContent(1);
+  cout << "ratioPbPbToOO = " << ratioPbPbToOO << endl;
+  TF1* fRatioPbPbToOO = new TF1("fRatioPbPbToOO", "pol0", 0, 100);
+  fRatioPbPbToOO->FixParameter(0, ratioPbPbToOO);
+  fRatioPbPbToOO->SetLineColor(ColorJunlee);
+  fRatioPbPbToOO->SetMarkerColor(ColorJunlee);
+  fRatioPbPbToOO->SetLineStyle(2);
+  fRatioPbPbToOO->SetRange(0.5, 6);
+  fRatioPbPbToOO->Draw("same");
+  TLegend *legendRatio = new TLegend(0.19, 0.72, 0.58, 0.98);
+  legendRatio->SetFillStyle(0);
+  legendRatio->SetTextAlign(12);
+  legendRatio->SetTextSize(0.068);
+  legendRatio->AddEntry("fRatioPbPbToOO", "Pb#minusPb 30-50\%/ OO 0-50\%, #it{p}_{T}-integrated", "l");
+  legendRatio->Draw("");
+  cRatio->Modified();
+  cRatio->Update();
+  cRatio->SaveAs("../PzsVsPt_RatioPbPbToOO.eps");
+  cRatio->SaveAs("../PzsVsPt_RatioPbPbToOO.png");
+  cRatio->SaveAs("../PzsVsPt_RatioPbPbToOO.pdf");
 
   // Relative stat. uncertainty
   TCanvas *canvasPzsError = new TCanvas("canvasPzsError", "canvasPzsError", 900, 700);
@@ -1168,7 +1293,10 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
 
   fileout->Close();
 
+  cout <<"Nsigma between PbPb result in first pT bin and pt-inetrgated result " << endl;
+  cout << TMath::Abs(ratioPbPbToOO - hRatioPbPbToOO->GetBinContent(1)) / TMath::Sqrt(pow(hRatioPbPbToOO->GetBinError(1), 2) + pow(hRatioPbPbToOOSist->GetBinError(1), 2)) << endl;
   cout << "\nStarting from the files: " << PathIn << endl;
   cout << "and the file: " << PathInSyst << " for syst. uncertainties,\n";
   cout << "\nI have created the file:\n " << stringout << endl;
+
 }
