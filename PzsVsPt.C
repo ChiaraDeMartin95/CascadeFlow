@@ -348,85 +348,96 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
 
   // filein
   TString PathIn = "../OutputAnalysis/Fit" + NameAnalysis[!isV2] + "_";
+  TString PathIn1Bin = PathIn;
   PathIn += SinputFileName;
-  PathIn += "_" + ParticleName[ChosenPart];
+  if (SinputFileName == "LHC25_OO_pass2_Train742311_TwoBins")
+    PathIn1Bin += "LHC25_OO_pass2_Train742311";
+  TString PathInAdd = "_" + ParticleName[ChosenPart];
   if (isFitDSCB)
   {
-    PathIn += "_DSCB";
+    PathInAdd += "_DSCB";
     if (isFixParamDSCBFromMC)
-      PathIn += "_FixParamFromMC";
+      PathInAdd += "_FixParamFromMC";
   }
   else
-    PathIn += IsOneOrTwoGauss[UseTwoGauss];
-  PathIn += SIsBkgParab[BkgType];
+    PathInAdd += IsOneOrTwoGauss[UseTwoGauss];
+  PathInAdd += SIsBkgParab[BkgType];
   if (isGaussConv)
-    PathIn += "_GaussConv";
+    PathInAdd += "_GaussConv";
   if (isCombinedFit)
-    PathIn += "_CombinedFit";
+    PathInAdd += "_CombinedFit";
   TString Smolt = Form("_Cent%i-%i", CentFT0CMin, CentFT0CMax);
   TString SmoltBis = Form("%i#minus%i", CentFT0CMin, CentFT0CMax);
-  PathIn += Smolt;
+  PathInAdd += Smolt;
   if (isApplyWeights)
-    PathIn += "_Weighted";
+    PathInAdd += "_Weighted";
   if (isApplyCentWeight)
-    PathIn += "_CentWeighted";
+    PathInAdd += "_CentWeighted";
   if (!useCommonBDTValue)
-    PathIn += "_BDTPtDep";
+    PathInAdd += "_BDTPtDep";
   if (isRun2Binning)
-    PathIn += "_Run2Binning";
+    PathInAdd += "_Run2Binning";
   if (isPolFromLambda)
-    PathIn += "_PolFromLambda";
+    PathInAdd += "_PolFromLambda";
   if (ExtrisApplyEffWeights)
-    PathIn += "_EffW";
+    PathInAdd += "_EffW";
   if (!isRapiditySel)
-    PathIn += "_Eta08";
-  PathIn += STHN[ExtrisFromTHN];
+    PathInAdd += "_Eta08";
+  PathInAdd += STHN[ExtrisFromTHN];
   if (useMixedBDTValueInFitMacro)
-    PathIn += "_MixedBDT";
+    PathInAdd += "_MixedBDT";
   if (isTightMassCut)
-    PathIn += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
+    PathInAdd += Form("_TightMassCut%.1f", Extrsigmacentral[1]);
   if (isReducedPtBins)
-    PathIn += "_ReducedPtBins";
+    PathInAdd += "_ReducedPtBins";
   if (ChosenPart >= 6 && ExtrisSysLambdaMultTrial)
   {
     if (isLoosest)
-      PathIn += "_isLoosest";
+      PathInAdd += "_isLoosest";
     else if (isTightest)
-      PathIn += "_isTightest";
-    PathIn += "_isSysLambdaMultTrial";
+      PathInAdd += "_isTightest";
+    PathInAdd += "_isSysLambdaMultTrial";
   }
   if (isApplyAcceptanceInMacro)
-    // PathIn += "_AcceptanceInMacroAllLambdas";
-    PathIn += "_AcceptanceInMacro";
+    // PathInAdd += "_AcceptanceInMacroAllLambdas";
+    PathInAdd += "_AcceptanceInMacro";
   if (ExtrisApplyResoOnTheFly)
-    PathIn += "_ResoOnTheFly";
+    PathInAdd += "_ResoOnTheFly";
   if (ChosenPart == 0)
-    PathIn += "_EPReso";
+    PathInAdd += "_EPReso";
   if (isBkgPol == 0)
-    PathIn += "_isBkgPol0";
-  // PathIn += "_SystReso";
+    PathInAdd += "_isBkgPol0";
+  // PathInAdd += "_SystReso";
   if (isTighterPzFitRange)
-    PathIn += "_TighterPzFitRange";
+    PathInAdd += "_TighterPzFitRange";
   if (isRebin)
-    PathIn += "_Rebin";
-  // PathIn += "_NegativeC";
+    PathInAdd += "_Rebin";
+  // PathInAdd += "_NegativeC";
   if (ExtrisCentOmegaRed && part == 1)
-    PathIn += "_OmegaRedPt";
+    PathInAdd += "_OmegaRedPt";
   if (ChosenPart >= 6 && SinputFileName == "LHC25_OO_pass2_Train598890_MyEff")
-    PathIn += "_050PtCut";
-  // PathIn += "_PtFix2Bins";
+    PathInAdd += "_050PtCut";
+  // PathInAdd += "_PtFix2Bins";
   if (ApplyK0sMassRej)
-    PathIn += "_K0sMassRej";
+    PathInAdd += "_K0sMassRej";
   if (!isT0CCentrality)
-    PathIn += "_PtFix_T0MCentrality";
-  PathIn += ".root";
+    PathInAdd += "_PtFix_T0MCentrality";
+  PathInAdd += ".root";
+  PathIn += PathInAdd;
+  PathIn1Bin += PathInAdd;
   cout << "Path in : " << PathIn << endl;
 
   TFile *fileIn = TFile::Open(PathIn);
+  TFile *fileIn1Bin = TFile::Open(PathIn1Bin);
 
   fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
   if (isGlobalFit)
     fHistPzs = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
+  TH1F *fHistPzs1Bin = nullptr;
+  if (SinputFileName == "LHC25_OO_pass2_Train742311_TwoBins")
+    fHistPzs1Bin = (TH1F *)fileIn1Bin->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
+  else
+    fHistPzs1Bin = (TH1F *)fHistPzs->Clone("fHistPzs1Bin");
   fHistPzsPtInt = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt");
   fHistPzsBkg = (TH1F *)fileIn->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg");
   fHistPurity = (TH1F *)fileIn->Get("histoPurity");
@@ -540,19 +551,38 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
     return;
   }
   TH1F *fHistPzsSist = (TH1F *)fHistPzs->Clone("fHistPzsSist");
+  TH1F *fHistPzsSist1Bin = (TH1F *)fHistPzs1Bin->Clone("fHistPzsSist1Bin");
   if (!isFromFit)
   {
     for (Int_t pt = 1; pt < fHistPzs->GetNbinsX(); pt++)
     {
       fHistPzs->SetBinContent(pt, fHistPzs->GetBinContent(pt) / fHistPurity->GetBinContent(pt));
       fHistPzs->SetBinError(pt, fHistPzs->GetBinError(pt) / fHistPurity->GetBinContent(pt));
+      fHistPzsSist->SetBinContent(pt, fHistPzs->GetBinContent(pt) / fHistPurity->GetBinContent(pt));
+      fHistPzsSist->SetBinError(pt, fHistPzs->GetBinError(pt) / fHistPurity->GetBinContent(pt));
     }
+  }
+  for (Int_t b = 1; b <= fHistPzsSist1Bin->GetNbinsX(); b++)
+  {
+    fHistPzsSist1Bin->SetBinContent(b, fHistPzs1Bin->GetBinContent(b));
+    fHistPzsSist1Bin->SetBinError(b, fHistPzsSistError->GetBinContent(b));
   }
   for (Int_t b = 1; b <= fHistPzs->GetNbinsX(); b++)
   {
     // fHistPzsSistError->SetBinContent(b, fHistPzsSistError->GetBinContent(b) / fHistPuritySummary->GetBinContent(b));
     fHistPzsSist->SetBinContent(b, fHistPzs->GetBinContent(b));
-    fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
+    if (SinputFileName == "LHC25_OO_pass2_Train742311_TwoBins")
+    {
+      int binValue = fHistPzsSistError->FindBin(fHistPzsSist->GetBinCenter(b)); // bin corresponding to the center of the current bin in fHistPzsSist
+      if (b == 1)
+        fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(binValue) / fHistPzs1Bin->GetBinContent(binValue) * fHistPzsSist->GetBinContent(b));
+      else
+        fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(binValue));
+    }
+    else
+    {
+      fHistPzsSist->SetBinError(b, fHistPzsSistError->GetBinContent(b));
+    }
   }
 
   TH1F *fHistPzsError = (TH1F *)fHistPzs->Clone("fHistPzsError");
@@ -728,7 +758,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   // legendLambda->AddEntry(hPzsJunlee, Form("Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV, 30-50%, |#it{y}| < 0.5, #it{p}_{T} > %1.1f GeV/#it{c}", 0.5), "pl");
   // legendLambda->AddEntry(fHistPzs, Form("OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, 0-50%, |#it{#eta}| < 0.8, #it{p}_{T} > %1.1f GeV/#it{c}", MinPt[ChosenPart]), "pl");
   legendLambda->AddEntry(fHistPzs, "OO, #sqrt{#it{s}_{NN}} = 5.36 TeV, 0-50\%, |#it{#eta} | < 0.8", "pl");
-  legendLambda->AddEntry(fHistPzsLambda, "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.02, 30-50\%, |#it{y}  < 0.5", "pl");
+  // legendLambda->AddEntry(fHistPzsLambda, "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.02, 30-50\%, |#it{y}  < 0.5", "pl");
   legendLambda->AddEntry(hPzsJunlee, "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV, 30-50\%, |#it{y} | < 0.5", "pl");
   legendLambda->Draw("");
   canvasPzs->SaveAs("../PzsVsPt_PbPbComp.pdf");
@@ -766,9 +796,9 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzs->Draw("same ex0");
   fHistPzsSist->SetFillStyle(0);
   fHistPzsSist->Draw("same e2");
-  fHistPzsLambda->Draw("same ex0");
-  fHistPzsLambdaSist->SetFillStyle(0);
-  fHistPzsLambdaSist->Draw("same e2");
+  //fHistPzsLambda->Draw("same ex0");
+  //fHistPzsLambdaSist->SetFillStyle(0);
+  //fHistPzsLambdaSist->Draw("same e2");
   hPzsJunlee->Draw("same ex0");
   hPzsJunleeSyst->Draw("same e2");
   // gPzsPalermo->Draw("same l");
@@ -797,16 +827,18 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   hBot->GetXaxis()->SetLabelSize(0.09);
   hBot->SetLineWidth(0);
   hBot->Draw("axis");
-  TH1F *hRatioPbPbToOO = (TH1F *)fHistPzs->Clone("hRatioPbPbToOO");
-  TH1F *hRatioPbPbToOOSist = (TH1F *)fHistPzsSist->Clone("hRatioPbPbToOOSist");
+  TH1F *hRatioPbPbToOO = (TH1F *)fHistPzs1Bin->Clone("hRatioPbPbToOO");
+  TH1F *hRatioPbPbToOOSist = (TH1F *)fHistPzsSist1Bin->Clone("hRatioPbPbToOOSist");
+  StyleHistoYield(hRatioPbPbToOO, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXPt, TitleYPzs, "", MarkerPartSize[part], 1.15, 1.6);
+  StyleHistoYield(hRatioPbPbToOOSist, YLow[part], YUp[part], ColorPart[part], MarkerPart[part], TitleXPt, TitleYPzs, "", 1.5, 1.15, 1.6);
   for (Int_t i = 1; i <= hRatioPbPbToOO->GetNbinsX(); i++)
   {
     cout << "Bin center : " << hRatioPbPbToOO->GetBinCenter(i) << " Bin content : " << hRatioPbPbToOO->GetBinContent(i) << endl;
     cout << "junlee bin center: " << hPzsJunlee->GetBinCenter(i) << " Bin content : " << hPzsJunlee->GetBinContent(i) << endl;
-    hRatioPbPbToOO->SetBinContent(i, hPzsJunlee->GetBinContent(i) / fHistPzs->GetBinContent(i));
-    hRatioPbPbToOO->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunlee->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzs->GetBinError(i) / fHistPzs->GetBinContent(i), 2)));
+    hRatioPbPbToOO->SetBinContent(i, hPzsJunlee->GetBinContent(i) / fHistPzs1Bin->GetBinContent(i));
+    hRatioPbPbToOO->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunlee->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzs1Bin->GetBinError(i) / fHistPzs1Bin->GetBinContent(i), 2)));
     hRatioPbPbToOOSist->SetBinContent(i, hRatioPbPbToOO->GetBinContent(i));
-    hRatioPbPbToOOSist->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunleeSyst->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzsSist->GetBinError(i) / fHistPzsSist->GetBinContent(i), 2)));
+    hRatioPbPbToOOSist->SetBinError(i, hRatioPbPbToOO->GetBinContent(i) * TMath::Sqrt(TMath::Power(hPzsJunleeSyst->GetBinError(i) / hPzsJunlee->GetBinContent(i), 2) + TMath::Power(fHistPzsSist1Bin->GetBinError(i) / fHistPzsSist1Bin->GetBinContent(i), 2)));
   }
   hRatioPbPbToOO->SetLineColor(ColorJunlee);
   hRatioPbPbToOO->SetMarkerColor(ColorJunlee);
@@ -826,7 +858,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
                          (LambdaYield[0] + LambdaYield[1]);
   Double_t ratioPbPbToOO = PzsPbPb3050 / fHistPzsPtInt->GetBinContent(1);
   cout << "ratioPbPbToOO = " << ratioPbPbToOO << endl;
-  TF1* fRatioPbPbToOO = new TF1("fRatioPbPbToOO", "pol0", 0, 100);
+  TF1 *fRatioPbPbToOO = new TF1("fRatioPbPbToOO", "pol0", 0, 100);
   fRatioPbPbToOO->FixParameter(0, ratioPbPbToOO);
   fRatioPbPbToOO->SetLineColor(ColorJunlee);
   fRatioPbPbToOO->SetMarkerColor(ColorJunlee);
@@ -1293,10 +1325,9 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
 
   fileout->Close();
 
-  cout <<"Nsigma between PbPb result in first pT bin and pt-inetrgated result " << endl;
+  cout << "Nsigma between PbPb result in first pT bin and pt-inetrgated result " << endl;
   cout << TMath::Abs(ratioPbPbToOO - hRatioPbPbToOO->GetBinContent(1)) / TMath::Sqrt(pow(hRatioPbPbToOO->GetBinError(1), 2) + pow(hRatioPbPbToOOSist->GetBinError(1), 2)) << endl;
   cout << "\nStarting from the files: " << PathIn << endl;
   cout << "and the file: " << PathInSyst << " for syst. uncertainties,\n";
   cout << "\nI have created the file:\n " << stringout << endl;
-
 }
