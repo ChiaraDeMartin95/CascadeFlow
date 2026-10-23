@@ -118,8 +118,8 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   // if (isEff)
   //   inputFileName = SinputFileNameEff;
   gStyle->SetOptStat(0);
-  Int_t nrebinx = 4;
-  Int_t nrebiny = 4;
+  Int_t nrebinx = 2;
+  Int_t nrebiny = 2;
   const Int_t nCanvas = 17;
 
   TString SAfterEventsel = "";
@@ -236,7 +236,6 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   c[0]->SaveAs("../QCPlots/hNEvents" + inputFileName + ".pdf");
   c[0]->SaveAs("../QCPlots/hNEvents" + inputFileName + ".png");
 
-  cout << "Hello 4" << endl;
   c[1]->cd();
   gPad->SetLogz();
   hPVContribvsFT0CBefSel->GetXaxis()->SetTitle("FT0C(%)");
@@ -586,6 +585,35 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
 
   std::cout << "Entries above pol1 = " << entriesAbove << std::endl;
   cout << "Farction over the total = " << entriesAbove / h2->GetEntries() << endl;
+
+
+  //Ratio between hGlobalTrkvsPVContrib after and before selections
+  TH2F *hGlobalTrkvsPVContribRatio = (TH2F *)hGlobalTrkvsPVContrib->Clone("hGlobalTrkvsPVContribRatio");
+  hGlobalTrkvsPVContribRatio->Divide(hGlobalTrkvsPVContribBefSel); 
+  //for (Int_t ix = 1; ix <= hGlobalTrkvsPVContribRatio->GetNbinsX(); ++ix)
+  //{
+  //  for (Int_t iy = 1; iy <= hGlobalTrkvsPVContribRatio->GetNbinsY(); ++iy)
+  //  {
+  //    if (hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy) == 0)
+  //      hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, 0);
+  //    else   
+  //      hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, hGlobalTrkvsPVContrib->GetBinContent(ix, iy) / hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy));
+  //  }
+  //}
+  TCanvas *cGlobalTrkvsPVContribRatio = new TCanvas("cGlobalTrkvsPVContribRatio", "cGlobalTrkvsPVContribRatio", 800, 600);
+  StyleCanvas(cGlobalTrkvsPVContribRatio, 0.05, 0.1, 0.10, 0.1);
+  cGlobalTrkvsPVContribRatio->cd();
+  hGlobalTrkvsPVContribRatio->GetXaxis()->SetTitle("FT0C(%)");
+  hGlobalTrkvsPVContribRatio->GetYaxis()->SetTitle("Ratio");
+  hGlobalTrkvsPVContribRatio->SetTitle("");
+  if (isOOCentrality)
+  {
+    hGlobalTrkvsPVContribRatio->GetYaxis()->SetRangeUser(0, 500);
+    hGlobalTrkvsPVContribRatio->GetXaxis()->SetRangeUser(0, 700);
+  }
+  hGlobalTrkvsPVContribRatio->Draw("COLZ");
+  cGlobalTrkvsPVContribRatio->SaveAs("../QCPlots/hGlobalTrkvsPVContribRatio_" + inputFileName + ".png");
+  cGlobalTrkvsPVContribRatio->SaveAs("../QCPlots/hGlobalTrkvsPVContribRatio_" + inputFileName + ".pdf");
 
   cout << "\nStarting from the files (for the different mult): " << SinputFile << endl;
 }

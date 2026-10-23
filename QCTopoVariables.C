@@ -21,7 +21,7 @@
 #include <TSpline.h>
 #include "TFitResult.h"
 #include "TGraphAsymmErrors.h"
-// #include "CommonVar.h"
+#include "CommonVarPub.h"
 #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
@@ -113,7 +113,8 @@ void QCTopoVariables()
 
   gStyle->SetOptStat(0);
 
-  TString SinputFile = "../OutputAnalysis/Output_LHC25_OO_pass2_Train589711_Lambda_CentWeighted_Eta08_isLoosest_isOOCentrality_ResoOnTheFly_Nvar2.root";
+  //TString SinputFile = "../OutputAnalysis/Output_LHC25_OO_pass2_Train744_Lambda_CentWeighted_Eta08_isLoosest_isOOCentrality_ResoOnTheFly_Nvar2.root";
+  TString SinputFile = "../OutputAnalysis/Output_LHC25_OO_pass2_Train742311_Lambda_CentWeighted_Eta08_isOOCentrality_ResoOnTheFly_AcceptanceInMacro_Nvar1.root";
   cout << "Input file: " << SinputFile << endl;
 
   TFile *inputFile = new TFile(SinputFile);
@@ -148,9 +149,43 @@ void QCTopoVariables()
     return;
   }
 
+  TH1F *hAfterV0Radius = (TH1F *)inputFile->Get("histoV0Radius");
+  if (!hAfterV0Radius)
+  {
+    cout << "histoV0Radius not found in " << SinputFile << endl;
+    return;
+  }
+  TH1F *hAfterCosPA = (TH1F *)inputFile->Get("histoV0CosPA");
+  if (!hAfterCosPA)
+  {
+    cout << "histoV0CosPA not found in " << SinputFile << endl;
+    return;
+  }
+  TH1F *hAfterDCA = (TH1F *)inputFile->Get("histoDcaV0Daughters");
+  if (!hAfterDCA)
+  {
+    cout << "histoDcaV0Daughters not found in " << SinputFile << endl;
+    return;
+  }
+  TH1F *hAfterDCAPosToPV = (TH1F *)inputFile->Get("histoDcaPosToPV");
+  if (!hAfterDCAPosToPV)
+  {
+    cout << "histoDcaPosToPV not found in " << SinputFile << endl;
+    return;
+  }
+  TH1F *hAfterDCANegToPV = (TH1F *)inputFile->Get("histoDcaNegToPV");
+  if (!hAfterDCANegToPV)
+  {
+    cout << "histoDcaNegToPV not found in " << SinputFile << endl;
+    return;
+  }
+
   TCanvas *cV0Radius = new TCanvas("cV0Radius", "cV0Radius", 800, 600);
   StyleCanvas(cV0Radius, 0.12, 0.1, 0.12, 0.1);
   hV0Radius->GetYaxis()->SetRangeUser(1, 1.2 * hV0Radius->GetMaximum());
+  hV0Radius->SetLineColor(kGray);
+  hV0Radius->SetMarkerColor(kGray);
+  hAfterV0Radius->SetLineColor(kBlack);
   TLine *lineV0Radius = new TLine(DefaultV0RadiusCut, 0, DefaultV0RadiusCut, hV0Radius->GetMaximum());
   lineV0Radius->SetLineColor(kBlack);
   TLine *lineV0RadiusTight = new TLine(LowerlimitV0RadiusCut, 0, LowerlimitV0RadiusCut, hV0Radius->GetMaximum());
@@ -158,6 +193,7 @@ void QCTopoVariables()
   TLine *lineV0RadiusLoose = new TLine(UpperlimitV0RadiusCut, 0, UpperlimitV0RadiusCut, hV0Radius->GetMaximum());
   lineV0RadiusLoose->SetLineColor(kGreen + 2);
   hV0Radius->Draw();
+  hAfterV0Radius->Draw("same");
   lineV0Radius->Draw("SAME");
   lineV0RadiusTight->Draw("SAME");
   lineV0RadiusLoose->Draw("SAME");
@@ -166,6 +202,9 @@ void QCTopoVariables()
   TCanvas *cCosPA = new TCanvas("cCosPA", "cCosPA", 800, 600);
   StyleCanvas(cCosPA, 0.12, 0.1, 0.12, 0.1);
   hCosPA->GetYaxis()->SetRangeUser(1, 2 * hCosPA->GetMaximum());
+  hCosPA->SetLineColor(kGray);
+  hCosPA->SetMarkerColor(kGray);
+  hAfterCosPA->SetLineColor(kBlack);
   TLine *lineCosPA = new TLine(DefaultV0CosPA, 1, DefaultV0CosPA, hCosPA->GetMaximum());
   lineCosPA->SetLineColor(kBlack);
   TLine *lineCosPATight = new TLine(UpperlimitV0CosPA, 1, UpperlimitV0CosPA, hCosPA->GetMaximum());
@@ -174,6 +213,7 @@ void QCTopoVariables()
   lineCosPALoose->SetLineColor(kGreen + 2);
   gPad->SetLogy();
   hCosPA->Draw();
+  hAfterCosPA->Draw("same");
   lineCosPA->Draw("SAME");
   lineCosPATight->Draw("SAME");
   lineCosPALoose->Draw("SAME");
@@ -182,6 +222,9 @@ void QCTopoVariables()
   TCanvas *cDCA = new TCanvas("cDCA", "cDCA", 800, 600);
   StyleCanvas(cDCA, 0.12, 0.1, 0.12, 0.1);
   hDCA->GetYaxis()->SetRangeUser(1, 2 * hDCA->GetMaximum());
+  hDCA->SetLineColor(kGray);
+  hDCA->SetMarkerColor(kGray);
+  hAfterDCA->SetLineColor(kBlack);
   TLine *lineDCA = new TLine(DefaultDcaV0DauCut, 1, DefaultDcaV0DauCut, hDCA->GetMaximum());
   lineDCA->SetLineColor(kBlack);
   TLine *lineDCATight = new TLine(LowerlimitDcaV0DauCut, 1, LowerlimitDcaV0DauCut, hDCA->GetMaximum());
@@ -190,6 +233,7 @@ void QCTopoVariables()
   lineDCALoose->SetLineColor(kGreen + 2);
   gPad->SetLogy();
   hDCA->Draw();
+  hAfterDCA->Draw("same");
   lineDCA->Draw("SAME");
   lineDCATight->Draw("SAME");
   lineDCALoose->Draw("SAME");
@@ -197,6 +241,9 @@ void QCTopoVariables()
 
   TCanvas *cDCAPosToPV = new TCanvas("cDCAPosToPV", "cDCAPosToPV", 800, 600);
   StyleCanvas(cDCAPosToPV, 0.12, 0.1, 0.12, 0.1);
+  hDCAPosToPV->SetLineColor(kGray);
+  hDCAPosToPV->SetMarkerColor(kGray);
+  hAfterDCAPosToPV->SetLineColor(kBlack);
   hDCAPosToPV->GetYaxis()->SetRangeUser(0, 1.2 * hDCAPosToPV->GetMaximum());
   hDCAPosToPV->GetXaxis()->SetRangeUser(0, 1);
   TLine *lineDCAPosToPV = new TLine(DefaultDcaPosToPV, 0, DefaultDcaPosToPV, hDCAPosToPV->GetMaximum());
@@ -206,6 +253,7 @@ void QCTopoVariables()
   TLine *lineDCAPosToPVLoose = new TLine(LowerlimitDcaPosToPV, 0, LowerlimitDcaPosToPV, hDCAPosToPV->GetMaximum());
   lineDCAPosToPVLoose->SetLineColor(kGreen + 2);
   hDCAPosToPV->Draw();
+  hAfterDCAPosToPV->Draw("same");
   lineDCAPosToPV->Draw("SAME");
   lineDCAPosToPVTight->Draw("SAME");
   lineDCAPosToPVLoose->Draw("SAME");
@@ -213,6 +261,9 @@ void QCTopoVariables()
 
   TCanvas *cDCANegToPV = new TCanvas("cDCANegToPV", "cDCANegToPV", 800, 600);
   StyleCanvas(cDCANegToPV, 0.12, 0.1, 0.12, 0.1);
+  hDCANegToPV->SetLineColor(kGray);
+  hDCANegToPV->SetMarkerColor(kGray);
+  hAfterDCANegToPV->SetLineColor(kBlack);
   hDCANegToPV->GetYaxis()->SetRangeUser(0, 1.2 * hDCANegToPV->GetMaximum());
   hDCANegToPV->GetXaxis()->SetRangeUser(0, 1);
   TLine *lineDCANegToPV = new TLine(DefaultDcaNegToPV, 0, DefaultDcaNegToPV, hDCANegToPV->GetMaximum());
@@ -222,6 +273,7 @@ void QCTopoVariables()
   TLine *lineDCANegToPVLoose = new TLine(LowerlimitDcaNegToPV, 0, LowerlimitDcaNegToPV, hDCANegToPV->GetMaximum());
   lineDCANegToPVLoose->SetLineColor(kGreen + 2);
   hDCANegToPV->Draw();
+  hAfterDCANegToPV->Draw("same");
   lineDCANegToPV->Draw("SAME");
   lineDCANegToPVTight->Draw("SAME");
   lineDCANegToPVLoose->Draw("SAME");
