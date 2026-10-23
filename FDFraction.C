@@ -129,9 +129,9 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
   TH1F *hFDFractionALambdavsCent = new TH1F("hFDFractionALambdavsCent", "hFDFractionALambdavsCent", numCentLambdaOO, 0, 100);
   TH1F *hFDFractionAllLambdavsCent = new TH1F("hFDFractionAllLambdavsCent", "hFDFractionAllLambdavsCent", numCentLambdaOO, 0, 100);
 
-  TH1F *hFDFractionLambdavsPt = new TH1F("hFDFractionLambdavsPt", "hFDFractionLambdavsPt", numPtBins, PtBins);
-  TH1F *hFDFractionALambdavsPt = new TH1F("hFDFractionALambdavsPt", "hFDFractionALambdavsPt", numPtBins, PtBins);
-  TH1F *hFDFractionAllLambdavsPt = new TH1F("hFDFractionAllLambdavsPt", "hFDFractionAllLambdavsPt", numPtBins, PtBins);
+  TH1F *hFDFractionLambdavsPt = new TH1F("hFDFractionLambdavsPt", "hFDFractionLambdavsPt", numPtBinsFD, PtBinsFD);
+  TH1F *hFDFractionALambdavsPt = new TH1F("hFDFractionALambdavsPt", "hFDFractionALambdavsPt", numPtBinsFD, PtBinsFD);
+  TH1F *hFDFractionAllLambdavsPt = new TH1F("hFDFractionAllLambdavsPt", "hFDFractionAllLambdavsPt", numPtBinsFD, PtBinsFD);
 
   TCanvas *canvasFDLambda = new TCanvas("canvasFDLambda", "canvasFDLambda", 900, 700);
   gStyle->SetOptStat(0);
@@ -179,10 +179,10 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
     // canvasFDLambda->SaveAs(Form("../FDFraction/Canvas_FDFraction_Lambda_CentBin%d.pdf", mul));
   }
 
-  for (Int_t pt = 0; pt < numPtBins; pt++)
+  for (Int_t pt = 0; pt < numPtBinsFD; pt++)
   {
-    Float_t PtMin = PtBins[pt];
-    Float_t PtMax = PtBins[pt + 1];
+    Float_t PtMin = PtBinsFD[pt];
+    Float_t PtMax = PtBinsFD[pt + 1];
     hFDLambdaProj2DvsPt->GetXaxis()->SetRange(hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMin + 0.01), hFDLambdaProj2DvsPt->GetXaxis()->FindBin(PtMax - 0.01));
     TH1F *hFDLambdaProjPt = (TH1F *)hFDLambdaProj2DvsPt->ProjectionY(Form("FDFraction_Pt_%d_%d", Int_t(PtMin * 10), Int_t(PtMax * 10)));
     hFDFractionLambdavsPt->SetBinContent(pt + 1, hFDLambdaProjPt->GetBinContent(2) / (hFDLambdaProjPt->GetBinContent(1) + hFDLambdaProjPt->GetBinContent(2)));
@@ -213,8 +213,8 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
 
     hFDFractionAllLambdavsCent->Reset();
     hFDFractionAllLambdavsPt->Reset();
-    TH1F *hNumIntCent = new TH1F("hNumIntCent", "hNumIntCent", numPtBins, PtBins); // sum over the centrality classes in 0-CentFT0CMaxLambdaOO
-    TH1F *hDenIntCent = new TH1F("hDenIntCent", "hDenIntCent", numPtBins, PtBins);
+    TH1F *hNumIntCent = new TH1F("hNumIntCent", "hNumIntCent", numPtBinsFD, PtBinsFD); // sum over the centrality classes in 0-CentFT0CMaxLambdaOO
+    TH1F *hDenIntCent = new TH1F("hDenIntCent", "hDenIntCent", numPtBinsFD, PtBinsFD);
     hNumIntCent->Sumw2();
     hDenIntCent->Sumw2();
 
@@ -243,9 +243,9 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
       }
       for (TH1 *h : {hLambdaFromXi, hEffLambdaFromXiPart, hEffALambdaFromXiPart, hDen})
       {
-        Bool_t sameBinning = (h->GetNbinsX() == numPtBins);
-        for (Int_t i = 0; sameBinning && i <= numPtBins; i++)
-          sameBinning = (TMath::Abs(h->GetXaxis()->GetBinUpEdge(i) - PtBins[i]) < 1e-6);
+        Bool_t sameBinning = (h->GetNbinsX() == numPtBinsFD);
+        for (Int_t i = 0; sameBinning && i <= numPtBinsFD; i++)
+          sameBinning = (TMath::Abs(h->GetXaxis()->GetBinUpEdge(i) - PtBinsFD[i]) < 1e-6);
         if (!sameBinning)
         {
           cout << "Histogram " << h->GetName() << " does not have the PtBins binning" << endl;
@@ -255,16 +255,16 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
 
       // average efficiency of Lambda and AntiLambda from Xi (independent MC samples -> error = sqrt(err1^2 + err2^2) / 2)
       TH1 *hEffLambdaFromXi = (TH1 *)hEffLambdaFromXiPart->Clone(Form("histoPtEffAvgLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
-      for (Int_t pt = 1; pt <= numPtBins; pt++)
+      for (Int_t pt = 1; pt <= numPtBinsFD; pt++)
       {
         hEffLambdaFromXi->SetBinContent(pt, (hEffLambdaFromXiPart->GetBinContent(pt) + hEffALambdaFromXiPart->GetBinContent(pt)) / 2.);
         hEffLambdaFromXi->SetBinError(pt, sqrt(pow(hEffLambdaFromXiPart->GetBinError(pt), 2) + pow(hEffALambdaFromXiPart->GetBinError(pt), 2)) / 2.);
-        cout << "  pt " << PtBins[pt - 1] << "-" << PtBins[pt] << ": eff Lambda from Xi = " << hEffLambdaFromXiPart->GetBinContent(pt) << ", AntiLambda = " << hEffALambdaFromXiPart->GetBinContent(pt) << ", average = " << hEffLambdaFromXi->GetBinContent(pt) << endl;
+        cout << "  pt " << PtBinsFD[pt - 1] << "-" << PtBinsFD[pt] << ": eff Lambda from Xi = " << hEffLambdaFromXiPart->GetBinContent(pt) << ", AntiLambda = " << hEffALambdaFromXiPart->GetBinContent(pt) << ", average = " << hEffLambdaFromXi->GetBinContent(pt) << endl;
       }
 
-      hFDFractionFromDatavsPt[mul] = new TH1F(Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), numPtBins, PtBins);
+      hFDFractionFromDatavsPt[mul] = new TH1F(Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), Form("hFDFractionFromDatavsPt_%i-%i", CentFT0CMin, CentFT0CMax), numPtBinsFD, PtBinsFD);
       Double_t NumInt = 0, NumIntErr2 = 0, DenInt = 0, DenIntErr2 = 0; // pt integrated in MinPt-MaxPt
-      for (Int_t pt = 1; pt <= numPtBins; pt++)
+      for (Int_t pt = 1; pt <= numPtBinsFD; pt++)
       {
         Double_t Num = hLambdaFromXi->GetBinContent(pt) * hEffLambdaFromXi->GetBinContent(pt);
         Double_t NumRelErr2 = 0;
@@ -278,7 +278,7 @@ void FDFraction(Bool_t isFDFromData = 0, // 0: FD fraction from MC (hCentvsPtvsP
         hFDFractionFromDatavsPt[mul]->SetBinContent(pt, Frac);
         hFDFractionFromDatavsPt[mul]->SetBinError(pt, Frac * sqrt(NumRelErr2 + pow(DenErr / Den, 2)));
 
-        if (PtBins[pt - 1] >= MinPt[ChosenParticle] - 1e-6 && PtBins[pt] <= MaxPt[ChosenParticle] + 1e-6)
+        if (PtBinsFD[pt - 1] >= MinPt[ChosenParticle] - 1e-6 && PtBinsFD[pt] <= MaxPt[ChosenParticle] + 1e-6)
         {
           Double_t Width = hDen->GetBinWidth(pt);
           NumInt += Num * Width;
