@@ -257,13 +257,13 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     cout << "MeanT0CTPCA: " << MeanT0CTPCA << " MeanT0CTPCC: " << MeanT0CTPCC << " MeanTPCAC: " << MeanTPCAC << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << "MeanT0CV0A: " << MeanT0CV0A << " MeanV0ATPCA: " << MeanV0ATPCA << " MeanV0ATPCC: " << MeanV0ATPCC << "Reso: " << sqrt(MeanT0CV0A * MeanV0ATPCA / MeanV0ATPCA) << endl;
     // cout << "Sourav resolution (EP): " << ftcReso[cent] << endl;
-    Float_t RelErr2 = 1./4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
+    Float_t RelErr2 = 1. / 4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t RelErr2V0ATPCA = 1./4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
-    Float_t RelErr2V0ATPCC = 1./4 * (pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
-    Float_t RelErr2T0ATPCA = 1./4 * (pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
-    Float_t RelErr2T0ATPCC = 1./4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
-    Float_t RelErr2T0AT0CTPCa = 1./4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
+    Float_t RelErr2V0ATPCA = 1. / 4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
+    Float_t RelErr2V0ATPCC = 1. / 4 * (pow(ErrMeanV0ATPCC / MeanV0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
+    Float_t RelErr2T0ATPCA = 1. / 4 * (pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
+    Float_t RelErr2T0ATPCC = 1. / 4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
+    Float_t RelErr2T0AT0CTPCa = 1. / 4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
     Float_t ErrResoV0ATPCA = sqrt(RelErr2V0ATPCA * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     Float_t ErrResoV0ATPCC = sqrt(RelErr2V0ATPCC * (MeanT0CV0A * MeanT0CTPCC / MeanV0ATPCC));
     Float_t ErrResoT0ATPCA = sqrt(RelErr2T0ATPCA * (MeanT0CT0A * MeanT0CTPCA / MeanT0ATPCA));
@@ -355,20 +355,20 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     Float_t ErrMeanT0CT0A = h1QT0CT0A->GetMeanError();
     Float_t ErrMeanT0ATPCA = h1QT0ATPCA->GetMeanError();
     Float_t ErrMeanT0ATPCC = h1QT0ATPCC->GetMeanError();
-    Float_t RelErr2 = 1./4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
+    Float_t RelErr2 = 1. / 4 * (pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanTPCAC / MeanTPCAC, 2));
     Float_t ErrReso = sqrt(RelErr2 * (MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
-    Float_t RelErr2V0A = 1./4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
+    Float_t RelErr2V0A = 1. / 4 * (pow(ErrMeanV0ATPCA / MeanV0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2) + pow(ErrMeanT0CV0A / MeanT0CV0A, 2));
     Float_t ErrResoV0A = sqrt(RelErr2V0A * (MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
-    Float_t RelErr2T0ATPCC = 1./4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
+    Float_t RelErr2T0ATPCC = 1. / 4 * (pow(ErrMeanT0ATPCC / MeanT0ATPCC, 2) + pow(ErrMeanT0CTPCC / MeanT0CTPCC, 2) + pow(ErrMeanT0CT0A / MeanT0CT0A, 2));
     Float_t ErrResoT0ATPCC = sqrt(RelErr2T0ATPCC * (MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
-    Float_t RelErr2T0AT0CTPCa = 1./4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
+    Float_t RelErr2T0AT0CTPCa = 1. / 4 * (pow(ErrMeanT0CT0A / MeanT0CT0A, 2) + pow(ErrMeanT0ATPCA / MeanT0ATPCA, 2) + pow(ErrMeanT0CTPCA / MeanT0CTPCA, 2));
     Float_t ErrResoT0AT0CTPCa = sqrt(RelErr2T0AT0CTPCa * (MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
 
     hResoPerCentBins->SetBinContent(cent + 1, sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC));
     hResoPerCentBinsV0A->SetBinContent(cent + 1, sqrt(MeanT0CV0A * MeanT0CTPCA / MeanV0ATPCA));
     hResoPerCentBinsT0ATPCC->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0CTPCC / MeanT0ATPCC));
     hResoPerCentBinsT0A->SetBinContent(cent + 1, sqrt(MeanT0CT0A * MeanT0ATPCA / MeanT0CTPCA));
-  
+
     cout << "Cent: " << cent << " Reso: " << sqrt(MeanT0CTPCA * MeanT0CTPCC / MeanTPCAC) << endl;
     cout << MeanT0CTPCA << " " << MeanT0CTPCC << " " << MeanTPCAC << " " << ErrMeanT0CTPCA << " " << ErrMeanT0CTPCC << " " << ErrMeanTPCAC << endl;
     cout << "hResoPerCentBinsV0A: " << hResoPerCentBinsV0A->GetBinContent(cent + 1) << endl;
@@ -427,8 +427,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
     hReso2SubEvents->GetYaxis()->SetRangeUser(0., 1.5);
     hReso2SubEvents->GetXaxis()->SetRangeUser(0., 80.);
   }
-  //hReso->SetLineColor(kWhite);
-  //hReso->SetMarkerColor(kWhite);
+  hReso->SetLineColor(kWhite);
+  hReso->SetMarkerColor(kWhite);
   hReso->Draw("");
   hReso2SubEvents->SetLineColor(kOrange + 7);
   hReso2SubEvents->SetMarkerColor(kOrange + 7);
@@ -444,7 +444,7 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoV0ATPCA->SetMarkerColor(kGreen + 2);
   hResoV0ATPCA->SetMarkerStyle(23);
   hResoV0ATPCA->SetMarkerSize(1.5);
-  //hResoV0ATPCA->Draw("same");
+  // hResoV0ATPCA->Draw("same");
   hResoV0ATPCC->SetLineColor(kGreen + 3);
   hResoV0ATPCC->SetMarkerColor(kGreen + 3);
   hResoV0ATPCC->SetMarkerStyle(24);
@@ -465,8 +465,8 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoPerCentBins->SetMarkerStyle(21);
   hResoPerCentBins->SetMarkerSize(0.8);
   // hResoPerCentBins->Draw("same");
-  hResoPerCentBinsV0A->SetLineColor(kRed);
-  hResoPerCentBinsV0A->SetMarkerColor(kRed);
+  hResoPerCentBinsV0A->SetLineColor(kBlack);
+  hResoPerCentBinsV0A->SetMarkerColor(kBlack);
   hResoPerCentBinsV0A->SetMarkerStyle(22);
   hResoPerCentBinsV0A->SetMarkerSize(0.8);
   hResoPerCentBinsV0A->Draw("same");
@@ -509,12 +509,12 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   hResoT0AT0CTPCa->SetMarkerColor(kMagenta + 4);
   hResoT0AT0CTPCa->SetMarkerStyle(31);
   hResoT0AT0CTPCa->SetMarkerSize(1.5);
-  //hResoT0AT0CTPCa->Draw("same");
+  // hResoT0AT0CTPCa->Draw("same");
   hResoPerCentBinsT0A->SetLineColor(kGreen + 2);
   hResoPerCentBinsT0A->SetMarkerColor(kGreen + 2);
   hResoPerCentBinsT0A->SetMarkerStyle(32);
   hResoPerCentBinsT0A->SetMarkerSize(0.8);
-  hResoPerCentBinsT0A->Draw("same");
+  // hResoPerCentBinsT0A->Draw("same");
 
   TLegend *legendRes = new TLegend(0.6, 0.6, 0.9, 0.93);
   legendRes->SetFillStyle(0);
@@ -553,13 +553,23 @@ void Resolution(Bool_t isSPReso = 1, Bool_t isLFReso = 1, Bool_t isShiftCorrecte
   legend->SetMargin(0);
   legend->SetTextSize(0.05);
   legend->SetTextAlign(12);
-  legend->AddEntry("", "#bf{ALICE Performance}", "");
-  legend->AddEntry("", "Run 3, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
-  legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
+  if (isOOCentrality)
+  {
+    legend->AddEntry("", "#bf{ALICE Performance}", "");
+    legend->AddEntry("", "Run 3, OO #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+    legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1)", "");
+    legend->AddEntry("", "ref: V0A (2.2 < #it{#eta} < 5.1) and TPC-a (0.1 < #it{#eta} < 0.8)", "");
+  }
+  else
+  {
+    legend->AddEntry("", "#bf{ALICE Performance}", "");
+    legend->AddEntry("", "Run 3, Pb-Pb #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+    legend->AddEntry("", "T0C (#minus3.3 < #it{#eta} < #minus2.1) and TPC (0.1 < |#it{#eta}| < 0.8)", "");
+  }
   legend->Draw();
 
   TString Soutputfile = "../";
-  //TString Soutputfile = "";
+  // TString Soutputfile = "";
   if (!isSPReso)
   { // event plane method
     if (isLFReso)
