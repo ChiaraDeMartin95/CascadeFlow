@@ -52,11 +52,14 @@ const Int_t commonNumCent = 10; //= numCentLambdaOO for Lambda in OO
 // Pt bins
 const Int_t numPtBinsEff = 18;    // for efficiency
 const Int_t numPsiBins = 6;       // bins into which Pz (longitudinal polarization) is computed
-const Int_t numPtBins = 8;        // def:8
-const Int_t numPtBinsReduced = 8; // def: 8
+const Int_t numPtBins = 9;        // def:8
+const Int_t numPtBinsReduced = 9; // def: 8
 Double_t PtBinsEff[numPtBinsEff + 1] = {0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2, 2.25, 2.5, 2.75, 3, 3.5, 4, 5, 6, 8, 10};
-Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
-// Double_t PtBins[numPtBins + 1] = {0.5, 0.75, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
+//Double_t PtBins[numPtBins + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
+Double_t PtBins[numPtBins + 1] = {0.5, 0.75, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
+
+const Int_t numPtBinsFD = 8;
+Double_t PtBinsFD[numPtBinsFD + 1] = {0.5, 1.0, 1.5, 2, 2.5, 3, 4, 6, 10};
 
 // Acceptance correction
 const Int_t numEtaBins = 16; // was 8
@@ -87,7 +90,7 @@ Double_t PtBinsLambda[numPtBinsLambda + 1] = {0.4, 0.8, 1.2, 1.6, 2, 2.5, 3, 4, 
 // TString SinputFileName = "LHC25_OO_pass2_Train597526_NewAcc_EtaNeg"; // THN with new acceptance (wrt previou: |etaDau| < 0.8)
 // TString SinputFileName = "LHC25_OO_pass2_Train598890";
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_MyEff"; // for PRELIMINARIES 2026
-TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly //for paper proposal
+// TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) -- no acceptance correction applied on the fly //for paper proposal
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_PositiveEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
 // TString SinputFileName = "LHC25_OO_pass2_T0ATest2";
 // TString SinputFileName = "LHC25_OO_pass2_Train598890_NegativeEta"; //no sel on daughter tracks eta apart from |etaDau| < 0.8
@@ -104,6 +107,7 @@ TString SinputFileName = "LHC25_OO_pass2_Train742311"; // for Pz vs (phi-Psi) --
 // TString SinputFileName = "LHC25_OO_pass2_Train776588"; //to apply K0s mass rejection
 // TString SinputFileName = "LHC25_OO_pass2_Train776588"; // to compute polarization vs T0M centrality
 // TString SinputFileName = "LHC25_OO_pass2_Train742311_1050";
+TString SinputFileName = "LHC25_OO_pass2_Train742311_TwoBins"; //first pt bin split into 0.5-0.75 and 0.75-1
 
 // Analysis of MC mass peaks
 TString SinputFileNameMC = "";
@@ -144,6 +148,7 @@ TString SinputFileNameResoWeight = "Resolution_EP_CFW_LHC25_OO_pass2_Train567017
 TString SinputFileNameSyst = "LHC25_OO_pass2_Train742311";
 
 // MC file for Lambda feed-down fraction
+//the feed-down fraction was in the end calculated from the data, and it is used to assess a systematic uncertainty, and not for a correction of the results
 TString SinputFileNameFDFraction = "LHC25h3b_pass2_Train591313";
 // TString SinputFileNameFDFraction = "LHC26f3_pass2"; //EPOS
 
