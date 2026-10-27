@@ -863,10 +863,11 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TFile *fileNeNeJunlee = new TFile(SfileNeNeJunlee);
   TGraphErrors *gPzsNeNeJunlee = (TGraphErrors *)fileNeNeJunlee->Get("gpolMult_2_0");
 
-  // TString SfileLambdaJunlee = "../LambdaJunlee/fout_psi2_mult.root";
-  // TFile *fileLambdaJunlee = new TFile(SfileLambdaJunlee);
-  // TGraphErrors *hPzsJunlee = (TGraphErrors *)fileLambdaJunlee->Get("gMultStat");
-  // TGraphErrors *hPzsJunleeSist = (TGraphErrors *)fileLambdaJunlee->Get("gMultSyst");
+  TString SfileLambdaJunlee = "../LambdaJunlee/fout_psi2_mult.root";
+  TFile *fileLambdaJunlee = new TFile(SfileLambdaJunlee);
+  TGraphErrors *gPzsJunlee = (TGraphErrors *)fileLambdaJunlee->Get("gMultStat");
+  TGraphErrors *gPzsJunleeSist = (TGraphErrors *)fileLambdaJunlee->Get("gMultSyst");
+
   TString SfilePbPbJunleeVsCent = "../LambdaJunlee/HEPData-ins3169170-v1-Table_3.root";
   TFile *fileJunleeVsCent = new TFile(SfilePbPbJunleeVsCent);
   TDirectoryFile *dirJunleeVsCent = (TDirectoryFile *)fileJunleeVsCent->Get("Table 3");
@@ -879,6 +880,15 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   {
     hPzsJunlee->SetBinError(b, hPzsJunleeStatError->GetBinContent(b));
     hPzsJunleeSist->SetBinError(b, hPzsJunleeSistError->GetBinContent(b));
+  }
+
+  /* temporary solution as HEP data are wrong */
+  for (Int_t b = 1; b <= hPzsJunlee->GetNbinsX(); b++)
+  {
+    hPzsJunlee->SetBinContent(b, gPzsJunlee->GetY()[b - 1]);
+    hPzsJunleeSist->SetBinContent(b, gPzsJunleeSist->GetY()[b - 1]);
+    hPzsJunlee->SetBinError(b, gPzsJunlee->GetEY()[b - 1]);
+    hPzsJunleeSist->SetBinError(b, gPzsJunleeSist->GetEY()[b - 1]);
   }
 
   TH1F *hDummy10 = new TH1F("hDummy10", "hDummy10", 8, 0, 80);
