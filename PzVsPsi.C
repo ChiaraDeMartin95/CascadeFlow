@@ -122,6 +122,7 @@ Int_t colorJunlee = kAzure - 3;
 Int_t ColorOO = kMagenta + 1;
 
 void PzVsPsi(Int_t ChosenPart = ChosenParticle,
+             Bool_t isRebin = 1,
              Bool_t isPolFromLambda = 0,
              Bool_t isGlobalFit = 0,
              Bool_t isFitDSCB = ExtrisFitDSCB,
@@ -392,6 +393,8 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
     PathIn += "_PtFix_K0sMassRej";
   if (!isT0CCentrality)
     PathIn += "_PtFix_T0MCentrality";
+  if (isRebin)
+    PathIn += "_Rebin";
   PathIn += ".root";
   cout << "Path in : " << PathIn << endl;
 
