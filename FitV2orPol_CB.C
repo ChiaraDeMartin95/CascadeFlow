@@ -530,6 +530,23 @@ struct v2fit
   }
   TH1D bkgfraction;
 };
+struct v2fitpol0
+{
+  double operator()(double *x, double *par)
+  {
+    int bin = bkgfraction.FindBin(x[0]);
+    float BkgFraction = bkgfraction.GetBinContent(bin);
+    float SigFraction = 1.f - BkgFraction;
+    return par[0] * SigFraction + (par[1]) * BkgFraction;
+  }
+  void setBkgFraction(TF1 *bkg, TF1 *total, float min, float max)
+  {
+    bkgfraction = TH1D(Form("fraction%s_%s", bkg->GetName(), total->GetName()), "", 2000, min, max);
+    bkgfraction.Add(bkg);
+    bkgfraction.Divide(total);
+  }
+  TH1D bkgfraction;
+};
 struct v2fitCombinedParab
 {
   double operator()(double *x, double *par)
@@ -610,7 +627,10 @@ Double_t v2bkgfit(Double_t *x, Double_t *par)
 {
   return par[0] + par[1] * x[0];
 }
-
+Double_t v2bkgfitpol0(Double_t *x, Double_t *par)
+{
+  return par[0];
+}
 Float_t DefineMixedBDTValue(Int_t mul = 0, Int_t pt = 0)
 {
   if (mul == numCent)
@@ -1195,6 +1215,7 @@ void FitV2orPol_CB(
     TitleCos2Theta_sig = "#LT cos^{2}(#theta_{p}*) #GT_{sig}";
 
   TH1F *histoV2 = new TH1F(ShistoV2, Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
+  TH1F *histoV2Pol0 = new TH1F(ShistoV2 + "Pol0", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2Global = new TH1F(ShistoV2 + "Global", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2NoFit = new TH1F(ShistoV2 + "NoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
   TH1F *histoV2Mixed = new TH1F(ShistoV2 + "Mixed", Form(";%s ;#it{v}_{2}", titlex.Data()), numPtBinsVar, BinsVar);
@@ -1208,6 +1229,7 @@ void FitV2orPol_CB(
   TH1F *histoV2PtInt = new TH1F(ShistoV2 + "PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2PtIntGlobal = new TH1F(ShistoV2 + "PtIntGlobal", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2PtIntNoFit = new TH1F(ShistoV2 + "PtIntNoFit", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
+  TH1F *histoV2Pol0PtInt = new TH1F(ShistoV2 + "Pol0PtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2PtIntMixed = new TH1F(ShistoV2 + "PtIntMixed", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
   TH1F *histoV2BkgPtInt = new TH1F(ShistoV2 + "BkgPtInt", Form(";%s ;#it{v}_{2}", titlex.Data()), 1, 0, BinsVar[numPtBinsVar]);
 
@@ -1565,11 +1587,14 @@ void FitV2orPol_CB(
   TF1 **totalSignal = new TF1 *[numPtBins + 1];
 
   v2fit v2fitarray[numPtBins + 1];
+  v2fitpol0 v2fitarraypol0[numPtBins + 1];
   v2fitCombinedParab v2fitCombinedParabArray[numPtBins + 1];
   TF1 **v2FitFunction = new TF1 *[numPtBins + 1];
+  TF1 **v2FitFunctionPol0 = new TF1 *[numPtBins + 1];
   TF1 **v2FitFunctionExtended = new TF1 *[numPtBins + 1];
   TF1 **v2FitGlobal = new TF1 *[numPtBins + 1];
   TF1 **v2BkgFunction = new TF1 *[numPtBins + 1];
+  TF1 **v2BkgFunctionPol0 = new TF1 *[numPtBins + 1];
   TF1 **v2BkgFunctionGlobal = new TF1 *[numPtBins + 1];
   TF1 **Cos2ThetaFitFunction = new TF1 *[numPtBins + 1];
   TF1 **Cos2ThetaBkgFunction = new TF1 *[numPtBins + 1];
@@ -1596,6 +1621,7 @@ void FitV2orPol_CB(
   TFitResultPtr fFitResultPtr0[numPtBins + 1];
   TFitResultPtr fFitResultPtr1[numPtBins + 1];
   TFitResultPtr fFitV2Bkg[numPtBins + 1];
+  TFitResultPtr fFitV2BkgPol0[numPtBins + 1];
 
   Double_t mean[numPtBins + 1] = {0};
   Double_t errmean[numPtBins + 1] = {0};
@@ -2802,8 +2828,8 @@ void FitV2orPol_CB(
     lineP3Sigma[pt]->Draw("same");
     lineM3Sigma[pt]->Draw("same");
 
-    //LowLimit[pt] = 1.105;
-    //UpLimit[pt] = 1.125;
+    // LowLimit[pt] = 1.105;
+    // UpLimit[pt] = 1.125;
 
     b[pt] = 0;
     errb[pt] = 0;
@@ -2928,6 +2954,7 @@ void FitV2orPol_CB(
     if (!bkgFunction || !totalFunction)
       continue;
     v2fitarray[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
+    v2fitarraypol0[pt].setBkgFraction(bkgFunction, totalFunction, liminf[ChosenPart], limsup[ChosenPart]);
     if (ChosenPart >= 6 && !isTighterPzFitRange)
     {
       if (mul == 8)
@@ -2938,7 +2965,9 @@ void FitV2orPol_CB(
     }
     v2FitFunction[pt] = new TF1(Form("v2function%i", pt), v2fitarray[pt], liminfV2[ChosenPart], limsupV2[ChosenPart], 3);
     v2FitFunctionExtended[pt] = new TF1(Form("v2functionExt%i", pt), v2fitarray[pt], XRangeMin[ChosenPart], XRangeMax[ChosenPart], 3);
+    v2FitFunctionPol0[pt] = new TF1(Form("v2functionPol0%i", pt), v2fitarraypol0[pt], liminfV2[ChosenPart], limsupV2[ChosenPart], 2);
     v2FitFunction[pt]->SetLineColor(kRed + 1);
+    v2FitFunctionPol0[pt]->SetLineColor(kBlue + 1);
     v2FitFunctionExtended[pt]->SetLineColor(kRed + 1);
     if (pt < 4)
       canvas[0]->cd(pt + 4 + 1);
@@ -2951,15 +2980,18 @@ void FitV2orPol_CB(
     cout << "\nFitting the V2 / polarization... " << endl;
     if (isBkgPol == 0)
     {
-      v2FitFunction[pt]->FixParameter(1, 0); // bkg v2 constant
-      v2FitFunction[pt]->FixParameter(2, 0); // bkg v2 constant
+      v2FitFunction[pt]->FixParameter(1, 0);     // bkg v2 constant
+      v2FitFunction[pt]->FixParameter(2, 0);     // bkg v2 constant
+      v2FitFunctionPol0[pt]->FixParameter(1, 0); // bkg pol0 constant
     }
     // hV2[pt]->Fit(v2FitFunction[pt], "R0");
     Double_t PzBkgError = 0;
     v2BkgFunction[pt] = new TF1(Form("v2bkgfunction%i", pt), v2bkgfit, liminf[ChosenPart], limsup[ChosenPart], 2);
+    v2BkgFunctionPol0[pt] = new TF1(Form("v2bkgfunctionPol0%i", pt), v2bkgfitpol0, liminf[ChosenPart], limsup[ChosenPart], 1);
     if (!isMC)
     {
       fFitV2Bkg[pt] = hV2[pt]->Fit(v2FitFunction[pt], "SRB0");
+      fFitV2BkgPol0[pt] = hV2[pt]->Fit(v2FitFunctionPol0[pt], "SRB0");
       v2FitFunctionExtended[pt]->FixParameter(0, v2FitFunction[pt]->GetParameter(0));
       v2FitFunctionExtended[pt]->FixParameter(1, v2FitFunction[pt]->GetParameter(1));
       v2FitFunctionExtended[pt]->FixParameter(2, v2FitFunction[pt]->GetParameter(2));
@@ -2967,6 +2999,9 @@ void FitV2orPol_CB(
       v2BkgFunction[pt]->FixParameter(1, v2FitFunction[pt]->GetParameter(2)); // pendenza
       v2BkgFunction[pt]->SetLineColor(kBlack);
       v2BkgFunction[pt]->SetLineStyle(8);
+      v2BkgFunctionPol0[pt]->FixParameter(0, v2FitFunctionPol0[pt]->GetParameter(1)); // quota
+      v2BkgFunctionPol0[pt]->SetLineColor(kBlack);
+      v2BkgFunctionPol0[pt]->SetLineStyle(8);
       TMatrixDSym covV2 = fFitV2Bkg[pt]->GetCovarianceMatrix();
       Double_t covV2Bkg = covV2[1][2];
       PzBkgError = sqrt(pow(mean[pt] * v2FitFunction[pt]->GetParError(2), 2) + pow(v2FitFunction[pt]->GetParError(1), 2) + 2 * covV2Bkg * mean[pt]);
@@ -3076,6 +3111,8 @@ void FitV2orPol_CB(
     {
       histoV2->SetBinContent(pt + 1, v2FitFunction[pt]->GetParameter(0));
       histoV2->SetBinError(pt + 1, v2FitFunction[pt]->GetParError(0));
+      histoV2Pol0->SetBinContent(pt + 1, v2FitFunctionPol0[pt]->GetParameter(0));
+      histoV2Pol0->SetBinError(pt + 1, v2FitFunctionPol0[pt]->GetParError(0));
       if (isCombinedFit)
       {
         histoV2Global->SetBinContent(pt + 1, v2FitGlobal[pt]->GetParameter(0));
@@ -3088,6 +3125,8 @@ void FitV2orPol_CB(
     {
       histoV2PtInt->SetBinContent(1, v2FitFunction[pt]->GetParameter(0));
       histoV2PtInt->SetBinError(1, v2FitFunction[pt]->GetParError(0));
+      histoV2Pol0PtInt->SetBinContent(1, v2FitFunctionPol0[pt]->GetParameter(0));
+      histoV2Pol0PtInt->SetBinError(1, v2FitFunctionPol0[pt]->GetParError(0));
       if (isCombinedFit)
       {
         histoV2PtIntGlobal->SetBinContent(1, v2FitGlobal[pt]->GetParameter(0));
@@ -3145,6 +3184,7 @@ void FitV2orPol_CB(
     {
       hV2[pt]->Draw("e");
       v2FitFunction[pt]->Draw("same");
+      v2FitFunctionPol0[pt]->Draw("same");
     }
     if (!isV2FromFit[pt])
       hV2MassIntegrated[pt]->Draw("");
@@ -3859,6 +3899,8 @@ void FitV2orPol_CB(
   outputfile->WriteTObject(histoSignificancePtInt);
 
   outputfile->WriteTObject(histoV2);
+  outputfile->WriteTObject(histoV2Pol0);
+  outputfile->WriteTObject(histoV2Pol0PtInt);
   outputfile->WriteTObject(histoV2Global);
   outputfile->WriteTObject(histoV2NoFit);
   outputfile->WriteTObject(histoV2Mixed);
@@ -4011,6 +4053,8 @@ void FitV2orPol_CB(
   // legend->AddEntry("", "ALICE", "");
   if (ParticleType == 1)
     legend->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
+  else if (ParticleType == 2)
+    legend->AddEntry("", "ALICE, OO, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   // legend->AddEntry("", Form("Run 3 Pb#minusPb #sqrt{#it{s}_{NN}} = 5.36 TeV, %i-%i%s", CentFT0CMin, CentFT0CMax, "%"), "");
   if (ParticleType == 1)
     legend->AddEntry("", "#Xi^{#minus} #rightarrow #Lambda #pi^{#minus} #rightarrow p #pi^{#minus} #pi^{#minus} + c.c.", "");
@@ -4361,7 +4405,7 @@ void FitV2orPol_CB(
       // LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[0], PtBins[numPtBinsVar]), "");
       LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, #it{p}_{T} > %.1f GeV/#it{c}", PtBins[0]), "");
     else
-      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.1f < #it{p}_{T} < %.1f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
+      LegendTitle->AddEntry("", Form("|#it{#eta}| < 0.8, %.2f < #it{p}_{T} < %.2f GeV/#it{c}", PtBins[ChosenPt], PtBins[ChosenPt + 1]), "");
   }
   else
   {
@@ -4527,7 +4571,10 @@ void FitV2orPol_CB(
         hDummyRatio->GetYaxis()->SetRangeUser(-0.5, 0.5);
       if (mul == 10)
       {
-        hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
+        if (ChosenPt < 1)
+          hDummyRatio->GetYaxis()->SetRangeUser(-0.06, 0.06);
+        else
+          hDummyRatio->GetYaxis()->SetRangeUser(-0.02, 0.02);
         if (ChosenPt >= 4)
           hDummyRatio->GetYaxis()->SetRangeUser(-0.05, 0.05);
         if (ChosenPt == 6)
@@ -4546,6 +4593,7 @@ void FitV2orPol_CB(
     hV2[ChosenPt]->SetTitle("");
     hV2[ChosenPt]->Draw("same e");
     v2FitFunction[ChosenPt]->Draw("same");
+    v2FitFunctionPol0[ChosenPt]->Draw("same");
     v2FitFunctionExtended[ChosenPt]->Draw("same");
     v2BkgFunction[ChosenPt]->Draw("same");
   }
@@ -4631,6 +4679,7 @@ void FitV2orPol_CB(
   if (!isMC)
   {
     v2FitFunction[ChosenPt]->Draw("same");
+    v2FitFunctionPol0[ChosenPt]->Draw("same");
     if (isCombinedFit)
       v2FitGlobal[ChosenPt]->Draw("same");
     if (isCombinedFit)
@@ -4682,7 +4731,7 @@ void FitV2orPol_CB(
   else
     cout << "The resolution is: " << ftcReso[mul] << endl;
   cout << "The acceptance correction was applied? " << isApplyAcceptanceCorrection << endl;
-  cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << endl;
+  cout << "The purity of the pt integrated sample is: " << histoPurityPtInt->GetBinContent(1) << " +- " << histoPurityPtInt->GetBinError(1) << endl;
   if (!isMC)
   {
     cout << "Result (pt integrated measurement, no fit): " << histoV2PtIntNoFit->GetBinContent(1) << " +- " << histoV2PtIntNoFitErr->GetBinContent(1) << endl;

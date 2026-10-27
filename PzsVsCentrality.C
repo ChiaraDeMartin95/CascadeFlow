@@ -22,7 +22,7 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-//#include "CommonVarXi.h"
+// #include "CommonVarXi.h"
 #include "CommonVarLambda.h"
 // #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
@@ -119,7 +119,7 @@ Int_t ColorOO = kMagenta + 1;
 
 void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
                      Bool_t isRebin = 1,
-                     Bool_t isBkgPol = 1,
+                     Int_t isBkgPol = 1,
                      Bool_t isPolFromLambda = 0,
                      Bool_t isFromFit = 1,
                      Bool_t isGlobalFit = 0,
@@ -279,7 +279,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // if (!isFromFit)
   //   stringout += "_NoPurityDivision";
   if (isBkgPol == 0)
-    stringout += "_isBkgPol0";
+    stringout += "_isBkgPol0"; // Pz,bkg = 0
+  else if (isBkgPol == 2)
+    stringout += "_ispol0Bkg"; // Pz,bkg fitted with pol0
   // stringout += "_SystReso";
   if (isTighterPzFitRange)
     stringout += "_TighterPzFitRange";
@@ -559,6 +561,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtInt" + V2FromFit[isFromFit]);
       if (isGlobalFit)
         fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "PtIntGlobal" + V2FromFit[isFromFit]);
+      if (isBkgPol == 2)
+        fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Pol0PtInt" + V2FromFit[isFromFit]);
       fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "BkgPtInt");
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurityPtInt");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificancePtInt");
@@ -574,6 +578,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
       fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + V2FromFit[isFromFit]);
       if (isGlobalFit)
         fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Global" + V2FromFit[isFromFit]);
+      if (isBkgPol == 2)
+        fHistSpectrum[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Pol0" + V2FromFit[isFromFit]);
       fHistPzsBkg[m] = (TH1F *)fileIn[m]->Get("histoPzs2" + sPolFromLambda[isPolFromLambda] + "Bkg");
       fHistPurity[m] = (TH1F *)fileIn[m]->Get("histoPurity");
       fHistSignificance[m] = (TH1F *)fileIn[m]->Get("histoSignificance");
@@ -866,7 +872,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TDirectoryFile *dirJunleeVsCent = (TDirectoryFile *)fileJunleeVsCent->Get("Table 3");
   TH1F *hPzsJunlee = (TH1F *)dirJunleeVsCent->Get("Hist1D_y1");
   hPzsJunlee->SetName("hPzsJunlee");
-  TH1F *hPzsJunleeSist = (TH1F*)hPzsJunlee->Clone("hPzsJunleeSist");
+  TH1F *hPzsJunleeSist = (TH1F *)hPzsJunlee->Clone("hPzsJunleeSist");
   TH1F *hPzsJunleeStatError = (TH1F *)dirJunleeVsCent->Get("Hist1D_y1_e1");
   TH1F *hPzsJunleeSistError = (TH1F *)dirJunleeVsCent->Get("Hist1D_y1_e2");
   for (Int_t b = 1; b <= hPzsJunlee->GetNbinsX(); b++)
@@ -1534,9 +1540,9 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   StyleHistoYield(hDummyRatioXiLambda, YLow[part], YUp[part], 1, 1, TitleXCent, "P_{z,s} #Xi / P_{z,s} #Lambda", "", 1, 1.15, 1.8);
   SetHistoTextSize(hDummyRatioXiLambda, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
   SetTickLength(hDummyRatioXiLambda, tickX, tickY);
-  //hDummyRatioXiLambda->GetXaxis()->SetRangeUser(10, 80);
+  // hDummyRatioXiLambda->GetXaxis()->SetRangeUser(10, 80);
   hDummyRatioXiLambda->GetXaxis()->SetRangeUser(0, 80);
-  //hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-1, 6);
+  // hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-1, 6);
   hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-5, 5);
   hDummyRatioXiLambda->Draw("");
   fHistPzsRatioXiLambda->Draw("same");
@@ -1563,17 +1569,17 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   }
   gRatioModelXiLambdaThick->SetLineColor(kRed + 1);
   gRatioModelXiLambdaThick->SetLineWidth(6); // thicker than on the model-only canvas
-  //gRatioModelXiLambdaThick->Draw("same l");
-  //TLegend *legendRatioXiLambda = new TLegend(0.14, 0.64, 0.6, 0.9);
+  // gRatioModelXiLambdaThick->Draw("same l");
+  // TLegend *legendRatioXiLambda = new TLegend(0.14, 0.64, 0.6, 0.9);
   TLegend *legendRatioXiLambda = new TLegend(0.14, 0.75, 0.6, 0.9);
   legendRatioXiLambda->SetFillStyle(0);
   legendRatioXiLambda->SetBorderSize(0);
   legendRatioXiLambda->SetTextAlign(12);
   legendRatioXiLambda->SetTextSize(0.04);
   legendRatioXiLambda->AddEntry(fHistPzsRatioXiLambdaSist, "Data", "pef");
-  //legendRatioXiLambda->AddEntry(gRatioModelXiLambdaThick, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
-  //legendRatioXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
-  //legendRatioXiLambda->AddEntry(fitToRatio, Form("Constant fit to data: %.2f #pm %.2f", fitToRatio->GetParameter(0), fitToRatio->GetParError(0)), "l");
+  // legendRatioXiLambda->AddEntry(gRatioModelXiLambdaThick, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  // legendRatioXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  // legendRatioXiLambda->AddEntry(fitToRatio, Form("Constant fit to data: %.2f #pm %.2f", fitToRatio->GetParameter(0), fitToRatio->GetParError(0)), "l");
   legendRatioXiLambda->Draw("");
   canvasPzsRatioXiLambda->SaveAs("../canvasPzsRatioXiLambda.png");
 
@@ -1652,8 +1658,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
 
     for (Int_t i = 1; i <= hPzsJunlee->GetNbinsX(); i++)
     {
-      int bincenter = hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO -2  - i]);
-      //cout << "ciao i " << i << " " << dNdEtaAbhi[hPzsJunlee->GetNbinsX() - i] << " " << hPzsJunlee->GetBinCenter(hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO -2  - i])) << " " << hPzsJunlee->GetBinContent(hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO -2  - i])) << endl;
+      int bincenter = hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO - 2 - i]);
+      // cout << "ciao i " << i << " " << dNdEtaAbhi[hPzsJunlee->GetNbinsX() - i] << " " << hPzsJunlee->GetBinCenter(hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO -2  - i])) << " " << hPzsJunlee->GetBinContent(hPzsJunlee->FindBin(fCentFT0CLambdaOO[numCentLambdaOO -2  - i])) << endl;
       gPzsVsMultJunlee->SetPoint(i, dNdEtaAbhi[hPzsJunlee->GetNbinsX() - i], hPzsJunlee->GetBinContent(bincenter));
       gPzsVsMultJunlee->SetPointError(i, 0, hPzsJunlee->GetBinError(bincenter));
       gPzsVsMultSistJunlee->SetPoint(i, dNdEtaAbhi[hPzsJunlee->GetNbinsX() - i], hPzsJunleeSist->GetBinContent(bincenter));
