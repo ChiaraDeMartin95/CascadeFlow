@@ -3,7 +3,7 @@ How to run the full analysis for Lambda polarization in OO (for paper):
 1. Event QC: QCPlots.C --> produces QC plots + centrality weight
 2. Resolution: Resolution.C --> produces resolution
 3. Acceptance correction factor: ProcessTreeLambda.C with option isStoreAcceptance = 1 followed by Acceptance.C --> produces acceptance plots
-4. Efficiency weights: ComputeEff.C --> produces efficiency vs pt in different centrality classes; EffWeight.C --> produces 2D plot of weights vs pt and cent
+4. Efficiency weights: ComputeEffLambda.C --> produces efficiency vs pt in different centrality classes; EffWeight.C --> produces 2D plot of weights vs pt and cent
 5. ProcessTreeLambda.C (option isStorePzs2AndPz = 1)--> takes in input the resolution, the centrality weight, the acceptance correction factor, the efficiency weight, 
 and the tree produced by the task cascadeflow.cxx (process function processAnalyseLambdaEP2CentralFW), and produces histograms for Pzs2 vs cent and pt, and Pz vs (phi-Psi)
 6. ComputeV2.C --> produces histograms
@@ -29,7 +29,8 @@ for Pz vs (phi-Psi): isPtAnalysis = 0, isPtIntegrated = 0, "mul" = 10
 4. SystematicErrorVsCent.C --> it produces total syst vs centrality
 5. SystematicErrorVsPt.C --> it produces total syst vs pT (option isPtAnalysis = 1) or vs (phi-Psi) (option isPtAnalysis = 0)
 Note: sources of uncertainty different from topo variations are typically computed in CompareResults.C macro.
-Uncertainty related to feed-down from Xi is computed using macro FDFraction.C
+Uncertainty related to feed-down from Xi is computed using macro FDFraction.C. Fit to Xi spectra are done using macro YieldFit.C. The number of Lambdas coming from Xi is calculated using LambdaFromXi.C. 
+Its output is given in input to FDFraction.C when the feed-down fraction is calculated from data.
 
 ----------------------------------------------------------------------
 How to run the full analysis for Lambda polarization in OO (for Preliminaries):
