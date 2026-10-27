@@ -119,6 +119,8 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
 
   for (Int_t m = numCentLambdaOO; m >= 0; m--)
   {
+    //if (m > 5 && m != numCentLambdaOO)
+    //  continue;
     if (m == (numCentLambdaOO))
     {
       CentFT0CMin = 0;
@@ -140,7 +142,7 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
 
     histoGenLambdaFromXi->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoGenPtLambdaFromXi[m] = (TH1F *)histoGenLambdaFromXi->ProjectionY(Form("histoGen" + RapidityCoverage[isMidRapidity] + "PtLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
-    histoGenPtLambdaFromXi[m] = (TH1F *)histoGenPtLambdaFromXi[m]->Rebin(numPtBins, "", PtBins);
+    histoGenPtLambdaFromXi[m] = (TH1F *)histoGenPtLambdaFromXi[m]->Rebin(numPtBinsFD, "", PtBinsFD);
     histoGenPtLambdaFromXi[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
 
     histoRecoLambda->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
@@ -163,7 +165,7 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
 
     histoRecoLambdaFromXi->GetXaxis()->SetRangeUser(CentFT0CMin + 0.001, CentFT0CMax - 0.001);
     histoRecoPtLambdaFromXi[m] = (TH1F *)histoRecoLambdaFromXi->ProjectionY(Form("histoRecoPtLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
-    histoRecoPtLambdaFromXi[m] = (TH1F *)histoRecoPtLambdaFromXi[m]->Rebin(numPtBins, "", PtBins);
+    histoRecoPtLambdaFromXi[m] = (TH1F *)histoRecoPtLambdaFromXi[m]->Rebin(numPtBinsFD, "", PtBinsFD);
     StyleHistoYield(histoRecoPtLambdaFromXi[m], 0, 1.1 * histoRecoPtLambdaFromXi[numCentLambdaOO]->GetBinContent(histoRecoPtLambdaFromXi[numCentLambdaOO]->GetMaximumBin()), ColorMult[m], MarkerMult[m], TitleXPt, "", "", 1.5, 1.15, 1.6);
     histoRecoPtLambdaFromXi[m]->GetXaxis()->SetRangeUser(MinPt[ChosenPart], MaxPt[ChosenPart]);
     histoPtEffLambdaFromXi[m] = (TH1F *)histoRecoPtLambdaFromXi[m]->Clone(Form("histoPtEffLambdaFromXi_%i-%i", CentFT0CMin, CentFT0CMax));
@@ -177,7 +179,6 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
     cEffLambdaFromXi->cd();
     histoPtEffLambdaFromXi[m]->Draw("same e");
     legendMult->Draw("");
-    
 
     histoRatioTo0100[m] = (TH1F *)histoPtEff[m]->Clone(Form("histoRatioTo0100_%i-%i", CentFT0CMin, CentFT0CMax));
     histoRatioTo0100[m]->Divide(histoPtEff[numCentLambdaOO]);
@@ -204,6 +205,8 @@ void ComputeEffLambda(Bool_t isMidRapidity = 0, // 0 for |eta| < 0.8, 1 for |y| 
   TFile *file = new TFile(SOutputFile, "RECREATE");
   for (Int_t m = 0; m <= numCentLambdaOO; m++)
   {
+    //if (m > 5 && m != numCentLambdaOO)
+    //  continue;
     histoPtEff[m]->Write();
     histoPtEffLambdaFromXi[m]->Write(); // input of FDFraction.C (FD fraction from data)
   }
