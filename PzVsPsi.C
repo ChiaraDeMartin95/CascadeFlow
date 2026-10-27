@@ -291,7 +291,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
   LegendTitle->SetFillStyle(0);
   LegendTitle->SetTextAlign(33);
   LegendTitle->SetTextSize(0.04);
-  LegendTitle->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendTitle->AddEntry("", "#bf{ALICE}", "");
   LegendTitle->AddEntry("", "O-O, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (isPolFromLambda)
   {
@@ -571,7 +571,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary2->SetFillStyle(0);
   LegendPreliminary2->SetTextAlign(11);
   LegendPreliminary2->SetTextSize(0.048);
-  LegendPreliminary2->AddEntry("", "#bf{ALICE Preliminary}", "");
+  LegendPreliminary2->AddEntry("", "#bf{ALICE}", "");
   // LegendPreliminary2->AddEntry("", "#bf{ALICE Work In Progress}", "");
   // LegendPreliminary2->AddEntry("", "Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
   if (ChosenPart >= 6)
@@ -585,7 +585,7 @@ void PzVsPsi(Int_t ChosenPart = ChosenParticle,
   LegendPreliminary3->SetTextAlign(11);
   LegendPreliminary3->SetTextSize(0.048);
   if (ChosenPart >= 6)
-    LegendPreliminary3->AddEntry("", "#bf{ALICE Preliminary}", "");
+    LegendPreliminary3->AddEntry("", "#bf{ALICE}", "");
   else
     LegendPreliminary3->AddEntry("", "ALICE, Pb#minusPb, #sqrt{#it{s}_{NN}} = 5.36 TeV", "");
 
