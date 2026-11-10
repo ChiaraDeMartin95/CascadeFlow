@@ -173,7 +173,8 @@ void CompareResults(Int_t TypeComp = 0,
 
   TString AdditionalName = "";
   Bool_t isRatio = 1;    // 1 for ratio, 0 for difference
-  Int_t isFullCorr = -1; // 1 for full correlation, 0 for partial correlation, -1 for no correlation
+  Int_t isFullCorr = -1; // 1 for full correlation, 0 for partial correlation, -1 for no correlation, 2 if you want to specify rho (correlation coefficient)
+  Float_t rho = 0;       // correlation coefficient, used if isFullCorr == 2
   Bool_t isFitRatio = 0;
   Bool_t isStoreSyst = 0;
   TString TypeSyst = "";
@@ -581,20 +582,25 @@ void CompareResults(Int_t TypeComp = 0,
   // TypeComp = 11 --> Pzs2 vs centrality : from Xi vs from daughter Lambda
   else if (TypeComp == 11)
   {
+    rho = 0.1;
+    isRatio = 0;
     numOptions = 2;
-    isFullCorr = 0;
-    CommonFileName = "Pzs2VsCentrality/Pzs2_" + SinputFileName + "_" + ParticleName[ChosenPart];
-    CommonFileName += SIsBkgParab[BkgType] + "_Pzs2";
-    if (isApplyWeights)
-      CommonFileName += "_Weighted";
-    if (!useCommonBDTValue)
-      CommonFileName += "_BDTCentDep";
-    if (isRun2Binning)
-      CommonFileName += "_Run2Binning";
-    fileName[0] = "";
-    fileName[1] = "_PolFromLambda";
-    fileName[0] += "_PtInt";
-    fileName[1] += "_PtInt";
+    isFullCorr = 2;
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5";
+    fileName[0] = "_Train540301_Xi_DSCB_BkgCheb_GaussConv_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[1] = "_Train795498_Xi_DSCB_BkgCheb_GaussConv_Pzs2_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    // CommonFileName = "../Pzs2VsCentrality/Pzs2_" + SinputFileName + "_" + ParticleName[ChosenPart];
+    // CommonFileName += SIsBkgParab[BkgType] + "_Pzs2";
+    // if (isApplyWeights)
+    //   CommonFileName += "_Weighted";
+    // if (!useCommonBDTValue)
+    //   CommonFileName += "_BDTCentDep";
+    // if (isRun2Binning)
+    //   CommonFileName += "_Run2Binning";
+    // fileName[0] = "";
+    // fileName[1] = "_PolFromLambda";
+    // fileName[0] += "_PtInt";
+    // fileName[1] += "_PtInt";
     namehisto[0] = "fHistPzs";
     namehisto[1] = "fHistPzs";
     MinHistoX = 0;
@@ -603,10 +609,12 @@ void CompareResults(Int_t TypeComp = 0,
     hTitleX = "FT0C Centrality (%)";
     YLow = -0.01;
     YUp = 0.03;
-    YLowRatio = 0.5;
-    YUpRatio = 1.5;
-    sleg[0] = "P_{z,s2} from #Xi";
-    sleg[1] = "P_{z,s2} from #Lambda";
+    // YLowRatio = 0.5;
+    // YUpRatio = 1.5;
+    YLowRatio = -0.003;
+    YUpRatio = 0.003;
+    sleg[0] = "P_{z,s2} from #Lambda";
+    sleg[1] = "P_{z,s2} from #Xi";
   }
   // TypeComp = 12 --> Pzs2 vs centrality : XiPlus vs XiMinus vs Xi
   else if (TypeComp == 12)
@@ -3364,6 +3372,30 @@ void CompareResults(Int_t TypeComp = 0,
     MinHistoX = 1.1;
     MaxHistoX = 1.13;
   }
+  else if (TypeComp == 107)
+  {
+    // TypeComp == 107
+    numOptions = 2;
+    isRatio = 1;
+    isFitRatio = 1;
+    isFullCorr = 1;
+    isStoreSyst = 1;
+    TypeSyst = "_BkgPol0";
+    CommonFileName = "../Pzs2VsCentrality/Pzs2_LHC23_PbPb_pass5_Train540301_Xi_DSCB_BkgCheb_GaussConv_Pzs2_PolFromLambda_PtInt_Eta08_FromTHN_MixedBDT_TightMassCut2.1_EPReso";
+    fileName[0] = "";
+    fileName[1] = "_isBkgPol0";
+    namehisto[0] = "fHistPzs";
+    namehisto[1] = "fHistPzs";
+    hTitleX = "FT0C Centrality (%)";
+    sleg[0] = "Default";
+    sleg[1] = "P_{z, bkg} = 0";
+    YLowRatio = -0.001;
+    YUpRatio = 0.001;
+    YLow = -0.002;
+    YUp = 0.02;
+    MinHistoX = 0;
+    MaxHistoX = 80;
+  }
   else
   {
     cout << "TypeComp not defined" << endl;
@@ -3450,6 +3482,8 @@ void CompareResults(Int_t TypeComp = 0,
             hRatio[i]->SetBinError(j, std::abs(hDef->GetBinError(j) - h[i]->GetBinError(j)));
           else if (isFullCorr == 0)
             hRatio[i]->SetBinError(j, sqrt(std::abs(pow(hDef->GetBinError(j), 2) - pow(h[i]->GetBinError(j), 2))));
+          else if (isFullCorr == 2)
+            hRatio[i]->SetBinError(j, sqrt(pow(hDef->GetBinError(j), 2) + pow(h[i]->GetBinError(j), 2) - 2 * rho * hDef->GetBinError(j) * h[i]->GetBinError(j)));
         }
       }
       for (Int_t j = 1; j <= hRatio[i]->GetNbinsX(); j++)
@@ -3835,14 +3869,14 @@ if (TypeComp == 48)
   TFile *outputForSyst;
   TString SoutputForSyst = "../CompareResults/SystUncertainty_" + TypeSyst + ".root";
   TH1F *hRMS = (TH1F *)hRatio[1]->Clone("hRMS");
-  if(!hRMS)
+  if (!hRMS)
   {
     cout << "Error: hRMS could not be created." << endl;
     return;
   }
   hRMS->Reset();
   float sum[20] = {0};
-  
+
   if (isStoreSyst && isRatio == 0)
   {
     outputForSyst = new TFile(SoutputForSyst, "RECREATE");
