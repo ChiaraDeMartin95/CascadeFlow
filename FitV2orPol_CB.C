@@ -18,8 +18,8 @@
 #include "CommonVarPub.h"
 // #include "CommonVar_v2.h"
 // #include "CommonVarOmega.h"
-// #include "CommonVarXi.h"
-#include "CommonVarLambda.h"
+#include "CommonVarXi.h"
+// #include "CommonVarLambda.h"
 #include "Fit/Fitter.h"
 #include "Fit/BinData.h"
 #include "Fit/Chi2FCN.h"
@@ -755,6 +755,8 @@ void FitV2orPol_CB(
     Bool_t isSysMultTrial = ExtrisSysMultTrial)
 {
 
+  TF1 *totalPNorm = nullptr;
+  TF1 *bkg = nullptr;
   if (isGaussConv && !isFitDSCB)
   {
     cout << "Convolution fit only available with DSCB signal fit. Please set isFitDSCB to 1 or isGaussConv to 0" << endl;
@@ -3927,6 +3929,14 @@ void FitV2orPol_CB(
   outputfile->WriteTObject(histoCos2ThetaPtIntNoFit);
   outputfile->WriteTObject(histoCos2ThetaPtIntMixed);
   outputfile->WriteTObject(histoCos2ThetaPtIntPeakPos);
+
+  outputfile->WriteTObject(hInvMass[ChosenPt]);
+  outputfile->WriteTObject(hV2[ChosenPt]);
+  outputfile->WriteTObject(v2FitFunction[ChosenPt]);
+  outputfile->WriteTObject(v2FitFunctionPol0[ChosenPt]);
+  outputfile->WriteTObject(v2FitFunctionExtended[ChosenPt]);
+  outputfile->WriteTObject(v2BkgFunction[ChosenPt]);
+  
   outputfile->Close();
 
   TFile *outputfile2;
@@ -4111,7 +4121,7 @@ void FitV2orPol_CB(
   lineM3SigmaNorm[ChosenPt]->SetLineStyle(2);
   // lineP3SigmaNorm[ChosenPt]->Draw("same");
   // lineM3SigmaNorm[ChosenPt]->Draw("same");
-  TF1 *totalPNorm = nullptr;
+  //TF1 *totalPNorm = nullptr;
   if (isFitDSCB)
   {
     if (isMC)
@@ -4245,7 +4255,7 @@ void FitV2orPol_CB(
   legendfit->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   // legendfit2->AddEntry(totalPNorm, "Gaussian fits + bkg.", "l");
   legendfit2->AddEntry(totalPNorm, "Total fit", "l");
-  TF1 *bkg = nullptr;
+  //TF1 *bkg = nullptr;
   if (BkgType == 0)
     bkg = bkg1[ChosenPt];
   else if (BkgType == 1)
@@ -4650,6 +4660,11 @@ void FitV2orPol_CB(
     totalGlobalNorm->SetParameter(7, totalGlobal[ChosenPt]->GetParameter(7) / histoIntegral);
     totalGlobalNorm->SetParameter(8, totalGlobal[ChosenPt]->GetParameter(8) / histoIntegral);
   }
+  
+  TFile *outputfileUpd = new TFile(Soutputfile + ".root", "UPDATE");
+  outputfileUpd->WriteTObject(totalPNorm);
+  outputfileUpd->WriteTObject(bkg);
+  outputfileUpd->Close();
 
   gStyle->SetOptFit(1111);
   canvasP2->cd();
