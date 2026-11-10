@@ -22,9 +22,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
-#include "CommonVarLambda.h"
-// #include "CommonVarOmega.h"
+#include "CommonVarXi.h"
+// #include "CommonVarLambda.h"
+//  #include "CommonVarOmega.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -752,8 +752,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
     PathInSyst += "_BDTCentDep";
   if (isRun2Binning)
     PathInSyst += "_Run2Binning";
-  if (isPolFromLambda)
-    PathInSyst += "_PolFromLambda";
+  // if (isPolFromLambda)
+  PathInSyst += "_PolFromLambda";
   if (!isRapiditySel)
     PathInSyst += "_Eta08";
   if (ChosenPart < 6)
@@ -1241,8 +1241,8 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   fpol1->SetLineColor(kBlue + 2);
   fpol0->SetLineColor(kAzure + 1);
 
-  TH1F *fHistPzsFit = (TH1F *)fHistPzs->Clone("fHistPzsFit");
-  // TH1F * fHistPzsFit = (TH1F*)fHistPzsTotError->Clone("fHistPzsFit");
+  // TH1F *fHistPzsFit = (TH1F *)fHistPzs->Clone("fHistPzsFit");
+  TH1F *fHistPzsFit = (TH1F *)fHistPzsTotError->Clone("fHistPzsFit");
   if (ChosenPart >= 6)
     fHistPzsFit->GetXaxis()->SetRangeUser(0, CentFT0CMaxLambdaOO);
   fHistPzsFit->Fit("fpol1", "R+");
@@ -1524,6 +1524,7 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   gRatioModelOmegaLambda->SetMarkerSize(1.5);
   gRatioModelOmegaLambda->SetLineWidth(3);
 
+  cout << "Ratio between Xi and Lambda Pzs2" << endl;
   TCanvas *canvasPzsRatioXiLambda = new TCanvas("canvasPzsRatioXiLambda", "canvasPzsRatioXiLambda", 900, 700);
   StyleCanvas(canvasPzsRatioXiLambda, 0.06, 0.15, 0.1, 0.03);
   TH1F *fHistPzsRatioXiLambda = (TH1F *)fHistPzs->Clone("fHistPzsRatioXiLambda");
@@ -1553,13 +1554,13 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   // hDummyRatioXiLambda->GetXaxis()->SetRangeUser(10, 80);
   hDummyRatioXiLambda->GetXaxis()->SetRangeUser(0, 80);
   // hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-1, 6);
-  hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-5, 5);
+  hDummyRatioXiLambda->GetYaxis()->SetRangeUser(-10, 10);
   hDummyRatioXiLambda->Draw("");
   fHistPzsRatioXiLambda->Draw("same");
   fHistPzsRatioXiLambdaSist->SetFillStyle(0);
   fHistPzsRatioXiLambdaSist->Draw("same e2");
   fHistPzsRatioXiLambdaSist->Draw("same");
-  TF1 *lineatOneRatioXiLambda = new TF1("lineatOneRatioXiLambda", "1", 10, 80);
+  TF1 *lineatOneRatioXiLambda = new TF1("lineatOneRatioXiLambda", "0", 0, 80);
   lineatOneRatioXiLambda->SetLineColor(kGray + 1);
   lineatOneRatioXiLambda->SetLineStyle(2);
   lineatOneRatioXiLambda->Draw("same");
@@ -1572,26 +1573,374 @@ void PzsVsCentrality(Int_t ChosenPart = ChosenParticle,
   TGraph *gRatioModelXiLambdaThick = new TGraph();
   for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
   {
-    if (fHistPzs->GetBinLowEdge(i) < 10 || fHistPzs->GetXaxis()->GetBinUpEdge(i) > 80)
+    if (fHistPzs->GetBinLowEdge(i) < 0 || fHistPzs->GetXaxis()->GetBinUpEdge(i) > 80)
       continue;
     Double_t cent = fHistPzs->GetBinCenter(i);
-    gRatioModelXiLambdaThick->SetPoint(gRatioModelXiLambdaThick->GetN(), cent, gPzsPalliXi->Eval(cent) / gPzsPalliLambda->Eval(cent));
+    if (cent >= 10 && cent <= 80)
+      gRatioModelXiLambdaThick->SetPoint(gRatioModelXiLambdaThick->GetN(), cent, gPzsPalliXi->Eval(cent) / gPzsPalliLambda->Eval(cent));
+    else
+      gRatioModelXiLambdaThick->SetPoint(gRatioModelXiLambdaThick->GetN(), 7.5, gPzsPalliXi->Eval(cent) / gPzsPalliLambda->Eval(cent));
   }
   gRatioModelXiLambdaThick->SetLineColor(kRed + 1);
   gRatioModelXiLambdaThick->SetLineWidth(6); // thicker than on the model-only canvas
-  // gRatioModelXiLambdaThick->Draw("same l");
+  gRatioModelXiLambdaThick->Draw("same l");
   // TLegend *legendRatioXiLambda = new TLegend(0.14, 0.64, 0.6, 0.9);
-  TLegend *legendRatioXiLambda = new TLegend(0.14, 0.75, 0.6, 0.9);
+  TLegend *legendRatioXiLambda = new TLegend(0.18, 0.71, 0.64, 0.89);
   legendRatioXiLambda->SetFillStyle(0);
   legendRatioXiLambda->SetBorderSize(0);
   legendRatioXiLambda->SetTextAlign(12);
   legendRatioXiLambda->SetTextSize(0.04);
   legendRatioXiLambda->AddEntry(fHistPzsRatioXiLambdaSist, "Data", "pef");
-  // legendRatioXiLambda->AddEntry(gRatioModelXiLambdaThick, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
-  // legendRatioXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
-  // legendRatioXiLambda->AddEntry(fitToRatio, Form("Constant fit to data: %.2f #pm %.2f", fitToRatio->GetParameter(0), fitToRatio->GetParError(0)), "l");
+  legendRatioXiLambda->AddEntry(gRatioModelXiLambdaThick, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendRatioXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  legendRatioXiLambda->AddEntry(fitToRatio, Form("Constant fit to data: %.2f #pm %.2f", fitToRatio->GetParameter(0), fitToRatio->GetParError(0)), "l");
   legendRatioXiLambda->Draw("");
   canvasPzsRatioXiLambda->SaveAs("../canvasPzsRatioXiLambda.png");
+
+  // Merged results in 30-80%
+  // Lambda
+  Double_t LambdaPzs2 = 0;
+  Double_t LambdaYieldSum = 0;
+  Double_t XiPzs2 = 0;
+  Double_t XiYieldSum = 0;
+  Double_t LambdaModel = 0;
+  Double_t XiModel = 0;
+  for (Int_t i = 3; i <= 7; i++)
+  { // 30-80% centrality bins
+    LambdaPzs2 += fHistPzsLambdaJunlee->GetBinContent(i + 1) * lambdaYield[i];
+    LambdaYieldSum += lambdaYield[i];
+
+    XiPzs2 += fHistPzs->GetBinContent(i + 1) * xiYield[i];
+    XiYieldSum += xiYield[i];
+
+    Double_t cent = fHistPzs->GetBinCenter(i + 1);
+    LambdaModel += gPzsPalliLambda->Eval(cent) * lambdaYield[i];
+    XiModel += gPzsPalliXi->Eval(cent) * xiYield[i];
+  }
+  LambdaPzs2 /= LambdaYieldSum;
+  XiPzs2 /= XiYieldSum;
+  LambdaModel /= LambdaYieldSum;
+  XiModel /= XiYieldSum;
+
+  // Separate uncertainty components (all treated as uncorrelated across centrality)
+  Double_t LambdaErrStatPz2 = 0, LambdaErrStatYield2 = 0, LambdaErrSystPz2 = 0, LambdaErrSystYield2 = 0;
+  Double_t LambdaErrSystPz2Corr = 0;
+  Double_t LambdaErrSystYieldCorr = 0, XiErrSystYieldCorr = 0;
+  Double_t XiErrStatPz2 = 0, XiErrStatYield2 = 0, XiErrSystPz2 = 0, XiErrSystYield2 = 0;
+  for (Int_t i = 3; i <= 7; i++)
+  { // 30-80% centrality bins
+    Double_t LambdaW = lambdaYield[i] / LambdaYieldSum;
+    Double_t LambdaDev = (fHistPzsLambdaJunlee->GetBinContent(i + 1) - LambdaPzs2) / LambdaYieldSum;
+    LambdaErrStatPz2 += TMath::Power(LambdaW * fHistPzsLambdaJunlee->GetBinError(i + 1), 2);
+    LambdaErrStatYield2 += TMath::Power(LambdaDev * lambdaStat[i], 2);
+    LambdaErrSystPz2 += TMath::Power(LambdaW * fHistPzsLambdaJunleeSist->GetBinError(i + 1), 2);
+    LambdaErrSystYield2 += TMath::Power(LambdaDev * lambdaSyst[i], 2);
+    LambdaErrSystPz2Corr += LambdaW * fHistPzsLambdaJunleeSist->GetBinError(i + 1);
+
+    Double_t XiW = xiYield[i] / XiYieldSum;
+    Double_t XiDev = (fHistPzs->GetBinContent(i + 1) - XiPzs2) / XiYieldSum;
+    XiErrStatPz2 += TMath::Power(XiW * fHistPzs->GetBinError(i + 1), 2);
+    XiErrStatYield2 += TMath::Power(XiDev * xiStat[i], 2);
+    XiErrSystPz2 += TMath::Power(XiW * fHistPzsSist->GetBinError(i + 1), 2);
+    XiErrSystYield2 += TMath::Power(XiDev * xiSyst[i], 2);
+    // alternative: yield syst fully correlated across centrality -> linear sum of the signed contributions
+    LambdaErrSystYieldCorr += LambdaDev * lambdaSyst[i];
+    XiErrSystYieldCorr += XiDev * xiSyst[i];
+  }
+  cout << "Yield syst on <Pz,s2> (30-80%): uncorrelated vs fully correlated across centrality" << endl;
+  cout << "   Lambda: " << TMath::Sqrt(LambdaErrSystYield2) << " vs " << TMath::Abs(LambdaErrSystYieldCorr)
+       << " -> total syst " << TMath::Sqrt(LambdaErrSystPz2 + LambdaErrSystYield2) << " vs " << TMath::Sqrt(LambdaErrSystPz2 + LambdaErrSystYieldCorr * LambdaErrSystYieldCorr) << endl;
+  cout << "   Xi: " << TMath::Sqrt(XiErrSystYield2) << " vs " << TMath::Abs(XiErrSystYieldCorr)
+       << " -> total syst " << TMath::Sqrt(XiErrSystPz2 + XiErrSystYield2) << " vs " << TMath::Sqrt(XiErrSystPz2 + XiErrSystYieldCorr * XiErrSystYieldCorr) << endl;
+  Double_t LambdaPzs2ErrStat = TMath::Sqrt(LambdaErrStatPz2 + LambdaErrStatYield2);
+  Double_t LambdaPzs2ErrSyst = TMath::Sqrt(LambdaErrSystPz2 + LambdaErrSystYield2);
+  Double_t XiPzs2ErrStat = TMath::Sqrt(XiErrStatPz2 + XiErrStatYield2);
+  Double_t XiPzs2ErrSyst = TMath::Sqrt(XiErrSystPz2 + XiErrSystYield2);
+
+  // Ratio Xi / Lambda: relative uncertainties added in quadrature (no correlation between Xi and Lambda)
+  Double_t RatioXiLambda = XiPzs2 / LambdaPzs2;
+  Double_t RatioXiLambdaErrStat = TMath::Abs(RatioXiLambda) * TMath::Sqrt(TMath::Power(XiPzs2ErrStat / XiPzs2, 2) + TMath::Power(LambdaPzs2ErrStat / LambdaPzs2, 2));
+  Double_t RatioXiLambdaErrSyst = TMath::Abs(RatioXiLambda) * TMath::Sqrt(TMath::Power(XiPzs2ErrSyst / XiPzs2, 2) + TMath::Power(LambdaPzs2ErrSyst / LambdaPzs2, 2));
+
+  Double_t RatioXiLambdaModel = XiModel / LambdaModel;
+
+  cout << "Lambda <Pz,s2> (30-80%) = " << LambdaPzs2
+       << " +- " << LambdaPzs2ErrStat << " (stat) +- " << LambdaPzs2ErrSyst << " (syst)" << endl;
+  cout << "   stat: Pz " << TMath::Sqrt(LambdaErrStatPz2) << ", yield " << TMath::Sqrt(LambdaErrStatYield2) << endl;
+  cout << "   syst: Pz " << TMath::Sqrt(LambdaErrSystPz2) << " (corr " << LambdaErrSystPz2Corr << "), yield " << TMath::Sqrt(LambdaErrSystYield2) << endl;
+  cout << "Xi <Pz,s2> (30-80%) = " << XiPzs2
+       << " +- " << XiPzs2ErrStat << " (stat) +- " << XiPzs2ErrSyst << " (syst)" << endl;
+  cout << "   stat: Pz " << TMath::Sqrt(XiErrStatPz2) << ", yield " << TMath::Sqrt(XiErrStatYield2) << endl;
+  cout << "   syst: Pz " << TMath::Sqrt(XiErrSystPz2) << ", yield " << TMath::Sqrt(XiErrSystYield2) << endl;
+  cout << "Models: Lambda " << LambdaModel << ", Xi " << XiModel << ", ratio " << RatioXiLambdaModel << endl;
+
+  cout << "Xi / Lambda <Pz,s2> (30-80%) = " << RatioXiLambda
+       << " +- " << RatioXiLambdaErrStat << " (stat) +- " << RatioXiLambdaErrSyst << " (syst)" << endl;
+  cout << "Xi / Lambda model <Pz,s2> (30-80%) = " << RatioXiLambdaModel << endl;
+
+  // Significance of the non-zero <Pz,s2> in 30-80%: value / sqrt(stat^2 + syst^2)
+  Double_t LambdaPzs2Significance = LambdaPzs2 / TMath::Sqrt(LambdaPzs2ErrStat * LambdaPzs2ErrStat + LambdaPzs2ErrSyst * LambdaPzs2ErrSyst);
+  Double_t XiPzs2Significance = XiPzs2 / TMath::Sqrt(XiPzs2ErrStat * XiPzs2ErrStat + XiPzs2ErrSyst * XiPzs2ErrSyst);
+  cout << "Significance <Pz,s2> (30-80%): Lambda " << LambdaPzs2Significance << " sigma, Xi " << XiPzs2Significance << " sigma" << endl;
+
+  // Two-panel canvas: left = ratio vs centrality (as in canvasPzsRatioXiLambda), right = ratio in 30-80%
+  TCanvas *canvasPzsRatioXiLambdaWith3080 = new TCanvas("canvasPzsRatioXiLambdaWith3080", "canvasPzsRatioXiLambdaWith3080", 1200, 700);
+  canvasPzsRatioXiLambdaWith3080->SetFillColor(0);
+  TPad *padRatioVsCent = new TPad("padRatioVsCent", "padRatioVsCent", 0, 0, 0.75, 1); // 900x700, same as canvasPzsRatioXiLambda
+  TPad *padRatio3080 = new TPad("padRatio3080", "padRatio3080", 0.75, 0, 1, 1);
+  padRatioVsCent->SetFillColor(0);
+  padRatioVsCent->SetTickx(1);
+  padRatioVsCent->SetTicky(1);
+  padRatioVsCent->SetTopMargin(0.06);
+  padRatioVsCent->SetBottomMargin(0.15);
+  padRatioVsCent->SetLeftMargin(0.1);
+  padRatioVsCent->SetRightMargin(0.0);
+  padRatio3080->SetFillColor(0);
+  padRatio3080->SetTickx(1);
+  padRatio3080->SetTicky(1);
+  padRatio3080->SetTopMargin(0.06);
+  padRatio3080->SetBottomMargin(0.15);
+  padRatio3080->SetLeftMargin(0.0);
+  padRatio3080->SetRightMargin(0.1);
+  padRatioVsCent->Draw();
+  padRatio3080->Draw();
+
+  padRatioVsCent->cd();
+  hDummyRatioXiLambda->Draw("");
+  fHistPzsRatioXiLambda->Draw("same");
+  fHistPzsRatioXiLambdaSist->Draw("same e2");
+  fHistPzsRatioXiLambdaSist->Draw("same");
+  lineatOneRatioXiLambda->Draw("same");
+  fitToRatio->Draw("same");
+  gRatioModelXiLambdaThick->Draw("same l");
+  legendRatioXiLambda->Draw("");
+
+  padRatio3080->cd();
+  TH1F *hDummyRatio3080 = new TH1F("hDummyRatio3080", "hDummyRatio3080", 1, 0, 1);
+  hDummyRatio3080->SetBinContent(1, -999);
+  hDummyRatio3080->GetXaxis()->SetBinLabel(1, "30-80%");
+  SetFont(hDummyRatio3080);
+  StyleHistoYield(hDummyRatio3080, YLow[part], YUp[part], 1, 1, "", "", "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummyRatio3080, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  hDummyRatio3080->GetXaxis()->SetLabelOffset(0.03);
+  hDummyRatio3080->GetYaxis()->SetLabelSize(0);
+  hDummyRatio3080->GetXaxis()->SetTickLength(0);
+  hDummyRatio3080->GetYaxis()->SetTickLength(tickY * 3); // pad is 3 times narrower than the left one
+  hDummyRatio3080->GetYaxis()->SetRangeUser(-10, 10);    // same y range as left panel
+  hDummyRatio3080->Draw("");
+  TF1 *lineatOneRatio3080 = new TF1("lineatOneRatio3080", "0", 0, 1);
+  lineatOneRatio3080->SetLineColor(kGray + 1);
+  lineatOneRatio3080->SetLineStyle(2);
+  lineatOneRatio3080->Draw("same");
+  TGraphErrors *gRatio3080Stat = new TGraphErrors(1);
+  gRatio3080Stat->SetPoint(0, 0.5, RatioXiLambda);
+  gRatio3080Stat->SetPointError(0, 0, RatioXiLambdaErrStat);
+  TGraphErrors *gRatio3080Syst = new TGraphErrors(1);
+  gRatio3080Syst->SetPoint(0, 0.5, RatioXiLambda);
+  gRatio3080Syst->SetPointError(0, 0.15, RatioXiLambdaErrSyst);
+  for (TGraphErrors *g : {gRatio3080Stat, gRatio3080Syst})
+  {
+    g->SetMarkerStyle(fHistPzsRatioXiLambda->GetMarkerStyle());
+    g->SetMarkerSize(fHistPzsRatioXiLambda->GetMarkerSize());
+    g->SetMarkerColor(fHistPzsRatioXiLambda->GetMarkerColor());
+    g->SetLineColor(fHistPzsRatioXiLambda->GetLineColor());
+    g->SetLineWidth(fHistPzsRatioXiLambda->GetLineWidth());
+  }
+  gRatio3080Syst->SetFillStyle(0);
+  TLine *lineModelRatio3080 = new TLine(0.2, RatioXiLambdaModel, 0.8, RatioXiLambdaModel);
+  lineModelRatio3080->SetLineColor(gRatioModelXiLambdaThick->GetLineColor());
+  lineModelRatio3080->SetLineWidth(gRatioModelXiLambdaThick->GetLineWidth());
+  lineModelRatio3080->Draw("same");
+  gRatio3080Syst->Draw("2 same");
+  gRatio3080Stat->Draw("pe same");
+  canvasPzsRatioXiLambdaWith3080->SaveAs("../canvasPzsRatioXiLambdaWith3080.png");
+  canvasPzsRatioXiLambdaWith3080->SaveAs("../canvasPzsRatioXiLambdaWith3080.pdf");
+
+  // Two-panel canvas: left = Pz,s vs centrality (as in canvasPzsXiLambda), right = Xi and Lambda Pz,s in 30-80%
+  TCanvas *canvasPzsXiLambdaWith3080 = new TCanvas("canvasPzsXiLambdaWith3080", "canvasPzsXiLambdaWith3080", 1200, 700);
+  canvasPzsXiLambdaWith3080->SetFillColor(0);
+  TPad *padPzsVsCent = new TPad("padPzsVsCent", "padPzsVsCent", 0, 0, 0.75, 1); // 900x700, same as canvasPzsXiLambda
+  TPad *padPzs3080 = new TPad("padPzs3080", "padPzs3080", 0.75, 0, 1, 1);
+  padPzsVsCent->SetFillColor(0);
+  padPzsVsCent->SetTickx(1);
+  padPzsVsCent->SetTicky(1);
+  padPzsVsCent->SetTopMargin(0.06);
+  padPzsVsCent->SetBottomMargin(0.12);
+  padPzsVsCent->SetLeftMargin(0.1);
+  padPzsVsCent->SetRightMargin(0.0);
+  padPzs3080->SetFillColor(0);
+  padPzs3080->SetTickx(1);
+  padPzs3080->SetTicky(1);
+  padPzs3080->SetTopMargin(0.06);
+  padPzs3080->SetBottomMargin(0.12);
+  padPzs3080->SetLeftMargin(0.0);
+  padPzs3080->SetRightMargin(0.1);
+  padPzsVsCent->Draw();
+  padPzs3080->Draw();
+
+  padPzsVsCent->cd();
+  hDummy->Draw("");
+  lineatZero->Draw("same");
+  fHistPzsLambdaJunlee->Draw("same ex0");
+  fHistPzsLambdaJunleeSist->Draw("same e2");
+  fHistPzsUpTo50->Draw("same ex0");
+  fHistPzsSistUpTo50->Draw("same e2");
+  if (ChosenPart < 6)
+  {
+    gPzsPalliXi->Draw("same l");
+    gPzsPalliLambda->Draw("same l");
+  }
+  LegendPreliminary3->Draw("");
+  legendParticles->Draw("");
+  if (ChosenPart < 6)
+    legendPalermo->Draw("");
+
+  padPzs3080->cd();
+  TH1F *hDummyPzs3080 = new TH1F("hDummyPzs3080", "hDummyPzs3080", 1, 0, 1);
+  hDummyPzs3080->SetBinContent(1, -999);
+  hDummyPzs3080->GetXaxis()->SetBinLabel(1, "30-80%");
+  SetFont(hDummyPzs3080);
+  StyleHistoYield(hDummyPzs3080, hDummy->GetMinimum(), hDummy->GetMaximum(), 1, 1, "", "", "", 1, 1.15, 1.8); // same y range as left panel
+  SetHistoTextSize(hDummyPzs3080, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  hDummyPzs3080->GetXaxis()->SetLabelOffset(0.03);
+  hDummyPzs3080->GetYaxis()->SetLabelSize(0);
+  hDummyPzs3080->GetXaxis()->SetTickLength(0);
+  hDummyPzs3080->GetYaxis()->SetTickLength(hDummy->GetYaxis()->GetTickLength() * 3); // pad is 3 times narrower than the left one
+  hDummyPzs3080->Draw("");
+  TF1 *lineatZeroPzs3080 = new TF1("lineatZeroPzs3080", "0", 0, 1);
+  lineatZeroPzs3080->SetLineColor(lineatZero->GetLineColor());
+  lineatZeroPzs3080->SetLineStyle(lineatZero->GetLineStyle());
+  lineatZeroPzs3080->Draw("same");
+  // Xi at x = 0.33, Lambda at x = 0.67, styled as the corresponding histograms of the left panel
+  const Double_t xPosXi3080 = 0.33, xPosLambda3080 = 0.67, halfWidthBox3080 = 0.1;
+  TGraphErrors *gXi3080Stat = new TGraphErrors(1);
+  gXi3080Stat->SetPoint(0, xPosXi3080, XiPzs2);
+  gXi3080Stat->SetPointError(0, 0, XiPzs2ErrStat);
+  TGraphErrors *gXi3080Syst = new TGraphErrors(1);
+  gXi3080Syst->SetPoint(0, xPosXi3080, XiPzs2);
+  gXi3080Syst->SetPointError(0, halfWidthBox3080, XiPzs2ErrSyst);
+  TGraphErrors *gLambda3080Stat = new TGraphErrors(1);
+  gLambda3080Stat->SetPoint(0, xPosLambda3080, LambdaPzs2);
+  gLambda3080Stat->SetPointError(0, 0, LambdaPzs2ErrStat);
+  TGraphErrors *gLambda3080Syst = new TGraphErrors(1);
+  gLambda3080Syst->SetPoint(0, xPosLambda3080, LambdaPzs2);
+  gLambda3080Syst->SetPointError(0, halfWidthBox3080, LambdaPzs2ErrSyst);
+  for (TGraphErrors *g : {gXi3080Stat, gXi3080Syst})
+  {
+    g->SetMarkerStyle(fHistPzs->GetMarkerStyle());
+    g->SetMarkerSize(fHistPzs->GetMarkerSize());
+    g->SetMarkerColor(fHistPzs->GetMarkerColor());
+    g->SetLineColor(fHistPzs->GetLineColor());
+    g->SetLineWidth(fHistPzs->GetLineWidth());
+  }
+  for (TGraphErrors *g : {gLambda3080Stat, gLambda3080Syst})
+  {
+    g->SetMarkerStyle(fHistPzsLambdaJunlee->GetMarkerStyle());
+    g->SetMarkerSize(fHistPzsLambdaJunlee->GetMarkerSize());
+    g->SetMarkerColor(fHistPzsLambdaJunlee->GetMarkerColor());
+    g->SetLineColor(fHistPzsLambdaJunlee->GetLineColor());
+    g->SetLineWidth(fHistPzsLambdaJunlee->GetLineWidth());
+  }
+  gXi3080Syst->SetFillStyle(0);
+  gLambda3080Syst->SetFillStyle(0);
+  if (ChosenPart < 6)
+  { // model averaged in 30-80% with the same yield weights as the data
+    TLine *lineModelXi3080 = new TLine(xPosXi3080 - 1.5 * halfWidthBox3080, XiModel, xPosXi3080 + 1.5 * halfWidthBox3080, XiModel);
+    lineModelXi3080->SetLineColor(gPzsPalliXi->GetLineColor());
+    lineModelXi3080->SetLineWidth(gPzsPalliXi->GetLineWidth());
+    lineModelXi3080->Draw("same");
+    TLine *lineModelLambda3080 = new TLine(xPosLambda3080 - 1.5 * halfWidthBox3080, LambdaModel, xPosLambda3080 + 1.5 * halfWidthBox3080, LambdaModel);
+    lineModelLambda3080->SetLineColor(gPzsPalliLambda->GetLineColor());
+    lineModelLambda3080->SetLineWidth(gPzsPalliLambda->GetLineWidth());
+    lineModelLambda3080->Draw("same");
+  }
+  gLambda3080Syst->Draw("2 same");
+  gLambda3080Stat->Draw("pe same");
+  gXi3080Syst->Draw("2 same");
+  gXi3080Stat->Draw("pe same");
+  canvasPzsXiLambdaWith3080->SaveAs("../XiLambdaPolVsCentWith3080.png");
+  canvasPzsXiLambdaWith3080->SaveAs("../XiLambdaPolVsCentWith3080.pdf");
+
+  // Difference Pz,s(Xi) - Pz,s(Lambda) vs centrality
+  // Uncertainties: absolute uncertainties added in quadrature (no correlation between Xi and Lambda)
+  TH1F *fHistPzsDiffXiLambda = (TH1F *)fHistPzs->Clone("fHistPzsDiffXiLambda");
+  TH1F *fHistPzsDiffXiLambdaSist = (TH1F *)fHistPzs->Clone("fHistPzsDiffXiLambdaSist");
+  TH1F *fHistPzsDiffXiLambdaFit = (TH1F *)fHistPzs->Clone("fHistPzsDiffXiLambdaFit");
+  for (Int_t i = 1; i <= fHistPzsDiffXiLambda->GetNbinsX(); i++)
+  {
+    Double_t diff = fHistPzs->GetBinContent(i) - fHistPzsLambdaJunlee->GetBinContent(i);
+    Double_t errStat = sqrt(pow(fHistPzs->GetBinError(i), 2) + pow(fHistPzsLambdaJunlee->GetBinError(i), 2));
+    Double_t errSyst = sqrt(pow(fHistPzsSist->GetBinError(i), 2) + pow(fHistPzsLambdaJunleeSist->GetBinError(i), 2));
+    fHistPzsDiffXiLambda->SetBinContent(i, diff);
+    fHistPzsDiffXiLambda->SetBinError(i, errStat);
+    fHistPzsDiffXiLambdaSist->SetBinContent(i, diff);
+    fHistPzsDiffXiLambdaSist->SetBinError(i, errSyst);
+    fHistPzsDiffXiLambdaFit->SetBinContent(i, diff);
+    fHistPzsDiffXiLambdaFit->SetBinError(i, sqrt(errStat * errStat + errSyst * errSyst));
+  }
+  // Model Xi - Lambda at the bin centres (same points as gRatioModelXiLambdaThick)
+  TGraph *gDiffModelXiLambda = new TGraph();
+  for (Int_t i = 1; i <= fHistPzs->GetNbinsX(); i++)
+  {
+    if (fHistPzs->GetBinLowEdge(i) < 0 || fHistPzs->GetXaxis()->GetBinUpEdge(i) > 80)
+      continue;
+    Double_t cent = fHistPzs->GetBinCenter(i);
+    Double_t x = (cent >= 10 && cent <= 80) ? cent : 7.5;
+    gDiffModelXiLambda->SetPoint(gDiffModelXiLambda->GetN(), x, gPzsPalliXi->Eval(cent) - gPzsPalliLambda->Eval(cent));
+  }
+  gDiffModelXiLambda->SetLineColor(gRatioModelXiLambdaThick->GetLineColor());
+  gDiffModelXiLambda->SetLineWidth(gRatioModelXiLambdaThick->GetLineWidth());
+
+  // y range: lower edge from data (+ uncertainties) and model, fixed upper edge
+  Double_t minDiff = 0;
+  for (Int_t i = 1; i <= fHistPzsDiffXiLambda->GetNbinsX(); i++)
+  {
+    if (fHistPzsDiffXiLambda->GetXaxis()->GetBinUpEdge(i) > 80)
+      continue;
+    minDiff = TMath::Min(minDiff, fHistPzsDiffXiLambda->GetBinContent(i) - fHistPzsDiffXiLambdaFit->GetBinError(i));
+  }
+  for (Int_t i = 0; i < gDiffModelXiLambda->GetN(); i++)
+    minDiff = TMath::Min(minDiff, gDiffModelXiLambda->GetPointY(i));
+  Double_t yUpDiff = 0.006;
+  Double_t yLowDiff = minDiff - 0.1 * (yUpDiff - minDiff);
+
+  cout << "Difference between Xi and Lambda " << endl;
+  TCanvas *canvasPzsDiffXiLambda = new TCanvas("canvasPzsDiffXiLambda", "canvasPzsDiffXiLambda", 900, 700);
+  StyleCanvas(canvasPzsDiffXiLambda, 0.06, 0.15, 0.15, 0.03);
+  canvasPzsDiffXiLambda->cd();
+  TH1F *hDummyDiffXiLambda = new TH1F("hDummyDiffXiLambda", "hDummyDiffXiLambda", 10000, 0, 100);
+  for (Int_t i = 1; i <= hDummyDiffXiLambda->GetNbinsX(); i++)
+    hDummyDiffXiLambda->SetBinContent(i, -999);
+  SetFont(hDummyDiffXiLambda);
+  StyleHistoYield(hDummyDiffXiLambda, yLowDiff, yUpDiff, 1, 1, TitleXCent, "P_{z,s2}^{#Xi} #minus P_{z,s2}^{#Lambda}", "", 1, 1.15, 1.8);
+  SetHistoTextSize(hDummyDiffXiLambda, xTitle, xLabel, xOffset, xLabelOffset, yTitle, yLabel, yOffset, yLabelOffset);
+  SetTickLength(hDummyDiffXiLambda, tickX, tickY);
+  hDummyDiffXiLambda->GetYaxis()->SetTitleOffset(1.7);
+  hDummyDiffXiLambda->GetXaxis()->SetRangeUser(0, 80);
+  hDummyDiffXiLambda->Draw("");
+  lineatOneRatioXiLambda->Draw("same"); // grey dashed line at 0, 0-80%
+  fHistPzsDiffXiLambda->Draw("same");
+  fHistPzsDiffXiLambdaSist->SetFillStyle(0);
+  fHistPzsDiffXiLambdaSist->Draw("same e2");
+  TF1 *fitToDiff = new TF1("fitToDiff", "[0]", 0, UpperRangeParticle);
+  fitToDiff->SetLineColor(kRed);
+  fitToDiff->SetLineStyle(3);
+  fHistPzsDiffXiLambdaFit->Fit(fitToDiff, "R0");
+  fitToDiff->Draw("same");
+  gDiffModelXiLambda->Draw("same l");
+  TLegend *legendDiffXiLambda = new TLegend(0.18, 0.71, 0.64, 0.89);
+  legendDiffXiLambda->SetFillStyle(0);
+  legendDiffXiLambda->SetBorderSize(0);
+  legendDiffXiLambda->SetTextAlign(12);
+  legendDiffXiLambda->SetTextSize(0.04);
+  legendDiffXiLambda->AddEntry(fHistPzsDiffXiLambdaSist, "Data", "pef");
+  legendDiffXiLambda->AddEntry(gDiffModelXiLambda, "Model, Pb-Pb 5.36 TeV, #zeta/s par III", "l");
+  legendDiffXiLambda->AddEntry("", "(based on Eur. Phys. J.C 84 (2024) 9, 920)", "");
+  legendDiffXiLambda->AddEntry(fitToDiff, Form("Constant fit to data: %.5f #pm %.5f", fitToDiff->GetParameter(0), fitToDiff->GetParError(0)), "l");
+  legendDiffXiLambda->Draw("");
+
+  canvasPzsDiffXiLambda->SaveAs("../canvasPzsDiffXiLambda.png");
+  canvasPzsDiffXiLambda->SaveAs("../canvasPzsDiffXiLambda.pdf");
 
   TCanvas *canvasPzsRatioModelToLambda = new TCanvas("canvasPzsRatioModelToLambda", "canvasPzsRatioModelToLambda", 900, 700);
   StyleCanvas(canvasPzsRatioModelToLambda, 0.06, 0.15, 0.1, 0.03);
