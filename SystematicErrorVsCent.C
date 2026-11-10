@@ -9,8 +9,8 @@
 #include "TF1.h"
 #include "TLegend.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
-#include "CommonVarLambda.h"
+#include "CommonVarXi.h"
+//#include "CommonVarLambda.h"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
 {
@@ -277,7 +277,11 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
   }
   fHistResoError->SetName("hResoSystError");
 
-  TFile *fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP.root");
+  TFile *fileInPolBkg0 = nullptr;
+  if (ChosenPart == 6)
+    fileInPolBkg0 = TFile::Open("../SystUncertaintiesInputFilesPP/SystUncertainty_BkgPol0PP.root");
+  else if (ChosenPart == 0)
+    fileInPolBkg0 = TFile::Open("../CompareResults/SystUncertainty__BkgPol0.root");
   TH1F *fHistPolBkg0Error = (TH1F *)fileInPolBkg0->Get("hRatioClone_1");
   if (!fHistPolBkg0Error)
   {
@@ -554,7 +558,8 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
       fHistTransferCoeffErrorVsCent->SetBinError(m + 1, 0);
       fHistRunByRunAccErrorVsCent->SetBinContent(m + 1, std::abs(RunByRunAccRelError * fHistPzs2[m]->GetBinContent(1)));
       fHistRunByRunAccErrorVsCent->SetBinError(m + 1, 0);
-      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0);
+      // fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, 0);
+      fHistPolBkg0ErrorVsCent->SetBinContent(m + 1, abs(fHistPolBkg0Error->GetBinContent(m + 1)));
       fHistPolBkg0ErrorVsCent->SetBinError(m + 1, 0);
       fHistPzFitRangeErrorVsCent->SetBinContent(m + 1, 0);
       fHistPzFitRangeErrorVsCent->SetBinError(m + 1, 0);
@@ -671,6 +676,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     fHistTransferCoeffErrorVsCent->Draw("same");
     fHistRunByRunAccErrorVsCent->Draw("same");
     fHistBDTErrorVsCent->Draw("same");
+    fHistPolBkg0ErrorVsCent->Draw("same");
   }
   if (ChosenPart == 6)
   {
@@ -702,6 +708,7 @@ void SystematicErrorVsCent(Int_t ChosenPart = ChosenParticle,
     legend->AddEntry(fHistRunByRunAccErrorVsCent, "Run-by-run acceptance dep.", "l");
     legend->AddEntry(fHistDecayParErrorVsCent, "Decay parameter", "l");
     legend->AddEntry(fHistTransferCoeffErrorVsCent, "Transfer coefficient", "l");
+    legend->AddEntry(fHistPolBkg0ErrorVsCent, "P_{z, s2, bkg} = 0", "l");
   }
   if (ChosenPart == 6)
   {
