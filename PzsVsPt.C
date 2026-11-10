@@ -191,7 +191,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   fHistPzsLambda_StatErr->SetMarkerColor(kBlue);
   fHistPzsLambda_StatErr->SetLineColor(kBlue);
 
-  TString SfilePbPbJunlee = "../LambdaJunlee/HEPData-ins3169170-v1-Table_4.root";
+  TString SfilePbPbJunlee = "../LambdaJunlee/HEPData-ins3169170-v2-Table_4.root";
   TFile *fileJunlee = new TFile(SfilePbPbJunlee);
   TDirectoryFile *dirJunlee = (TDirectoryFile *)fileJunlee->Get("Table 4");
   TH1F *hPzsJunlee = (TH1F *)dirJunlee->Get("Hist1D_y1");
@@ -849,7 +849,7 @@ void PzsVsPt(Int_t ChosenPart = ChosenParticle,
   hRatioPbPbToOOSist->Draw("same e2");
 
   // pT integrated ratio
-  TString SfilePbPbJunleeVsCent = "../LambdaJunlee/HEPData-ins3169170-v1-Table_3.root";
+  TString SfilePbPbJunleeVsCent = "../LambdaJunlee/HEPData-ins3169170-v2-Table_3.root";
   TFile *fileJunleeVsCent = new TFile(SfilePbPbJunleeVsCent);
   TDirectoryFile *dirJunleeVsCent = (TDirectoryFile *)fileJunleeVsCent->Get("Table 3");
   TH1F *hPzsJunleeVsCent = (TH1F *)dirJunleeVsCent->Get("Hist1D_y1");
