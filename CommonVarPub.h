@@ -153,3 +153,13 @@ Double_t Pzs2VsPtPalermo[20] = {0.00004343797300640249, 0.00007379423985643667, 
 Double_t LambdaYield[2] = {17.95, 11.45}; //from 5.02 TeV data (5.36 TeV not available) https://arxiv.org/pdf/2511.10360v2
 Double_t LambdaYieldStat[2] = {0.03, 0.02};
 Double_t LambdaYieldSyst[2] = {1.52, 1.07};
+
+//Factors needed to compute Lambda and Xi polarization in wider centrality classes 
+const double lambdaYield[8] = {55.62, 38.89, 27.17, 17.95, 11.45, 6.72, 3.57, 1.70};
+const double lambdaStat[8]  = {0.14, 0.10, 0.03, 0.03, 0.02, 0.01, 0.01, 0.02};
+const double lambdaSyst[8]  = {4.26, 3.05, 2.13, 1.52, 1.07, 0.69, 0.48, 0.24};
+
+// Xi- + anti-Xi+
+const double xiYield[8] = {10.14, 6.96, 4.66, 3.16, 1.93, 1.13, 0.56, 0.23};
+const double xiStat[8]  = {0.04, 0.02, 0.01, 0.01, 0.01, 0.00, 0.00, 0.00};
+const double xiSyst[8]  = {0.99, 0.66, 0.41, 0.28, 0.17, 0.11, 0.05, 0.03};
