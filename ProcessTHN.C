@@ -20,9 +20,9 @@
 #include "TPad.h"
 #include "StyleFile.h"
 #include "CommonVarPub.h"
-// #include "CommonVarXi.h"
+#include "CommonVarXi.h"
 //   #include "CommonVar_v2.h"
-#include "CommonVarLambda.h"
+// #include "CommonVarLambda.h"
 // #include "CommonVarOmega.h"
 #include "TRandom3.h"
 #include <ROOT/RDataFrame.hxx>
@@ -142,7 +142,6 @@ void ProcessTHN(Int_t indexMultTrial = 0,
 
   if (!hV2)
   {
-    // hV2 = (THnF *)hXiPzs2->Clone("hV2");
     if (isProducedAcceptancePlots)
     {
       if (ChosenPart >= 6)
@@ -160,6 +159,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
           hV2 = (THnF *)hXiPzs2->Clone("hV2");
         else
           hV2 = (THnF *)hXiPzs2FromLambda->Clone("hV2");
+        //hV2 = (THnF *)hXiPzs2->Clone("hV2");
       }
     }
   }
@@ -606,6 +606,7 @@ void ProcessTHN(Int_t indexMultTrial = 0,
     OutputFileName += "_OmegaRedCent";
   if (ExtrisCentXiRed && Part == 0)
     OutputFileName += "_XiRedCent";
+  OutputFileName += ".root";
 
   TFile *file = new TFile(OutputFileName, "RECREATE");
 
