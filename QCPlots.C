@@ -24,8 +24,8 @@
 #include "CommonVarPub.h"
 // #include "CommonVarXi.h"
 // #include "CommonVar_v2.h"
-// #include "CommonVarOmega.h"
-#include "CommonVarLambda.h"
+#include "CommonVarOmega.h"
+// #include "CommonVarLambda.h"
 #include "ErrRatioCorr.C"
 
 void StyleHisto(TH1F *histo, Float_t Low, Float_t Up, Int_t color, Int_t style, TString TitleX, TString TitleY, TString title)
@@ -339,16 +339,20 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
     }
     else
-      hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    {
+      if (ExtrisCentOmegaRed)
+        hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0COmegaRed[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0COmegaRed[mult + 1] - 0.001));
+      else
+        hPsiT0C[mult] = hPsiT0CvsFT0C->ProjectionY(Form("hPsiT0C%d", mult), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0CvsFT0C->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    }
     hPsiT0C[mult]->Scale(1. / hPsiT0C[mult]->Integral());
     hPsiT0C[mult]->SetLineColor(ColorMult[mult]);
     hPsiT0C[mult]->SetMarkerColor(ColorMult[mult]);
     hPsiT0C[mult]->SetMarkerStyle(MarkerMult[mult]);
     hPsiT0C[mult]->SetMarkerSize(SizeMult[mult]);
     hPsiT0C[mult]->GetXaxis()->SetTitle("#Psi_{T0C}");
-    if (mult < (commonNumCent - 2))
-      hPsiT0C[mult]->Draw("same hist");
-    //hPsiT0C[mult]->GetXaxis()->SetRangeUser(-1, 1);
+    hPsiT0C[mult]->Draw("same hist");
+    // hPsiT0C[mult]->GetXaxis()->SetRangeUser(-1, 1);
     cout << "Mean in mult: " << mult << " = " << hPsiT0C[mult]->GetMean() << "+-" << hPsiT0C[mult]->GetMeanError() << endl;
   }
 
@@ -363,7 +367,12 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     if (isOOCentrality)
       leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0CLambdaOO[mult], CentFT0CLambdaOO[mult + 1]), "lp");
     else
-      leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
+    {
+      if (ExtrisCentOmegaRed)
+        leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0COmegaRed[mult], CentFT0COmegaRed[mult + 1]), "lp");
+      else
+        leg->AddEntry(hPsiT0C[mult], Form("%d-%d%%", CentFT0C[mult], CentFT0C[mult + 1]), "lp");
+    }
   }
   leg->Draw();
   c[8]->SaveAs("../QCPlots/hPsiT0C" + inputFileName + ".pdf");
@@ -429,7 +438,12 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hPsiV0A[mult] = hPsiV0AvsFT0C_Shifted->ProjectionY(Form("hPsiV0A%d", mult), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
     }
     else
-      hPsiV0A[mult] = hPsiV0AvsFT0C_Shifted->ProjectionY(Form("hPsiV0A%d", mult), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    {
+      if (ExtrisCentOmegaRed)
+        hPsiV0A[mult] = hPsiV0AvsFT0C_Shifted->ProjectionY(Form("hPsiV0A%d", mult), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult] + 0.001), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult + 1] - 0.001));
+      else
+        hPsiV0A[mult] = hPsiV0AvsFT0C_Shifted->ProjectionY(Form("hPsiV0A%d", mult), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiV0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    }
     hPsiV0A[mult]->Scale(1. / hPsiV0A[mult]->Integral());
     hPsiV0A[mult]->SetLineColor(ColorMult[mult]);
     hPsiV0A[mult]->SetMarkerColor(ColorMult[mult]);
@@ -438,8 +452,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiV0A[mult]->GetXaxis()->SetTitle("#Psi_{V0A}");
     hPsiV0A[mult]->SetTitle("EP V0A");
     // hPsiV0A[mult]->SetTitle("");
-    if (mult < (commonNumCent - 2))
-      hPsiV0A[mult]->Draw("same hist");
+    hPsiV0A[mult]->Draw("same hist");
   }
   leg->Draw();
   c[13]->SaveAs("../QCPlots/hPsiV0A_Shifted" + inputFileName + ".pdf");
@@ -454,7 +467,12 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hPsiTPCL[mult] = hPsiTPCLvsFT0C_Shifted->ProjectionY(Form("hPsiTPCL%d", mult), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
     }
     else
-      hPsiTPCL[mult] = hPsiTPCLvsFT0C_Shifted->ProjectionY(Form("hPsiTPCL%d", mult), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    {
+      if (ExtrisCentOmegaRed)
+        hPsiTPCL[mult] = hPsiTPCLvsFT0C_Shifted->ProjectionY(Form("hPsiTPCL%d", mult), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult] + 0.001), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult + 1] - 0.001));
+      else
+        hPsiTPCL[mult] = hPsiTPCLvsFT0C_Shifted->ProjectionY(Form("hPsiTPCL%d", mult), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiTPCLvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    }
     hPsiTPCL[mult]->Scale(1. / hPsiTPCL[mult]->Integral());
     hPsiTPCL[mult]->SetLineColor(ColorMult[mult]);
     hPsiTPCL[mult]->SetMarkerColor(ColorMult[mult]);
@@ -463,8 +481,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiTPCL[mult]->GetXaxis()->SetTitle("#Psi_{TPC-L}");
     hPsiTPCL[mult]->SetTitle("EP TPC-L");
     // hPsiTPCL[mult]->SetTitle("");
-    if (mult < (commonNumCent - 2))
-      hPsiTPCL[mult]->Draw("same hist");
+    hPsiTPCL[mult]->Draw("same hist");
   }
   leg->Draw();
   c[14]->SaveAs("../QCPlots/hPsiTPCL_Shifted" + inputFileName + ".pdf");
@@ -479,7 +496,12 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hPsiTPCR[mult] = hPsiTPCRvsFT0C_Shifted->ProjectionY(Form("hPsiTPCR%d", mult), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
     }
     else
-      hPsiTPCR[mult] = hPsiTPCRvsFT0C_Shifted->ProjectionY(Form("hPsiTPCR%d", mult), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    {
+      if (ExtrisCentOmegaRed)
+        hPsiTPCR[mult] = hPsiTPCRvsFT0C_Shifted->ProjectionY(Form("hPsiTPCR%d", mult), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult] + 0.001), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult + 1] - 0.001));
+      else
+        hPsiTPCR[mult] = hPsiTPCRvsFT0C_Shifted->ProjectionY(Form("hPsiTPCR%d", mult), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiTPCRvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    }
     hPsiTPCR[mult]->Scale(1. / hPsiTPCR[mult]->Integral());
     hPsiTPCR[mult]->SetLineColor(ColorMult[mult]);
     hPsiTPCR[mult]->SetMarkerColor(ColorMult[mult]);
@@ -488,8 +510,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiTPCR[mult]->GetXaxis()->SetTitle("#Psi_{TPC-R}");
     hPsiTPCR[mult]->SetTitle("EP TPC-R");
     // hPsiTPCR[mult]->SetTitle("");
-    if (mult < (commonNumCent - 2))
-      hPsiTPCR[mult]->Draw("same hist");
+    hPsiTPCR[mult]->Draw("same hist");
   }
   leg->Draw();
   c[15]->SaveAs("../QCPlots/hPsiTPCR_Shifted" + inputFileName + ".pdf");
@@ -504,7 +525,12 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
       hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0CLambdaOO[mult + 1] - 0.001));
     }
     else
-      hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    {
+      if (ExtrisCentOmegaRed)
+        hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0COmegaRed[mult + 1] - 0.001));
+      else
+        hPsiT0A[mult] = hPsiT0AvsFT0C_Shifted->ProjectionY(Form("hPsiT0A%d", mult), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult] + 0.001), hPsiT0AvsFT0C_Shifted->GetXaxis()->FindBin(CentFT0C[mult + 1] - 0.001));
+    }
     hPsiT0A[mult]->Scale(1. / hPsiT0A[mult]->Integral());
     hPsiT0A[mult]->SetLineColor(ColorMult[mult]);
     hPsiT0A[mult]->SetMarkerColor(ColorMult[mult]);
@@ -513,8 +539,7 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
     hPsiT0A[mult]->GetXaxis()->SetTitle("#Psi_{T0A}");
     hPsiT0A[mult]->SetTitle("EP T0A");
     hPsiT0A[mult]->SetTitle("");
-    if (mult < (commonNumCent - 2))
-      hPsiT0A[mult]->Draw("same hist");
+    hPsiT0A[mult]->Draw("same hist");
   }
   leg->Draw();
   c[16]->SaveAs("../QCPlots/hPsiT0A_Shifted" + inputFileName + ".pdf");
@@ -586,20 +611,19 @@ void QCPlots(Bool_t isShifted = 1, Bool_t isEff = 0, Bool_t isAfterEPSel = 0)
   std::cout << "Entries above pol1 = " << entriesAbove << std::endl;
   cout << "Farction over the total = " << entriesAbove / h2->GetEntries() << endl;
 
-
-  //Ratio between hGlobalTrkvsPVContrib after and before selections
+  // Ratio between hGlobalTrkvsPVContrib after and before selections
   TH2F *hGlobalTrkvsPVContribRatio = (TH2F *)hGlobalTrkvsPVContrib->Clone("hGlobalTrkvsPVContribRatio");
-  hGlobalTrkvsPVContribRatio->Divide(hGlobalTrkvsPVContribBefSel); 
-  //for (Int_t ix = 1; ix <= hGlobalTrkvsPVContribRatio->GetNbinsX(); ++ix)
+  hGlobalTrkvsPVContribRatio->Divide(hGlobalTrkvsPVContribBefSel);
+  // for (Int_t ix = 1; ix <= hGlobalTrkvsPVContribRatio->GetNbinsX(); ++ix)
   //{
-  //  for (Int_t iy = 1; iy <= hGlobalTrkvsPVContribRatio->GetNbinsY(); ++iy)
-  //  {
-  //    if (hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy) == 0)
-  //      hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, 0);
-  //    else   
-  //      hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, hGlobalTrkvsPVContrib->GetBinContent(ix, iy) / hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy));
-  //  }
-  //}
+  //   for (Int_t iy = 1; iy <= hGlobalTrkvsPVContribRatio->GetNbinsY(); ++iy)
+  //   {
+  //     if (hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy) == 0)
+  //       hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, 0);
+  //     else
+  //       hGlobalTrkvsPVContribRatio->SetBinContent(ix, iy, hGlobalTrkvsPVContrib->GetBinContent(ix, iy) / hGlobalTrkvsPVContribBefSel->GetBinContent(ix, iy));
+  //   }
+  // }
   TCanvas *cGlobalTrkvsPVContribRatio = new TCanvas("cGlobalTrkvsPVContribRatio", "cGlobalTrkvsPVContribRatio", 800, 600);
   StyleCanvas(cGlobalTrkvsPVContribRatio, 0.05, 0.1, 0.10, 0.1);
   cGlobalTrkvsPVContribRatio->cd();
